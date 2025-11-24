@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Draw (幸運抽獎)</title>
+    <!-- Import Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A simple pulse animation for the winner */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: .8;
+                transform: scale(1.05);
+            }
+        }
+        .animate-winner-pulse {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        /* Custom font */
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6 md:p-8">
+        
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Lucky Draw (幸運抽獎)</h1>
+
+        <!-- 1. Input Section (Toggleable) -->
+        <div id="input-section" class="mb-4 transition-all duration-300">
+            <label for="student-list" class="block text-sm font-medium text-gray-700 mb-2">Paste student list (one per line): (請貼上學生名單：)</label>
+            <textarea id="student-list" rows="8" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. (例如)：
+01 Amelia Chan
+02 Remi Fok 2B abc
+03 Peter Wong
+..."></textarea>
+        </div>
+
+        <div class="flex gap-4">
+            <button id="load-button" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-200 shadow-md">
+                Load Students (載入學生名單)
+            </button>
+            <button id="edit-button" class="hidden w-full bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition duration-200">
+                Edit List (編輯名單)
+            </button>
+        </div>
+
+
+        <!-- 2. Controls Section -->
+        <div class="grid grid-cols-2 gap-4 my-6">
+            <button id="draw-button" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-200 shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed">
+                Draw! (抽獎!)
+            </button>
+            <button id="reset-button" class="w-full bg-gray-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-600 transition duration-200 shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed">
+                Reset (重設)
+            </button>
+        </div>
+
+        <!-- 3. Possibilities (Student Pool) Display -->
+        <div id="pool-section" class="mt-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-2">
+                Current Pool (目前的抽獎池): 
+                <span id="pool-count" class="font-bold text-blue-600">0</span>
+            </h2>
+            <!-- Changed from columns to flex-wrap for card layout -->
+            <div id="pool-list" class="w-full max-h-64 overflow-y-auto bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-inner flex flex-wrap gap-2">
+                <p id="pool-placeholder" class="text-gray-400 text-center italic mt-4 w-full">Please load a student list... (請先載入學生名單...)</p>
+                <!-- Student cards will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Lucky One Modal (Pop-up) -->
+    <div id="modal-overlay" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
+        <div id="modal-content" class="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full text-center relative transform scale-95 transition-all duration-300">
+            <!-- Close button -->
+            <button id="modal-close-button" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">🎉 The Lucky One is... (幸運兒是...) 🎉</h2>
+            <div id="lucky-one-name" class="text-4xl font-extrabold text-blue-600 py-4 my-4 bg-blue-50 rounded-lg animate-winner-pulse">
+                <!-- Winner's name will go here -->
+            </div>
+            
+            <!-- Action buttons for the picked student -->
+            <div id="modal-action-buttons" class="flex gap-4 mt-6">
+                <button id="put-back-button" class="flex-1 bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200">
+                    Put Back (放回池中)
+                </button>
+                <button id="remove-button" class="flex-1 bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200">
+                    Remove (移除)
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- STATE VARIABLES ---
+        let fullStudentList = [];   
+        let currentPool = [];       
+        let luckyOne = null;        
+
+        // --- DOM ELEMENTS ---
+        const studentListInput = document.getElementById('student-list');
+        const loadButton = document.getElementById('load-button');
+        const editButton = document.getElementById('edit-button');
+        const inputSection = document.getElementById('input-section');
+        
+        const drawButton = document.getElementById('draw-button');
+        const resetButton = document.getElementById('reset-button');
+        
+        const poolCount = document.getElementById('pool-count');
+        const poolList = document.getElementById('pool-list');
+        const poolPlaceholder = document.getElementById('pool-placeholder');
+
+        // Modal Elements
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalContent = document.getElementById('modal-content');
+        const modalCloseButton = document.getElementById('modal-close-button');
+        const luckyOneName = document.getElementById('lucky-one-name');
+        const modalActionButtons = document.getElementById('modal-action-buttons');
+        const putBackButton = document.getElementById('put-back-button');
+        const removeButton = document.getElementById('remove-button');
+
+        // --- INITIALIZE APP ---
+        function initializeApp() {
+            drawButton.disabled = true;
+            resetButton.disabled = true;
+            editButton.classList.add('hidden');
+            inputSection.classList.remove('hidden');
+            loadButton.classList.remove('hidden'); // Show load button initially
+            hideModal();
+        }
+
+        // --- CORE FUNCTIONS ---
+
+        /**
+         * Loads students from the textarea.
+         */
+        function loadStudents() {
+            const text = studentListInput.value;
+            if (!text.trim()) {
+                console.warn("Input is empty.");
+                return;
+            }
+            
+            fullStudentList = text.trim().split('\n').filter(name => name.trim() !== '');
+            
+            if (fullStudentList.length > 0) {
+                resetApp();
+                inputSection.classList.add('hidden');
+                editButton.classList.remove('hidden');
+                loadButton.classList.add('hidden'); // Hide load button after load
+            }
+        }
+
+        /**
+         * Shows the input section for editing.
+         */
+        function editStudents() {
+            inputSection.classList.remove('hidden');
+            editButton.classList.add('hidden');
+            loadButton.classList.remove('hidden'); // Show load button again for editing
+            studentListInput.focus();
+        }
+
+        /**
+         * Resets the current pool to the full student list.
+         */
+        function resetApp() {
+            currentPool = [...fullStudentList]; 
+            luckyOne = null;
+            
+            updatePoolDisplay();
+            
+            // Update UI
+            hideModal();
+            resetButton.disabled = false;
+            
+            if (fullStudentList.length > 0) {
+                inputSection.classList.add('hidden');
+                editButton.classList.remove('hidden');
+                loadButton.classList.add('hidden'); // Also hide load button on reset
+            }
+            
+            drawButton.disabled = currentPool.length === 0;
+        }
+
+        /**
+         * Performs the lucky draw.
+         */
+        function doLuckyDraw() {
+            if (currentPool.length === 0) {
+                luckyOneName.textContent = "Pool is empty! (抽獎池是空的！)";
+                modalActionButtons.classList.add('hidden');
+                showModal();
+                drawButton.disabled = true;
+                return;
+            }
+
+            modalActionButtons.classList.remove('hidden');
+            
+            const randomIndex = Math.floor(Math.random() * currentPool.length);
+            luckyOne = currentPool.splice(randomIndex, 1)[0]; 
+            
+            luckyOneName.textContent = luckyOne;
+            showModal();
+            
+            updatePoolDisplay();
+            drawButton.disabled = currentPool.length === 0;
+        }
+
+        /**
+         * Puts the last drawn student back into the pool.
+         */
+        function putBack() {
+            if (luckyOne) {
+                currentPool.push(luckyOne);
+                luckyOne = null;
+                
+                updatePoolDisplay();
+                drawButton.disabled = false;
+            }
+            hideModal();
+        }
+
+        /**
+         * "Removes" the student (just hides the modal).
+         */
+        function removeStudent() {
+            luckyOne = null;
+            hideModal();
+        }
+
+
+        /**
+         * Updates the "Current Pool" list display with cards.
+         */
+        function updatePoolDisplay() {
+            poolList.innerHTML = '';
+            poolCount.textContent = currentPool.length;
+
+            if (currentPool.length === 0) {
+                // Ensure placeholder is styled correctly when list is empty
+                poolList.innerHTML = '<p id="pool-placeholder" class="text-gray-400 text-center italic mt-4 w-full">Pool is empty! (抽獎池是空的！)</p>';
+            } else {
+                const fragment = document.createDocumentFragment();
+                currentPool.forEach(student => {
+                    const studentEl = document.createElement('div');
+                    // This is the new card styling
+                    studentEl.className = 'p-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium shadow-sm'; 
+                    studentEl.textContent = student;
+                    fragment.appendChild(studentEl);
+                });
+                poolList.appendChild(fragment);
+            }
+        }
+
+        // --- MODAL CONTROLS ---
+        function showModal() {
+            modalOverlay.classList.remove('hidden');
+            modalOverlay.classList.add('flex');
+            // Trigger transition
+            setTimeout(() => {
+                modalOverlay.classList.add('opacity-100');
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        function hideModal() {
+            modalOverlay.classList.remove('opacity-100');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            // Wait for transition to end before hiding
+            setTimeout(() => {
+                modalOverlay.classList.add('hidden');
+                modalOverlay.classList.remove('flex');
+            }, 300);
+        }
+
+
+        // --- EVENT LISTENERS ---
+        loadButton.addEventListener('click', loadStudents);
+        editButton.addEventListener('click', editStudents);
+        drawButton.addEventListener('click', doLuckyDraw);
+        resetButton.addEventListener('click', resetApp);
+        
+        // Modal Listeners
+        putBackButton.addEventListener('click', putBack);
+        removeButton.addEventListener('click', removeStudent);
+        modalCloseButton.addEventListener('click', removeStudent); // Default close action is "remove"
+        
+        modalOverlay.addEventListener('click', (e) => {
+            // Close if clicking on the dark background, not the content box
+            if (e.target === modalOverlay) {
+                removeStudent(); // Default close action
+            }
+        });
+
+        // --- RUN ON STARTUP ---
+        initializeApp();
+
+    </script>
+</body>
+</html>
+
+
