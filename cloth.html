@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Maître D' - Fine Dining Dress Code</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Aesthetics */
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            background-image: radial-gradient(#2a2a2a 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        h1, h2, h3, .fancy-font {
+            font-family: 'Playfair Display', serif;
+        }
+        .gold-text {
+            color: #d4af37;
+            text-shadow: 0px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        /* Slot Machine Cards */
+        .slot-card {
+            background: #1e1e1e;
+            border: 2px solid #333;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+        .slot-card:hover {
+            border-color: #d4af37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+        .card-image-container {
+            height: 300px;
+            width: 100%;
+            background-color: #000;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.5s;
+        }
+        .card-img.loading {
+            opacity: 0;
+        }
+        
+        /* Layout Grid */
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        /* iPad Portrait / Mobile Adaptation */
+        @media (max-width: 768px) {
+            .slots-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+            .card-image-container {
+                height: 220px;
+            }
+            .slot-card {
+                display: flex;
+                flex-direction: row;
+                height: 140px;
+            }
+            .card-image-container {
+                width: 120px;
+                height: 100%;
+            }
+            .card-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: flex-start;
+                padding-left: 1rem;
+            }
+        }
+
+        /* Manager Feedback Modal */
+        .manager-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .manager-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .manager-box {
+            background: #1a1a1a;
+            border: 2px solid #d4af37;
+            max-width: 500px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.3);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        .manager-overlay.active .manager-box {
+            transform: translateY(0);
+        }
+
+        /* Guide Overlay */
+        .guide-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #121212;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+        }
+        .guide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .guide-card {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .status-badge {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* Action Buttons */
+        .btn-decision {
+            transition: all 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+        .btn-decision:active {
+            transform: scale(0.98);
+        }
+
+        .hidden { display: none !important; }
+        .flex { display: flex !important; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- HEADER -->
+    <header class="bg-black p-4 border-b border-[#333] shadow-lg z-10">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl md:text-3xl text-[#d4af37]">Le Gourmet</h1>
+                <p class="text-xs text-gray-500 tracking-widest mt-1 uppercase">Dress Code Training Simulator</p>
+            </div>
+            <div class="text-right">
+                <div class="text-gray-400 text-sm">Reputation</div>
+                <div id="scoreDisplay" class="text-2xl text-white font-bold">0</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTROLS -->
+    <div class="bg-[#1a1a1a] p-3 border-b border-[#333]">
+        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <label class="text-gray-400 text-sm uppercase">Guest Mode:</label>
+                <select id="modeSelect" class="bg-black text-white border border-gray-600 p-2 rounded text-sm focus:border-[#d4af37] outline-none">
+                    <option value="mixed">Mixed Gender</option>
+                    <option value="male">Gentlemen Only</option>
+                    <option value="female">Ladies Only</option>
+                </select>
+                <button onclick="openGuide()" class="ml-2 px-3 py-1.5 border border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black rounded text-xs uppercase font-bold tracking-wider transition flex items-center gap-2">
+                    <span>📘</span> View Guide
+                </button>
+            </div>
+            <div class="text-xs text-gray-400 italic">
+                <span class="text-[#d4af37] font-bold">Target:</span> Smart Casual or Formal. <br>
+                <span class="text-red-400 font-bold">Reject:</span> Jeans, Shorts, Trainers, T-Shirts.
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN GAME AREA -->
+    <main class="flex-grow flex flex-col items-center justify-center p-4 w-full">
+        
+        <div class="w-full max-w-5xl mb-8">
+            <!-- Visual Slots -->
+            <div id="gameBoard" class="slots-grid">
+                
+                <!-- TOP SLOT -->
+                <div class="slot-card rounded-lg">
+                    <div class="card-image-container">
+                        <img id="imgTop" src="" class="card-img" alt="Top">
+                        <div class="absolute bottom-0 left-0 bg-black bg-opacity-70 text-white text-xs px-2 py-1 uppercase tracking-wider">Top</div>
+                    </div>
+                    <div class="p-4 card-content bg-[#1e1e1e]">
+                        <h3 id="nameTop" class="text-xl text-[#d4af37] mb-1">Loading...</h3>
+                        <p id="descTop" class="text-sm text-gray-500">...</p>
+                    </div>
+                </div>
+
+                <!-- BOTTOM SLOT (Can be hidden) -->
+                <div id="slotBottom" class="slot-card rounded-lg">
+                    <div class="card-image-container">
+                        <img id="imgBottom" src="" class="card-img" alt="Bottom">
+                        <div class="absolute bottom-0 left-0 bg-black bg-opacity-70 text-white text-xs px-2 py-1 uppercase tracking-wider">Bottom</div>
+                    </div>
+                    <div class="p-4 card-content bg-[#1e1e1e]">
+                        <h3 id="nameBottom" class="text-xl text-[#d4af37] mb-1">Loading...</h3>
+                        <p id="descBottom" class="text-sm text-gray-500">...</p>
+                    </div>
+                </div>
+
+                <!-- SHOES SLOT -->
+                <div class="slot-card rounded-lg">
+                    <div class="card-image-container">
+                        <img id="imgShoes" src="" class="card-img" alt="Shoes">
+                        <div class="absolute bottom-0 left-0 bg-black bg-opacity-70 text-white text-xs px-2 py-1 uppercase tracking-wider">Footwear</div>
+                    </div>
+                    <div class="p-4 card-content bg-[#1e1e1e]">
+                        <h3 id="nameShoes" class="text-xl text-[#d4af37] mb-1">Loading...</h3>
+                        <p id="descShoes" class="text-sm text-gray-500">...</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- DECISION BUTTONS -->
+        <div class="flex gap-4 w-full max-w-md">
+            <button onclick="makeDecision(false)" class="btn-decision flex-1 py-4 bg-red-900 hover:bg-red-800 text-white rounded shadow-lg border-b-4 border-red-950 flex justify-center items-center gap-2">
+                <span class="text-2xl">🛑</span> Reject
+            </button>
+            <button onclick="makeDecision(true)" class="btn-decision flex-1 py-4 bg-emerald-900 hover:bg-emerald-800 text-white rounded shadow-lg border-b-4 border-emerald-950 flex justify-center items-center gap-2">
+                <span class="text-2xl">✨</span> Allow
+            </button>
+        </div>
+
+    </main>
+
+    <!-- MANAGER FEEDBACK MODAL -->
+    <div id="managerOverlay" class="manager-overlay" onclick="closeModal()">
+        <div class="manager-box rounded-lg" onclick="event.stopPropagation()">
+            <h2 id="modalTitle" class="text-3xl text-[#d4af37] mb-4 border-b border-gray-700 pb-2">Manager's Feedback</h2>
+            
+            <div id="modalEmoji" class="text-6xl mb-4">🤔</div>
+            
+            <p id="modalMessage" class="text-lg text-gray-300 mb-6 leading-relaxed">
+                Feedback text goes here.
+            </p>
+            
+            <button onclick="closeModal()" class="px-8 py-2 bg-[#d4af37] text-black font-bold uppercase tracking-widest hover:bg-white transition rounded">
+                Next Guest
+            </button>
+        </div>
+    </div>
+
+    <!-- GUIDE MODAL -->
+    <div id="guideOverlay" class="guide-overlay hidden">
+        <!-- Header -->
+        <div class="p-4 border-b border-gray-800 bg-[#0a0a0a] flex justify-between items-center shadow-md">
+            <h2 class="text-2xl text-[#d4af37] fancy-font">Dress Code Reference Guide</h2>
+            <button onclick="closeGuide()" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="p-4 bg-[#121212] flex gap-4 justify-center border-b border-gray-800">
+            <button onclick="switchGuideGender('male')" id="btnGuideMale" class="px-6 py-2 rounded-full font-bold transition-all bg-[#d4af37] text-black shadow-lg shadow-yellow-900/20">Gentlemen</button>
+            <button onclick="switchGuideGender('female')" id="btnGuideFemale" class="px-6 py-2 rounded-full font-bold transition-all bg-gray-800 text-gray-400 hover:bg-gray-700">Ladies</button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div id="guideContent" class="flex-grow overflow-y-auto p-6 max-w-7xl mx-auto w-full">
+            <!-- Content Injected via JS -->
+        </div>
+    </div>
+
+    <script>
+        /* * CURATED IMAGE GALLERY 
+         * Updated to address broken/wrong images for specific items.
+         */
+
+        const ITEMS_MALE = {
+            tops: [
+                { 
+                    name: "Tuxedo Jacket", ok: true, desc: "Formal black tie attire.",
+                    images: [
+                        "https://images.unsplash.com/photo-1592878904946-b3cd8ae46305?w=400",
+                        "https://images.unsplash.com/photo-1559582798-678dfc71ccd8?w=400"
+                    ]
+                },
+                { 
+                    name: "Navy Blazer", ok: true, desc: "Smart structured jacket.",
+                    images: [
+                        "https://images.unsplash.com/photo-1592878904946-b3cd8ae46305?w=400", 
+                        "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400"
+                    ]
+                },
+                { 
+                    name: "Crisp Dress Shirt", ok: true, desc: "Ironed button-down.",
+                    images: [
+                        "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400",
+                        "https://images.unsplash.com/photo-1620799140408-ed5341cd2431?w=400"
+                    ]
+                },
+                { 
+                    name: "Polo Shirt", ok: true, desc: "Collared casual shirt.",
+                    images: [
+                        "https://images.unsplash.com/photo-1626557981101-aae6f84aa6ff?w=400",
+                        "https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=400"
+                    ]
+                },
+                { 
+                    name: "Graphic T-Shirt", ok: false, desc: "Casual cotton tee.",
+                    images: [
+                        "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400",
+                        "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400"
+                    ]
+                },
+                { 
+                    name: "Tank Top", ok: false, desc: "Sleeveless undershirt.",
+                    images: [
+                        "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400",
+                        "https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=400"
+                    ]
+                },
+                { 
+                    name: "Sports Jersey", ok: false, desc: "Athletic team wear.",
+                    images: [
+                        "https://images.unsplash.com/photo-1577471488278-161db3865d96?w=400",
+                        "https://images.unsplash.com/photo-1566578597040-12c98405560d?w=400"
+                    ]
+                }
+            ],
+            bottoms: [
+                { 
+                    name: "Tailored Trousers", ok: true, desc: "Formal wool pants.",
+                    images: [
+                        "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400",
+                        "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400"
+                    ]
+                },
+                { 
+                    name: "Chinos", ok: true, desc: "Smart cotton trousers.",
+                    images: [
+                        "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400",
+                        "https://images.unsplash.com/photo-1484515991647-c5760fcecfc7?w=400"
+                    ]
+                },
+                { 
+                    name: "Blue Jeans", ok: false, desc: "Denim material.",
+                    images: [
+                        "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400",
+                        "https://images.unsplash.com/photo-1602293589930-45aad59ba3ab?w=400"
+                    ]
+                },
+                { 
+                    name: "Cargo Shorts", ok: false, desc: "Casual shorts with pockets.",
+                    images: [
+                        "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=400",
+                        "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=400"
+                    ]
+                },
+                { 
+                    name: "Gym Shorts", ok: false, desc: "Athletic wear.",
+                    images: [
+                        "https://images.unsplash.com/photo-1571731956677-36d475984f55?w=400",
+                        "https://images.unsplash.com/photo-1616248249518-3a67f73b7840?w=400"
+                    ]
+                }
+            ],
+            shoes: [
+                { 
+                    name: "Oxford Shoes", ok: true, desc: "Polished leather lace-ups.",
+                    images: [
+                        "https://images.unsplash.com/photo-1550346380-b28369c2672f?w=400",
+                        "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=400"
+                    ]
+                },
+                { 
+                    name: "Leather Loafers", ok: true, desc: "Slip-on dress shoes.",
+                    images: [
+                        "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400",
+                        "https://images.unsplash.com/photo-1570464197285-9949814674a7?w=400"
+                    ]
+                },
+                { 
+                    name: "Running Trainers", ok: false, desc: "Athletic running shoes.",
+                    images: [
+                        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400",
+                        "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400"
+                    ]
+                },
+                { 
+                    name: "Flip Flops", ok: false, desc: "Rubber beach sandals.",
+                    images: [
+                        "https://images.unsplash.com/photo-1545259742-b4fdce533213?w=400",
+                        "https://images.unsplash.com/photo-1535043934128-59b4325e24b9?w=400"
+                    ]
+                },
+                { 
+                    name: "Work Boots", ok: false, desc: "Heavy duty boots.",
+                    images: [
+                        "https://images.unsplash.com/photo-1608256246200-53e635b5b69f?w=400",
+                        "https://images.unsplash.com/photo-1623532942327-750e1d6e0990?w=400"
+                    ]
+                }
+            ]
+        };
+
+        const ITEMS_FEMALE = {
+            tops: [
+                { 
+                    name: "Evening Gown", ok: true, type: "one-piece", desc: "Floor-length formal dress.",
+                    images: [
+                        "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400",
+                        "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=400"
+                    ]
+                },
+                { 
+                    name: "Cocktail Dress", ok: true, type: "one-piece", desc: "Elegant knee-length dress.",
+                    images: [
+                        "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400",
+                        "https://images.unsplash.com/photo-1605763240004-7e93b172d754?w=400"
+                    ]
+                },
+                { 
+                    name: "Silk Blouse", ok: true, desc: "Formal silk top.",
+                    images: [
+                        "https://images.unsplash.com/photo-1518640467709-66106f2207e9?w=400",
+                        "https://images.unsplash.com/photo-1551163943-3f6a294124eb?w=400"
+                    ]
+                },
+                { 
+                    name: "Fitted Blazer", ok: true, desc: "Smart business jacket.",
+                    images: [
+                        "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400",
+                        "https://images.unsplash.com/photo-1548624313-0396c75e4b1a?w=400"
+                    ]
+                },
+                { 
+                    name: "Summer Sundress", ok: true, type: "one-piece", desc: "Light smart-casual dress.",
+                    images: [
+                        "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400",
+                        "https://images.unsplash.com/photo-1515347619252-60a6bf4fffce?w=400"
+                    ]
+                },
+                { 
+                    name: "Crop Top", ok: false, desc: "Midriff-baring top.",
+                    images: [
+                        "https://images.unsplash.com/photo-1529139574466-a302c27e3844?w=400",
+                        "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400"
+                    ]
+                },
+                { 
+                    name: "Oversized Hoodie", ok: false, desc: "Baggy sweatshirt.",
+                    images: [
+                        "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=400",
+                        "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400"
+                    ]
+                }
+            ],
+            bottoms: [
+                { 
+                    name: "Pencil Skirt", ok: true, desc: "Fitted formal skirt.",
+                    images: [
+                        "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=400",
+                        "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=400"
+                    ]
+                },
+                { 
+                    name: "Dress Trousers", ok: true, desc: "Tailored pants.",
+                    images: [
+                        "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=400",
+                        "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400"
+                    ]
+                },
+                { 
+                    name: "Denim Shorts", ok: false, desc: "Casual cut-offs.",
+                    images: [
+                        "https://images.unsplash.com/photo-1560365503-63993839296f?w=400",
+                        "https://images.unsplash.com/photo-1545332655-33c1d7878c74?w=400"
+                    ]
+                },
+                { 
+                    name: "Leggings", ok: false, desc: "Tight athletic wear.",
+                    images: [
+                        "https://images.unsplash.com/photo-1506619216599-9d16d0903dfd?w=400",
+                        "https://images.unsplash.com/photo-1536639445389-42b57602b405?w=400"
+                    ]
+                }
+            ],
+            shoes: [
+                { 
+                    name: "High Heels", ok: true, desc: "Formal stiletto pumps.",
+                    images: [
+                        "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400",
+                        "https://images.unsplash.com/photo-1515347619252-60a6bf4fffce?w=400"
+                    ]
+                },
+                { 
+                    name: "Elegant Flats", ok: true, desc: "Smart flat shoes.",
+                    images: [
+                        "https://images.unsplash.com/photo-1535043934128-59b4325e24b9?w=400",
+                        "https://images.unsplash.com/photo-1560026301-885671e71b8b?w=400"
+                    ]
+                },
+                { 
+                    name: "Strappy Sandals", ok: true, desc: "Formal open shoes.",
+                    images: [
+                        "https://images.unsplash.com/photo-1562273138-f46be4ebdf33?w=400",
+                        "https://images.unsplash.com/photo-1530092285049-1c42085fd395?w=400"
+                    ]
+                },
+                { 
+                    name: "Dirty Sneakers", ok: false, desc: "Worn-out trainers.",
+                    images: [
+                        "https://images.unsplash.com/photo-1603487742131-4160d6986ba6?w=400",
+                        "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=400"
+                    ]
+                },
+                { 
+                    name: "Rubber Slides", ok: false, desc: "Casual pool footwear.",
+                    images: [
+                        "https://images.unsplash.com/photo-1576679354291-76b4f60f2d7e?w=400",
+                        "https://images.unsplash.com/photo-1603487742131-4160d6986ba6?w=400"
+                    ]
+                }
+            ]
+        };
+
+        // State
+        let currentOutfit = {};
+        let score = 0;
+        let currentGender = 'male'; // male, female
+
+        // Elements
+        const modeSelect = document.getElementById('modeSelect');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        
+        // Modal Elements
+        const managerOverlay = document.getElementById('managerOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalEmoji = document.getElementById('modalEmoji');
+
+        // Init
+        modeSelect.addEventListener('change', generateGuest);
+        window.onload = generateGuest;
+
+        // Helper: Random Item from Array
+        function getRandom(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        // Core Game Logic
+        function generateGuest() {
+            // 1. Determine Gender
+            const mode = modeSelect.value;
+            if (mode === 'mixed') {
+                currentGender = Math.random() > 0.5 ? 'male' : 'female';
+            } else {
+                currentGender = mode;
+            }
+
+            const dataset = currentGender === 'male' ? ITEMS_MALE : ITEMS_FEMALE;
+
+            // 2. Pick Items
+            const top = getRandom(dataset.tops);
+            let bottom = null;
+            
+            // If top is not a dress/one-piece, pick a bottom
+            if (top.type !== 'one-piece') {
+                bottom = getRandom(dataset.bottoms);
+            }
+
+            const shoes = getRandom(dataset.shoes);
+
+            // 3. Store State
+            currentOutfit = { top, bottom, shoes };
+
+            // 4. Render UI
+            renderCard('Top', top);
+            renderCard('Shoes', shoes);
+
+            const bottomSlot = document.getElementById('slotBottom');
+            if (top.type === 'one-piece') {
+                bottomSlot.classList.add('hidden');
+            } else {
+                bottomSlot.classList.remove('hidden');
+                renderCard('Bottom', bottom);
+            }
+        }
+
+        function renderCard(type, item) {
+            const imgEl = document.getElementById(`img${type}`);
+            const nameEl = document.getElementById(`name${type}`);
+            const descEl = document.getElementById(`desc${type}`);
+
+            nameEl.textContent = item.name;
+            descEl.textContent = item.desc;
+
+            // Reset loading state
+            imgEl.classList.add('loading');
+            
+            // NEW LOGIC: Select random image from CURATED list
+            const randomImage = item.images[Math.floor(Math.random() * item.images.length)];
+            imgEl.src = randomImage;
+            
+            imgEl.onload = () => imgEl.classList.remove('loading');
+            imgEl.onerror = function() { 
+                this.src = 'https://placehold.co/320x360/1a1a1a/FFF?text=Image+Not+Found';
+            };
+        }
+
+        function makeDecision(allowedGuest) {
+            // Check outfit validity
+            let reasons = [];
+            let isOutfitOk = true;
+
+            // Check Top
+            if (!currentOutfit.top.ok) {
+                isOutfitOk = false;
+                reasons.push(`The ${currentOutfit.top.name} is too casual.`);
+            }
+
+            // Check Bottom (if exists)
+            if (currentOutfit.bottom && !currentOutfit.bottom.ok) {
+                isOutfitOk = false;
+                reasons.push(`We do not accept ${currentOutfit.bottom.name}.`);
+            }
+
+            // Check Shoes
+            if (!currentOutfit.shoes.ok) {
+                isOutfitOk = false;
+                reasons.push(`Those ${currentOutfit.shoes.name} are inappropriate.`);
+            }
+
+            // Evaluate Player Decision
+            let playerWon = false;
+            let feedbackTitle = "";
+            let feedbackMsg = "";
+            let emoji = "";
+
+            if (allowedGuest) {
+                if (isOutfitOk) {
+                    // Correct Allow
+                    playerWon = true;
+                    score++;
+                    feedbackTitle = "Excellent Choice";
+                    feedbackMsg = "The guest is dressed perfectly. Please show them to their table.";
+                    emoji = "🥂";
+                } else {
+                    // Wrong Allow
+                    playerWon = false;
+                    score = Math.max(0, score - 1);
+                    feedbackTitle = "Major Mistake!";
+                    feedbackMsg = `You let them in, but look at them! ${reasons[0]} This ruins our atmosphere.`;
+                    emoji = "😡";
+                }
+            } else {
+                // Rejected Guest
+                if (isOutfitOk) {
+                    // Wrong Reject
+                    playerWon = false;
+                    score = Math.max(0, score - 1);
+                    feedbackTitle = "Why did you do that?";
+                    feedbackMsg = "That guest was dressed impeccably! You just turned away a VIP for no reason.";
+                    emoji = "🤦‍♂️";
+                } else {
+                    // Correct Reject
+                    playerWon = true;
+                    score++;
+                    feedbackTitle = "Good Catch";
+                    feedbackMsg = `Correct. We cannot allow entry. ${reasons.join(" ")}`;
+                    emoji = "🛡️";
+                }
+            }
+
+            scoreDisplay.textContent = score;
+            showModal(feedbackTitle, feedbackMsg, emoji, playerWon);
+        }
+
+        function showModal(title, msg, emoji, success) {
+            modalTitle.textContent = title;
+            modalTitle.className = success ? "text-3xl text-green-500 mb-4 border-b border-gray-700 pb-2" : "text-3xl text-red-500 mb-4 border-b border-gray-700 pb-2";
+            modalMessage.textContent = msg;
+            modalEmoji.textContent = emoji;
+            managerOverlay.classList.add('active');
+        }
+
+        function closeModal() {
+            managerOverlay.classList.remove('active');
+            generateGuest();
+        }
+
+        /* GUIDE LOGIC */
+        function openGuide() {
+            document.getElementById('guideOverlay').classList.remove('hidden');
+            switchGuideGender('male'); // Default open to male
+        }
+
+        function closeGuide() {
+            document.getElementById('guideOverlay').classList.add('hidden');
+        }
+
+        function switchGuideGender(gender) {
+            const btnMale = document.getElementById('btnGuideMale');
+            const btnFemale = document.getElementById('btnGuideFemale');
+            const container = document.getElementById('guideContent');
+            
+            // Toggle Button Styles
+            if (gender === 'male') {
+                btnMale.className = "px-6 py-2 rounded-full font-bold transition-all bg-[#d4af37] text-black shadow-lg shadow-yellow-900/20";
+                btnFemale.className = "px-6 py-2 rounded-full font-bold transition-all bg-gray-800 text-gray-400 hover:bg-gray-700";
+            } else {
+                btnMale.className = "px-6 py-2 rounded-full font-bold transition-all bg-gray-800 text-gray-400 hover:bg-gray-700";
+                btnFemale.className = "px-6 py-2 rounded-full font-bold transition-all bg-[#d4af37] text-black shadow-lg shadow-yellow-900/20";
+            }
+
+            // Render Content
+            const dataset = gender === 'male' ? ITEMS_MALE : ITEMS_FEMALE;
+            container.innerHTML = '';
+
+            const categories = [
+                { id: 'tops', title: 'Tops' },
+                { id: 'bottoms', title: 'Bottoms' },
+                { id: 'shoes', title: 'Footwear' }
+            ];
+
+            categories.forEach(cat => {
+                const section = document.createElement('div');
+                section.className = "mb-10";
+                section.innerHTML = `
+                    <h3 class="text-xl text-gray-300 uppercase tracking-widest border-b border-gray-700 pb-2 mb-4">${cat.title}</h3>
+                    <div class="guide-grid"></div>
+                `;
+                
+                const grid = section.querySelector('.guide-grid');
+
+                dataset[cat.id].forEach(item => {
+                    const statusIcon = item.ok ? '✅' : '❌';
+                    const statusColor = item.ok ? 'bg-green-900/80' : 'bg-red-900/80';
+                    const borderColor = item.ok ? 'border-green-800' : 'border-red-900';
+                    
+                    const card = document.createElement('div');
+                    card.className = `guide-card relative group ${borderColor} border-2`;
+                    card.innerHTML = `
+                        <div class="relative h-48 overflow-hidden bg-black">
+                            <img src="${item.images[0]}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                            <div class="status-badge ${statusColor} text-white shadow-lg backdrop-blur-sm border border-white/20">
+                                ${statusIcon}
+                            </div>
+                        </div>
+                        <div class="p-3 bg-[#181818]">
+                            <h4 class="text-[#d4af37] font-bold text-sm mb-1 truncate">${item.name}</h4>
+                            <p class="text-gray-500 text-xs leading-snug">${item.desc}</p>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+                container.appendChild(section);
+            });
+        }
+
+    </script>
+</body>
+</html>
