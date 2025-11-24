@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Math Hero: Time Attack V12</title>
+    <!-- Load KaTeX for Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-overlay: rgba(0, 0, 0, 0.7);
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            color: white;
+            font-family: var(--font-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* DYNAMIC BACKGROUNDS */
+        #bg-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            transition: background 1s ease;
+        }
+        .bg-level-1 { background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364); }
+        .bg-level-2 { background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%); }
+        .bg-level-3 { background: linear-gradient(to bottom, #320b35, #000000); }
+        .bg-level-4 { background: linear-gradient(to bottom, #480048, #C04848); } /* The Void */
+
+        /* UI HUD */
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .stat-group { display: flex; gap: 10px; }
+
+        .stat-box {
+            background: rgba(0,0,0,0.6);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .progress-bar-container {
+            width: 100px;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-left: 8px;
+        }
+
+        #level-progress {
+            height: 100%;
+            background: #facc15;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .level-badge {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, #ff8a00, #e52e71);
+            padding: 5px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 0 15px rgba(229, 46, 113, 0.5);
+            transition: all 0.5s;
+            opacity: 0; 
+            text-align: center;
+        }
+
+        /* BATTLE AREA (Canvas) */
+        #game-canvas {
+            display: block;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* INPUT AREA */
+        #control-panel {
+            height: 40vh;
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 3px solid #334155;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 20;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        }
+
+        #question-box {
+            width: 100%;
+            max-width: 700px;
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+            border: 1px solid #475569;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .q-label {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+        }
+
+        .math-content {
+            font-size: 1.3rem;
+            color: #e2e8f0;
+            margin-top: 5px;
+        }
+
+        #answers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            max-width: 700px;
+            height: 100%;
+        }
+
+        .ans-btn {
+            background: linear-gradient(145deg, #334155, #1e293b);
+            border: 2px solid #475569;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.1s, border-color 0.2s, background 0.2s;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 5px;
+            font-size: 1.1rem;
+        }
+
+        .ans-btn:active { transform: scale(0.96); }
+        .ans-btn:hover { border-color: #60a5fa; background: #334155; }
+        
+        .ans-btn.correct { 
+            background: #059669 !important; 
+            border-color: #34d399 !important; 
+        }
+        
+        .ans-btn.wrong { 
+            background: #dc2626 !important; 
+            border-color: #f87171 !important; 
+            animation: shake 0.4s;
+        }
+
+        /* SCREENS */
+        .overlay-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 10, 0.92);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .hidden { display: none !important; }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .btn-start {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(124, 58, 237, 0.5);
+            transition: transform 0.2s;
+            margin-top: 15px;
+            font-weight: bold;
+            min-width: 200px;
+        }
+        .btn-start:hover { transform: scale(1.05); }
+
+        .btn-secondary {
+            background: #334155;
+            box-shadow: none;
+            border: 1px solid #475569;
+        }
+
+        /* RESULT TABLE */
+        .result-box {
+            background: #1e293b;
+            width: 100%;
+            max-width: 600px;
+            max-height: 40vh;
+            overflow-y: auto;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #334155;
+            font-size: 0.9rem;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #334155; color: #cbd5e1; }
+        th { background: #0f172a; position: sticky; top: 0; }
+        .td-wrong { color: #fca5a5; }
+        .td-right { color: #86efac; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 600px) {
+            #control-panel { height: 45vh; }
+            h1 { font-size: 2rem; }
+            #answers-grid { grid-template-columns: 1fr; }
+            .ans-btn { min-height: 45px; }
+            .stat-box { padding: 5px 10px; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="bg-layer" class="bg-level-1"></div>
+
+    <!-- UI HUD -->
+    <div id="ui-layer">
+        <div class="hud-top">
+            <div class="stat-group">
+                <div class="stat-box" style="color: #ef4444;">
+                    ❤️ <span id="hp-val">3</span>
+                </div>
+                <div class="stat-box">
+                    <span id="lvl-val">LVL 1</span>
+                    <div class="progress-bar-container">
+                        <div id="level-progress"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-box" style="color: #facc15;">
+                🏆 <span id="score-val">0</span>
+            </div>
+        </div>
+        <div id="level-indicator" class="level-badge">LEVEL 1: FOREST</div>
+    </div>
+
+    <!-- CANVAS -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- CONTROLS -->
+    <div id="control-panel">
+        <div id="question-box">
+            <span class="q-label">ENEMY APPROACHING! SOLVE FAST!</span>
+            <div id="math-question" class="math-content">...</div>
+        </div>
+        <div id="answers-grid">
+            <button class="ans-btn" id="btn-0"></button>
+            <button class="ans-btn" id="btn-1"></button>
+            <button class="ans-btn" id="btn-2"></button>
+            <button class="ans-btn" id="btn-3"></button>
+        </div>
+    </div>
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="overlay-screen">
+        <h1>Math Hero</h1>
+        <div style="font-size: 5rem; margin-bottom: 20px;">🧝 vs 🐉</div>
+        <p>The enemy is approaching!</p>
+        <p style="color: #94a3b8; max-width: 400px; font-size: 0.9rem;">
+            Answer correctly to stop them.<br>
+            5 Correct answers to Level Up.<br>
+            Level up recovers 1 Life ❤️.
+        </p>
+        <button class="btn-start" onclick="Game.init(1)">START GAME</button>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div id="end-screen" class="overlay-screen hidden">
+        <h1 id="end-title">GAME OVER</h1>
+        <p id="end-reason">Defeated!</p>
+        <h3>Score: <span id="end-score">0</span></h3>
+        
+        <div class="result-box">
+            <table id="log-table">
+                <thead>
+                    <tr><th>Q</th><th>You</th><th>Ans</th></tr>
+                </thead>
+                <tbody id="log-body"></tbody>
+            </table>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-start" style="margin:0; background: #059669;" onclick="Game.exportLog()">💾 Save Battle Report</button>
+                <button class="btn-start" style="margin:0;" onclick="Game.init(1)">↻ Restart Lvl 1</button>
+            </div>
+            <button id="btn-checkpoint" class="btn-start btn-secondary" style="margin:0; display:none;" onclick="Game.retryCheckpoint()">
+                ⏩ Continue Lvl X
+            </button>
+        </div>
+    </div>
+
+<script>
+/**
+ * MATH GENERATOR (KaTeX)
+ */
+const MathGen = {
+    randInt: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
+    
+    // Euclid's Algorithm for GCD
+    gcd: (a, b) => {
+        a = Math.abs(a); b = Math.abs(b);
+        while (b) { let t = b; b = a % b; a = t; }
+        return a;
+    },
+
+    // Helper to normalize math string for equivalence check
+    // e.g. "(x+6)(x-6)" -> sorts factors -> "(x-6)(x+6)" (alphabetical sort of bracket content)
+    normalize: function(s) {
+        if (!s) return "";
+        s = s.replace(/\s+/g, ""); 
+        let kMatch = s.match(/^([^(]+)/); 
+        let k = kMatch ? kMatch[1] : "";
+        let factors = s.match(/\([^)]+\)/g);
+        if (!factors) return s; 
+        factors.sort(); 
+        return k + factors.join("");
+    },
+
+    getLevel1: function() { // Common Factor
+        const isExpand = Math.random() > 0.5;
+        let k = this.randInt(2, 6) * (Math.random() > 0.5 ? 1 : -1);
+        let a = this.randInt(1, 4);
+        let b = this.randInt(1, 9);
+        
+        // Ensure a and b are coprime so k is the HCF
+        while (this.gcd(a, b) > 1) {
+            b = this.randInt(1, 9); 
+            if(this.gcd(a,b) > 1 && b > 15) { b = a+1; } 
+        }
+        
+        const qLatexFactor = `${k}(${a === 1 ? 'x' : a+'x'} ${b>0?'+':''} ${b})`;
+        const ka = k*a;
+        const kb = k*b;
+        const qLatexExpand = `${ka === 1 ? '' : (ka===-1?'-':ka)}x ${kb>0?'+':''} ${kb}`;
+        
+        if (isExpand) {
+            return {
+                q: `\\text{Expand: } ${qLatexFactor}`,
+                a: qLatexExpand,
+                distractors: [
+                    `${ka}x ${kb>0?'-':'+'} ${Math.abs(kb)}`,
+                    `${k}x ${kb>0?'+':''} ${kb}`,
+                    `${ka}x ${b>0?'+':''} ${b}`,
+                    `${ka}x ${kb>0?'+':''} ${Math.abs(k)}`, 
+                    `${Math.abs(ka)}x ${kb>0?'+':''} ${kb}` 
+                ]
+            };
+        } else {
+            return {
+                q: `\\text{Factorize: } ${qLatexExpand}`,
+                a: qLatexFactor,
+                distractors: [
+                    `${k}(${a}x ${b>0?'-':'+'} ${Math.abs(b)})`,
+                    `${Math.abs(k)}(${a}x ${b>0?'+':''} ${b})`,
+                    `${k}(${a}x)`,
+                    `${k}(${a}x ${b>0?'+':''} ${b+1})`, 
+                    `${Math.abs(k)}(${Math.abs(a)}x ${b>0?'-':'+'} ${Math.abs(b)})` 
+                ]
+            };
+        }
+    },
+
+    getLevel2: function() { // Squares
+        const type = Math.random() > 0.5 ? 'diffSq' : 'perfSq';
+        
+        if (type === 'diffSq') {
+            let a = this.randInt(1, 5);
+            let b = this.randInt(1, 9);
+            while(this.gcd(a, b) > 1) b++;
+
+            const a2 = a*a;
+            const b2 = b*b;
+            const termA = a === 1 ? "x^2" : `${a2}x^2`;
+            const qStr = `${termA} - ${b2}`;
+            const aStr = `(${a===1?'':a}x + ${b})(${a===1?'':a}x - ${b})`;
+            return {
+                q: `\\text{Factorize: } ${qStr}`,
+                a: aStr,
+                distractors: [
+                    `(${a===1?'':a}x - ${b})^2`, 
+                    `(${a===1?'':a2}x - ${b})(${a===1?'':a2}x + ${b})`, 
+                    `(${a===1?'':a}x + ${b2})(${a===1?'':a}x - ${b2})`,
+                    `(${a===1?'':a}x + ${b})^2`, 
+                    `(${a===1?'':a}x - ${b})(${a===1?'':a}x - ${b})` 
+                ]
+            };
+        } else {
+            const a = this.randInt(2, 9) * (Math.random()>0.5?1:-1);
+            const sign = a > 0 ? "+" : "-";
+            const absA = Math.abs(a);
+            const qStr = `(x ${sign} ${absA})^2`;
+            const mid = 2*a;
+            const last = a*a;
+            const aStr = `x^2 ${mid>0?'+':''} ${mid}x + ${last}`;
+            return {
+                q: `\\text{Expand: } ${qStr}`,
+                a: aStr,
+                distractors: [
+                    `x^2 ${sign} ${last}`,
+                    `x^2 ${sign} ${absA}x + ${last}`,
+                    `x^2 ${sign==='+'?'-':'+'} ${Math.abs(mid)}x + ${last}`,
+                    `x^2 ${sign} ${mid}x - ${last}`,
+                    `x^2 ${sign} ${mid}x` 
+                ]
+            };
+        }
+    },
+
+    getLevel3: function() { // Cross Method
+        let p = this.randInt(-5, 5);
+        let q = this.randInt(-5, 5);
+        if (p===0) p=1; if (q===0) q=2;
+        
+        const sum = p + q;
+        const prod = p * q;
+        
+        const termMid = sum === 0 ? "" : (sum === 1 ? "+x" : (sum === -1 ? "-x" : `${sum>0?'+':''}${sum}x`));
+        const qStr = `x^2 ${termMid} ${prod>0?'+':''}${prod}`;
+        
+        const pSign = p > 0 ? "+" : "";
+        const qSign = q > 0 ? "+" : "";
+        const aStr = `(x ${pSign}${p})(x ${qSign}${q})`;
+        
+        return {
+            q: `\\text{Factorize: } ${qStr}`,
+            a: aStr,
+            distractors: [
+                `(x ${p>0?'':'+'}${p*-1})(x ${q>0?'':'+'}${q*-1})`, 
+                `(x ${sum>0?'+':''}${sum})(x ${prod>0?'+':''}${prod})`, 
+                `(x ${pSign}${p})(x ${q>0?'':'+'}${q*-1})`, 
+                `(x ${pSign}${p+1})(x ${qSign}${q})`, 
+                `(x ${p>0?'+':''}${prod})(x ${q>0?'+':''}${1})` 
+            ]
+        };
+    },
+
+    getLevel4: function() { // Common Factor + Cross Method
+        const k = this.randInt(2, 4) * (Math.random() > 0.5 ? 1 : -1);
+        let p = this.randInt(-4, 4);
+        let q = this.randInt(-4, 4);
+        if (p===0) p=1; if (q===0) q=2;
+        
+        const sum = p + q;
+        const prod = p * q;
+        
+        const termA = k === -1 ? "-x^2" : (k===1 ? "x^2" : `${k}x^2`);
+        const midVal = k * sum;
+        const termMid = midVal === 0 ? "" : (midVal === 1 ? "+x" : (midVal === -1 ? "-x" : `${midVal>0?'+':''}${midVal}x`));
+        const lastVal = k * prod;
+        const termLast = `${lastVal>0?'+':''}${lastVal}`;
+        
+        const qStr = `${termA} ${termMid} ${termLast}`;
+        const pSign = p > 0 ? "+" : "";
+        const qSign = q > 0 ? "+" : "";
+        const aStr = `${k}(x ${pSign}${p})(x ${qSign}${q})`;
+        
+        return {
+            q: `\\text{Factorize: } ${qStr}`,
+            a: aStr,
+            distractors: [
+                `(x ${pSign}${p})(x ${qSign}${q})`, // Missing k
+                `${k}(x ${p>0?'':'+'}${p*-1})(x ${q>0?'':'+'}${q*-1})`, 
+                `(${k}x ${p>0?'+':''}${k*p})(x ${qSign}${q})`, 
+                `${k}(x ${sum>0?'+':''}${sum})(x ${prod>0?'+':''}${prod})`,
+                `${k}(x ${pSign}${p})(x ${q>0?'':'+'}${q*-1})`
+            ]
+        };
+    }
+};
+
+/**
+ * GAME ENGINE
+ */
+const Game = {
+    level: 1,
+    questionsAnsweredInLevel: 0, 
+    highestLevelReached: 1,
+    score: 0,
+    hp: 3,
+    maxHp: 3,
+    qData: null,
+    active: false,
+    mistakes: [],
+    
+    levels: {
+        1: { name: "THE FOREST", color: "#71b280" },
+        2: { name: "DEEP SPACE", color: "#1b2735" },
+        3: { name: "CYBER CITY", color: "#2b003b" },
+        4: { name: "THE VOID", color: "#480048" }
+    },
+
+    init: function(startLevel) {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.add('hidden');
+        
+        this.score = (startLevel - 1) * 1000; 
+        this.hp = 3;
+        this.level = startLevel;
+        this.questionsAnsweredInLevel = 0;
+        this.mistakes = [];
+        this.active = true;
+        
+        // FIX: Initialize Renderer metrics BEFORE spawning enemy
+        Renderer.stop();
+        Renderer.resize(); 
+        
+        this.updateUI();
+        this.updateBackground();
+        this.nextQuestion();
+        
+        Renderer.start();
+    },
+
+    retryCheckpoint: function() {
+        this.init(this.highestLevelReached);
+    },
+
+    updateUI: function() {
+        document.getElementById('score-val').innerText = this.score;
+        document.getElementById('hp-val').innerText = this.hp;
+        document.getElementById('lvl-val').innerText = `LVL ${this.level}`;
+        
+        const pct = (this.questionsAnsweredInLevel / 5) * 100;
+        document.getElementById('level-progress').style.width = `${pct}%`;
+
+        const badge = document.getElementById('level-indicator');
+        const lvlCfg = this.levels[this.level] || this.levels[4];
+        badge.innerText = `${lvlCfg.name}`;
+        badge.style.opacity = 1;
+    },
+
+    updateBackground: function() {
+        const bg = document.getElementById('bg-layer');
+        bg.className = ''; 
+        const lvlClass = Math.min(this.level, 4);
+        bg.classList.add(`bg-level-${lvlClass}`);
+        Renderer.setLevel(this.level);
+    },
+
+    nextQuestion: function() {
+        if (!this.active) return;
+
+        if (this.questionsAnsweredInLevel >= 5) {
+            this.level++;
+            this.questionsAnsweredInLevel = 0;
+            if (this.hp < this.maxHp) {
+                this.hp++;
+                Renderer.heroHeal();
+            }
+            if (this.level > this.highestLevelReached) {
+                this.highestLevelReached = this.level;
+            }
+            this.levelUpEffect();
+        }
+
+        let lvl = Math.min(this.level, 4);
+        if (lvl === 1) this.qData = MathGen.getLevel1();
+        else if (lvl === 2) this.qData = MathGen.getLevel2();
+        else if (lvl === 3) this.qData = MathGen.getLevel3();
+        else this.qData = MathGen.getLevel4();
+
+        const qEl = document.getElementById('math-question');
+        katex.render(this.qData.q, qEl, { displayMode: true });
+
+        // SMART DISTRACTOR FILTERING (Commutative Fix)
+        let normAns = MathGen.normalize(this.qData.a);
+        let safeDistractors = [];
+        let usedNorms = new Set();
+        usedNorms.add(normAns); 
+
+        for(let d of this.qData.distractors) {
+            let normD = MathGen.normalize(d);
+            if(!usedNorms.has(normD)) {
+                safeDistractors.push(d);
+                usedNorms.add(normD);
+            }
+        }
+        
+        while(safeDistractors.length < 3) {
+            let base = safeDistractors.length > 0 ? safeDistractors[0] : this.qData.a;
+            let backup = base.replace(/\+/g, "TEMP").replace(/-/g, "+").replace(/TEMP/g, "-");
+            if(MathGen.normalize(backup) === normAns) backup = base + " + 1"; 
+            safeDistractors.push(backup);
+            usedNorms.add(MathGen.normalize(backup));
+        }
+
+        let opts = [this.qData.a, ...safeDistractors.slice(0,3)];
+        opts.sort(() => Math.random() - 0.5);
+        
+        const btns = document.querySelectorAll('.ans-btn');
+        btns.forEach((btn, i) => {
+            btn.className = 'ans-btn'; 
+            btn.disabled = false;
+            btn.innerHTML = "";
+            btn.dataset.val = opts[i];
+            try { katex.render(opts[i], btn); } catch(e) { btn.innerText = opts[i]; }
+            btn.onclick = () => this.checkAnswer(btn, opts[i]);
+        });
+        
+        this.updateUI();
+        Renderer.spawnEnemy();
+    },
+
+    levelUpEffect: function() {
+        this.updateBackground();
+        const badge = document.getElementById('level-indicator');
+        badge.style.transform = "translateX(-50%) scale(1.5)";
+        badge.innerText = "LEVEL UP! (+1 ❤️)";
+        setTimeout(() => {
+            badge.style.transform = "translateX(-50%) scale(1)";
+            this.updateUI();
+        }, 1500);
+    },
+
+    checkAnswer: function(btn, val) {
+        if (!this.active || btn.disabled) return;
+        document.querySelectorAll('.ans-btn').forEach(b => b.disabled = true);
+
+        if (val === this.qData.a) {
+            btn.classList.add('correct');
+            this.score += 100;
+            this.questionsAnsweredInLevel++;
+            Renderer.heroAttack();
+            setTimeout(() => this.nextQuestion(), 1000);
+        } else {
+            btn.classList.add('wrong');
+            this.takeDamage("Wrong Answer");
+            this.mistakes.push({
+                q: this.qData.q, 
+                yours: val,
+                correct: this.qData.a
+            });
+            setTimeout(() => this.nextQuestion(), 1000);
+        }
+        this.updateUI();
+    },
+    
+    timeUpDamage: function() {
+        if(!this.active) return;
+        document.querySelectorAll('.ans-btn').forEach(b => b.disabled = true);
+        this.takeDamage("Time Up");
+        this.mistakes.push({
+            q: this.qData.q,
+            yours: "Too Slow",
+            correct: this.qData.a
+        });
+        setTimeout(() => this.nextQuestion(), 1000);
+    },
+
+    takeDamage: function(reason) {
+        this.hp--;
+        Renderer.heroHit();
+        if (this.hp <= 0) {
+            setTimeout(() => this.gameOver(), 1000);
+        }
+    },
+
+    gameOver: function() {
+        this.active = false;
+        document.getElementById('end-screen').classList.remove('hidden');
+        document.getElementById('end-score').innerText = this.score;
+        
+        const cpBtn = document.getElementById('btn-checkpoint');
+        if (this.highestLevelReached > 1) {
+            cpBtn.style.display = 'block';
+            cpBtn.innerText = `⏩ Retry Level ${this.highestLevelReached}`;
+        } else {
+            cpBtn.style.display = 'none';
+        }
+
+        const tbody = document.getElementById('log-body');
+        tbody.innerHTML = "";
+        this.mistakes.forEach(m => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-size:0.8em"><span class="tex-render">${m.q}</span></td>
+                <td class="td-wrong"><span class="tex-render">${m.yours}</span></td>
+                <td class="td-right"><span class="tex-render">${m.correct}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.querySelectorAll('.tex-render').forEach(el => katex.render(el.innerText, el));
+    },
+
+    exportLog: function() {
+        if(this.mistakes.length === 0) { alert("No mistakes!"); return; }
+        
+        const c = document.createElement('canvas');
+        const ctx = c.getContext('2d');
+        
+        const width = 900;
+        const headerHeight = 120;
+        const rowHeight = 80;
+        const padding = 40;
+        const height = headerHeight + (this.mistakes.length * rowHeight) + padding;
+        
+        c.width = width; 
+        c.height = height;
+        
+        const grd = ctx.createLinearGradient(0, 0, 0, height);
+        grd.addColorStop(0, "#0f172a"); 
+        grd.addColorStop(1, "#1e293b"); 
+        ctx.fillStyle = grd;
+        ctx.fillRect(0,0,width, height);
+        
+        ctx.shadowColor = "rgba(96, 165, 250, 0.5)";
+        ctx.shadowBlur = 20;
+        
+        ctx.fillStyle = "#60a5fa"; 
+        ctx.font = "bold 48px 'Segoe UI', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("BATTLE REPORT", width/2, 60);
+        
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#e2e8f0";
+        ctx.font = "24px 'Segoe UI', sans-serif";
+        ctx.fillText(`Score: ${this.score}  |  Level Reached: ${this.level}  |  ${new Date().toLocaleDateString()}`, width/2, 100);
+        
+        ctx.strokeStyle = "#334155";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(padding, 110);
+        ctx.lineTo(width - padding, 110);
+        ctx.stroke();
+
+        const pretty = (s) => {
+            if(!s) return "";
+            let cleanStr = s.replace(/\\text\{(.*?)\}/g, "$1: "); 
+            return cleanStr
+                .replace(/\\/g, "") 
+                .replace(/\^2/g, "²")
+                .replace(/x\^2/g, "x²")
+                .replace(/{/g,"").replace(/}/g,"")
+                .replace(/pm/g, "±")
+                .replace(/times/g, "×")
+                .replace(/div/g, "÷")
+                .replace(/x/g, "𝑥") 
+                .replace(/y/g, "𝑦");
+        };
+
+        let y = headerHeight + 40;
+        ctx.textAlign = "left";
+        ctx.textBaseline = 'middle'; 
+        
+        this.mistakes.forEach((m, i) => {
+            if (i % 2 === 0) {
+                ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
+                ctx.fillRect(padding/2, y - 40, width - padding, rowHeight);
+            }
+            
+            ctx.font = "bold 22px 'Times New Roman'";
+            ctx.fillStyle = "#f1f5f9";
+            ctx.fillText(`Q${i+1}. ${pretty(m.q)}`, padding, y - 15);
+            
+            ctx.font = "20px 'Segoe UI', sans-serif";
+            ctx.fillStyle = "#f87171"; 
+            ctx.fillText(`✗ You: ${pretty(m.yours)}`, padding + 20, y + 20);
+            
+            ctx.fillStyle = "#4ade80"; 
+            ctx.fillText(`✓ Ans: ${pretty(m.correct)}`, padding + 450, y + 20);
+            
+            y += rowHeight;
+        });
+        
+        ctx.font = "italic 16px sans-serif";
+        ctx.fillStyle = "#475569";
+        ctx.textAlign = "center";
+        ctx.fillText("Math Hero: Time Attack", width/2, height - 20);
+        
+        const link = document.createElement('a');
+        link.download = `MathHero_Report_${Date.now()}.png`;
+        link.href = c.toDataURL();
+        link.click();
+    }
+};
+
+/**
+ * RENDERER (Visuals & Logic Loop)
+ */
+const Renderer = {
+    canvas: document.getElementById('game-canvas'),
+    ctx: document.getElementById('game-canvas').getContext('2d'),
+    cw: 0, ch: 0,
+    animationId: null, 
+    initialized: false,
+    
+    entities: {
+        hero: { x: 80, y: 0, char: "🧝", shake: 0 },
+        enemy: { x: 1000, y: 0, char: "🐉", shake: 0 },
+        particles: []
+    },
+    backgroundObjs: [],
+
+    start: function() {
+        if(!this.initialized) {
+            window.addEventListener('resize', () => this.resize());
+            this.initialized = true;
+        }
+        this.resize();
+        this.animate();
+    },
+
+    stop: function() {
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+    },
+
+    resize: function() {
+        this.cw = this.canvas.width = this.canvas.clientWidth;
+        this.ch = this.canvas.height = this.canvas.clientHeight;
+        this.entities.hero.y = this.ch * 0.65;
+        this.entities.enemy.y = this.ch * 0.65;
+    },
+
+    setLevel: function(lvl) {
+        this.backgroundObjs = [];
+        // Level 1: Trees and Fireflies
+        if(lvl === 1) {
+            for(let i=0; i<20; i++) { 
+                this.backgroundObjs.push({ type: 'tree', x: Math.random()*this.cw, size: 50 + Math.random()*100, speed: 0.5 + Math.random()*0.5 });
+            }
+            for(let i=0; i<10; i++) { 
+                this.backgroundObjs.push({ type: 'fly', x: Math.random()*this.cw, y: Math.random()*this.ch, speed: 1, t: Math.random()*10 });
+            }
+            this.entities.hero.char = "🧙‍♂️";
+        }
+        // Level 2: Space
+        else if(lvl === 2) {
+            for(let i=0; i<50; i++) { 
+                this.backgroundObjs.push({ type: 'star', x: Math.random()*this.cw, y: Math.random()*this.ch, size: Math.random()*2, speed: 0.2 });
+            }
+            for(let i=0; i<3; i++) { 
+                this.backgroundObjs.push({ type: 'planet', x: Math.random()*this.cw, y: Math.random()*(this.ch/2), size: 20 + Math.random()*40, speed: 0.1, color: `hsl(${Math.random()*360}, 60%, 50%)` });
+            }
+            this.entities.hero.char = "🧑‍🚀";
+        }
+        // Level 3: Cyber
+        else if(lvl === 3) {
+            for(let i=0; i<15; i++) { 
+                this.backgroundObjs.push({ type: 'grid', x: i * (this.cw/10), speed: 2 });
+            }
+            for(let i=0; i<5; i++) { 
+                this.backgroundObjs.push({ type: 'build', x: Math.random()*this.cw, h: 100 + Math.random()*200, speed: 0.5 });
+            }
+            this.entities.hero.char = "🤖";
+        }
+        // Level 4: Void
+        else {
+            for(let i=0; i<20; i++) { // Floating Crystals
+                this.backgroundObjs.push({ type: 'shard', x: Math.random()*this.cw, y: Math.random()*this.ch, size: 10 + Math.random()*20, speed: 0.5, rot: Math.random() });
+            }
+            this.entities.hero.char = "🦸";
+        }
+    },
+
+    spawnEnemy: function() {
+        const pool1 = ["🐺", "🐻", "🕷️"];
+        const pool2 = ["👾", "👽", "☄️"];
+        const pool3 = ["👹", "💀", "🤖"];
+        const pool4 = ["👻", "🧛", "🧟"];
+        
+        let pool = pool1;
+        if(Game.level === 2) pool = pool2;
+        if(Game.level === 3) pool = pool3;
+        if(Game.level >= 4) pool = pool4;
+        
+        this.entities.enemy.char = pool[Math.floor(Math.random()*pool.length)];
+        this.entities.enemy.x = this.cw + 50; 
+    },
+
+    heroAttack: function() {
+        this.entities.hero.action = "attack";
+        this.entities.particles.push({ type: 'spell', x: this.entities.hero.x+20, y: this.entities.hero.y-20, vx: 20, life: 30 });
+        setTimeout(() => this.entities.hero.action = "idle", 500);
+    },
+
+    heroHit: function() {
+        this.entities.hero.shake = 25; // Start shake
+        this.entities.hero.action = "hit";
+        this.canvas.style.filter = "sepia(1) hue-rotate(-50deg)";
+        setTimeout(() => {
+            this.entities.hero.action = "idle";
+            this.canvas.style.filter = "none";
+        }, 300);
+    },
+    
+    heroHeal: function() {
+        for(let i=0; i<10; i++) {
+            this.entities.particles.push({ type: 'heal', x: this.entities.hero.x, y: this.entities.hero.y - 30, vx: (Math.random()-0.5)*5, life: 40 });
+        }
+    },
+    
+    getShake: function(entity) {
+        if (entity.shake > 0) {
+            const ox = (Math.random() - 0.5) * entity.shake;
+            const oy = (Math.random() - 0.5) * entity.shake;
+            entity.shake *= 0.85; // Decay
+            if(entity.shake < 0.5) entity.shake = 0;
+            return {x: ox, y: oy};
+        }
+        return {x: 0, y: 0};
+    },
+
+    drawBg: function() {
+        this.ctx.globalAlpha = 1;
+        this.ctx.shadowBlur = 0;
+        
+        // Draw based on type
+        this.backgroundObjs.forEach(o => {
+            o.x -= o.speed;
+            if(o.x < -100) o.x = this.cw + 100;
+
+            if(o.type === 'tree') {
+                this.ctx.fillStyle = "#064e3b";
+                this.ctx.beginPath();
+                this.ctx.moveTo(o.x, this.ch);
+                this.ctx.lineTo(o.x + o.size/2, this.ch - o.size*2);
+                this.ctx.lineTo(o.x - o.size/2, this.ch - o.size*2);
+                this.ctx.fill();
+            } 
+            else if (o.type === 'fly') {
+                o.t += 0.1;
+                let y = o.y + Math.sin(o.t)*20;
+                this.ctx.fillStyle = "#bef264";
+                this.ctx.beginPath();
+                this.ctx.arc(o.x, y, 2, 0, Math.PI*2);
+                this.ctx.fill();
+            }
+            else if (o.type === 'star') {
+                this.ctx.fillStyle = "white";
+                if(Math.random()>0.95) this.ctx.fillStyle = "#fef08a"; 
+                this.ctx.fillRect(o.x, o.y, o.size, o.size);
+            }
+            else if (o.type === 'planet') {
+                this.ctx.fillStyle = o.color;
+                this.ctx.beginPath();
+                this.ctx.arc(o.x, o.y, o.size, 0, Math.PI*2);
+                this.ctx.fill();
+            }
+            else if (o.type === 'build') {
+                this.ctx.fillStyle = "#3730a3";
+                this.ctx.fillRect(o.x, this.ch - o.h, 40, o.h);
+                this.ctx.fillStyle = "#a855f7";
+                if(Math.random()>0.9) this.ctx.fillRect(o.x+10, this.ch - o.h + 20, 5, 5);
+            }
+            else if (o.type === 'grid') {
+                this.ctx.strokeStyle = "rgba(236, 72, 153, 0.3)";
+                this.ctx.beginPath();
+                this.ctx.moveTo(o.x, this.ch);
+                this.ctx.lineTo(this.cw/2, this.ch/2); 
+                this.ctx.stroke();
+            }
+            else if (o.type === 'shard') {
+                o.rot += 0.05;
+                this.ctx.save();
+                this.ctx.translate(o.x, o.y);
+                this.ctx.rotate(o.rot);
+                this.ctx.fillStyle = "rgba(200, 100, 255, 0.3)";
+                this.ctx.fillRect(-o.size/2, -o.size/2, o.size, o.size);
+                this.ctx.restore();
+            }
+        });
+
+        if(Game.level === 3) {
+            this.ctx.fillStyle = "rgba(0,0,0,0.5)";
+            this.ctx.fillRect(0, this.ch/2, this.cw, this.ch/2);
+        }
+    },
+
+    animate: function() {
+        if(!Game.active) return;
+        
+        this.ctx.clearRect(0,0,this.cw,this.ch);
+        
+        this.drawBg();
+
+        const speed = (this.cw / 60) / 15; 
+        
+        if(this.entities.enemy.x > this.entities.hero.x + 60) {
+            this.entities.enemy.x -= speed;
+        } else {
+            this.entities.enemy.x = this.cw + 50; 
+            Game.timeUpDamage();
+        }
+
+        this.ctx.font = "60px Arial";
+        this.ctx.textAlign = "center";
+        
+        this.ctx.globalAlpha = 1;
+        this.ctx.fillStyle = "white"; 
+        this.ctx.shadowColor = "black";
+        this.ctx.shadowBlur = 15;
+
+        let hS = this.getShake(this.entities.hero);
+        let hY = this.entities.hero.y + hS.y;
+        let hX = this.entities.hero.x + hS.x;
+        if(this.entities.hero.action === "attack") hY -= 10;
+        this.ctx.fillText(this.entities.hero.char, hX, hY);
+        
+        let eS = this.getShake(this.entities.enemy);
+        let eX = this.entities.enemy.x + eS.x;
+        let eY = this.entities.enemy.y + eS.y;
+        this.ctx.fillText(this.entities.enemy.char, eX, eY);
+
+        this.ctx.shadowBlur = 0;
+        this.entities.particles.forEach((p) => {
+            p.x += p.vx || 0; p.life--;
+            if(p.type === 'spell') {
+                this.ctx.fillStyle = "#60a5fa"; this.ctx.beginPath();
+                this.ctx.arc(p.x, p.y, 10, 0, Math.PI*2); this.ctx.fill();
+                if(p.x > this.entities.enemy.x - 30) { 
+                     p.life = 0;
+                     this.entities.enemy.shake = 20; 
+                     this.entities.enemy.x += 40; 
+                }
+            } else if (p.type === 'heal') {
+                this.ctx.fillStyle = "#4ade80"; this.ctx.fillText("✚", p.x, p.y - (40-p.life));
+            }
+        });
+        this.entities.particles = this.entities.particles.filter(p => p.life > 0);
+
+        this.animationId = requestAnimationFrame(() => this.animate());
+    }
+};
+</script>
+</body>
+</html>
