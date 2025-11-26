@@ -1,0 +1,1408 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Types in Programming</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f9ff;
+        }
+        
+        .container-box {
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .container-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+        
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .variable-box {
+            transition: all 0.5s ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        
+        .variable-box:hover .variable-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .variable-content {
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .character-cell {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #3b82f6;
+            margin: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .highlight {
+            background-color: #93c5fd;
+            transform: scale(1.1);
+        }
+        
+        .tracetable td, .tracetable th {
+            border: 1px solid #3b82f6;
+            padding: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .tracetable th {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .tracetable tr:nth-child(even) {
+            background-color: #dbeafe;
+        }
+        
+        .tracetable tr:hover {
+            background-color: #bfdbfe;
+        }
+        
+        .language-switch {
+            position: relative;
+            display: inline-block;
+            width: 120px;
+            height: 34px;
+        }
+        
+        .language-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .language-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .language-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .language-slider {
+            background-color: #3b82f6;
+        }
+        
+        input:checked + .language-slider:before {
+            transform: translateX(85px);
+        }
+        
+        .language-label {
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: .4s;
+        }
+        
+        .en-label {
+            left: 10px;
+            bottom: 9px;
+        }
+        
+        .zh-label {
+            right: 10px;
+            bottom: 9px;
+        }
+        
+        .nested-loop-visual {
+            display: grid;
+            grid-template-columns: repeat(5, 40px);
+            gap: 4px;
+        }
+        
+        .nested-loop-cell {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #3b82f6;
+            transition: all 0.3s ease;
+        }
+        
+        .nested-loop-cell.active {
+            background-color: #93c5fd;
+            transform: scale(1.1);
+        }
+        
+        .code-line {
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .code-line.active {
+            background-color: #fef3c7;
+            font-weight: bold;
+        }
+        
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .pop-animation {
+            animation: pop 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen p-4 md:p-8">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-blue-600 mb-2 lang-en">Data Types</h1>
+                <h1 class="text-4xl font-bold text-blue-600 mb-2 lang-zh hidden">數據類型</h1>
+                <p class="text-lg text-blue-500 lang-en">Programming concepts in real life 🌟</p>
+                <p class="text-lg text-blue-500 lang-zh hidden">程式設計概念在現實生活中的應用 🌟</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex items-center">
+                <span class="mr-2 lang-en">English</span>
+                <span class="mr-2 lang-zh hidden">英文</span>
+                <label class="language-switch">
+                    <input type="checkbox" id="language-toggle">
+                    <span class="language-slider">
+                        <span class="language-label en-label">EN</span>
+                        <span class="language-label zh-label">中文</span>
+                    </span>
+                </label>
+                <span class="ml-2 lang-en">Chinese</span>
+                <span class="ml-2 lang-zh hidden">中文</span>
+            </div>
+        </header>
+        
+        <!-- Navigation Tabs -->
+        <div class="flex flex-wrap justify-center gap-2 mb-8">
+            <button class="tab-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-300 active" data-tab="data-types">
+                <span class="lang-en">📊 Data Types</span>
+                <span class="lang-zh hidden">📊 數據類型</span>
+            </button>
+            <button class="tab-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-300" data-tab="variables">
+                <span class="lang-en">📦 Variables</span>
+                <span class="lang-zh hidden">📦 變量</span>
+            </button>
+            <button class="tab-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-300" data-tab="tracetable">
+                <span class="lang-en">🔍 Trace Table</span>
+                <span class="lang-zh hidden">🔍 追蹤表格</span>
+            </button>
+            <button class="tab-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-300" data-tab="nested-loops">
+                <span class="lang-en">🔄 Nested Loops</span>
+                <span class="lang-zh hidden">🔄 嵌套循環</span>
+            </button>
+        </div>
+        
+        <!-- Data Types Section -->
+        <div id="data-types" class="tab-content active">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Integer -->
+                <div class="container-box bg-white p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-2xl">🔢</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-blue-700 lang-en">Integer</h2>
+                        <h2 class="text-xl font-bold text-blue-700 lang-zh hidden">整數</h2>
+                    </div>
+                    <p class="mb-4 text-gray-700 lang-en">Used to represent whole numbers like 1, 42, -10</p>
+                    <p class="mb-4 text-gray-700 lang-zh hidden">用於表示整數值，如 1, 42, -10</p>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 class="font-semibold mb-2 lang-en">Real Life Example:</h3>
+                        <h3 class="font-semibold mb-2 lang-zh hidden">現實生活例子：</h3>
+                        <div class="flex items-center space-x-2 animate-float">
+                            <span class="text-2xl">🍎</span>
+                            <span class="text-xl font-bold">×</span>
+                            <div class="bg-blue-200 rounded-full w-10 h-10 flex items-center justify-center font-bold text-blue-800 integer-value">5</div>
+                            <span class="text-xl">=</span>
+                            <div class="flex integer-result">
+                                <span class="text-2xl">🍎🍎🍎🍎🍎</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex justify-center">
+                            <button class="integer-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg mr-2">-1</button>
+                            <button class="integer-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg">+1</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Float -->
+                <div class="container-box bg-white p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-2xl">🧮</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-green-700 lang-en">Float</h2>
+                        <h2 class="text-xl font-bold text-green-700 lang-zh hidden">浮點數</h2>
+                    </div>
+                    <p class="mb-4 text-gray-700 lang-en">Used to represent decimal numbers like 3.14, -0.5, 2.0</p>
+                    <p class="mb-4 text-gray-700 lang-zh hidden">用於表示帶小數點的數值，如 3.14, -0.5, 2.0</p>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h3 class="font-semibold mb-2 lang-en">Real Life Example:</h3>
+                        <h3 class="font-semibold mb-2 lang-zh hidden">現實生活例子：</h3>
+                        <div class="flex items-center space-x-2 animate-float">
+                            <span class="text-2xl">⛽</span>
+                            <span class="text-xl font-bold">×</span>
+                            <div class="bg-green-200 rounded-lg px-3 py-1 flex items-center justify-center font-bold text-green-800">
+                                <span class="float-value">2.5</span>
+                                <span class="ml-1 lang-en">L</span>
+                                <span class="ml-1 lang-zh hidden">升</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 relative h-24 bg-green-100 rounded-lg overflow-hidden">
+                            <div class="absolute bottom-0 left-0 right-0 bg-green-400 transition-all duration-500" style="height: 60%;" id="liquid-level"></div>
+                            <div class="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center">
+                                <span class="font-bold text-green-800 text-xl float-display">2.5 Liters</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex justify-center">
+                            <button class="float-btn bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg mr-2" data-value="-0.5">-0.5</button>
+                            <button class="float-btn bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg" data-value="+0.5">+0.5</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Char -->
+                <div class="container-box bg-white p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-2xl">🔤</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-purple-700 lang-en">Character</h2>
+                        <h2 class="text-xl font-bold text-purple-700 lang-zh hidden">字符</h2>
+                    </div>
+                    <p class="mb-4 text-gray-700 lang-en">Used to represent a single character like 'A', '1', '?'</p>
+                    <p class="mb-4 text-gray-700 lang-zh hidden">用於表示單個字符，如 'A', '1', '?'</p>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h3 class="font-semibold mb-2 lang-en">Real Life Example:</h3>
+                        <h3 class="font-semibold mb-2 lang-zh hidden">現實生活例子：</h3>
+                        <div class="flex items-center justify-center space-x-2">
+                            <div class="bg-purple-200 w-16 h-16 rounded-lg flex items-center justify-center text-2xl font-bold text-purple-800 animate-pulse-slow current-char">A</div>
+                        </div>
+                        <div class="mt-4 flex justify-center flex-wrap gap-2">
+                            <button class="char-btn bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg">A</button>
+                            <button class="char-btn bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg">1</button>
+                            <button class="char-btn bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg">?</button>
+                            <button class="char-btn bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg">😊</button>
+                            <button class="char-btn bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg">中</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- String -->
+                <div class="container-box bg-white p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-2xl">📝</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-red-700 lang-en">String</h2>
+                        <h2 class="text-xl font-bold text-red-700 lang-zh hidden">字符串</h2>
+                    </div>
+                    <p class="mb-4 text-gray-700 lang-en">Used to represent text like "Hello, World!", '123'</p>
+                    <p class="mb-4 text-gray-700 lang-zh hidden">用於表示文本，如 "Hello, World!", '123'</p>
+                    <div class="bg-red-50 p-4 rounded-lg">
+                        <h3 class="font-semibold mb-2 lang-en">Real Life Example:</h3>
+                        <h3 class="font-semibold mb-2 lang-zh hidden">現實生活例子：</h3>
+                        <p class="mb-2 lang-en">String is an array of characters</p>
+                        <p class="mb-2 lang-zh hidden">字符串是裝有字符的陣列</p>
+                        <div class="flex flex-wrap justify-center" id="string-container">
+                            <div class="character-cell">H</div>
+                            <div class="character-cell">e</div>
+                            <div class="character-cell">l</div>
+                            <div class="character-cell">l</div>
+                            <div class="character-cell">o</div>
+                        </div>
+                        <div class="mt-4 flex justify-center">
+                            <input type="text" maxlength="10" placeholder="Type something..." class="border border-red-300 rounded-lg px-3 py-1 mr-2 focus:outline-none focus:ring-2 focus:ring-red-500" id="string-input">
+                            <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg" id="update-string">
+                                <span class="lang-en">Update</span>
+                                <span class="lang-zh hidden">更新</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Boolean -->
+                <div class="container-box bg-white p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-2xl">⚖️</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-yellow-700 lang-en">Boolean</h2>
+                        <h2 class="text-xl font-bold text-yellow-700 lang-zh hidden">布爾值</h2>
+                    </div>
+                    <p class="mb-4 text-gray-700 lang-en">Used to represent true or false values</p>
+                    <p class="mb-4 text-gray-700 lang-zh hidden">用於表示真或假，如 True, False</p>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <h3 class="font-semibold mb-2 lang-en">Real Life Example:</h3>
+                        <h3 class="font-semibold mb-2 lang-zh hidden">現實生活例子：</h3>
+                        <div class="flex flex-col items-center">
+                            <div class="relative w-16 h-8 flex items-center bg-gray-300 rounded-full p-1 duration-300 ease-in-out" id="toggle-bg">
+                                <div class="bg-white w-6 h-6 rounded-full shadow-md transform duration-300 ease-in-out" id="toggle-circle"></div>
+                            </div>
+                            <p class="mt-2 font-semibold" id="toggle-status">
+                                <span class="lang-en">Status: False</span>
+                                <span class="lang-zh hidden">狀態：假</span>
+                            </p>
+                            <p class="mt-4 text-center">
+                                <span class="lang-en">Light switch:</span>
+                                <span class="lang-zh hidden">電燈開關：</span>
+                                <span id="light-status">
+                                    <span class="lang-en">Off 💡</span>
+                                    <span class="lang-zh hidden">關閉 💡</span>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- List -->
+                <div class="container-box bg-white p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-2xl">📋</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-indigo-700 lang-en">List</h2>
+                        <h2 class="text-xl font-bold text-indigo-700 lang-zh hidden">列表</h2>
+                    </div>
+                    <p class="mb-4 text-gray-700 lang-en">Used to store an ordered collection of items like [1, 2, 3], ['a', 'b', 'c']</p>
+                    <p class="mb-4 text-gray-700 lang-zh hidden">用於存儲多個項目的有序集合，如 [1, 2, 3], ['a', 'b', 'c']</p>
+                    <div class="bg-indigo-50 p-4 rounded-lg">
+                        <h3 class="font-semibold mb-2 lang-en">Real Life Example:</h3>
+                        <h3 class="font-semibold mb-2 lang-zh hidden">現實生活例子：</h3>
+                        <div class="flex flex-col items-center">
+                            <div class="bg-white p-2 rounded-lg border-2 border-indigo-300 w-full">
+                                <h4 class="text-center font-bold mb-2 lang-en">Shopping List 🛒</h4>
+                                <h4 class="text-center font-bold mb-2 lang-zh hidden">購物清單 🛒</h4>
+                                <ul class="list-disc pl-8" id="shopping-list">
+                                    <li>🍎 <span class="lang-en">Apples</span><span class="lang-zh hidden">蘋果</span></li>
+                                    <li>🥛 <span class="lang-en">Milk</span><span class="lang-zh hidden">牛奶</span></li>
+                                    <li>🍞 <span class="lang-en">Bread</span><span class="lang-zh hidden">麵包</span></li>
+                                </ul>
+                            </div>
+                            <div class="mt-4 flex w-full">
+                                <input type="text" placeholder="Add item..." class="border border-indigo-300 rounded-lg px-3 py-1 flex-grow mr-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" id="list-input">
+                                <button class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded-lg" id="add-item">
+                                    <span class="lang-en">Add</span>
+                                    <span class="lang-zh hidden">添加</span>
+                                </button>
+                            </div>
+                            <button class="mt-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg w-full" id="remove-item">
+                                <span class="lang-en">Remove Last Item</span>
+                                <span class="lang-zh hidden">刪除最後一項</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Variables Section -->
+        <div id="variables" class="tab-content">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-blue-700 lang-en">Variables</h2>
+                <h2 class="text-2xl font-bold text-blue-700 lang-zh hidden">變量</h2>
+                <p class="text-gray-700 lang-en">Variables are like boxes that store different objects in daily life</p>
+                <p class="text-gray-700 lang-zh hidden">變量就像日常生活中用以收藏不同物件的箱子</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Variable Box 1 -->
+                <div class="variable-box bg-white rounded-lg overflow-hidden shadow-lg">
+                    <div class="bg-blue-500 text-white p-4">
+                        <h3 class="font-bold text-xl">name = "John"</h3>
+                    </div>
+                    <div class="p-6 relative">
+                        <div class="flex items-center justify-center">
+                            <div class="w-24 h-24 bg-blue-100 rounded-lg flex items-center justify-center border-2 border-blue-300 border-dashed">
+                                <span class="text-2xl">📝</span>
+                            </div>
+                        </div>
+                        <div class="variable-content bg-blue-50 p-4 rounded-lg mt-4">
+                            <p class="font-semibold lang-en">String variable "name"</p>
+                            <p class="font-semibold lang-zh hidden">字符串變量 "name"</p>
+                            <p class="lang-en">Stores the text value "John"</p>
+                            <p class="lang-zh hidden">存儲文本值 "John"</p>
+                            <p class="mt-2 lang-en">Like a labeled box containing a name tag</p>
+                            <p class="mt-2 lang-zh hidden">就像一個裝有名牌的標記盒子</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Variable Box 2 -->
+                <div class="variable-box bg-white rounded-lg overflow-hidden shadow-lg">
+                    <div class="bg-green-500 text-white p-4">
+                        <h3 class="font-bold text-xl">age = 25</h3>
+                    </div>
+                    <div class="p-6 relative">
+                        <div class="flex items-center justify-center">
+                            <div class="w-24 h-24 bg-green-100 rounded-lg flex items-center justify-center border-2 border-green-300 border-dashed">
+                                <span class="text-2xl">🔢</span>
+                            </div>
+                        </div>
+                        <div class="variable-content bg-green-50 p-4 rounded-lg mt-4">
+                            <p class="font-semibold lang-en">Integer variable "age"</p>
+                            <p class="font-semibold lang-zh hidden">整數變量 "age"</p>
+                            <p class="lang-en">Stores the numeric value 25</p>
+                            <p class="lang-zh hidden">存儲數值 25</p>
+                            <p class="mt-2 lang-en">Like a box containing a number counter</p>
+                            <p class="mt-2 lang-zh hidden">就像一個裝有數字計數器的盒子</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Variable Box 3 -->
+                <div class="variable-box bg-white rounded-lg overflow-hidden shadow-lg">
+                    <div class="bg-purple-500 text-white p-4">
+                        <h3 class="font-bold text-xl">items = ["apple", "book"]</h3>
+                    </div>
+                    <div class="p-6 relative">
+                        <div class="flex items-center justify-center">
+                            <div class="w-24 h-24 bg-purple-100 rounded-lg flex items-center justify-center border-2 border-purple-300 border-dashed">
+                                <span class="text-2xl">📋</span>
+                            </div>
+                        </div>
+                        <div class="variable-content bg-purple-50 p-4 rounded-lg mt-4">
+                            <p class="font-semibold lang-en">List variable "items"</p>
+                            <p class="font-semibold lang-zh hidden">列表變量 "items"</p>
+                            <p class="lang-en">Stores multiple values in order</p>
+                            <p class="lang-zh hidden">按順序存儲多個值</p>
+                            <p class="mt-2 lang-en">Like a shelf with multiple labeled compartments</p>
+                            <p class="mt-2 lang-zh hidden">就像一個有多個標記隔間的架子</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-bold text-blue-700 mb-4 lang-en">Interactive Variable Assignment</h3>
+                <h3 class="text-xl font-bold text-blue-700 mb-4 lang-zh hidden">互動變量賦值</h3>
+                <div class="flex flex-wrap gap-4">
+                    <div class="flex-1 min-w-[300px]">
+                        <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                            <pre class="text-gray-800" id="code-display">name = "Alice"
+age = 30
+is_student = True
+grades = [85, 92, 78]</pre>
+                        </div>
+                        <div class="flex gap-2 mb-4">
+                            <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex-1" id="run-code">
+                                <span class="lang-en">Run Code</span>
+                                <span class="lang-zh hidden">運行代碼</span>
+                            </button>
+                            <button class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex-1" id="reset-code">
+                                <span class="lang-en">Reset</span>
+                                <span class="lang-zh hidden">重置</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-[300px]">
+                        <h4 class="font-bold mb-2 lang-en">Memory Boxes:</h4>
+                        <h4 class="font-bold mb-2 lang-zh hidden">記憶盒：</h4>
+                        <div class="space-y-2" id="memory-boxes">
+                            <div class="p-3 bg-blue-100 rounded-lg flex justify-between items-center">
+                                <span class="font-semibold">name</span>
+                                <span class="bg-white px-3 py-1 rounded-lg">"Alice"</span>
+                            </div>
+                            <div class="p-3 bg-green-100 rounded-lg flex justify-between items-center">
+                                <span class="font-semibold">age</span>
+                                <span class="bg-white px-3 py-1 rounded-lg">30</span>
+                            </div>
+                            <div class="p-3 bg-yellow-100 rounded-lg flex justify-between items-center">
+                                <span class="font-semibold">is_student</span>
+                                <span class="bg-white px-3 py-1 rounded-lg">True</span>
+                            </div>
+                            <div class="p-3 bg-purple-100 rounded-lg flex justify-between items-center">
+                                <span class="font-semibold">grades</span>
+                                <span class="bg-white px-3 py-1 rounded-lg">[85, 92, 78]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Trace Table Section -->
+        <div id="tracetable" class="tab-content">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-blue-700 lang-en">Trace Table</h2>
+                <h2 class="text-2xl font-bold text-blue-700 lang-zh hidden">追蹤表格</h2>
+                <p class="text-gray-700 lang-en">Track how variables change during code execution</p>
+                <p class="text-gray-700 lang-zh hidden">追蹤程式碼執行過程中變量的變化</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold text-blue-700 mb-4 lang-en">Sample Algorithm</h3>
+                    <h3 class="text-xl font-bold text-blue-700 mb-4 lang-zh hidden">示例算法</h3>
+                    <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                        <pre class="text-gray-800" id="algorithm-code">x = 5
+y = 2
+z = x + y
+x = x * 2
+y = y + z
+z = x - y</pre>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex-1" id="step-btn">
+                            <span class="lang-en">Step</span>
+                            <span class="lang-zh hidden">步進</span>
+                        </button>
+                        <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex-1" id="run-all-btn">
+                            <span class="lang-en">Run All</span>
+                            <span class="lang-zh hidden">全部運行</span>
+                        </button>
+                        <button class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex-1" id="reset-trace-btn">
+                            <span class="lang-en">Reset</span>
+                            <span class="lang-zh hidden">重置</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold text-blue-700 mb-4 lang-en">Trace Table</h3>
+                    <h3 class="text-xl font-bold text-blue-700 mb-4 lang-zh hidden">追蹤表格</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full tracetable">
+                            <thead>
+                                <tr>
+                                    <th class="lang-en">Line</th>
+                                    <th class="lang-zh hidden">行</th>
+                                    <th class="lang-en">Code</th>
+                                    <th class="lang-zh hidden">代碼</th>
+                                    <th>x</th>
+                                    <th>y</th>
+                                    <th>z</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trace-table-body">
+                                <tr>
+                                    <td>-</td>
+                                    <td class="lang-en">Initial values</td>
+                                    <td class="lang-zh hidden">初始值</td>
+                                    <td>?</td>
+                                    <td>?</td>
+                                    <td>?</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-lg col-span-1 lg:col-span-2">
+                    <h3 class="text-xl font-bold text-blue-700 mb-4 lang-en">Visual Representation</h3>
+                    <h3 class="text-xl font-bold text-blue-700 mb-4 lang-zh hidden">視覺表示</h3>
+                    <div class="flex flex-wrap justify-center gap-6">
+                        <div class="variable-visualization">
+                            <div class="text-center mb-2 font-semibold">x</div>
+                            <div class="w-24 h-24 bg-blue-100 rounded-lg flex items-center justify-center border-2 border-blue-300">
+                                <span class="text-2xl font-bold" id="visual-x">?</span>
+                            </div>
+                        </div>
+                        <div class="variable-visualization">
+                            <div class="text-center mb-2 font-semibold">y</div>
+                            <div class="w-24 h-24 bg-green-100 rounded-lg flex items-center justify-center border-2 border-green-300">
+                                <span class="text-2xl font-bold" id="visual-y">?</span>
+                            </div>
+                        </div>
+                        <div class="variable-visualization">
+                            <div class="text-center mb-2 font-semibold">z</div>
+                            <div class="w-24 h-24 bg-purple-100 rounded-lg flex items-center justify-center border-2 border-purple-300">
+                                <span class="text-2xl font-bold" id="visual-z">?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 p-4 bg-yellow-50 rounded-lg">
+                        <h4 class="font-semibold mb-2 lang-en">Current Operation:</h4>
+                        <h4 class="font-semibold mb-2 lang-zh hidden">當前操作：</h4>
+                        <div class="flex items-center justify-center text-xl" id="current-operation">
+                            <span class="lang-en">Waiting to start...</span>
+                            <span class="lang-zh hidden">等待開始...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Nested Loops Section -->
+        <div id="nested-loops" class="tab-content">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-blue-700 lang-en">Nested Loops</h2>
+                <h2 class="text-2xl font-bold text-blue-700 lang-zh hidden">嵌套循環</h2>
+                <p class="text-gray-700 lang-en">Visualize how nested loops execute step by step</p>
+                <p class="text-gray-700 lang-zh hidden">可視化嵌套循環的逐步執行過程</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold text-blue-700 mb-4 lang-en">Nested Loop Algorithm</h3>
+                    <h3 class="text-xl font-bold text-blue-700 mb-4 lang-zh hidden">嵌套循環算法</h3>
+                    <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                        <pre class="text-gray-800" id="nested-loop-code"><div class="code-line" data-line="1">result = 0</div><div class="code-line" data-line="2">for i in range(3):</div><div class="code-line" data-line="3">    for j in range(5):</div><div class="code-line" data-line="4">        result = result + 1</div><div class="code-line" data-line="5">        print(i, j, result)</div></pre>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex-1" id="nested-step-btn">
+                            <span class="lang-en">Step</span>
+                            <span class="lang-zh hidden">步進</span>
+                        </button>
+                        <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex-1" id="nested-run-btn">
+                            <span class="lang-en">Run All</span>
+                            <span class="lang-zh hidden">全部運行</span>
+                        </button>
+                        <button class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex-1" id="nested-reset-btn">
+                            <span class="lang-en">Reset</span>
+                            <span class="lang-zh hidden">重置</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold text-blue-700 mb-4 lang-en">Trace Table</h3>
+                    <h3 class="text-xl font-bold text-blue-700 mb-4 lang-zh hidden">追蹤表格</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full tracetable">
+                            <thead>
+                                <tr>
+                                    <th class="lang-en">Line</th>
+                                    <th class="lang-zh hidden">行</th>
+                                    <th class="lang-en">Code</th>
+                                    <th class="lang-zh hidden">代碼</th>
+                                    <th>i</th>
+                                    <th>j</th>
+                                    <th class="lang-en">result</th>
+                                    <th class="lang-zh hidden">結果</th>
+                                </tr>
+                            </thead>
+                            <tbody id="nested-trace-body">
+                                <tr>
+                                    <td>-</td>
+                                    <td class="lang-en">Initial values</td>
+                                    <td class="lang-zh hidden">初始值</td>
+                                    <td>?</td>
+                                    <td>?</td>
+                                    <td>0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-lg col-span-1 lg:col-span-2">
+                    <h3 class="text-xl font-bold text-blue-700 mb-4 lang-en">Visual Grid Representation</h3>
+                    <h3 class="text-xl font-bold text-blue-700 mb-4 lang-zh hidden">視覺網格表示</h3>
+                    <div class="flex flex-col items-center">
+                        <div class="flex items-center mb-4">
+                            <div class="mr-4">
+                                <div class="text-center mb-2 font-semibold">i</div>
+                                <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center border-2 border-blue-300">
+                                    <span class="text-2xl font-bold" id="nested-i">?</span>
+                                </div>
+                            </div>
+                            <div class="mr-4">
+                                <div class="text-center mb-2 font-semibold">j</div>
+                                <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center border-2 border-green-300">
+                                    <span class="text-2xl font-bold" id="nested-j">?</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-center mb-2 font-semibold lang-en">result</div>
+                                <div class="text-center mb-2 font-semibold lang-zh hidden">結果</div>
+                                <div class="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center border-2 border-purple-300">
+                                    <span class="text-2xl font-bold" id="nested-result">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="nested-loop-visual" id="nested-grid">
+                                <!-- Grid cells will be generated by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 p-4 bg-yellow-50 rounded-lg w-full">
+                            <h4 class="font-semibold mb-2 lang-en">Current Operation:</h4>
+                            <h4 class="font-semibold mb-2 lang-zh hidden">當前操作：</h4>
+                            <div class="flex items-center justify-center text-xl" id="nested-operation">
+                                <span class="lang-en">Waiting to start...</span>
+                                <span class="lang-zh hidden">等待開始...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 p-4 bg-blue-50 rounded-lg w-full">
+                            <h4 class="font-semibold mb-2 lang-en">Output:</h4>
+                            <h4 class="font-semibold mb-2 lang-zh hidden">輸出：</h4>
+                            <div class="bg-white p-2 rounded border border-blue-200 h-32 overflow-y-auto" id="nested-output">
+                                <!-- Output will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Language toggle functionality
+        const languageToggle = document.getElementById('language-toggle');
+        const updateLanguage = () => {
+            const isEnglish = !languageToggle.checked;
+            document.querySelectorAll('.lang-en').forEach(el => {
+                el.classList.toggle('hidden', !isEnglish);
+            });
+            document.querySelectorAll('.lang-zh').forEach(el => {
+                el.classList.toggle('hidden', isEnglish);
+            });
+            
+            // Update specific elements that need language-specific content
+            if (isEnglish) {
+                document.querySelector('.float-display').textContent = `${floatValue.toFixed(1)} Liters`;
+                document.getElementById('toggle-status').textContent = toggleState ? 'Status: True' : 'Status: False';
+                document.getElementById('light-status').textContent = toggleState ? 'On 💡' : 'Off 💡';
+            } else {
+                document.querySelector('.float-display').textContent = `${floatValue.toFixed(1)} 升`;
+                document.getElementById('toggle-status').textContent = toggleState ? '狀態：真' : '狀態：假';
+                document.getElementById('light-status').textContent = toggleState ? '開啟 💡' : '關閉 💡';
+            }
+        };
+        
+        languageToggle.addEventListener('change', updateLanguage);
+        
+        // Tab switching functionality
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and content
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                // Add active class to clicked button
+                button.classList.add('active');
+                
+                // Show corresponding content
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Integer example
+        let integerValue = 5;
+        const updateInteger = () => {
+            document.querySelector('.integer-value').textContent = integerValue;
+            const result = document.querySelector('.integer-result');
+            result.innerHTML = '';
+            for (let i = 0; i < integerValue; i++) {
+                result.innerHTML += '<span class="text-2xl">🍎</span>';
+            }
+        };
+        
+        document.querySelectorAll('.integer-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (btn.textContent === '+1' && integerValue < 10) {
+                    integerValue++;
+                } else if (btn.textContent === '-1' && integerValue > 0) {
+                    integerValue--;
+                }
+                updateInteger();
+            });
+        });
+        
+        // Float example
+        let floatValue = 2.5;
+        const updateFloat = () => {
+            document.querySelector('.float-value').textContent = floatValue.toFixed(1);
+            const liquidHeight = (floatValue / 5) * 100;
+            document.getElementById('liquid-level').style.height = `${liquidHeight}%`;
+            
+            const isEnglish = !languageToggle.checked;
+            if (isEnglish) {
+                document.querySelector('.float-display').textContent = `${floatValue.toFixed(1)} Liters`;
+            } else {
+                document.querySelector('.float-display').textContent = `${floatValue.toFixed(1)} 升`;
+            }
+        };
+        
+        document.querySelectorAll('.float-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const change = parseFloat(btn.getAttribute('data-value'));
+                floatValue = Math.max(0, Math.min(5, floatValue + change));
+                updateFloat();
+            });
+        });
+        
+        // Char example
+        document.querySelectorAll('.char-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('.current-char').textContent = btn.textContent;
+            });
+        });
+        
+        // String example
+        document.getElementById('update-string').addEventListener('click', () => {
+            const input = document.getElementById('string-input').value;
+            const container = document.getElementById('string-container');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < input.length; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'character-cell';
+                cell.textContent = input[i];
+                container.appendChild(cell);
+                
+                cell.addEventListener('mouseover', () => {
+                    cell.classList.add('highlight');
+                });
+                
+                cell.addEventListener('mouseout', () => {
+                    cell.classList.remove('highlight');
+                });
+            }
+        });
+        
+        // Add character cell hover effects
+        document.querySelectorAll('.character-cell').forEach(cell => {
+            cell.addEventListener('mouseover', () => {
+                cell.classList.add('highlight');
+            });
+            
+            cell.addEventListener('mouseout', () => {
+                cell.classList.remove('highlight');
+            });
+        });
+        
+        // Boolean example
+        let toggleState = false;
+        const toggle = document.getElementById('toggle-bg');
+        const toggleCircle = document.getElementById('toggle-circle');
+        const toggleStatus = document.getElementById('toggle-status');
+        const lightStatus = document.getElementById('light-status');
+        
+        toggle.addEventListener('click', () => {
+            toggleState = !toggleState;
+            if (toggleState) {
+                toggle.classList.add('bg-yellow-500');
+                toggleCircle.classList.add('transform', 'translate-x-8');
+                
+                const isEnglish = !languageToggle.checked;
+                if (isEnglish) {
+                    toggleStatus.textContent = 'Status: True';
+                    lightStatus.textContent = 'On 💡';
+                } else {
+                    toggleStatus.textContent = '狀態：真';
+                    lightStatus.textContent = '開啟 💡';
+                }
+            } else {
+                toggle.classList.remove('bg-yellow-500');
+                toggleCircle.classList.remove('transform', 'translate-x-8');
+                
+                const isEnglish = !languageToggle.checked;
+                if (isEnglish) {
+                    toggleStatus.textContent = 'Status: False';
+                    lightStatus.textContent = 'Off 💡';
+                } else {
+                    toggleStatus.textContent = '狀態：假';
+                    lightStatus.textContent = '關閉 💡';
+                }
+            }
+        });
+        
+        // List example
+        document.getElementById('add-item').addEventListener('click', () => {
+            const input = document.getElementById('list-input').value.trim();
+            if (input) {
+                const list = document.getElementById('shopping-list');
+                const emojis = ['🍎', '🍌', '🥕', '🍗', '🧀', '🥫', '🍪', '🥤', '🧻', '📝'];
+                const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                
+                const li = document.createElement('li');
+                li.innerHTML = `${randomEmoji} ${input}`;
+                list.appendChild(li);
+                
+                document.getElementById('list-input').value = '';
+            }
+        });
+        
+        document.getElementById('remove-item').addEventListener('click', () => {
+            const list = document.getElementById('shopping-list');
+            if (list.children.length > 0) {
+                list.removeChild(list.lastElementChild);
+            }
+        });
+        
+        // Variables section - Code execution
+        document.getElementById('run-code').addEventListener('click', () => {
+            const code = document.getElementById('code-display').textContent;
+            const lines = code.split('\n');
+            const memory = {};
+            
+            lines.forEach(line => {
+                if (line.includes('=')) {
+                    const [varName, valueStr] = line.split('=').map(part => part.trim());
+                    let value;
+                    
+                    if (valueStr.startsWith('"') || valueStr.startsWith("'")) {
+                        // String
+                        value = valueStr;
+                    } else if (valueStr === 'True' || valueStr === 'False') {
+                        // Boolean
+                        value = valueStr;
+                    } else if (valueStr.startsWith('[')) {
+                        // List
+                        value = valueStr;
+                    } else {
+                        // Number
+                        value = parseInt(valueStr);
+                    }
+                    
+                    memory[varName] = value;
+                }
+            });
+            
+            updateMemoryBoxes(memory);
+        });
+        
+        document.getElementById('reset-code').addEventListener('click', () => {
+            document.getElementById('code-display').textContent = `name = "Alice"
+age = 30
+is_student = True
+grades = [85, 92, 78]`;
+            
+            updateMemoryBoxes({
+                'name': '"Alice"',
+                'age': 30,
+                'is_student': 'True',
+                'grades': '[85, 92, 78]'
+            });
+        });
+        
+        function updateMemoryBoxes(memory) {
+            const container = document.getElementById('memory-boxes');
+            container.innerHTML = '';
+            
+            for (const [varName, value] of Object.entries(memory)) {
+                let bgColor = 'bg-blue-100';
+                if (typeof value === 'number') bgColor = 'bg-green-100';
+                else if (value === 'True' || value === 'False') bgColor = 'bg-yellow-100';
+                else if (String(value).startsWith('[')) bgColor = 'bg-purple-100';
+                
+                const div = document.createElement('div');
+                div.className = `p-3 ${bgColor} rounded-lg flex justify-between items-center`;
+                div.innerHTML = `
+                    <span class="font-semibold">${varName}</span>
+                    <span class="bg-white px-3 py-1 rounded-lg">${value}</span>
+                `;
+                container.appendChild(div);
+            }
+        }
+        
+        // Trace Table functionality
+        const algorithmLines = [
+            'x = 5',
+            'y = 2',
+            'z = x + y',
+            'x = x * 2',
+            'y = y + z',
+            'z = x - y'
+        ];
+        
+        let currentStep = 0;
+        let traceX = '?';
+        let traceY = '?';
+        let traceZ = '?';
+        
+        function updateVisuals() {
+            document.getElementById('visual-x').textContent = traceX;
+            document.getElementById('visual-y').textContent = traceY;
+            document.getElementById('visual-z').textContent = traceZ;
+            
+            // Add pop animation
+            document.getElementById('visual-x').classList.add('pop-animation');
+            document.getElementById('visual-y').classList.add('pop-animation');
+            document.getElementById('visual-z').classList.add('pop-animation');
+            
+            // Remove animation after it completes
+            setTimeout(() => {
+                document.getElementById('visual-x').classList.remove('pop-animation');
+                document.getElementById('visual-y').classList.remove('pop-animation');
+                document.getElementById('visual-z').classList.remove('pop-animation');
+            }, 500);
+        }
+        
+        function addTraceRow(lineNum, code, x, y, z) {
+            const tbody = document.getElementById('trace-table-body');
+            const row = document.createElement('tr');
+            
+            const isEnglish = !languageToggle.checked;
+            const initialText = isEnglish ? 'Initial values' : '初始值';
+            
+            row.innerHTML = `
+                <td>${lineNum}</td>
+                <td>${code}</td>
+                <td>${x}</td>
+                <td>${y}</td>
+                <td>${z}</td>
+            `;
+            tbody.appendChild(row);
+        }
+        
+        function executeStep() {
+            if (currentStep >= algorithmLines.length) return;
+            
+            const line = algorithmLines[currentStep];
+            let operation = '';
+            const isEnglish = !languageToggle.checked;
+            
+            switch (currentStep) {
+                case 0:
+                    traceX = 5;
+                    operation = isEnglish ? 
+                        'Assigning 5 to variable x' : 
+                        '將 5 賦值給變量 x';
+                    break;
+                case 1:
+                    traceY = 2;
+                    operation = isEnglish ? 
+                        'Assigning 2 to variable y' : 
+                        '將 2 賦值給變量 y';
+                    break;
+                case 2:
+                    traceZ = traceX + traceY;
+                    operation = isEnglish ? 
+                        `Adding x and y: ${traceX} + ${traceY} = ${traceZ}` : 
+                        `將 x 和 y 相加: ${traceX} + ${traceY} = ${traceZ}`;
+                    break;
+                case 3:
+                    traceX = traceX * 2;
+                    operation = isEnglish ? 
+                        `Multiplying x by 2: ${traceX / 2} * 2 = ${traceX}` : 
+                        `將 x 乘以 2: ${traceX / 2} * 2 = ${traceX}`;
+                    break;
+                case 4:
+                    traceY = traceY + traceZ;
+                    operation = isEnglish ? 
+                        `Adding y and z: ${traceY - traceZ} + ${traceZ} = ${traceY}` : 
+                        `將 y 和 z 相加: ${traceY - traceZ} + ${traceZ} = ${traceY}`;
+                    break;
+                case 5:
+                    traceZ = traceX - traceY;
+                    operation = isEnglish ? 
+                        `Subtracting y from x: ${traceX} - ${traceY} = ${traceZ}` : 
+                        `從 x 中減去 y: ${traceX} - ${traceY} = ${traceZ}`;
+                    break;
+            }
+            
+            addTraceRow(currentStep + 1, line, traceX, traceY, traceZ);
+            document.getElementById('current-operation').innerHTML = `<span>${operation}</span>`;
+            updateVisuals();
+            currentStep++;
+        }
+        
+        document.getElementById('step-btn').addEventListener('click', executeStep);
+        
+        document.getElementById('run-all-btn').addEventListener('click', () => {
+            while (currentStep < algorithmLines.length) {
+                executeStep();
+            }
+        });
+        
+        document.getElementById('reset-trace-btn').addEventListener('click', () => {
+            currentStep = 0;
+            traceX = '?';
+            traceY = '?';
+            traceZ = '?';
+            updateVisuals();
+            
+            const tbody = document.getElementById('trace-table-body');
+            const isEnglish = !languageToggle.checked;
+            const initialText = isEnglish ? 'Initial values' : '初始值';
+            
+            tbody.innerHTML = `
+                <tr>
+                    <td>-</td>
+                    <td>${initialText}</td>
+                    <td>?</td>
+                    <td>?</td>
+                    <td>?</td>
+                </tr>
+            `;
+            
+            document.getElementById('current-operation').innerHTML = `<span>${isEnglish ? 'Waiting to start...' : '等待開始...'}</span>`;
+        });
+        
+        // Nested Loops functionality
+        let nestedI = '?';
+        let nestedJ = '?';
+        let nestedResult = 0;
+        let nestedStep = 0;
+        let nestedLineNum = 1;
+        
+        // Initialize the grid
+        function initNestedGrid() {
+            const grid = document.getElementById('nested-grid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 5; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'nested-loop-cell';
+                    cell.id = `cell-${i}-${j}`;
+                    cell.textContent = '?';
+                    grid.appendChild(cell);
+                }
+            }
+        }
+        
+        function updateNestedVisuals() {
+            document.getElementById('nested-i').textContent = nestedI;
+            document.getElementById('nested-j').textContent = nestedJ;
+            document.getElementById('nested-result').textContent = nestedResult;
+            
+            // Add pop animation
+            document.getElementById('nested-i').classList.add('pop-animation');
+            document.getElementById('nested-j').classList.add('pop-animation');
+            document.getElementById('nested-result').classList.add('pop-animation');
+            
+            // Remove animation after it completes
+            setTimeout(() => {
+                document.getElementById('nested-i').classList.remove('pop-animation');
+                document.getElementById('nested-j').classList.remove('pop-animation');
+                document.getElementById('nested-result').classList.remove('pop-animation');
+            }, 500);
+            
+            // Highlight current cell in grid if i and j are valid
+            document.querySelectorAll('.nested-loop-cell').forEach(cell => {
+                cell.classList.remove('active');
+            });
+            
+            if (nestedI !== '?' && nestedJ !== '?' && nestedI >= 0 && nestedI < 3 && nestedJ >= 0 && nestedJ < 5) {
+                const cell = document.getElementById(`cell-${nestedI}-${nestedJ}`);
+                if (cell) {
+                    cell.classList.add('active');
+                    cell.textContent = nestedResult;
+                }
+            }
+            
+            // Highlight current code line
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('active');
+            });
+            
+            const currentLine = document.querySelector(`.code-line[data-line="${nestedLineNum}"]`);
+            if (currentLine) {
+                currentLine.classList.add('active');
+            }
+        }
+        
+        function addNestedTraceRow(lineNum, code, i, j, result) {
+            const tbody = document.getElementById('nested-trace-body');
+            const row = document.createElement('tr');
+            
+            row.innerHTML = `
+                <td>${lineNum}</td>
+                <td>${code}</td>
+                <td>${i}</td>
+                <td>${j}</td>
+                <td>${result}</td>
+            `;
+            tbody.appendChild(row);
+        }
+        
+        function addNestedOutput(text) {
+            const output = document.getElementById('nested-output');
+            const line = document.createElement('div');
+            line.textContent = text;
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function executeNestedStep() {
+            const isEnglish = !languageToggle.checked;
+            
+            // Define the steps of the nested loop execution
+            const steps = [
+                { line: 1, code: 'result = 0', action: () => {
+                    nestedResult = 0;
+                    return isEnglish ? 'Initializing result to 0' : '初始化結果為 0';
+                }},
+                { line: 2, code: 'for i in range(3):', action: () => {
+                    nestedI = 0;
+                    return isEnglish ? 'Starting outer loop with i = 0' : '開始外層循環，i = 0';
+                }},
+                { line: 3, code: '    for j in range(5):', action: () => {
+                    nestedJ = 0;
+                    return isEnglish ? 'Starting inner loop with j = 0' : '開始內層循環，j = 0';
+                }}
+            ];
+            
+            // Add steps for each iteration of the nested loops
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 5; j++) {
+                    if (!(i === 0 && j === 0)) {
+                        // We already added the first iteration steps above
+                        if (j === 0) {
+                            steps.push({ line: 2, code: 'for i in range(3):', action: () => {
+                                nestedI = i;
+                                return isEnglish ? `Continuing outer loop with i = ${i}` : `繼續外層循環，i = ${i}`;
+                            }});
+                            steps.push({ line: 3, code: '    for j in range(5):', action: () => {
+                                nestedJ = j;
+                                return isEnglish ? `Starting inner loop with j = ${j}` : `開始內層循環，j = ${j}`;
+                            }});
+                        } else {
+                            steps.push({ line: 3, code: '    for j in range(5):', action: () => {
+                                nestedJ = j;
+                                return isEnglish ? `Continuing inner loop with j = ${j}` : `繼續內層循環，j = ${j}`;
+                            }});
+                        }
+                    }
+                    
+                    steps.push({ line: 4, code: '        result = result + 1', action: () => {
+                        nestedResult++;
+                        return isEnglish ? 
+                            `Incrementing result: ${nestedResult-1} + 1 = ${nestedResult}` : 
+                            `增加結果：${nestedResult-1} + 1 = ${nestedResult}`;
+                    }});
+                    
+                    steps.push({ line: 5, code: '        print(i, j, result)', action: () => {
+                        const output = `${nestedI}, ${nestedJ}, ${nestedResult}`;
+                        addNestedOutput(output);
+                        return isEnglish ? `Printing: ${output}` : `輸出：${output}`;
+                    }});
+                }
+            }
+            
+            // Add final step
+            steps.push({ line: 2, code: 'for i in range(3):', action: () => {
+                return isEnglish ? 'Loop completed' : '循環完成';
+            }});
+            
+            if (nestedStep >= steps.length) return false;
+            
+            const step = steps[nestedStep];
+            nestedLineNum = step.line;
+            const operation = step.action();
+            
+            addNestedTraceRow(step.line, step.code, nestedI, nestedJ, nestedResult);
+            document.getElementById('nested-operation').innerHTML = `<span>${operation}</span>`;
+            updateNestedVisuals();
+            
+            nestedStep++;
+            return nestedStep < steps.length;
+        }
+        
+        document.getElementById('nested-step-btn').addEventListener('click', () => {
+            executeNestedStep();
+        });
+        
+        document.getElementById('nested-run-btn').addEventListener('click', () => {
+            const runInterval = setInterval(() => {
+                const hasMoreSteps = executeNestedStep();
+                if (!hasMoreSteps) {
+                    clearInterval(runInterval);
+                }
+            }, 300);
+        });
+        
+        document.getElementById('nested-reset-btn').addEventListener('click', () => {
+            nestedStep = 0;
+            nestedI = '?';
+            nestedJ = '?';
+            nestedResult = 0;
+            nestedLineNum = 1;
+            
+            updateNestedVisuals();
+            initNestedGrid();
+            
+            const tbody = document.getElementById('nested-trace-body');
+            const isEnglish = !languageToggle.checked;
+            const initialText = isEnglish ? 'Initial values' : '初始值';
+            
+            tbody.innerHTML = `
+                <tr>
+                    <td>-</td>
+                    <td>${initialText}</td>
+                    <td>?</td>
+                    <td>?</td>
+                    <td>0</td>
+                </tr>
+            `;
+            
+            document.getElementById('nested-operation').innerHTML = `<span>${isEnglish ? 'Waiting to start...' : '等待開始...'}</span>`;
+            document.getElementById('nested-output').innerHTML = '';
+        });
+        
+        // Initialize all examples
+        updateInteger();
+        updateFloat();
+        initNestedGrid();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a476dd953711fbe',t:'MTc2NDEzOTU5MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
