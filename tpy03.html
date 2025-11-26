@@ -298,7 +298,7 @@
         // Helper function for animation delay
         const delay = ms => new Promise(r => setTimeout(r, ms));
         
-        // --- Megaphone/Console Output Functions (Simulation Logic omitted for brevity) ---
+        // --- Megaphone/Console Output Functions (Simulation Logic) ---
         function writeToConsole(text, newLine = true) {
             liveCursor.remove();
             const textNode = document.createTextNode(text);
@@ -329,8 +329,27 @@
 
         const simulationSteps = [
             // Simulation steps here (kept structure for runSimulation)
-            { line: 1, code: 'name = "Luna"', action: () => { /* ... */ }, output: "" },
-            { line: 2, code: 'age = 14', action: () => { /* ... */ }, output: "" },
+            { line: 1, code: 'name = "Luna"', action: () => { 
+                memoryVis.innerHTML = `
+                    <div id="name-box" class="box-container w-24 h-24 bg-yellow-600 p-1 rounded-lg relative border-2 border-yellow-800 transition-opacity duration-300">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-${colorPrimary} text-white px-2 py-0.5 rounded-full text-xs font-mono shadow-md border-2 border-white">name</div>
+                        <div class="data-item w-full h-full flex items-center justify-center">
+                            <div class="w-3/4 h-3/4 bg-amber-200 rounded-full shadow-inner flex items-center justify-center text-xs font-bold text-slate-800 p-1">"Luna"</div>
+                        </div>
+                    </div>
+                `;
+            }, output: "" },
+            { line: 2, code: 'age = 14', action: () => { 
+                const nameBox = document.getElementById('name-box') ? document.getElementById('name-box').outerHTML : '';
+                memoryVis.innerHTML = nameBox + `
+                    <div id="age-box" class="box-container w-24 h-24 bg-yellow-600 p-1 rounded-lg relative border-2 border-yellow-800 transition-opacity duration-300 ml-4">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-${colorPrimary} text-white px-2 py-0.5 rounded-full text-xs font-mono shadow-md border-2 border-white">age</div>
+                        <div class="data-item w-full h-full flex items-center justify-center">
+                            <div class="w-3/4 h-3/4 bg-green-400 rounded-lg shadow-inner flex items-center justify-center text-lg font-bold text-slate-800">14</div>
+                        </div>
+                    </div>
+                `;
+            }, output: "" },
             { line: 3, code: 'print("Hello,")', action: () => { writeToConsole("Hello,"); document.getElementById('megaphone-visual').classList.add('speaking'); setTimeout(() => document.getElementById('megaphone-visual').classList.remove('speaking'), 300); }, output: "Hello,\n" },
             { line: 4, code: 'print(name)', action: () => { writeToConsole("Luna"); document.getElementById('megaphone-visual').classList.add('speaking'); setTimeout(() => document.getElementById('megaphone-visual').classList.remove('speaking'), 300); }, output: "Hello,\nLuna\n" },
             { line: 5, code: 'print("You are", age, "years old.")', action: () => { writeToConsole("You are", false); writeToConsole("14", false); writeToConsole("years old.", true); document.getElementById('megaphone-visual').classList.add('speaking'); setTimeout(() => document.getElementById('megaphone-visual').classList.remove('speaking'), 300); }, output: "Hello,\nLuna\nYou are 14 years old.\n" }
@@ -432,14 +451,33 @@
         const targetOutputText = document.getElementById('target-output').textContent.trim();
         
         // Define all blocks needed for the challenge
+        // IMPORTANT: Strings now have internal spaces where needed, but NO trailing/leading spaces on the *outside* of the content
         const allChallengeBlocks = [
             { value: 'print(', type: 'syntax', color: 'bg-pink-400', text: 'print(' },
-            { value: '"The score is "', type: 'string', color: 'bg-yellow-400', text: '"The score is "' },
-            { value: ',', type: 'syntax', color: 'bg-gray-400', text: ',' },
+            { value: '"The score is"', type: 'string', color: 'bg-yellow-400', text: '"The score is"' }, // The space after 'is' will be added by the next comma's separator.
+            { value: ',', type: 'separator', color: 'bg-gray-400', text: ',' },
             { value: 'final_score', type: 'variable', color: 'bg-green-400', text: 'final_score' },
-            { value: '" points!"', type: 'string', color: 'bg-yellow-400', text: '" points!"' },
+            { value: '"points!"', type: 'string', color: 'bg-yellow-400', text: '" points!"' }, // The space before 'points!' is included here for the final literal part.
             { value: ')', type: 'syntax', color: 'bg-pink-400', text: ')' }
         ];
+
+        // Correct blocks for the required output: "The score is 95 points!"
+        // Item 1: "The score is" - separated by space 
+        // Item 2: final_score (95) - separated by space 
+        // Item 3: "points!"
+        // This REQUIRES two commas. My previous attempt to use ONE comma for two separators was wrong. 
+        // Let's revert to TWO commas for the TWO necessary separators: (item1, item2, item3)
+        // Correct Block Configuration (Re-adding the second comma):
+        const finalChallengeBlocks = [
+            { value: 'print(', type: 'syntax', color: 'bg-pink-400', text: 'print(' },
+            { value: '"The score is"', type: 'string', color: 'bg-yellow-400', text: '"The score is"' }, 
+            { value: ',', type: 'separator', color: 'bg-gray-400', text: ',' },
+            { value: 'final_score', type: 'variable', color: 'bg-green-400', text: 'final_score' },
+            { value: ',', type: 'separator', color: 'bg-gray-400', text: ',' }, // The second required comma
+            { value: '"points!"', type: 'string', color: 'bg-yellow-400', text: '" points!"' }, 
+            { value: ')', type: 'syntax', color: 'bg-pink-400', text: ')' }
+        ];
+
         
         // Function to shuffle an array (Fisher-Yates)
         function shuffleArray(array) {
@@ -453,12 +491,12 @@
         // Initialize and display shuffled blocks
         function initializeChallengeBlocks() {
             // Create block nodes
-            const blockNodes = allChallengeBlocks.map((blockData, index) => {
+            const blockNodes = finalChallengeBlocks.map((blockData, index) => {
                 const block = document.createElement('div');
                 block.classList.add('code-block', blockData.color, blockData.type === 'string' ? 'text-slate-800' : 'text-white');
                 block.setAttribute('draggable', 'true');
                 block.setAttribute('data-value', blockData.value);
-                block.setAttribute('data-index', index); // Use original index for unique identification if needed
+                block.setAttribute('data-index', index);
                 block.textContent = blockData.text;
                 
                 block.addEventListener('dragstart', (e) => {
@@ -576,7 +614,7 @@
                  }
                  
                  // Check for redundant commas (e.g., ,, or print(,) )
-                 if (isComma && (isPrevComma || prevValue === 'print(')) {
+                 if (isComma && (isPrevComma || prevValue === 'print(' || lastBlockValue === ')')) {
                       challengeResult.innerHTML = "⚠️ Warning: Invalid comma placement (double comma or comma right after print().";
                      codeAssembly.classList.add('shake');
                      setTimeout(() => codeAssembly.classList.remove('shake'), 500);
@@ -609,7 +647,7 @@
             // Final check for structural issues before splitting (like double comma or leading/trailing)
             if (content.startsWith(',') || content.endsWith(',') || content.includes(',,')) {
                 challengeOutput.innerHTML = `<span class="text-red-400">Syntax Error: Invalid comma usage.</span>`;
-                challengeResult.innerHTML = "❌ Fail! Invalid comma usage. Commas must separate items, not start/end the list.";
+                challengeResult.innerHTML = "❌ Fail! Invalid comma usage. Commas must separate items.";
                 challengeResult.classList.add('text-red-600');
                 return;
             }
@@ -617,16 +655,27 @@
             // Replace variable with its value
             content = content.replace(/final_score/g, '95');
             
-            // Split by comma and process (Python's print() adds a space for each comma)
+            // --- CRITICAL FIX: The parsing logic must accurately mimic Python's separator behavior.
+            // Python: print(A, B, C) -> "A" + " " + "B" + " " + "C"
             let outputParts = content.split(',').map(part => part.trim());
 
-            // Clean up quotes and join with space (default separator)
+            // 1. Remove quotes from the parts
             let finalOutput = outputParts.map(part => {
                 if (part.startsWith('"') && part.endsWith('"')) {
-                    return part.slice(1, -1);
+                    // Remove quotes
+                    let stringContent = part.slice(1, -1);
+                    // The first string ("The score is") shouldn't have a trailing space, 
+                    // and the last string (" points!") needs its leading space. 
+                    // Since I controlled the string contents in the blocks, they should be accurate.
+                    return stringContent;
                 }
                 return part;
-            }).join(' ');
+            }).join(' '); // Join using the default single space separator
+
+            // 2. Remove any extra spaces that might have accumulated
+            // (e.g., if "The score is" was accidentally written with two spaces at the end, it would cause "  ")
+            finalOutput = finalOutput.replace(/\s+/g, ' ').trim();
+            // --- END CRITICAL FIX
 
             challengeOutput.innerHTML = finalOutput;
 
@@ -636,7 +685,7 @@
                 challengeResult.classList.add('text-green-600');
                 createConfetti();
             } else {
-                challengeResult.innerHTML = "❌ FAIL! The output is: <span class='font-mono'>" + finalOutput + "</span>. Target: <span class='font-mono'>" + targetOutputText + "</span>.";
+                challengeResult.innerHTML = "❌ FAIL! The output is: <span class='font-mono'>" + finalOutput + "</span>. Target: <span class='font-mono'>" + targetOutputText + "</span>. Check the exact spacing!";
                 challengeResult.classList.add('text-red-600');
                 challengeResult.classList.remove('text-green-600');
                 codeAssembly.classList.add('shake');
