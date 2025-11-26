@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Math: Arithmetic Operators 🤖</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Theme Colors */
+        :root {
+            --primary-color: #2563eb; /* blue-600 */
+            --secondary-color: #bfdbfe; /* blue-200 */
+            --bg-color: #f8fafc; /* slate-50 */
+        }
+
+        /* Custom Bubble Tail CSS */
+        .bubble-tail:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+            border-right: 20px solid white;
+            left: -20px;
+            top: 20px;
+        }
+
+        /* Animation */
+        @keyframes flash-success {
+            0%, 100% { background-color: white; }
+            50% { background-color: #34d399; /* emerald-400 */ }
+        }
+        .flash-success {
+            animation: flash-success 0.5s ease-in-out;
+        }
+        @keyframes flash-warning {
+            0%, 100% { background-color: white; }
+            50% { background-color: #fcd34d; /* amber-300 */ }
+        }
+        .flash-warning {
+            animation: flash-warning 0.5s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .shake {
+            animation: shake 0.3s;
+        }
+
+        /* Code Highlighting */
+        .operator { color: #f472b6; /* Pink-400 */ font-weight: bold; }
+        .number { color: #34d399; /* Emerald-400 */ }
+        .variable { color: #facc15; /* Yellow-400 */ }
+
+        /* Custom Robot Arm Styles */
+        .robot-arm {
+            font-size: 3rem;
+            transition: transform 0.3s;
+        }
+        .active-operator {
+            transform: scale(1.1) translateY(-10px);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-[Inter] text-slate-700 p-8">
+
+    <header class="mb-12">
+        <div class="max-w-4xl mx-auto p-4 bg-blue-600 text-white rounded-xl shadow-lg">
+            <h1 class="text-3xl font-extrabold">⚙️ Python Math: Arithmetic Operators</h1>
+            <p class="text-blue-200">Lesson 3: The Robot Construction Site</p>
+        </div>
+
+        <div class="max-w-4xl mx-auto mt-6 relative">
+            <div class="absolute w-20 h-20 -top-4 rounded-full border-4 border-white shadow-xl bg-blue-100 p-1 z-10 flex items-center justify-center text-4xl">
+                 🤖
+            </div>
+
+            <div class="ml-24 p-4 bg-white rounded-2xl shadow-md bubble-tail border-2 border-blue-200 transition-all duration-300 hover:shadow-lg">
+                <p class="font-semibold text-blue-700">
+                    Welcome back to the **Math Factory**! We've added a powerful new tool: the **Stacking Crane**! It lets us calculate powers, which means multiplying a number by itself many times, really fast!
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <section id="hook" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+        <h2 class="text-2xl font-bold mb-4 text-blue-600">1. 🎣 The Hook: Specialized Robot Arms</h2>
+        <p class="mb-6">Arithmetic operators tell the computer how to manipulate number blocks. Each operator is a specialized **Robot Arm** on our site.</p>
+
+        <div class="grid grid-cols-4 gap-4 text-center">
+            <div class="p-3 bg-blue-50 rounded-lg">
+                <div class="robot-arm">➕</div>
+                <p class="font-bold">`+` **Joining Clamp** (Addition)</p>
+            </div>
+            <div class="p-3 bg-blue-50 rounded-lg">
+                <div class="robot-arm">➖</div>
+                <p class="font-bold">`-` **Chisel** (Subtraction)</p>
+            </div>
+            <div class="p-3 bg-blue-50 rounded-lg">
+                <div class="robot-arm">❌</div>
+                <p class="font-bold">`*` **Cloning Machine** (Multiplication)</p>
+            </div>
+            <div class="p-3 bg-blue-50 rounded-lg">
+                <div class="robot-arm">🔪</div>
+                <p class="font-bold">`/` **Laser Cutter** (Standard Division - **Decimal Result**)</p>
+            </div>
+             <div class="p-3 bg-blue-50 rounded-lg">
+                <div class="robot-arm">📐</div>
+                <p class="font-bold">`//` **Slicer** (Floor Division - **Discards Remainder**)</p>
+            </div>
+            <div class="p-3 bg-blue-50 rounded-lg">
+                <div class="robot-arm">🗑️</div>
+                <p class="font-bold">`%` **Scrap Collector** (Modulo - **Only Saves Remainder**)</p>
+            </div>
+            <div class="p-3 bg-blue-50 rounded-lg col-span-2">
+                <div class="robot-arm">🏗️</div>
+                <p class="font-bold">`**` **Stacking Crane** (Exponentiation - Base $\times$ Base)</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="simulation-card" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+        <h2 class="text-2xl font-bold mb-4 text-blue-600">2. 🧠 The Simulation: Robot Construction</h2>
+        <p class="mb-4">Watch the robot arms perform calculations on the $4$ block (A) and the $2$ block (B). Click **Start** to see the sequence!</p>
+
+        <div class="flex gap-6">
+            <div class="w-1/2">
+                <div class="bg-slate-800 text-blue-300 font-mono rounded-lg p-4 shadow-lg mb-4 text-sm">
+                    <div id="code-line-1" class="py-1">
+                        <span class="number">1</span> <span class="variable">A</span> = <span class="number">4</span>
+                    </div>
+                    <div id="code-line-2" class="py-1">
+                        <span class="number">2</span> <span class="variable">B</span> = <span class="number">2</span>
+                    </div>
+                    <div id="code-line-3" class="py-1">
+                        <span class="variable">Sum</span> = <span class="variable">A</span> <span class="operator">+</span> <span class="variable">B</span>
+                    </div>
+                    <div id="code-line-4" class="py-1">
+                        <span class="variable">Product</span> = <span class="variable">A</span> <span class="operator">*</span> <span class="variable">B</span>
+                    </div>
+                    <div id="code-line-5" class="py-1">
+                        <span class="variable">Power</span> = <span class="variable">A</span> <span class="operator">**</span> <span class="variable">B</span>
+                    </div>
+                    <div id="code-line-6" class="py-1">
+                        <span class="variable">Floor</span> = <span class="variable">A</span> <span class="operator">//</span> <span class="variable">B</span>
+                    </div>
+                    <div id="code-line-7" class="py-1">
+                        <span class="variable">Remainder</span> = <span class="variable">A</span> <span class="operator">%</span> <span class="variable">B</span>
+                    </div>
+                </div>
+                <button id="start-simulation" onclick="runSimulation()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150">
+                    🎬 Start Simulation
+                </button>
+            </div>
+
+            <div class="w-1/2 bg-blue-50 p-4 rounded-lg border-2 border-blue-300">
+                <p class="font-bold text-blue-700 mb-2">Memory Boxes (Blocks):</p>
+                <div id="memory-visualization" class="flex flex-wrap gap-2 min-h-[150px]">
+                    </div>
+                <p class="font-bold text-blue-700 mt-4 mb-2">Active Robot Arm:</p>
+                <div id="robot-arm-display" class="text-6xl text-center min-h-[70px]">
+                    <span id="arm-icon" class="text-gray-400">🚧</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6">
+            <p class="font-bold text-blue-700 mb-2">Trace Table (Watching the Result):</p>
+            <table class="w-full text-sm border-collapse">
+                <thead>
+                    <tr class="bg-blue-600 text-white">
+                        <th class="p-2 border border-blue-700">Step #</th>
+                        <th class="p-2 border border-blue-700">Line of Code</th>
+                        <th class="p-2 border border-blue-700">Variable (Result)</th>
+                        <th class="p-2 border border-blue-700">Value</th>
+                        <th class="p-2 border border-blue-700">Robot Action</th>
+                    </tr>
+                </thead>
+                <tbody id="trace-table-body">
+                    </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="mistakes" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+        <h2 class="text-2xl font-bold mb-4 text-blue-600">3. 🚩 The Trap: Whole Numbers vs. Decimals</h2>
+        <p class="mb-4">You want a whole number answer, but the wrong operator gives you decimal dust! Fix the code by adding the second slash.</p>
+
+        <div class="grid grid-cols-2 gap-6">
+            <div class="bg-red-50 p-4 rounded-xl border-4 border-red-400 shadow-md">
+                <h3 class="text-xl font-bold text-red-700 mb-3">❌ The Trap (Standard Division)</h3>
+                <div id="trap-code" class="bg-slate-800 text-blue-300 font-mono rounded-lg p-3 mb-4">
+                    <span class="variable">result</span> = <span class="number">10</span> <span class="operator">/</span> <span class="number">3</span>
+                </div>
+                <div class="text-center mb-3">
+                    <span class="robot-arm text-red-500">🔪</span> (Laser Cutter)
+                </div>
+                <div id="trap-result" class="bg-slate-900 text-yellow-400 font-mono p-3 rounded-lg min-h-[50px] flex items-center justify-center">
+                    <span class="text-lg font-bold">3.3333...</span> (Decimal Dust!)
+                </div>
+            </div>
+
+            <div id="fix-container" class="bg-green-50 p-4 rounded-xl border-4 border-green-400 shadow-md">
+                <h3 class="text-xl font-bold text-green-700 mb-3">✅ The Fix (Interactive)</h3>
+                <div class="bg-slate-800 text-blue-300 font-mono rounded-lg p-3 mb-4 relative flex items-center justify-center">
+                    <span class="variable">result</span> = <span class="number">10</span> <span class="operator" id="division-target">/</span> <span class="number">3</span>
+                </div>
+                
+                <p class="text-center font-semibold mb-2">Drag the second slash to change the operator:</p>
+                <div id="slash-drag-area" class="flex justify-center gap-4 bg-white p-3 rounded-lg border-2 border-gray-300">
+                    <span id="slash-block" class="text-4xl text-blue-600 cursor-pointer p-2 bg-blue-200 rounded-md" draggable="true" data-value="/">/</span>
+                </div>
+
+                <div class="text-center mt-3">
+                    <span class="robot-arm text-gray-400" id="fix-arm">🔪</span> (Laser Cutter)
+                </div>
+
+                <div id="fix-result" class="bg-slate-900 text-green-400 font-mono p-3 rounded-lg min-h-[50px] flex items-center justify-center">
+                    Awaits Fix
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="challenge-card" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+        <h2 class="text-2xl font-bold mb-4 text-blue-600">4. 🎮 The Playground: Stacking Crane (`**`)</h2>
+        <p class="mb-4">Use the **Stacking Crane (`**`)** to calculate the area of a square ($side^2$).</p>
+
+        <div class="grid grid-cols-3 gap-6 items-center">
+            <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-300">
+                <p class="font-bold text-blue-700 mb-2">Set Side Length (Base):</p>
+                <input type="range" id="side-slider" min="1" max="5" value="3" class="w-full">
+                <p class="text-center text-xl font-bold mt-2">`side` = <span id="side-value">3</span></p>
+                <div class="text-center mt-4">
+                    <div class="w-16 h-16 bg-green-400 rounded-lg shadow-md inline-flex items-center justify-center text-2xl font-bold text-slate-800 border-2 border-green-600" id="base-block">3</div>
+                </div>
+            </div>
+
+            <div class="col-span-2 bg-slate-100 p-4 rounded-lg border-2 border-gray-300">
+                <p class="font-bold mb-2">Code: Find Square Area</p>
+                <div class="flex items-center gap-2 bg-white p-3 rounded-lg border border-gray-400 shadow-inner">
+                    <span class="variable">Area</span> = 
+                    <input type="text" id="challenge-input" value="side ** 2" class="font-mono text-lg p-1 border-b border-blue-400 focus:outline-none w-2/3" placeholder="e.g., side ** 2">
+                </div>
+                <button id="run-challenge" onclick="runChallenge()" class="mt-4 bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150 w-full">
+                    🏗️ Run Stacking Crane!
+                </button>
+                <div id="challenge-feedback" class="mt-3 text-center font-bold min-h-[20px]"></div>
+            </div>
+
+        </div>
+
+        <div class="mt-6 p-4 bg-white rounded-lg border-4 border-gray-400 relative">
+            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">Target Result</div>
+            <div class="text-center mt-4">
+                <p class="text-xl font-bold text-slate-800 mb-2">Square Area Box</p>
+                <div id="area-box" class="w-32 h-32 bg-yellow-200 p-2 rounded-lg shadow-inner inline-flex items-center justify-center text-4xl font-extrabold border-4 border-yellow-500 transition-all duration-300">
+                    ?
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const colorPrimary = 'blue-600';
+        const traceTableBody = document.getElementById('trace-table-body');
+        const codeLines = [
+            document.getElementById('code-line-1'),
+            document.getElementById('code-line-2'),
+            document.getElementById('code-line-3'),
+            document.getElementById('code-line-4'),
+            document.getElementById('code-line-5'),
+            document.getElementById('code-line-6'),
+            document.getElementById('code-line-7')
+        ];
+        const memoryVis = document.getElementById('memory-visualization');
+        const armIcon = document.getElementById('arm-icon');
+
+        const armMap = {
+            '+': '➕', '*': '❌', '**': '🏗️', '//': '📐', '%': '🗑️', '/': '🔪'
+        };
+
+        const actionMap = {
+            '+': 'Joining Clamp merges A and B.',
+            '*': 'Cloning Machine duplicates A (4) B (2) times.',
+            '**': 'Stacking Crane lifts A (4) and stacks it B (2) times ($4^2$).',
+            '//': 'Slicer divides A by B, giving the integer quotient.',
+            '%': 'Scrap Collector finds the remainder of A divided by B.'
+        };
+
+        // Helper function for animation delay
+        const delay = ms => new Promise(r => setTimeout(r, ms));
+        
+        function updateMemoryBox(variable, value, color) {
+             const box = document.getElementById(`${variable}-box`);
+             if (box) {
+                 box.querySelector('.data-value').textContent = value;
+                 box.classList.add('flash-success');
+                 setTimeout(() => box.classList.remove('flash-success'), 500);
+             } else {
+                 memoryVis.innerHTML += `
+                    <div id="${variable}-box" class="box-container w-24 h-24 bg-yellow-600 p-1 rounded-lg relative border-2 border-yellow-800 transition-opacity duration-300">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-${colorPrimary} text-white px-2 py-0.5 rounded-full text-xs font-mono shadow-md border-2 border-white">${variable}</div>
+                        <div class="data-item w-full h-full flex items-center justify-center">
+                            <div class="w-3/4 h-3/4 ${color} rounded-lg shadow-inner flex items-center justify-center text-lg font-bold text-slate-800 data-value">${value}</div>
+                        </div>
+                    </div>
+                 `;
+             }
+        }
+        
+        function updateTraceTable(step, line, variable, value, action) {
+            const row = traceTableBody.insertRow(-1);
+            row.id = `trace-row-${step}`;
+            row.classList.add('bg-white', 'hover:bg-blue-50');
+            row.innerHTML = `
+                <td class="p-2 border">${step}</td>
+                <td class="p-2 border font-mono"><span class="bg-slate-200 p-1 rounded">${line}</span></td>
+                <td class="p-2 border font-mono">${variable}</td>
+                <td class="p-2 border font-mono font-bold">${value}</td>
+                <td class="p-2 border">${action}</td>
+            `;
+            row.classList.add('bg-yellow-100');
+            setTimeout(() => row.classList.remove('bg-yellow-100'), 1000);
+        }
+
+        // --- Stage 2 Simulation Logic ---
+        const simulationSteps = [
+            { line: 1, code: 'A = 4', action: () => { updateMemoryBox('A', 4, 'bg-green-400'); armIcon.textContent = '🚧'; }, output: { A: 4 } },
+            { line: 2, code: 'B = 2', action: () => { updateMemoryBox('B', 2, 'bg-green-400'); armIcon.textContent = '🚧'; }, output: { A: 4, B: 2 } },
+            { line: 3, code: 'Sum = A + B', action: () => { updateMemoryBox('Sum', 6, 'bg-blue-400'); armIcon.textContent = armMap['+']; armIcon.classList.add('active-operator'); }, output: { Sum: 6 } },
+            { line: 4, code: 'Product = A * B', action: () => { updateMemoryBox('Product', 8, 'bg-blue-400'); armIcon.textContent = armMap['*']; }, output: { Product: 8 } },
+            { line: 5, code: 'Power = A ** B', action: () => { updateMemoryBox('Power', 16, 'bg-red-400'); armIcon.textContent = armMap['**']; }, output: { Power: 16 } },
+            { line: 6, code: 'Floor = A // B', action: () => { updateMemoryBox('Floor', 2, 'bg-yellow-400'); armIcon.textContent = armMap['//']; }, output: { Floor: 2 } },
+            { line: 7, code: 'Remainder = A % B', action: () => { updateMemoryBox('Remainder', 0, 'bg-gray-400'); armIcon.textContent = armMap['%']; armIcon.classList.remove('active-operator'); }, output: { Remainder: 0 } }
+        ];
+
+        async function runSimulation() {
+            document.getElementById('start-simulation').disabled = true;
+            memoryVis.innerHTML = ''; // Reset memory
+            traceTableBody.innerHTML = ''; // Reset table
+
+            let currentValues = {};
+
+            for (let i = 0; i < simulationSteps.length; i++) {
+                const step = simulationSteps[i];
+                const lineIndex = step.line - 1;
+                
+                codeLines.forEach(line => line.classList.remove('bg-yellow-200', 'bg-opacity-20'));
+                codeLines[lineIndex].classList.add('bg-yellow-200', 'bg-opacity-20');
+
+                await delay(800);
+
+                step.action();
+                
+                Object.assign(currentValues, step.output);
+
+                const varName = Object.keys(step.output).filter(k => k !== 'A' && k !== 'B')[0];
+                const varValue = varName ? step.output[varName] : '';
+                const action = actionMap[step.code.split(/ = /)[1]?.match(/(\*\*|//|\*|\+|\%)/)?.[0]] || (i < 2 ? 'Block placed' : 'Calculation completed');
+
+                updateTraceTable(i + 1, step.code, varName || 'N/A', varValue, action);
+                
+                await delay(1200);
+
+                codeLines[lineIndex].classList.remove('bg-yellow-200', 'bg-opacity-20');
+            }
+            armIcon.textContent = '✅';
+            document.getElementById('start-simulation').disabled = false;
+        }
+
+
+        // --- Stage 3 Interactive Fix Logic ---
+        const divisionTarget = document.getElementById('division-target');
+        const slashBlock = document.getElementById('slash-block');
+        const fixArm = document.getElementById('fix-arm');
+        const fixResult = document.getElementById('fix-result');
+        let isFixed = false;
+
+        slashBlock.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData("text/plain", e.target.getAttribute('data-value'));
+            e.dataTransfer.effectAllowed = "move";
+        });
+
+        divisionTarget.addEventListener('dragover', (e) => {
+            if (!isFixed) e.preventDefault();
+        });
+
+        divisionTarget.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const data = e.dataTransfer.getData("text/plain");
+
+            if (data === '/' && !isFixed) {
+                divisionTarget.textContent = '//';
+                fixArm.textContent = '📐'; // Slicer
+                fixResult.innerHTML = `<span class="text-lg font-bold">3</span>`;
+                slashBlock.style.opacity = '0.3';
+                isFixed = true;
+            } else {
+                fixArm.classList.add('shake');
+                setTimeout(() => fixArm.classList.remove('shake'), 300);
+            }
+        });
+        
+        // --- Stage 4 Challenge Logic ---
+        const sideSlider = document.getElementById('side-slider');
+        const sideValueDisplay = document.getElementById('side-value');
+        const baseBlock = document.getElementById('base-block');
+        const challengeInput = document.getElementById('challenge-input');
+        const areaBox = document.getElementById('area-box');
+        const challengeFeedback = document.getElementById('challenge-feedback');
+
+        sideSlider.addEventListener('input', () => {
+            const value = sideSlider.value;
+            sideValueDisplay.textContent = value;
+            baseBlock.textContent = value;
+            // Reset result on input change
+            areaBox.textContent = '?';
+            areaBox.classList.remove('flash-success', 'flash-warning', 'bg-green-200', 'bg-yellow-200');
+            areaBox.classList.add('bg-yellow-200');
+            challengeFeedback.textContent = '';
+        });
+
+        function runChallenge() {
+            const side = parseInt(sideSlider.value);
+            const expression = challengeInput.value.trim().toLowerCase();
+            const expectedResult = side * side;
+            
+            areaBox.textContent = '?';
+            areaBox.classList.remove('flash-success', 'flash-warning', 'bg-green-200', 'bg-yellow-200');
+
+            if (expression === `side ** 2`) {
+                // Correct Operator & Syntax
+                areaBox.textContent = expectedResult;
+                areaBox.classList.add('flash-success', 'bg-green-200');
+                challengeFeedback.innerHTML = `🎉 **Perfect!** The Stacking Crane calculated ${side} ** 2 = ${expectedResult}.`;
+            } else if (expression === `side * side` || expression === `${side} * ${side}`) {
+                // Correct calculation, wrong operator
+                areaBox.textContent = expectedResult;
+                areaBox.classList.add('flash-warning', 'bg-yellow-200');
+                challengeFeedback.innerHTML = `⚠️ **Wrong Operator!** You calculated ${expectedResult}, but used the Cloning Machine (<span class="font-bold">*</span>). Use the Stacking Crane (<span class="font-bold">**</span>) for powers!`;
+            } else if (expression === `side * 2` || expression === `${side} * 2`) {
+                // Wrong calculation & wrong operator
+                const wrongResult = side * 2;
+                areaBox.textContent = wrongResult;
+                areaBox.classList.add('flash-warning', 'bg-yellow-200');
+                challengeFeedback.innerHTML = `❌ **Incorrect Calculation.** That's $${side} \times 2 = ${wrongResult}$. Area is $side \times side$, and should use the power operator!`;
+            } else {
+                // Generic failure
+                areaBox.textContent = 'Error';
+                areaBox.classList.add('shake', 'bg-red-200');
+                challengeFeedback.innerHTML = `❌ **Try Again.** Please enter the expression using **side** and the **power** operator.`;
+            }
+        }
+    </script>
+</body>
+</html>
