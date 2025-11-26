@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Variables: The Data Box 📦</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         /* Custom Bubble Tail CSS */
@@ -65,6 +67,7 @@
 
     <div id="confetti-container"></div>
 
+    <!-- Header & Mascot Layout -->
     <header class="mb-12">
         <div class="max-w-4xl mx-auto p-4 bg-blue-600 text-white rounded-xl shadow-lg">
             <h1 class="text-3xl font-extrabold">💻 The Data Box: Variables in Python</h1>
@@ -72,50 +75,59 @@
         </div>
 
         <div class="max-w-4xl mx-auto mt-6 relative">
+            <!-- Mascot Avatar (Dicebear) -->
             <img src="https://api.dicebear.com/8.x/bottts/svg?seed=Archie&mouth=smile01&eyes=bulb&baseColor=60a5fa"
                  alt="Mascot Archie"
                  class="absolute w-20 h-20 -top-4 rounded-full border-4 border-white shadow-xl bg-blue-100 p-1 z-10">
 
+            <!-- Speech Bubble -->
             <div class="ml-24 p-4 bg-white rounded-2xl shadow-md bubble-tail border-2 border-blue-200 transition-all duration-300 hover:shadow-lg">
                 <p class="font-semibold text-blue-700">
-                    Hello, future programmer! Everything you see on a website or game is **data**! We use these special boxes, called **Variables**, to store and remember that data. Let's name our first box!
+                    Hello, future programmer! Everything you see on a website or game is <span class="font-bold">data</span>! We use these special boxes, called <span class="font-bold">Variables</span>, to store and remember that data. Let's name our first box!
                 </p>
             </div>
         </div>
     </header>
 
+    <!-- Stage 1: The Hook (Analogy) -->
     <section id="hook" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
         <h2 class="text-2xl font-bold mb-4 text-blue-600">1. 🎣 The Hook: What is a Variable?</h2>
-        <p class="mb-6">A **Variable** is a named storage container in the computer's memory. It holds one piece of **data**, like a word or a number. Think of it as a **Cardboard Box**!</p>
+        <p class="mb-6">A <span class="font-bold">Variable</span> is a named storage container in the computer's memory. It holds one piece of <span class="font-bold">data</span>, like a word or a number. Think of it as a <span class="font-bold">Cardboard Box</span>!</p>
 
         <div class="flex justify-around items-start text-center">
+            <!-- Variable Box -->
             <div class="w-40 h-40 bg-yellow-600 p-4 rounded-lg shadow-xl relative border-4 border-yellow-800">
                 <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-mono shadow-md border-2 border-white">
-                    <span class="font-bold">score</span> </div>
+                    <span class="font-bold">score</span> <!-- Variable Name Tag -->
+                </div>
                 <div class="mt-4 text-xl font-bold text-white">BOX of Data!</div>
+                <!-- Placeholder for the data item inside -->
                 <div id="analogy-data-item" class="w-2/3 h-2/3 bg-white mx-auto mt-2 rounded-md shadow-inner flex items-center justify-center text-lg font-bold text-slate-800">
                     10
                 </div>
             </div>
 
+            <!-- Analogy Text -->
             <div class="w-2/3 text-left pl-8">
-                <p class="mb-3">👉 The **name tag** on the box is the **Variable Name** (like **score**).</p>
-                <p class="mb-3">👉 The **object inside** the box is the **Value** (like the number **10**).</p>
+                <p class="mb-3">👉 The <span class="font-bold">name tag</span> on the box is the <span class="font-bold">Variable Name</span> (like <span class="font-mono font-bold">age</span>).</p>
+                <p class="mb-3">👉 The <span class="font-bold">object inside</span> the box is the <span class="font-bold">Value</span> (like the number <span class="font-bold">10</span>).</p>
                 <p class="font-bold text-blue-600">The Computer's Rules for Data (Types):</p>
                 <ul class="list-disc list-inside ml-4 text-sm">
-                    <li>**Text/Word (String)**: A scroll of paper with words. Must use quotes like **"Alex"**.</li>
-                    <li>**Whole Number (Integer)**: A solid block. Just a number like **10** or **15**.</li>
-                    <li>**Decimal Number (Float)**: A block of ice (it's "floating"). A number like **3.14**.</li>
+                    <li><span class="font-bold">Text/Word (String)</span>: A scroll of paper with words. Must use quotes like <span class="font-mono font-bold">"Alex"</span>.</li>
+                    <li><span class="font-bold">Whole Number (Integer)</span>: A solid block. Just a number like <span class="font-mono font-bold">10</span> or <span class="font-mono font-bold">15</span>.</li>
+                    <li><span class="font-bold">Decimal Number (Float)</span>: A block of ice (it's "floating"). A number like <span class="font-mono font-bold">3.14</span>.</li>
                 </ul>
             </div>
         </div>
     </section>
 
+    <!-- Stage 2: The Simulation -->
     <section id="simulation-card" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
         <h2 class="text-2xl font-bold mb-4 text-blue-600">2. 🧠 The Simulation: Watching the Code Run!</h2>
-        <p class="mb-4">Watch the computer's **memory** change as it runs three simple lines of code. Click **Start** to see the magic!</p>
+        <p class="mb-4">Watch the computer's <span class="font-bold">memory</span> change as it runs three simple lines of code. Click <span class="font-bold">Start</span> to see the magic!</p>
 
         <div class="flex gap-6">
+            <!-- Code Editor -->
             <div class="w-1/2">
                 <div class="bg-slate-800 text-blue-300 font-mono rounded-lg p-4 shadow-lg mb-4">
                     <div id="code-line-1" class="py-1">
@@ -129,20 +141,23 @@
                     </div>
                 </div>
                 <button id="start-simulation" onclick="runSimulation()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150">
-                    ▶️ Start Simulation
+                    🎬 Start Simulation
                 </button>
             </div>
 
+            <!-- Visual Memory Output -->
             <div class="w-1/2 bg-blue-50 p-4 rounded-lg border-2 border-blue-300">
                 <p class="font-bold text-blue-700 mb-2">Computer's Memory (The Boxes):</p>
                 <div id="memory-visualization" class="flex gap-4 min-h-[120px] items-end">
-                    </div>
+                    <!-- Boxes will be injected here by JavaScript -->
+                </div>
                 <div id="simulation-log" class="mt-4 p-2 bg-blue-100 rounded text-sm font-mono text-blue-800">
                     ...
                 </div>
             </div>
         </div>
 
+        <!-- Trace Table -->
         <div class="mt-6">
             <p class="font-bold text-blue-700 mb-2">Trace Table (What the Computer Remembers):</p>
             <table class="w-full text-sm border-collapse">
@@ -163,11 +178,13 @@
         </div>
     </section>
 
+    <!-- Stage 3: Common Mistakes -->
     <section id="mistakes" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
         <h2 class="text-2xl font-bold mb-4 text-blue-600">3. 🚩 Common Mistakes: Naming Rules</h2>
-        <p class="mb-6">Variables must follow special rules for their **names**. The computer will crash if you break them!</p>
+        <p class="mb-6">Variables must follow special rules for their <span class="font-bold">names</span>. The computer will crash if you break them!</p>
 
         <div class="grid grid-cols-2 gap-6">
+            <!-- The Trap -->
             <div class="bg-red-50 p-4 rounded-xl border-4 border-red-400 shadow-md">
                 <h3 class="text-xl font-bold text-red-700 mb-3">❌ The Trap (Invalid Name)</h3>
                 <div class="bg-slate-800 text-blue-300 font-mono rounded-lg p-3 mb-4">
@@ -183,9 +200,10 @@
                         </div>
                     </div>
                 </div>
-                <p id="trap-message" class="text-red-700 text-center font-semibold mt-3">Variable names CANNOT start with a **number**!</p>
+                <p id="trap-message" class="text-red-700 text-center font-semibold mt-3">Variable names CANNOT start with a <span class="font-bold">number</span>!</p>
             </div>
 
+            <!-- The Fix -->
             <div class="bg-green-50 p-4 rounded-xl border-4 border-green-400 shadow-md">
                 <h3 class="text-xl font-bold text-green-700 mb-3">✅ The Fix (Valid Name)</h3>
                 <div class="bg-slate-800 text-blue-300 font-mono rounded-lg p-3 mb-4">
@@ -201,43 +219,53 @@
                         </div>
                     </div>
                 </div>
-                <p class="text-green-700 text-center font-semibold mt-3">Use letters and numbers, but always **start with a letter**.</p>
+                <p class="text-green-700 text-center font-semibold mt-3">Use letters and numbers, but always <span class="font-bold">start with a letter</span>.</p>
             </div>
         </div>
     </section>
 
+    <!-- Stage 4: The Challenge -->
     <section id="challenge-card" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
         <h2 class="text-2xl font-bold mb-4 text-blue-600">4. 🎮 The Challenge: Build a Story!</h2>
-        <p class="mb-4">Create three variables to complete the story below. Use the correct **name** and **type** for each!</p>
+        <p class="mb-4">Create three variables to complete the story below. Use the correct <span class="font-bold">name</span> and <span class="font-bold">type</span> for each!</p>
 
         <div class="grid grid-cols-3 gap-6 mb-8">
+            <!-- String Challenge -->
             <div id="str-card" class="p-3 border-2 border-blue-400 rounded-lg bg-blue-50">
                 <p class="font-bold text-blue-700 mb-2">1. Your Pet's Name (String)</p>
                 <input type="text" id="str-name" placeholder="Variable Name (e.g., pet_name)" class="w-full p-2 mb-2 border rounded font-mono text-sm">
-                <input type="text" id="str-value" placeholder='String Value (e.g., "Fluffy")' class="w-full p-2 border rounded font-mono text-sm">
+                <input type="text" id="str-value" placeholder='String Value MUST use quotes (e.g., "Fluffy")' class="w-full p-2 border rounded font-mono text-sm">
                 <div id="str-box-container" class="mt-3 flex justify-center h-20">
-                    </div>
+                    <!-- Box visual feedback -->
+                </div>
+                <div id="str-hint" class="text-xs text-red-500 mt-1 hidden"></div>
             </div>
 
+            <!-- Integer Challenge -->
             <div id="int-card" class="p-3 border-2 border-blue-400 rounded-lg bg-blue-50">
                 <p class="font-bold text-blue-700 mb-2">2. Pet's Age (Integer)</p>
                 <input type="text" id="int-name" placeholder="Variable Name (e.g., age)" class="w-full p-2 mb-2 border rounded font-mono text-sm">
                 <input type="number" id="int-value" placeholder="Integer Value (e.g., 7)" class="w-full p-2 border rounded font-mono text-sm">
                 <div id="int-box-container" class="mt-3 flex justify-center h-20">
-                    </div>
+                    <!-- Box visual feedback -->
+                </div>
+                <div id="int-hint" class="text-xs text-red-500 mt-1 hidden"></div>
             </div>
 
+            <!-- Float Challenge -->
             <div id="float-card" class="p-3 border-2 border-blue-400 rounded-lg bg-blue-50">
                 <p class="font-bold text-blue-700 mb-2">3. Pet's Weight (Float)</p>
                 <input type="text" id="float-name" placeholder="Variable Name (e.g., weight)" class="w-full p-2 mb-2 border rounded font-mono text-sm">
-                <input type="number" id="float-value" placeholder="Float Value (e.g., 3.14)" class="w-full p-2 border rounded font-mono text-sm">
+                <input type="number" id="float-value" placeholder="Float Value (e.g., 3.14)" class="w-full p-2 border rounded font-mono text-sm" step="any">
                 <div id="float-box-container" class="mt-3 flex justify-center h-20">
-                    </div>
+                    <!-- Box visual feedback -->
+                </div>
+                <div id="float-hint" class="text-xs text-red-500 mt-1 hidden"></div>
             </div>
         </div>
 
         <button id="check-challenge" onclick="checkChallenge()" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-150 text-xl">
-            Check My Variables!
+            ✅ Check My Variables!
         </button>
 
         <div id="challenge-result" class="mt-4 p-4 bg-gray-100 rounded-lg border-2 border-gray-300 text-center font-bold min-h-[60px] flex items-center justify-center">
@@ -249,6 +277,7 @@
         </p>
     </section>
 
+    <!-- JavaScript Section -->
     <script>
         const colorPrimary = 'blue-600';
         const colorSecondary = 'blue-200';
@@ -266,7 +295,7 @@
         const simulationSteps = [
             {
                 line: 1, code: 'score = 10', score: 10, user_name: 'Empty',
-                action: (scoreBox, userNameBox) => {
+                action: () => {
                     const boxHTML = `
                         <div id="score-box" class="box-container w-24 h-24 bg-yellow-600 p-1 rounded-lg relative border-2 border-yellow-800 transition-opacity duration-300 opacity-0">
                             <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-${colorPrimary} text-white px-2 py-0.5 rounded-full text-xs font-mono shadow-md border-2 border-white">score</div>
@@ -282,7 +311,7 @@
             },
             {
                 line: 2, code: 'score = score + 5', score: 15, user_name: 'Empty',
-                action: (scoreBox, userNameBox) => {
+                action: () => {
                     const scoreItem = document.getElementById('score-item');
                     if (scoreItem) {
                         scoreItem.innerHTML = '15';
@@ -297,7 +326,7 @@
             },
             {
                 line: 3, code: 'user_name = "Alex"', score: 15, user_name: '"Alex"',
-                action: (scoreBox, userNameBox) => {
+                action: () => {
                     const boxHTML = `
                         <div id="user-name-box" class="box-container w-24 h-24 bg-yellow-600 p-1 rounded-lg relative border-2 border-yellow-800 transition-opacity duration-300 opacity-0 ml-4">
                             <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-${colorPrimary} text-white px-2 py-0.5 rounded-full text-xs font-mono shadow-md border-2 border-white">user_name</div>
@@ -367,10 +396,27 @@
         });
 
         // --- Stage 4 Challenge Logic ---
+        // Variable name rule: must start with a letter or underscore, no spaces.
+        const nameRule = (name) => /^[a-zA-Z_]\w*$/.test(name) && !/\s/.test(name);
+
+        function isInteger(value) {
+            return /^-?\d+$/.test(value);
+        }
+
+        function isFloat(value) {
+            // Checks for whole number or decimal number
+            return /^-?\d+(\.\d+)?$/.test(value);
+        }
+
+        function isString(value) {
+            // Python strings must be enclosed in quotes
+            return value.startsWith('"') && value.endsWith('"') && value.length > 1;
+        }
+
         const challengeInputs = [
-            { type: 'str', nameInput: 'str-name', valueInput: 'str-value', boxContainer: 'str-box-container', storyElement: 'story-str-val', valueType: 'string', boxColor: 'bg-amber-200', nameRule: (name) => /^[a-zA-Z_]\w*$/.test(name) && !/\s/.test(name) },
-            { type: 'int', nameInput: 'int-name', valueInput: 'int-value', boxContainer: 'int-box-container', storyElement: 'story-int-val', valueType: 'integer', boxColor: 'bg-green-400', nameRule: (name) => /^[a-zA-Z_]\w*$/.test(name) && !/\s/.test(name) },
-            { type: 'float', nameInput: 'float-name', valueInput: 'float-value', boxContainer: 'float-box-container', storyElement: 'story-float-val', valueType: 'float', boxColor: 'bg-blue-400/50', nameRule: (name) => /^[a-zA-Z_]\w*$/.test(name) && !/\s/.test(name) }
+            { type: 'str', nameInput: 'str-name', valueInput: 'str-value', boxContainer: 'str-box-container', storyElement: 'story-str-val', valueType: isString, boxColor: 'bg-amber-200', hintId: 'str-hint' },
+            { type: 'int', nameInput: 'int-name', valueInput: 'int-value', boxContainer: 'int-box-container', storyElement: 'story-int-val', valueType: isInteger, boxColor: 'bg-green-400', hintId: 'int-hint' },
+            { type: 'float', nameInput: 'float-name', valueInput: 'float-value', boxContainer: 'float-box-container', storyElement: 'story-float-val', valueType: isFloat, boxColor: 'bg-blue-400/50', hintId: 'float-hint' }
         ];
 
         function createBoxHTML(type, name, value, boxColor) {
@@ -378,7 +424,7 @@
             let itemClass = 'w-3/4 h-3/4 rounded-lg shadow-inner flex items-center justify-center text-sm font-bold text-slate-800 p-1';
             
             if (type === 'str') {
-                itemHTML = `<div class="${itemClass} ${boxColor} rounded-full text-xs">"${value}"</div>`; // Scroll/Round shape for string
+                itemHTML = `<div class="${itemClass} ${boxColor} rounded-full text-xs">"${value.replace(/"/g, '')}"</div>`; // Scroll/Round shape for string
             } else if (type === 'int') {
                 itemHTML = `<div class="${itemClass} ${boxColor}"> ${value} </div>`; // Solid block
             } else if (type === 'float') {
@@ -400,6 +446,7 @@
             const valueEl = document.getElementById(inputDef.valueInput);
             const boxContainer = document.getElementById(inputDef.boxContainer);
             const storyEl = document.getElementById(inputDef.storyElement);
+            const hintEl = document.getElementById(inputDef.hintId);
 
             const updateVisuals = () => {
                 const name = nameEl.value.trim();
@@ -407,12 +454,16 @@
 
                 // Clear feedback first
                 boxContainer.innerHTML = '';
+                hintEl.classList.add('hidden');
                 storyEl.textContent = `[${inputDef.type.toUpperCase()} VALUE]`;
                 storyEl.classList.add('text-red-500');
                 storyEl.classList.remove('text-green-600');
                 
                 if (name && value) {
-                    if (inputDef.nameRule(name)) {
+                    const nameValid = nameRule(name);
+                    const valueValid = inputDef.valueType(value);
+
+                    if (nameValid && valueValid) {
                         let displayValue = value;
                         if (inputDef.type === 'str') {
                             displayValue = value.replace(/"/g, ''); // Remove quotes for cleaner display
@@ -421,9 +472,22 @@
                         storyEl.textContent = displayValue;
                         storyEl.classList.add('text-green-600');
                         storyEl.classList.remove('text-red-500');
-                    } else {
-                         // Invalid name: Box is empty and shakes
+                    } else if (!nameValid) {
+                         // Invalid name: Shake and show hint
                         boxContainer.innerHTML = `<div class="w-20 h-20 bg-red-200 rounded-lg flex items-center justify-center text-red-600 font-bold text-lg shake">❌ NAME?</div>`;
+                        hintEl.innerText = "Error: Name must start with a letter/underscore!";
+                        hintEl.classList.remove('hidden');
+                    } else if (!valueValid) {
+                         // Invalid value: Shake and show hint
+                        boxContainer.innerHTML = `<div class="w-20 h-20 bg-red-200 rounded-lg flex items-center justify-center text-red-600 font-bold text-lg shake">❌ VALUE?</div>`;
+                        if (inputDef.type === 'str') {
+                            hintEl.innerText = "Error: String Value must be in double quotes (e.g., \"cat\")!";
+                        } else if (inputDef.type === 'int') {
+                            hintEl.innerText = "Error: Integer must be a whole number!";
+                        } else if (inputDef.type === 'float') {
+                            hintEl.innerText = "Error: Float must be a number, can be decimal (e.g., 3.14)!";
+                        }
+                        hintEl.classList.remove('hidden');
                     }
                 }
             };
@@ -432,52 +496,54 @@
             valueEl.addEventListener('input', updateVisuals);
         });
 
-        function isInteger(value) {
-            return /^-?\d+$/.test(value);
-        }
-
-        function isFloat(value) {
-            return /^-?\d+(\.\d+)?$/.test(value);
-        }
-
-        function isString(value) {
-            return value.startsWith('"') && value.endsWith('"') && value.length > 1;
-        }
-
         function checkChallenge() {
             let allCorrect = true;
             const resultBox = document.getElementById('challenge-result');
             resultBox.classList.remove('bg-red-100', 'border-red-400', 'bg-green-100', 'border-green-400', 'shake');
+            let errorCount = 0;
 
             challengeInputs.forEach(inputDef => {
                 const nameEl = document.getElementById(inputDef.nameInput);
                 const valueEl = document.getElementById(inputDef.valueInput);
                 const cardEl = document.getElementById(`${inputDef.type}-card`);
+                const hintEl = document.getElementById(inputDef.hintId);
 
                 const name = nameEl.value.trim();
                 const value = valueEl.value.trim();
-                let valueCheck = false;
+                
+                const nameCorrect = nameRule(name);
+                const valueCorrect = inputDef.valueType(value);
+                
+                hintEl.classList.add('hidden'); // Hide hint by default
 
-                // 1. Check Name Rule
-                const nameCorrect = inputDef.nameRule(name);
-
-                // 2. Check Value Type
-                if (inputDef.type === 'str') {
-                    valueCheck = isString(value);
-                } else if (inputDef.type === 'int') {
-                    valueCheck = isInteger(value);
-                } else if (inputDef.type === 'float') {
-                    // Float check is more relaxed, but must be a valid number string
-                    valueCheck = isFloat(value);
-                }
-
-                if (nameCorrect && valueCheck) {
-                    cardEl.classList.remove('border-red-400');
-                    cardEl.classList.add('border-green-400');
-                } else {
-                    cardEl.classList.add('border-red-400');
-                    cardEl.classList.remove('border-green-400');
+                if (!name || !value) {
                     allCorrect = false;
+                    errorCount++;
+                    cardEl.classList.add('border-red-400', 'shake');
+                    cardEl.classList.remove('border-green-400');
+                    hintEl.innerText = "Error: Both name and value must be entered!";
+                    hintEl.classList.remove('hidden');
+                } else if (!nameCorrect || !valueCorrect) {
+                    allCorrect = false;
+                    errorCount++;
+                    cardEl.classList.add('border-red-400', 'shake');
+                    cardEl.classList.remove('border-green-400');
+                    if (!nameCorrect) {
+                        hintEl.innerText = "Error: Variable Name is invalid (must start with letter/underscore)!";
+                    } else if (!valueCorrect) {
+                        if (inputDef.type === 'str') {
+                            hintEl.innerText = "Error: String Value must be in double quotes (e.g., \"Fluffy\")!";
+                        } else if (inputDef.type === 'int') {
+                            hintEl.innerText = "Error: Integer must be a whole number!";
+                        } else if (inputDef.type === 'float') {
+                            hintEl.innerText = "Error: Float must be a decimal number (or whole number)!";
+                        }
+                    }
+                    hintEl.classList.remove('hidden');
+                } else {
+                    // All correct for this input
+                    cardEl.classList.remove('border-red-400', 'shake');
+                    cardEl.classList.add('border-green-400');
                 }
             });
 
@@ -486,7 +552,7 @@
                 resultBox.classList.add('bg-green-100', 'border-green-400');
                 createConfetti();
             } else {
-                resultBox.innerHTML = "Not quite! Check the boxes with the red border. Remember: **Name** must start with a letter, and the **Value** must match the type (string needs quotes, int is a whole number, float has a decimal).";
+                resultBox.innerHTML = `Not quite! You have ${errorCount} mistake${errorCount > 1 ? 's' : ''}. Check the boxes with the red border and the hints below them!`;
                 resultBox.classList.add('bg-red-100', 'border-red-400', 'shake');
             }
         }
