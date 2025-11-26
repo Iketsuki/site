@@ -1,0 +1,1035 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>排序算法可视化</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #FFF9E5;
+            color: #4A2511;
+            line-height: 1.6;
+        }
+        
+        h1, h2, h3, h4 {
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 2px;
+        }
+        
+        .chinese-pattern {
+            background-color: #A52A2A;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 30c5-8 15-8 20 0s-5 16-20 8-15-8-20 0 5 16 20 8z' fill='none' stroke='%23FFFFFF' stroke-width='1' stroke-opacity='0.3'/%3E%3C/svg%3E");
+        }
+        
+        .card {
+            border-radius: 12px;
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 2px solid #D4A76A;
+        }
+        
+        .btn {
+            transition: all 0.2s ease;
+            font-weight: 600;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .array-bar {
+            transition: height 0.3s ease, background-color 0.2s ease;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .step-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 1rem;
+            padding: 1rem 0;
+            margin: 1rem 0;
+            scrollbar-width: thin;
+            scrollbar-color: #D4A76A #FFF9E5;
+        }
+        
+        .step-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .step-container::-webkit-scrollbar-track {
+            background: #FFF9E5;
+            border-radius: 10px;
+        }
+        
+        .step-container::-webkit-scrollbar-thumb {
+            background-color: #D4A76A;
+            border-radius: 10px;
+        }
+        
+        .step-item {
+            flex: 0 0 auto;
+            width: 180px;
+            border: 2px solid #D4A76A;
+            border-radius: 12px;
+            padding: 1rem;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            background-color: #A52A2A;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            margin-right: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .highlight {
+            box-shadow: 0 0 0 4px #A52A2A;
+            z-index: 10;
+        }
+        
+        .code-block {
+            background-color: #2D2D2D;
+            color: #E8E8E8;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        /* Chinese-themed elements */
+        .chinese-border {
+            position: relative;
+            border: 2px solid #D4A76A;
+            border-radius: 12px;
+        }
+        
+        .chinese-border::before {
+            content: "";
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            border: 2px dashed #D4A76A;
+            border-radius: 16px;
+            z-index: -1;
+            opacity: 0.5;
+        }
+        
+        .chinese-symbol {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 24px;
+            color: #A52A2A;
+        }
+        
+        /* Simplified visualization */
+        .array-container {
+            height: 250px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 4px;
+            padding: 20px;
+        }
+        
+        .array-element {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .array-value {
+            margin-top: 8px;
+            font-weight: bold;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .step-item {
+                width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="chinese-pattern text-white py-6 px-4 shadow-lg">
+        <div class="container mx-auto text-center">
+            <h1 class="text-3xl md:text-5xl font-bold mb-2">排序算法可视化</h1>
+            <p class="text-lg md:text-xl">传统中国风格 · 简单易懂</p>
+        </div>
+    </header>
+
+    <!-- Introduction Section -->
+    <section class="container mx-auto py-8 px-4">
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl md:text-3xl font-bold mb-4 text-center text-red-800">什么是排序算法？</h2>
+            <div class="flex flex-col md:flex-row items-center gap-6">
+                <div class="md:w-1/3 flex justify-center">
+                    <svg class="w-48 h-48" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Chinese-style scholar -->
+                        <path d="M100,40 L100,160" stroke="#333" stroke-width="2" fill="none"/>
+                        <path d="M60,60 L140,60" stroke="#333" stroke-width="2" fill="none"/>
+                        <path d="M70,60 L70,160" stroke="#333" stroke-width="2" fill="none"/>
+                        <path d="M130,60 L130,160" stroke="#333" stroke-width="2" fill="none"/>
+                        <path d="M70,160 L130,160" stroke="#333" stroke-width="2" fill="none"/>
+                        
+                        <!-- Abacus beads -->
+                        <circle cx="85" cy="80" r="10" fill="#D4A76A" stroke="#4A2511" stroke-width="1"/>
+                        <circle cx="115" cy="80" r="10" fill="#D4A76A" stroke="#4A2511" stroke-width="1"/>
+                        <circle cx="85" cy="110" r="10" fill="#D4A76A" stroke="#4A2511" stroke-width="1"/>
+                        <circle cx="115" cy="110" r="10" fill="#D4A76A" stroke="#4A2511" stroke-width="1"/>
+                        <circle cx="85" cy="140" r="10" fill="#D4A76A" stroke="#4A2511" stroke-width="1"/>
+                        <circle cx="115" cy="140" r="10" fill="#D4A76A" stroke="#4A2511" stroke-width="1"/>
+                        
+                        <!-- Chinese character for "sort" -->
+                        <text x="100" y="40" font-family="Ma Shan Zheng" font-size="24" text-anchor="middle" fill="#A52A2A">排</text>
+                    </svg>
+                </div>
+                <div class="md:w-2/3">
+                    <p class="text-lg mb-4">排序算法就像是整理物品的方法，它帮助我们将杂乱的数据按照特定的顺序排列好。</p>
+                    <p class="text-lg mb-4">想象一下，你有一堆大小不同的茶杯需要从小到大排列，你会怎么做？这就是排序算法要解决的问题！</p>
+                    <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r">
+                        <p class="font-bold">为什么学习排序算法很重要？</p>
+                        <ul class="list-disc pl-5 mt-2">
+                            <li>帮助我们组织数据，使查找更快捷</li>
+                            <li>几乎所有计算机程序都会用到</li>
+                            <li>学习它们有助于培养逻辑思维</li>
+                            <li>展示了解决同一问题的不同方法</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Visualization Control Panel -->
+    <section class="container mx-auto py-6 px-4">
+        <div class="card p-6">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center text-red-800">互动排序演示</h2>
+            <div class="flex flex-wrap justify-center gap-3 mb-6">
+                <button id="generateArrayBtn" class="btn bg-red-800 hover:bg-red-900 text-white px-4 py-2 rounded-lg">生成新数组</button>
+                <button id="bubbleSortBtn" class="btn bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg">冒泡排序</button>
+                <button id="selectionSortBtn" class="btn bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg">选择排序</button>
+                <button id="insertionSortBtn" class="btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">插入排序</button>
+            </div>
+            
+            <div class="bg-amber-50 p-4 rounded-lg mb-6">
+                <div id="arrayContainer" class="array-container"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white p-4 border border-amber-200 rounded-lg">
+                    <h3 class="font-bold text-lg mb-2">当前状态：</h3>
+                    <p id="algorithmStatus" class="text-gray-700">生成一个数组并选择排序算法开始！</p>
+                </div>
+                <div class="bg-white p-4 border border-amber-200 rounded-lg">
+                    <h3 class="font-bold text-lg mb-2">速度控制：</h3>
+                    <input type="range" id="speedControl" min="1" max="100" value="50" class="w-full accent-red-800">
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <span>慢</span>
+                        <span>快</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Algorithm Explanation Section -->
+    <section class="container mx-auto py-8 px-4">
+        <h2 class="text-3xl font-bold text-center mb-8 text-red-800">排序算法详解</h2>
+        
+        <!-- Bubble Sort -->
+        <div class="card mb-8 overflow-hidden">
+            <div class="bg-amber-600 text-white p-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-2xl font-bold">冒泡排序 (Bubble Sort)</h3>
+                    <div class="chinese-symbol text-3xl">泡</div>
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="md:w-1/2">
+                        <h4 class="text-xl font-bold mb-2 text-amber-600">工作原理：</h4>
+                        <p class="mb-4">冒泡排序就像茶水中的气泡上升一样，较大的元素会"浮"到顶部：</p>
+                        <ol class="list-decimal pl-5 mb-4 space-y-2">
+                            <li>从第一个元素开始，比较相邻的两个元素</li>
+                            <li>如果前一个比后一个大，则交换它们</li>
+                            <li>对每一对相邻元素重复这个过程，直到最后</li>
+                            <li>完成一轮后，最大的元素会到达末尾</li>
+                            <li>重复以上步骤，每次排除已经排好的末尾元素</li>
+                        </ol>
+                        <div class="bg-amber-50 p-4 border border-amber-200 rounded-lg">
+                            <h5 class="font-bold">生活例子：</h5>
+                            <p>想象你在整理一排茶杯，每次比较相邻的两个，如果左边的比右边的大，就交换它们的位置。一轮比较后，最大的茶杯会移到最右边。</p>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2">
+                        <h4 class="text-xl font-bold mb-2 text-amber-600">代码：</h4>
+                        <div class="code-block p-4 font-mono overflow-x-auto">
+<pre>def bubble_sort(arr):
+    n = len(arr)
+    
+    # 遍历所有数组元素
+    for i in range(n):
+        # 最后i个元素已经就位
+        for j in range(0, n-i-1):
+            # 交换如果发现当前元素大于下一个元素
+            if arr[j] > arr[j+1]:
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+                
+    return arr</pre>
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="text-xl font-bold mb-2 text-amber-600">特点：</h4>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li><span class="font-bold">时间复杂度：</span> O(n²) - 对大型数组效率较低</li>
+                                <li><span class="font-bold">空间复杂度：</span> O(1) - 只需要一个临时变量</li>
+                                <li><span class="font-bold">稳定性：</span> 稳定 - 相等元素的相对位置不变</li>
+                                <li><span class="font-bold">适用场景：</span> 小型数组或几乎已排序的数组</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bubble Sort Step-by-Step Illustration -->
+                <div class="mt-6">
+                    <h4 class="text-xl font-bold mb-3 text-amber-600">步骤演示：排序茶杯</h4>
+                    <div class="step-container">
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">1</span>初始状态</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">未排序的茶杯</p>
+                        </div>
+                        
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">2</span>第一次比较</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8 border-2 border-red-600" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8 border-2 border-red-600" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">5 > 2，交换位置</p>
+                        </div>
+                        
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">3</span>第二次比较</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8 border-2 border-red-600" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8 border-2 border-red-600" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">5 < 8，保持不变</p>
+                        </div>
+                        
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">4</span>第三次比较</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8 border-2 border-red-600" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8 border-2 border-red-600" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">8 > 3，交换位置</p>
+                        </div>
+                        
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">5</span>第一轮结束</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-amber-600 w-8 bg-red-700" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">最大元素8已到末尾</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Selection Sort -->
+        <div class="card mb-8 overflow-hidden">
+            <div class="bg-green-700 text-white p-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-2xl font-bold">选择排序 (Selection Sort)</h3>
+                    <div class="chinese-symbol text-3xl">选</div>
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="md:w-1/2">
+                        <h4 class="text-xl font-bold mb-2 text-green-700">工作原理：</h4>
+                        <p class="mb-4">选择排序就像挑选茶叶一样，每次从剩余的茶叶中找出最好的一片：</p>
+                        <ol class="list-decimal pl-5 mb-4 space-y-2">
+                            <li>在未排序序列中找到最小元素</li>
+                            <li>将它与未排序序列的第一个元素交换位置</li>
+                            <li>将未排序序列的范围缩小，排除第一个元素</li>
+                            <li>重复以上步骤，直到所有元素排序完成</li>
+                        </ol>
+                        <div class="bg-green-50 p-4 border border-green-200 rounded-lg">
+                            <h5 class="font-bold">生活例子：</h5>
+                            <p>想象你在挑选茶叶，每次从剩余的茶叶中找出最小的一片，放在左侧。重复这个过程，直到所有茶叶都按大小排好。</p>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2">
+                        <h4 class="text-xl font-bold mb-2 text-green-700">代码：</h4>
+                        <div class="code-block p-4 font-mono overflow-x-auto">
+<pre>def selection_sort(arr):
+    n = len(arr)
+    
+    # 遍历所有数组元素
+    for i in range(n):
+        # 找到未排序部分中的最小元素
+        min_idx = i
+        for j in range(i+1, n):
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+                
+        # 将找到的最小元素与第一个元素交换
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]
+    
+    return arr</pre>
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="text-xl font-bold mb-2 text-green-700">特点：</h4>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li><span class="font-bold">时间复杂度：</span> O(n²) - 对大型数组效率较低</li>
+                                <li><span class="font-bold">空间复杂度：</span> O(1) - 原地排序</li>
+                                <li><span class="font-bold">稳定性：</span> 不稳定 - 相等元素的相对位置可能改变</li>
+                                <li><span class="font-bold">适用场景：</span> 小型数组或内存受限的情况</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Selection Sort Step-by-Step Illustration -->
+                <div class="mt-6">
+                    <h4 class="text-xl font-bold mb-3 text-green-700">步骤演示：排序茶叶</h4>
+                    <div class="step-container">
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">1</span>初始状态</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">未排序的茶叶</p>
+                        </div>
+                        
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">2</span>找最小元素</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8 border-2 border-red-600" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">找到最小元素：2</p>
+                        </div>
+                        
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">3</span>交换位置</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8 border-2 border-red-600" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">将2放在第一位</p>
+                        </div>
+                        
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">4</span>下一轮</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8 bg-green-800" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8 border-2 border-red-600" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">在剩余元素中找最小：3</p>
+                        </div>
+                        
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">5</span>继续排序</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8 bg-green-800" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8 border-2 border-red-600" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-green-600 w-8" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">将3放在第二位</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Insertion Sort -->
+        <div class="card overflow-hidden">
+            <div class="bg-blue-600 text-white p-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-2xl font-bold">插入排序 (Insertion Sort)</h3>
+                    <div class="chinese-symbol text-3xl">插</div>
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="md:w-1/2">
+                        <h4 class="text-xl font-bold mb-2 text-blue-600">工作原理：</h4>
+                        <p class="mb-4">插入排序就像整理手中的牌，将每张新牌插入到已排序的牌中的正确位置：</p>
+                        <ol class="list-decimal pl-5 mb-4 space-y-2">
+                            <li>从第二个元素开始，视为"新牌"</li>
+                            <li>将"新牌"与已排序部分的元素比较</li>
+                            <li>如果已排序元素大于新元素，则将已排序元素向右移动</li>
+                            <li>重复步骤3，直到找到新元素的正确位置</li>
+                            <li>将新元素插入到该位置</li>
+                            <li>重复2-5步骤，直到所有元素都被插入</li>
+                        </ol>
+                        <div class="bg-blue-50 p-4 border border-blue-200 rounded-lg">
+                            <h5 class="font-bold">生活例子：</h5>
+                            <p>想象你在打牌时整理手牌，每抽一张新牌，你都会将它插入到手中已排序好的牌的适当位置。</p>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2">
+                        <h4 class="text-xl font-bold mb-2 text-blue-600">代码：</h4>
+                        <div class="code-block p-4 font-mono overflow-x-auto">
+<pre>def insertion_sort(arr):
+    # 从第二个元素开始，假定第一个元素已排序
+    for i in range(1, len(arr)):
+        key = arr[i]  # 当前要插入的元素
+        j = i - 1
+        
+        # 将大于key的元素向右移动
+        while j >= 0 and arr[j] > key:
+            arr[j + 1] = arr[j]
+            j -= 1
+            
+        # 在正确位置插入key
+        arr[j + 1] = key
+        
+    return arr</pre>
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="text-xl font-bold mb-2 text-blue-600">特点：</h4>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li><span class="font-bold">时间复杂度：</span> O(n²) - 但对小型或近乎有序的数组效率高</li>
+                                <li><span class="font-bold">空间复杂度：</span> O(1) - 原地排序</li>
+                                <li><span class="font-bold">稳定性：</span> 稳定 - 相等元素的相对位置不变</li>
+                                <li><span class="font-bold">适用场景：</span> 小型数组或几乎已排序的数组</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Insertion Sort Step-by-Step Illustration -->
+                <div class="mt-6">
+                    <h4 class="text-xl font-bold mb-3 text-blue-600">步骤演示：整理扑克牌</h4>
+                    <div class="step-container">
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">1</span>初始状态</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 bg-blue-800" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 border-2 border-red-600" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">第一个元素已排序，取第二个元素2</p>
+                        </div>
+                        
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">2</span>插入第一个元素</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 border-2 border-red-600" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 bg-blue-800" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">2 < 5，将2插入到5前面</p>
+                        </div>
+                        
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">3</span>取下一个元素</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 bg-blue-800" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 bg-blue-800" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 border-2 border-red-600" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">取第三个元素8</p>
+                        </div>
+                        
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">4</span>插入第二个元素</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 bg-blue-800" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 bg-blue-800" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 bg-blue-800" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 border-2 border-red-600" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">8 > 5，保持位置不变</p>
+                        </div>
+                        
+                        <div class="step-item">
+                            <h5 class="font-bold mb-2"><span class="step-number">5</span>插入最后元素</h5>
+                            <div class="flex justify-center items-end h-24 mb-2">
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 bg-blue-800" style="height: 20px;"></div>
+                                    <div class="mt-1 font-bold">2</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 border-2 border-red-600" style="height: 30px;"></div>
+                                    <div class="mt-1 font-bold">3</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 bg-blue-800" style="height: 50px;"></div>
+                                    <div class="mt-1 font-bold">5</div>
+                                </div>
+                                <div class="mx-1 w-8 flex flex-col items-center">
+                                    <div class="bg-blue-600 w-8 bg-blue-800" style="height: 80px;"></div>
+                                    <div class="mt-1 font-bold">8</div>
+                                </div>
+                            </div>
+                            <p class="text-sm">3 < 5，将3插入到2和5之间</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Summary Section -->
+    <section class="container mx-auto py-8 px-4 mb-8">
+        <div class="card p-6">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center text-red-800">排序算法比较</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-amber-200">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-4 bg-amber-600 text-white border-b text-left">算法</th>
+                            <th class="py-3 px-4 bg-amber-600 text-white border-b text-left">时间复杂度</th>
+                            <th class="py-3 px-4 bg-amber-600 text-white border-b text-left">空间复杂度</th>
+                            <th class="py-3 px-4 bg-amber-600 text-white border-b text-left">稳定性</th>
+                            <th class="py-3 px-4 bg-amber-600 text-white border-b text-left">最适合</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="hover:bg-amber-50">
+                            <td class="py-3 px-4 border-b font-bold">冒泡排序</td>
+                            <td class="py-3 px-4 border-b">O(n²)</td>
+                            <td class="py-3 px-4 border-b">O(1)</td>
+                            <td class="py-3 px-4 border-b">稳定</td>
+                            <td class="py-3 px-4 border-b">小型或几乎已排序的数组</td>
+                        </tr>
+                        <tr class="hover:bg-amber-50">
+                            <td class="py-3 px-4 border-b font-bold">选择排序</td>
+                            <td class="py-3 px-4 border-b">O(n²)</td>
+                            <td class="py-3 px-4 border-b">O(1)</td>
+                            <td class="py-3 px-4 border-b">不稳定</td>
+                            <td class="py-3 px-4 border-b">小型数组或内存受限的情况</td>
+                        </tr>
+                        <tr class="hover:bg-amber-50">
+                            <td class="py-3 px-4 border-b font-bold">插入排序</td>
+                            <td class="py-3 px-4 border-b">O(n²)</td>
+                            <td class="py-3 px-4 border-b">O(1)</td>
+                            <td class="py-3 px-4 border-b">稳定</td>
+                            <td class="py-3 px-4 border-b">小型或几乎已排序的数组</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-6 bg-amber-50 p-4 rounded-lg">
+                <h3 class="font-bold text-lg mb-2">学习建议：</h3>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>先掌握基本的排序算法（冒泡、选择、插入）</li>
+                    <li>理解每种算法的工作原理和适用场景</li>
+                    <li>尝试手动模拟算法步骤，加深理解</li>
+                    <li>进阶学习更高效的排序算法（快速排序、归并排序等）</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="chinese-pattern text-white py-4 px-4">
+        <div class="container mx-auto text-center">
+            <p>© 2023 排序算法可视化 | 传统中国风格教学工具</p>
+        </div>
+    </footer>
+
+    <script>
+        // Array visualization and sorting algorithms
+        document.addEventListener('DOMContentLoaded', function() {
+            const arrayContainer = document.getElementById('arrayContainer');
+            const generateArrayBtn = document.getElementById('generateArrayBtn');
+            const bubbleSortBtn = document.getElementById('bubbleSortBtn');
+            const selectionSortBtn = document.getElementById('selectionSortBtn');
+            const insertionSortBtn = document.getElementById('insertionSortBtn');
+            const algorithmStatus = document.getElementById('algorithmStatus');
+            const speedControl = document.getElementById('speedControl');
+            
+            let array = [];
+            let animationSpeed = 100;
+            let isSorting = false;
+            
+            // Update animation speed based on slider
+            speedControl.addEventListener('input', function() {
+                animationSpeed = 510 - (this.value * 5); // Invert so higher value = faster
+            });
+            
+            // Generate random array
+            function generateArray() {
+                if (isSorting) return;
+                
+                array = [];
+                arrayContainer.innerHTML = '';
+                
+                // Generate 10 random numbers between 5 and 100
+                for (let i = 0; i < 10; i++) {
+                    const value = Math.floor(Math.random() * 96) + 5;
+                    array.push(value);
+                    
+                    const arrayElement = document.createElement('div');
+                    arrayElement.className = 'array-element';
+                    
+                    const bar = document.createElement('div');
+                    bar.className = 'array-bar';
+                    bar.style.height = `${value * 2}px`;
+                    bar.style.width = '30px';
+                    bar.style.backgroundColor = '#D4A76A';
+                    
+                    const valueLabel = document.createElement('div');
+                    valueLabel.className = 'array-value';
+                    valueLabel.textContent = value;
+                    
+                    arrayElement.appendChild(bar);
+                    arrayElement.appendChild(valueLabel);
+                    arrayContainer.appendChild(arrayElement);
+                }
+                
+                algorithmStatus.textContent = '数组已生成，请选择一种排序算法！';
+            }
+            
+            // Update the visual representation of the array
+            function updateArray(indices = []) {
+                const bars = arrayContainer.querySelectorAll('.array-bar');
+                const valueLabels = arrayContainer.querySelectorAll('.array-value');
+                
+                for (let i = 0; i < array.length; i++) {
+                    bars[i].style.height = `${array[i] * 2}px`;
+                    valueLabels[i].textContent = array[i];
+                    
+                    // Reset colors
+                    bars[i].style.backgroundColor = '#D4A76A';
+                    
+                    // Highlight compared elements
+                    if (indices.includes(i)) {
+                        bars[i].style.backgroundColor = '#A52A2A';
+                    }
+                }
+            }
+            
+            // Sleep function for animations
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            
+            // Bubble Sort
+            async function bubbleSort() {
+                if (isSorting || array.length === 0) return;
+                isSorting = true;
+                
+                algorithmStatus.textContent = '正在执行冒泡排序...';
+                
+                const n = array.length;
+                
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n - i - 1; j++) {
+                        // Highlight elements being compared
+                        updateArray([j, j + 1]);
+                        await sleep(animationSpeed);
+                        
+                        if (array[j] > array[j + 1]) {
+                            // Swap elements
+                            [array[j], array[j + 1]] = [array[j + 1], array[j]];
+                            updateArray([j, j + 1]);
+                            await sleep(animationSpeed);
+                        }
+                    }
+                }
+                
+                updateArray();
+                algorithmStatus.textContent = '冒泡排序完成！';
+                isSorting = false;
+            }
+            
+            // Selection Sort
+            async function selectionSort() {
+                if (isSorting || array.length === 0) return;
+                isSorting = true;
+                
+                algorithmStatus.textContent = '正在执行选择排序...';
+                
+                const n = array.length;
+                
+                for (let i = 0; i < n; i++) {
+                    let minIndex = i;
+                    
+                    // Find the minimum element
+                    for (let j = i + 1; j < n; j++) {
+                        updateArray([minIndex, j]);
+                        await sleep(animationSpeed);
+                        
+                        if (array[j] < array[minIndex]) {
+                            minIndex = j;
+                        }
+                    }
+                    
+                    // Swap the found minimum element with the first element
+                    if (minIndex !== i) {
+                        [array[i], array[minIndex]] = [array[minIndex], array[i]];
+                        updateArray([i, minIndex]);
+                        await sleep(animationSpeed);
+                    }
+                }
+                
+                updateArray();
+                algorithmStatus.textContent = '选择排序完成！';
+                isSorting = false;
+            }
+            
+            // Insertion Sort
+            async function insertionSort() {
+                if (isSorting || array.length === 0) return;
+                isSorting = true;
+                
+                algorithmStatus.textContent = '正在执行插入排序...';
+                
+                const n = array.length;
+                
+                for (let i = 1; i < n; i++) {
+                    const key = array[i];
+                    let j = i - 1;
+                    
+                    updateArray([i]);
+                    await sleep(animationSpeed);
+                    
+                    while (j >= 0 && array[j] > key) {
+                        array[j + 1] = array[j];
+                        j--;
+                        
+                        updateArray([j + 1, j + 2]);
+                        await sleep(animationSpeed);
+                    }
+                    
+                    array[j + 1] = key;
+                    updateArray([j + 1]);
+                    await sleep(animationSpeed);
+                }
+                
+                updateArray();
+                algorithmStatus.textContent = '插入排序完成！';
+                isSorting = false;
+            }
+            
+            // Event listeners
+            generateArrayBtn.addEventListener('click', generateArray);
+            bubbleSortBtn.addEventListener('click', bubbleSort);
+            selectionSortBtn.addEventListener('click', selectionSort);
+            insertionSortBtn.addEventListener('click', insertionSort);
+            
+            // Generate initial array
+            generateArray();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a477a09863d5ded',t:'MTc2NDE0MDA5MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
