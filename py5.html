@@ -1,0 +1,1078 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>巢狀結構學習 - 糖果王國的程式冒險</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #FFF5F7;
+            color: #4B3F72;
+        }
+        
+        .candy-bg {
+            background: linear-gradient(135deg, #FFD6E0 0%, #FFEFEF 100%);
+        }
+        
+        .candy-border {
+            border: 3px solid #FF8DC7;
+            border-radius: 20px;
+        }
+        
+        .candy-button {
+            background: linear-gradient(135deg, #FF8DC7 0%, #FF5DA2 100%);
+            color: white;
+            border-radius: 25px;
+            padding: 8px 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(255, 93, 162, 0.3);
+        }
+        
+        .candy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(255, 93, 162, 0.4);
+        }
+        
+        .code-block {
+            background-color: #2D2B55;
+            color: #FFFFFF;
+            border-radius: 10px;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+        
+        .code-keyword {
+            color: #FF8DC7;
+        }
+        
+        .code-string {
+            color: #A5FF90;
+        }
+        
+        .code-comment {
+            color: #B0B0B0;
+            font-style: italic;
+        }
+        
+        .code-number {
+            color: #FF9D00;
+        }
+        
+        .candy {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        
+        .candy:hover {
+            transform: scale(1.2) rotate(10deg);
+        }
+        
+        .highlight-box {
+            background-color: rgba(255, 141, 199, 0.15);
+            border-left: 4px solid #FF8DC7;
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            background-color: #FFD6E0;
+            border-radius: 10px 10px 0 0;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .tab-button.active {
+            background-color: #FF8DC7;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .nested-box {
+            border: 2px dashed #FF8DC7;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .bounce {
+            animation: bounce 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- 頁面標題 -->
+        <header class="text-center mb-10">
+            <div class="flex justify-center mb-4">
+                <div class="candy bounce" style="background-color: #FF8DC7;"></div>
+                <div class="candy bounce" style="background-color: #A5FF90; animation-delay: 0.2s;"></div>
+                <div class="candy bounce" style="background-color: #FFD23F; animation-delay: 0.4s;"></div>
+                <div class="candy bounce" style="background-color: #9D65FF; animation-delay: 0.6s;"></div>
+            </div>
+            <h1 class="text-4xl font-bold text-pink-600 mb-2">糖果王國的巢狀結構冒險</h1>
+            <p class="text-xl text-purple-700">探索 Python 中的巢狀迴圈與條件判斷</p>
+        </header>
+
+        <!-- 導覽列 -->
+        <nav class="candy-bg p-4 rounded-lg mb-8 shadow-md">
+            <ul class="flex flex-wrap justify-center gap-4">
+                <li><a href="#intro" class="candy-button">巢狀結構介紹</a></li>
+                <li><a href="#nested-loops" class="candy-button">巢狀迴圈</a></li>
+                <li><a href="#nested-if" class="candy-button">巢狀條件判斷</a></li>
+                <li><a href="#nested-data" class="candy-button">巢狀資料結構</a></li>
+                <li><a href="#practice" class="candy-button">互動練習</a></li>
+            </ul>
+        </nav>
+
+        <!-- 介紹部分 -->
+        <section id="intro" class="mb-12">
+            <div class="candy-bg candy-border p-6 mb-8">
+                <h2 class="text-3xl font-bold mb-4 text-purple-800">什麼是巢狀結構？</h2>
+                <div class="flex flex-col md:flex-row gap-6 items-center">
+                    <div class="md:w-1/2">
+                        <p class="mb-4">巢狀結構就像是一個糖果盒子裡面還有更小的糖果盒子，而這些小盒子裡又可能有更小的盒子。在程式設計中，巢狀結構指的是在一個結構內部包含相同類型的結構。</p>
+                        <div class="highlight-box p-4 mb-4">
+                            <p class="font-bold">生活比喻：</p>
+                            <p>想像一下俄羅斯娃娃（套娃），一個娃娃裡面套著另一個娃娃。或者是一個糖果商店，裡面有不同的貨架，每個貨架上有不同種類的糖果盒，每個盒子裡又有不同口味的糖果。</p>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2 flex justify-center">
+                        <!-- 俄羅斯娃娃圖示 -->
+                        <svg width="200" height="200" viewBox="0 0 200 200">
+                            <ellipse cx="100" cy="160" rx="60" ry="20" fill="#FF8DC7" opacity="0.3"/>
+                            <g>
+                                <ellipse cx="100" cy="100" rx="50" ry="70" fill="#FF8DC7"/>
+                                <ellipse cx="100" cy="100" rx="35" ry="55" fill="#FFD6E0"/>
+                                <ellipse cx="100" cy="100" rx="20" ry="40" fill="#FF8DC7"/>
+                                <ellipse cx="100" cy="100" rx="10" ry="25" fill="#FFD6E0"/>
+                                <circle cx="85" cy="85" r="5" fill="#4B3F72"/>
+                                <circle cx="115" cy="85" r="5" fill="#4B3F72"/>
+                                <path d="M90 110 Q100 120 110 110" stroke="#4B3F72" stroke-width="2" fill="none"/>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 巢狀迴圈部分 -->
+        <section id="nested-loops" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-purple-800">巢狀迴圈 (Nested Loops)</h2>
+            
+            <div class="candy-bg candy-border p-6 mb-8">
+                <h3 class="text-2xl font-bold mb-4 text-pink-600">什麼是巢狀迴圈？</h3>
+                <p class="mb-4">巢狀迴圈是指在一個迴圈內部包含另一個迴圈。外層迴圈每執行一次，內層迴圈就會完整地執行一遍。</p>
+                
+                <div class="highlight-box p-4 mb-6">
+                    <p class="font-bold">糖果比喻：</p>
+                    <p>想像你有一個糖果工廠，有 3 條生產線，每條生產線需要製作 4 種不同口味的糖果。外層迴圈代表生產線，內層迴圈代表每條生產線上製作的不同口味。</p>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-xl font-bold mb-2 text-purple-700">基本結構：</h4>
+                    <pre class="code-block p-4 mb-4">
+<span class="code-keyword">for</span> i <span class="code-keyword">in</span> range(3):  <span class="code-comment"># 外層迴圈 - 3條生產線</span>
+    <span class="code-keyword">for</span> j <span class="code-keyword">in</span> range(4):  <span class="code-comment"># 內層迴圈 - 每條生產線4種口味</span>
+        <span class="code-keyword">print</span>(<span class="code-string">f"生產線 {i+1} 正在製作第 {j+1} 種口味的糖果"</span>)
+                    </pre>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-xl font-bold mb-2 text-purple-700">步驟解析：</h4>
+                    <div class="nested-box bg-white">
+                        <p class="font-bold">外層迴圈 (i=0)：</p>
+                        <div class="nested-box ml-6 bg-pink-50">
+                            <p>內層迴圈執行 4 次 (j=0,1,2,3)</p>
+                            <p>輸出：生產線 1 正在製作第 1 種口味的糖果</p>
+                            <p>輸出：生產線 1 正在製作第 2 種口味的糖果</p>
+                            <p>輸出：生產線 1 正在製作第 3 種口味的糖果</p>
+                            <p>輸出：生產線 1 正在製作第 4 種口味的糖果</p>
+                        </div>
+                        <p class="font-bold mt-4">外層迴圈 (i=1)：</p>
+                        <div class="nested-box ml-6 bg-pink-50">
+                            <p>內層迴圈再次執行 4 次 (j=0,1,2,3)</p>
+                            <p>輸出：生產線 2 正在製作第 1 種口味的糖果</p>
+                            <p>輸出：生產線 2 正在製作第 2 種口味的糖果</p>
+                            <p>輸出：生產線 2 正在製作第 3 種口味的糖果</p>
+                            <p>輸出：生產線 2 正在製作第 4 種口味的糖果</p>
+                        </div>
+                        <p class="font-bold mt-4">外層迴圈 (i=2)：</p>
+                        <div class="nested-box ml-6 bg-pink-50">
+                            <p>內層迴圈再次執行 4 次 (j=0,1,2,3)</p>
+                            <p>輸出：生產線 3 正在製作第 1 種口味的糖果</p>
+                            <p>輸出：生產線 3 正在製作第 2 種口味的糖果</p>
+                            <p>輸出：生產線 3 正在製作第 3 種口味的糖果</p>
+                            <p>輸出：生產線 3 正在製作第 4 種口味的糖果</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-xl font-bold mb-2 text-purple-700">實際應用：繪製糖果圖案</h4>
+                    <pre class="code-block p-4 mb-4">
+<span class="code-keyword">for</span> i <span class="code-keyword">in</span> range(5):  <span class="code-comment"># 外層迴圈控制行數</span>
+    <span class="code-keyword">for</span> j <span class="code-keyword">in</span> range(i+1):  <span class="code-comment"># 內層迴圈控制每行的糖果數量</span>
+        <span class="code-keyword">print</span>(<span class="code-string">"🍬"</span>, end=<span class="code-string">" "</span>)
+    <span class="code-keyword">print</span>()  <span class="code-comment"># 換行</span>
+                    </pre>
+                    
+                    <div class="bg-white p-4 rounded-lg">
+                        <p class="font-bold mb-2">輸出結果：</p>
+                        <div>
+                            <p>🍬</p>
+                            <p>🍬 🍬</p>
+                            <p>🍬 🍬 🍬</p>
+                            <p>🍬 🍬 🍬 🍬</p>
+                            <p>🍬 🍬 🍬 🍬 🍬</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <button id="showNestedLoopDemo" class="candy-button">互動示範：巢狀迴圈</button>
+                    <div id="nestedLoopDemo" class="mt-4 p-4 bg-white rounded-lg hidden">
+                        <div class="mb-4">
+                            <label class="block mb-2">外層迴圈次數：</label>
+                            <input type="range" id="outerLoopRange" min="1" max="5" value="3" class="w-full">
+                            <span id="outerLoopValue" class="block text-center">3</span>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block mb-2">內層迴圈次數：</label>
+                            <input type="range" id="innerLoopRange" min="1" max="5" value="3" class="w-full">
+                            <span id="innerLoopValue" class="block text-center">3</span>
+                        </div>
+                        <button id="runNestedLoop" class="candy-button">執行迴圈</button>
+                        <div id="loopResult" class="mt-4 p-4 bg-gray-100 rounded-lg min-h-[100px]"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 巢狀條件判斷部分 -->
+        <section id="nested-if" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-purple-800">巢狀條件判斷 (Nested If Statements)</h2>
+            
+            <div class="candy-bg candy-border p-6 mb-8">
+                <h3 class="text-2xl font-bold mb-4 text-pink-600">什麼是巢狀條件判斷？</h3>
+                <p class="mb-4">巢狀條件判斷是指在一個條件判斷語句內部再包含另一個條件判斷語句，形成多層次的決策結構。</p>
+                
+                <div class="highlight-box p-4 mb-6">
+                    <p class="font-bold">糖果比喻：</p>
+                    <p>想像你在挑選糖果：首先，你要決定要買硬糖還是軟糖（第一層判斷）。如果你選擇了硬糖，你還需要決定要買水果口味還是薄荷口味（第二層判斷）。如果你選擇了水果口味，你還需要決定要買草莓還是藍莓口味（第三層判斷）。</p>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-xl font-bold mb-2 text-purple-700">基本結構：</h4>
+                    <pre class="code-block p-4 mb-4">
+<span class="code-keyword">if</span> 糖果類型 == <span class="code-string">"硬糖"</span>:
+    <span class="code-comment"># 第一層條件成立</span>
+    <span class="code-keyword">if</span> 口味類型 == <span class="code-string">"水果"</span>:
+        <span class="code-comment"># 第二層條件成立</span>
+        <span class="code-keyword">if</span> 具體口味 == <span class="code-string">"草莓"</span>:
+            <span class="code-keyword">print</span>(<span class="code-string">"你選擇了草莓口味的硬糖！"</span>)
+        <span class="code-keyword">else</span>:
+            <span class="code-keyword">print</span>(<span class="code-string">"你選擇了其他水果口味的硬糖！"</span>)
+    <span class="code-keyword">else</span>:
+        <span class="code-keyword">print</span>(<span class="code-string">"你選擇了非水果口味的硬糖！"</span>)
+<span class="code-keyword">else</span>:
+    <span class="code-keyword">print</span>(<span class="code-string">"你選擇了軟糖或其他類型的糖果！"</span>)
+                    </pre>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-xl font-bold mb-2 text-purple-700">步驟解析：</h4>
+                    <div class="nested-box bg-white">
+                        <p class="font-bold">第一層判斷：糖果類型是硬糖嗎？</p>
+                        <div class="ml-6 mt-2">
+                            <p>→ 如果是：進入第二層判斷</p>
+                            <div class="nested-box bg-pink-50 mt-2">
+                                <p class="font-bold">第二層判斷：口味類型是水果嗎？</p>
+                                <div class="ml-6 mt-2">
+                                    <p>→ 如果是：進入第三層判斷</p>
+                                    <div class="nested-box bg-pink-100 mt-2">
+                                        <p class="font-bold">第三層判斷：具體口味是草莓嗎？</p>
+                                        <div class="ml-6 mt-2">
+                                            <p>→ 如果是：輸出「你選擇了草莓口味的硬糖！」</p>
+                                            <p>→ 如果不是：輸出「你選擇了其他水果口味的硬糖！」</p>
+                                        </div>
+                                    </div>
+                                    <p class="mt-2">→ 如果不是：輸出「你選擇了非水果口味的硬糖！」</p>
+                                </div>
+                            </div>
+                            <p class="mt-2">→ 如果不是：輸出「你選擇了軟糖或其他類型的糖果！」</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-xl font-bold mb-2 text-purple-700">實際應用：糖果推薦系統</h4>
+                    <pre class="code-block p-4 mb-4">
+<span class="code-keyword">def</span> <span class="code-keyword">recommend_candy</span>(age, preference, sugar_level):
+    <span class="code-keyword">if</span> age < 12:
+        <span class="code-comment"># 兒童糖果推薦</span>
+        <span class="code-keyword">if</span> preference == <span class="code-string">"水果"</span>:
+            <span class="code-keyword">if</span> sugar_level == <span class="code-string">"低"</span>:
+                <span class="code-keyword">return</span> <span class="code-string">"無糖水果軟糖"</span>
+            <span class="code-keyword">else</span>:
+                <span class="code-keyword">return</span> <span class="code-string">"水果口味棒棒糖"</span>
+        <span class="code-keyword">else</span>:
+            <span class="code-keyword">return</span> <span class="code-string">"巧克力豆"</span>
+    <span class="code-keyword">else</span>:
+        <span class="code-comment"># 成人糖果推薦</span>
+        <span class="code-keyword">if</span> preference == <span class="code-string">"巧克力"</span>:
+            <span class="code-keyword">if</span> sugar_level == <span class="code-string">"低"</span>:
+                <span class="code-keyword">return</span> <span class="code-string">"黑巧克力"</span>
+            <span class="code-keyword">else</span>:
+                <span class="code-keyword">return</span> <span class="code-string">"牛奶巧克力"</span>
+        <span class="code-keyword">else</span>:
+            <span class="code-keyword">return</span> <span class="code-string">"綜合硬糖"</span>
+                    </pre>
+                </div>
+                
+                <div class="mt-6">
+                    <button id="showNestedIfDemo" class="candy-button">互動示範：巢狀條件判斷</button>
+                    <div id="nestedIfDemo" class="mt-4 p-4 bg-white rounded-lg hidden">
+                        <div class="mb-4">
+                            <label class="block mb-2">年齡：</label>
+                            <select id="ageSelect" class="w-full p-2 border rounded">
+                                <option value="child">兒童 (< 12歲)</option>
+                                <option value="adult">成人 (≥ 12歲)</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block mb-2">口味偏好：</label>
+                            <select id="preferenceSelect" class="w-full p-2 border rounded">
+                                <option value="fruit">水果</option>
+                                <option value="chocolate">巧克力</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block mb-2">糖分需求：</label>
+                            <select id="sugarSelect" class="w-full p-2 border rounded">
+                                <option value="low">低糖</option>
+                                <option value="high">高糖</option>
+                            </select>
+                        </div>
+                        <button id="getRecommendation" class="candy-button">獲取推薦</button>
+                        <div id="recommendationResult" class="mt-4 p-4 bg-gray-100 rounded-lg min-h-[60px] flex items-center justify-center text-xl font-bold"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 巢狀資料結構部分 -->
+        <section id="nested-data" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-purple-800">巢狀資料結構 (Nested Data Structures)</h2>
+            
+            <div class="candy-bg candy-border p-6 mb-8">
+                <h3 class="text-2xl font-bold mb-4 text-pink-600">什麼是巢狀資料結構？</h3>
+                <p class="mb-4">巢狀資料結構是指在一個資料結構內部包含另一個資料結構，例如列表中包含列表、字典中包含字典或列表等。</p>
+                
+                <div class="highlight-box p-4 mb-6">
+                    <p class="font-bold">糖果比喻：</p>
+                    <p>想像一個糖果商店的庫存系統：有不同的貨架（第一層列表），每個貨架上有不同的糖果盒（第二層列表），每個糖果盒裡有不同口味的糖果（第三層列表）。或者，一個糖果資料庫，每種糖果（字典）包含名稱、成分（列表）、營養成分（字典）等資訊。</p>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-xl font-bold mb-2 text-purple-700">巢狀列表 (Nested Lists)：</h4>
+                    <pre class="code-block p-4 mb-4">
+<span class="code-comment"># 糖果商店的貨架系統</span>
+candy_store = [
+    [<span class="code-string">"棒棒糖"</span>, <span class="code-string">"水果硬糖"</span>, <span class="code-string">"薄荷糖"</span>],  <span class="code-comment"># 第一個貨架</span>
+    [<span class="code-string">"巧克力"</span>, <span class="code-string">"巧克力豆"</span>, <span class="code-string">"巧克力棒"</span>],  <span class="code-comment"># 第二個貨架</span>
+    [<span class="code-string">"果凍"</span>, <span class="code-string">"軟糖"</span>, <span class="code-string">"棉花糖"</span>]   <span class="code-comment"># 第三個貨架</span>
+]
+
+<span class="code-comment"># 訪問第二個貨架上的第一種糖果</span>
+<span class="code-keyword">print</span>(candy_store[1][0])  <span class="code-comment"># 輸出: 巧克力</span>
+
+<span class="code-comment"># 修改第三個貨架上的第二種糖果</span>
+candy_store[2][1] = <span class="code-string">"水果軟糖"</span>
+<span class="code-keyword">print</span>(candy_store[2][1])  <span class="code-comment"># 輸出: 水果軟糖</span>
+                    </pre>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-xl font-bold mb-2 text-purple-700">巢狀字典 (Nested Dictionaries)：</h4>
+                    <pre class="code-block p-4 mb-4">
+<span class="code-comment"># 糖果資料庫</span>
+candy_database = {
+    <span class="code-string">"草莓棒棒糖"</span>: {
+        <span class="code-string">"類型"</span>: <span class="code-string">"硬糖"</span>,
+        <span class="code-string">"口味"</span>: <span class="code-string">"草莓"</span>,
+        <span class="code-string">"顏色"</span>: <span class="code-string">"紅色"</span>,
+        <span class="code-string">"營養成分"</span>: {
+            <span class="code-string">"糖"</span>: <span class="code-number">12</span>,
+            <span class="code-string">"卡路里"</span>: <span class="code-number">60</span>
+        }
+    },
+    <span class="code-string">"巧克力豆"</span>: {
+        <span class="code-string">"類型"</span>: <span class="code-string">"巧克力"</span>,
+        <span class="code-string">"口味"</span>: <span class="code-string">"牛奶巧克力"</span>,
+        <span class="code-string">"顏色"</span>: <span class="code-string">"棕色"</span>,
+        <span class="code-string">"營養成分"</span>: {
+            <span class="code-string">"糖"</span>: <span class="code-number">8</span>,
+            <span class="code-string">"卡路里"</span>: <span class="code-number">45</span>
+        }
+    }
+}
+
+<span class="code-comment"># 訪問巧克力豆的口味</span>
+<span class="code-keyword">print</span>(candy_database[<span class="code-string">"巧克力豆"</span>][<span class="code-string">"口味"</span>])  <span class="code-comment"># 輸出: 牛奶巧克力</span>
+
+<span class="code-comment"># 訪問草莓棒棒糖的卡路里</span>
+<span class="code-keyword">print</span>(candy_database[<span class="code-string">"草莓棒棒糖"</span>][<span class="code-string">"營養成分"</span>][<span class="code-string">"卡路里"</span>])  <span class="code-comment"># 輸出: 60</span>
+
+<span class="code-comment"># 修改巧克力豆的糖含量</span>
+candy_database[<span class="code-string">"巧克力豆"</span>][<span class="code-string">"營養成分"</span>][<span class="code-string">"糖"</span>] = <span class="code-number">10</span>
+                    </pre>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-xl font-bold mb-2 text-purple-700">混合巢狀結構：</h4>
+                    <pre class="code-block p-4 mb-4">
+<span class="code-comment"># 糖果商店完整資料</span>
+candy_shop = {
+    <span class="code-string">"店名"</span>: <span class="code-string">"甜蜜天堂"</span>,
+    <span class="code-string">"貨架"</span>: [
+        {
+            <span class="code-string">"名稱"</span>: <span class="code-string">"硬糖區"</span>,
+            <span class="code-string">"產品"</span>: [<span class="code-string">"棒棒糖"</span>, <span class="code-string">"水果硬糖"</span>, <span class="code-string">"薄荷糖"</span>]
+        },
+        {
+            <span class="code-string">"名稱"</span>: <span class="code-string">"巧克力區"</span>,
+            <span class="code-string">"產品"</span>: [<span class="code-string">"巧克力"</span>, <span class="code-string">"巧克力豆"</span>, <span class="code-string">"巧克力棒"</span>]
+        }
+    ],
+    <span class="code-string">"銷售數據"</span>: {
+        <span class="code-string">"本週熱銷"</span>: [<span class="code-string">"草莓棒棒糖"</span>, <span class="code-string">"牛奶巧克力"</span>],
+        <span class="code-string">"折扣商品"</span>: {
+            <span class="code-string">"棒棒糖"</span>: <span class="code-number">0.8</span>,
+            <span class="code-string">"巧克力豆"</span>: <span class="code-number">0.9</span>
+        }
+    }
+}
+
+<span class="code-comment"># 訪問第一個貨架的名稱</span>
+<span class="code-keyword">print</span>(candy_shop[<span class="code-string">"貨架"</span>][0][<span class="code-string">"名稱"</span>])  <span class="code-comment"># 輸出: 硬糖區</span>
+
+<span class="code-comment"># 訪問第二個貨架的第一個產品</span>
+<span class="code-keyword">print</span>(candy_shop[<span class="code-string">"貨架"</span>][1][<span class="code-string">"產品"</span>][0])  <span class="code-comment"># 輸出: 巧克力</span>
+
+<span class="code-comment"># 訪問棒棒糖的折扣</span>
+<span class="code-keyword">print</span>(candy_shop[<span class="code-string">"銷售數據"</span>][<span class="code-string">"折扣商品"</span>][<span class="code-string">"棒棒糖"</span>])  <span class="code-comment"># 輸出: 0.8</span>
+
+<span class="code-comment"># 修改本週熱銷商品</span>
+candy_shop[<span class="code-string">"銷售數據"</span>][<span class="code-string">"本週熱銷"</span>].append(<span class="code-string">"薄荷糖"</span>)
+<span class="code-keyword">print</span>(candy_shop[<span class="code-string">"銷售數據"</span>][<span class="code-string">"本週熱銷"</span>])  <span class="code-comment"># 輸出: ['草莓棒棒糖', '牛奶巧克力', '薄荷糖']</span>
+                    </pre>
+                </div>
+                
+                <div class="mt-6">
+                    <button id="showNestedDataDemo" class="candy-button">互動示範：巢狀資料結構</button>
+                    <div id="nestedDataDemo" class="mt-4 p-4 bg-white rounded-lg hidden">
+                        <div class="mb-4">
+                            <h4 class="font-bold text-lg mb-2">糖果商店資料瀏覽器</h4>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <button class="px-3 py-1 bg-pink-200 rounded-lg data-nav" data-path="shop_name">店名</button>
+                                <button class="px-3 py-1 bg-pink-200 rounded-lg data-nav" data-path="shelf_1_name">第一個貨架名稱</button>
+                                <button class="px-3 py-1 bg-pink-200 rounded-lg data-nav" data-path="shelf_1_products">第一個貨架產品</button>
+                                <button class="px-3 py-1 bg-pink-200 rounded-lg data-nav" data-path="shelf_2_name">第二個貨架名稱</button>
+                                <button class="px-3 py-1 bg-pink-200 rounded-lg data-nav" data-path="shelf_2_products">第二個貨架產品</button>
+                                <button class="px-3 py-1 bg-pink-200 rounded-lg data-nav" data-path="hot_selling">本週熱銷</button>
+                                <button class="px-3 py-1 bg-pink-200 rounded-lg data-nav" data-path="discounts">折扣商品</button>
+                            </div>
+                        </div>
+                        <div id="dataResult" class="p-4 bg-gray-100 rounded-lg min-h-[100px]">
+                            <p class="text-center text-gray-500">點擊上方按鈕查看資料</p>
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="font-bold text-lg mb-2">修改資料</h4>
+                            <div class="flex flex-col md:flex-row gap-4">
+                                <select id="dataPathSelect" class="p-2 border rounded md:w-1/3">
+                                    <option value="hot_selling">新增熱銷商品</option>
+                                    <option value="shelf_1_products">新增硬糖區產品</option>
+                                    <option value="shelf_2_products">新增巧克力區產品</option>
+                                    <option value="discounts">新增折扣商品</option>
+                                </select>
+                                <input type="text" id="newDataValue" placeholder="輸入新值" class="p-2 border rounded md:w-1/3">
+                                <button id="updateData" class="candy-button md:w-1/3">更新資料</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 互動練習部分 -->
+        <section id="practice" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-purple-800">互動練習</h2>
+            
+            <div class="candy-bg candy-border p-6">
+                <div class="mb-6">
+                    <h3 class="text-2xl font-bold mb-4 text-pink-600">練習你的巢狀結構技能</h3>
+                    
+                    <div class="mb-6">
+                        <div class="flex mb-4">
+                            <div class="tab-button active" data-tab="tab1">巢狀迴圈練習</div>
+                            <div class="tab-button" data-tab="tab2">巢狀條件練習</div>
+                            <div class="tab-button" data-tab="tab3">巢狀資料練習</div>
+                        </div>
+                        
+                        <div id="tab1" class="tab-content active bg-white p-6 rounded-lg">
+                            <h4 class="text-xl font-bold mb-4">糖果圖案生成器</h4>
+                            <p class="mb-4">使用巢狀迴圈創建不同的糖果圖案！</p>
+                            
+                            <div class="mb-4">
+                                <label class="block mb-2">行數：</label>
+                                <input type="range" id="patternRows" min="1" max="8" value="5" class="w-full">
+                                <span id="rowsValue" class="block text-center">5</span>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="block mb-2">圖案類型：</label>
+                                <select id="patternType" class="w-full p-2 border rounded">
+                                    <option value="triangle">三角形</option>
+                                    <option value="square">方形</option>
+                                    <option value="diamond">菱形</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="block mb-2">糖果符號：</label>
+                                <select id="candySymbol" class="w-full p-2 border rounded">
+                                    <option value="🍬">🍬 棒棒糖</option>
+                                    <option value="🍭">🍭 棒棒糖</option>
+                                    <option value="🍫">🍫 巧克力</option>
+                                    <option value="🧁">🧁 杯子蛋糕</option>
+                                    <option value="🍪">🍪 餅乾</option>
+                                </select>
+                            </div>
+                            
+                            <button id="generatePattern" class="candy-button">生成圖案</button>
+                            
+                            <div id="patternResult" class="mt-4 p-4 bg-gray-100 rounded-lg min-h-[150px] font-mono text-2xl text-center"></div>
+                            
+                            <div class="mt-4 p-4 bg-pink-50 rounded-lg">
+                                <h5 class="font-bold mb-2">Python 代碼參考：</h5>
+                                <pre class="code-block p-4">
+<span class="code-keyword">def</span> <span class="code-keyword">generate_pattern</span>(rows, pattern_type, symbol):
+    <span class="code-keyword">if</span> pattern_type == <span class="code-string">"triangle"</span>:
+        <span class="code-keyword">for</span> i <span class="code-keyword">in</span> range(rows):
+            <span class="code-keyword">for</span> j <span class="code-keyword">in</span> range(i + 1):
+                <span class="code-keyword">print</span>(symbol, end=<span class="code-string">" "</span>)
+            <span class="code-keyword">print</span>()
+    <span class="code-keyword">elif</span> pattern_type == <span class="code-string">"square"</span>:
+        <span class="code-keyword">for</span> i <span class="code-keyword">in</span> range(rows):
+            <span class="code-keyword">for</span> j <span class="code-keyword">in</span> range(rows):
+                <span class="code-keyword">print</span>(symbol, end=<span class="code-string">" "</span>)
+            <span class="code-keyword">print</span>()
+    <span class="code-keyword">elif</span> pattern_type == <span class="code-string">"diamond"</span>:
+        <span class="code-comment"># 上半部分</span>
+        <span class="code-keyword">for</span> i <span class="code-keyword">in</span> range(rows):
+            <span class="code-keyword">for</span> j <span class="code-keyword">in</span> range(rows - i - 1):
+                <span class="code-keyword">print</span>(<span class="code-string">" "</span>, end=<span class="code-string">" "</span>)
+            <span class="code-keyword">for</span> j <span class="code-keyword">in</span> range(2 * i + 1):
+                <span class="code-keyword">print</span>(symbol, end=<span class="code-string">" "</span>)
+            <span class="code-keyword">print</span>()
+        <span class="code-comment"># 下半部分</span>
+        <span class="code-keyword">for</span> i <span class="code-keyword">in</span> range(rows - 2, -1, -1):
+            <span class="code-keyword">for</span> j <span class="code-keyword">in</span> range(rows - i - 1):
+                <span class="code-keyword">print</span>(<span class="code-string">" "</span>, end=<span class="code-string">" "</span>)
+            <span class="code-keyword">for</span> j <span class="code-keyword">in</span> range(2 * i + 1):
+                <span class="code-keyword">print</span>(symbol, end=<span class="code-string">" "</span>)
+            <span class="code-keyword">print</span>()
+                                </pre>
+                            </div>
+                        </div>
+                        
+                        <div id="tab2" class="tab-content bg-white p-6 rounded-lg hidden">
+                            <h4 class="text-xl font-bold mb-4">糖果商店模擬器</h4>
+                            <p class="mb-4">使用巢狀條件判斷來模擬糖果購買決策！</p>
+                            
+                            <div class="mb-4">
+                                <label class="block mb-2">預算：</label>
+                                <input type="range" id="budget" min="10" max="100" step="10" value="50" class="w-full">
+                                <span id="budgetValue" class="block text-center">50 元</span>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="block mb-2">喜好：</label>
+                                <select id="preference" class="w-full p-2 border rounded">
+                                    <option value="sweet">甜食愛好者</option>
+                                    <option value="chocolate">巧克力控</option>
+                                    <option value="sour">酸味愛好者</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="block mb-2">購買場合：</label>
+                                <select id="occasion" class="w-full p-2 border rounded">
+                                    <option value="self">自己享用</option>
+                                    <option value="gift">送禮</option>
+                                    <option value="party">派對</option>
+                                </select>
+                            </div>
+                            
+                            <button id="shopCandy" class="candy-button">購買糖果</button>
+                            
+                            <div id="shoppingResult" class="mt-4 p-4 bg-gray-100 rounded-lg min-h-[100px]"></div>
+                            
+                            <div class="mt-4 p-4 bg-pink-50 rounded-lg">
+                                <h5 class="font-bold mb-2">Python 代碼參考：</h5>
+                                <pre class="code-block p-4">
+<span class="code-keyword">def</span> <span class="code-keyword">recommend_candy_purchase</span>(budget, preference, occasion):
+    <span class="code-keyword">if</span> budget >= 50:
+        <span class="code-comment"># 高預算選項</span>
+        <span class="code-keyword">if</span> preference == <span class="code-string">"chocolate"</span>:
+            <span class="code-keyword">if</span> occasion == <span class="code-string">"gift"</span>:
+                <span class="code-keyword">return</span> <span class="code-string">"高級巧克力禮盒"</span>
+            <span class="code-keyword">elif</span> occasion == <span class="code-string">"party"</span>:
+                <span class="code-keyword">return</span> <span class="code-string">"巧克力噴泉套裝"</span>
+            <span class="code-keyword">else</span>:
+                <span class="code-keyword">return</span> <span class="code-string">"進口巧克力組合"</span>
+        <span class="code-keyword">elif</span> preference == <span class="code-string">"sweet"</span>:
+            <span class="code-keyword">if</span> occasion == <span class="code-string">"party"</span>:
+                <span class="code-keyword">return</span> <span class="code-string">"綜合糖果派對桶"</span>
+            <span class="code-keyword">else</span>:
+                <span class="code-keyword">return</span> <span class="code-string">"高級手工糖果"</span>
+        <span class="code-keyword">else</span>:  <span class="code-comment"># sour</span>
+            <span class="code-keyword">return</span> <span class="code-string">"進口酸味糖果禮盒"</span>
+    <span class="code-keyword">else</span>:
+        <span class="code-comment"># 低預算選項</span>
+        <span class="code-keyword">if</span> preference == <span class="code-string">"chocolate"</span>:
+            <span class="code-keyword">if</span> occasion == <span class="code-string">"self"</span>:
+                <span class="code-keyword">return</span> <span class="code-string">"巧克力棒"</span>
+            <span class="code-keyword">else</span>:
+                <span class="code-keyword">return</span> <span class="code-string">"迷你巧克力包裝"</span>
+        <span class="code-keyword">elif</span> preference == <span class="code-string">"sweet"</span>:
+            <span class="code-keyword">return</span> <span class="code-string">"綜合軟糖包"</span>
+        <span class="code-keyword">else</span>:  <span class="code-comment"># sour</span>
+            <span class="code-keyword">return</span> <span class="code-string">"酸味水果糖"</span>
+                                </pre>
+                            </div>
+                        </div>
+                        
+                        <div id="tab3" class="tab-content bg-white p-6 rounded-lg hidden">
+                            <h4 class="text-xl font-bold mb-4">糖果資料庫探索</h4>
+                            <p class="mb-4">練習訪問和修改巢狀資料結構！</p>
+                            
+                            <div class="mb-6 p-4 bg-gray-100 rounded-lg">
+                                <h5 class="font-bold mb-2">糖果資料庫：</h5>
+                                <pre class="code-block p-4 text-sm">
+candy_db = {
+    <span class="code-string">"硬糖"</span>: {
+        <span class="code-string">"水果口味"</span>: [<span class="code-string">"草莓"</span>, <span class="code-string">"藍莓"</span>, <span class="code-string">"檸檬"</span>],
+        <span class="code-string">"薄荷口味"</span>: [<span class="code-string">"清涼薄荷"</span>, <span class="code-string">"薄荷巧克力"</span>],
+        <span class="code-string">"價格"</span>: {<span class="code-string">"單顆"</span>: <span class="code-number">5</span>, <span class="code-string">"一包"</span>: <span class="code-number">35</span>}
+    },
+    <span class="code-string">"巧克力"</span>: {
+        <span class="code-string">"黑巧克力"</span>: [<span class="code-string">"70%可可"</span>, <span class="code-string">"85%可可"</span>],
+        <span class="code-string">"牛奶巧克力"</span>: [<span class="code-string">"杏仁"</span>, <span class="code-string">"榛果"</span>, <span class="code-string">"原味"</span>],
+        <span class="code-string">"價格"</span>: {<span class="code-string">"單塊"</span>: <span class="code-number">15</span>, <span class="code-string">"一盒"</span>: <span class="code-number">80</span>}
+    },
+    <span class="code-string">"軟糖"</span>: {
+        <span class="code-string">"果凍"</span>: [<span class="code-string">"綜合水果"</span>, <span class="code-string">"葡萄"</span>],
+        <span class="code-string">"QQ糖"</span>: [<span class="code-string">"原味"</span>, <span class="code-string">"酸甜"</span>, <span class="code-string">"水蜜桃"</span>],
+        <span class="code-string">"價格"</span>: {<span class="code-string">"單顆"</span>: <span class="code-number">3</span>, <span class="code-string">"一包"</span>: <span class="code-number">25</span>}
+    }
+}
+                                </pre>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5 class="font-bold mb-2">資料查詢：</h5>
+                                <div class="flex flex-col md:flex-row gap-4">
+                                    <select id="candyType" class="p-2 border rounded md:w-1/3">
+                                        <option value="硬糖">硬糖</option>
+                                        <option value="巧克力">巧克力</option>
+                                        <option value="軟糖">軟糖</option>
+                                    </select>
+                                    <select id="queryType" class="p-2 border rounded md:w-1/3">
+                                        <option value="flavors">所有口味</option>
+                                        <option value="price">價格資訊</option>
+                                        <option value="specific">特定口味</option>
+                                    </select>
+                                    <select id="specificFlavor" class="p-2 border rounded md:w-1/3" disabled>
+                                        <option value="">-- 選擇口味 --</option>
+                                    </select>
+                                </div>
+                                <button id="queryData" class="candy-button mt-4 w-full">查詢資料</button>
+                            </div>
+                            
+                            <div id="queryResult" class="mb-6 p-4 bg-gray-100 rounded-lg min-h-[80px]">
+                                <p class="text-center text-gray-500">查詢結果將顯示在這裡</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5 class="font-bold mb-2">資料修改：</h5>
+                                <div class="flex flex-col md:flex-row gap-4 mb-4">
+                                    <select id="modifyCandyType" class="p-2 border rounded md:w-1/4">
+                                        <option value="硬糖">硬糖</option>
+                                        <option value="巧克力">巧克力</option>
+                                        <option value="軟糖">軟糖</option>
+                                    </select>
+                                    <select id="modifyAction" class="p-2 border rounded md:w-1/4">
+                                        <option value="add_flavor">新增口味</option>
+                                        <option value="change_price">修改價格</option>
+                                    </select>
+                                    <select id="modifyTarget" class="p-2 border rounded md:w-1/4">
+                                        <!-- 動態填充 -->
+                                    </select>
+                                    <input type="text" id="newValue" placeholder="新值" class="p-2 border rounded md:w-1/4">
+                                </div>
+                                <button id="modifyData" class="candy-button w-full">修改資料</button>
+                            </div>
+                            
+                            <div id="modifyResult" class="p-4 bg-gray-100 rounded-lg min-h-[80px]">
+                                <p class="text-center text-gray-500">修改結果將顯示在這裡</p>
+                            </div>
+                            
+                            <div class="mt-4 p-4 bg-pink-50 rounded-lg">
+                                <h5 class="font-bold mb-2">Python 代碼參考：</h5>
+                                <pre class="code-block p-4">
+<span class="code-comment"># 查詢所有口味</span>
+<span class="code-keyword">def</span> <span class="code-keyword">get_all_flavors</span>(candy_db, candy_type):
+    flavors = []
+    <span class="code-keyword">for</span> flavor_type <span class="code-keyword">in</span> candy_db[candy_type]:
+        <span class="code-keyword">if</span> flavor_type != <span class="code-string">"價格"</span>:  <span class="code-comment"># 跳過價格資訊</span>
+            flavors.extend(candy_db[candy_type][flavor_type])
+    <span class="code-keyword">return</span> flavors
+
+<span class="code-comment"># 查詢價格</span>
+<span class="code-keyword">def</span> <span class="code-keyword">get_price_info</span>(candy_db, candy_type):
+    <span class="code-keyword">return</span> candy_db[candy_type][<span class="code-string">"價格"</span>]
+
+<span class="code-comment"># 查詢特定口味</span>
+<span class="code-keyword">def</span> <span class="code-keyword">get_specific_flavor</span>(candy_db, candy_type, flavor_type):
+    <span class="code-keyword">return</span> candy_db[candy_type][flavor_type]
+
+<span class="code-comment"># 新增口味</span>
+<span class="code-keyword">def</span> <span class="code-keyword">add_flavor</span>(candy_db, candy_type, flavor_type, new_flavor):
+    candy_db[candy_type][flavor_type].append(new_flavor)
+    <span class="code-keyword">return</span> candy_db[candy_type][flavor_type]
+
+<span class="code-comment"># 修改價格</span>
+<span class="code-keyword">def</span> <span class="code-keyword">change_price</span>(candy_db, candy_type, price_type, new_price):
+    candy_db[candy_type][<span class="code-string">"價格"</span>][price_type] = new_price
+    <span class="code-keyword">return</span> candy_db[candy_type][<span class="code-string">"價格"</span>]
+                                </pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 總結部分 -->
+        <section class="mb-12">
+            <div class="candy-bg candy-border p-6">
+                <h2 class="text-3xl font-bold mb-4 text-purple-800">總結</h2>
+                <div class="flex flex-col md:flex-row gap-6 items-center">
+                    <div class="md:w-2/3">
+                        <p class="mb-4">在這個教學中，我們學習了 Python 中的巢狀結構：</p>
+                        <ul class="list-disc pl-6 mb-4">
+                            <li class="mb-2"><strong>巢狀迴圈</strong>：一個迴圈內部包含另一個迴圈，可以用來處理多維度的迭代需求。</li>
+                            <li class="mb-2"><strong>巢狀條件判斷</strong>：在一個條件判斷內部再包含另一個條件判斷，可以處理複雜的決策邏輯。</li>
+                            <li class="mb-2"><strong>巢狀資料結構</strong>：在一個資料結構內部包含另一個資料結構，如列表中的列表、字典中的字典等。</li>
+                        </ul>
+                        <p>巢狀結構是程式設計中非常重要的概念，掌握它們可以幫助你解決更複雜的問題！</p>
+                    </div>
+                    <div class="md:w-1/3 flex justify-center">
+                        <!-- 糖果圖示 -->
+                        <svg width="200" height="200" viewBox="0 0 200 200">
+                            <g transform="translate(100, 100)">
+                                <circle cx="0" cy="0" r="60" fill="#FF8DC7" />
+                                <circle cx="0" cy="0" r="45" fill="#FFD6E0" />
+                                <circle cx="0" cy="0" r="30" fill="#FF8DC7" />
+                                <circle cx="0" cy="0" r="15" fill="#FFD6E0" />
+                                <text x="0" y="0" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#4B3F72" font-weight="bold">巢狀結構</text>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 頁尾 -->
+        <footer class="text-center text-gray-600 p-4">
+            <p>糖果王國的巢狀結構冒險 © 2023</p>
+        </footer>
+    </div>
+
+    <script>
+        // 模擬糖果商店資料
+        const candyShopData = {
+            "店名": "甜蜜天堂",
+            "貨架": [
+                {
+                    "名稱": "硬糖區",
+                    "產品": ["棒棒糖", "水果硬糖", "薄荷糖"]
+                },
+                {
+                    "名稱": "巧克力區",
+                    "產品": ["巧克力", "巧克力豆", "巧克力棒"]
+                }
+            ],
+            "銷售數據": {
+                "本週熱銷": ["草莓棒棒糖", "牛奶巧克力"],
+                "折扣商品": {
+                    "棒棒糖": 0.8,
+                    "巧克力豆": 0.9
+                }
+            }
+        };
+
+        // 模擬糖果資料庫
+        const candyDb = {
+            "硬糖": {
+                "水果口味": ["草莓", "藍莓", "檸檬"],
+                "薄荷口味": ["清涼薄荷", "薄荷巧克力"],
+                "價格": {"單顆": 5, "一包": 35}
+            },
+            "巧克力": {
+                "黑巧克力": ["70%可可", "85%可可"],
+                "牛奶巧克力": ["杏仁", "榛果", "原味"],
+                "價格": {"單塊": 15, "一盒": 80}
+            },
+            "軟糖": {
+                "果凍": ["綜合水果", "葡萄"],
+                "QQ糖": ["原味", "酸甜", "水蜜桃"],
+                "價格": {"單顆": 3, "一包": 25}
+            }
+        };
+
+        // 巢狀迴圈示範
+        document.getElementById('showNestedLoopDemo').addEventListener('click', function() {
+            const demo = document.getElementById('nestedLoopDemo');
+            demo.classList.toggle('hidden');
+        });
+
+        document.getElementById('outerLoopRange').addEventListener('input', function() {
+            document.getElementById('outerLoopValue').textContent = this.value;
+        });
+
+        document.getElementById('innerLoopRange').addEventListener('input', function() {
+            document.getElementById('innerLoopValue').textContent = this.value;
+        });
+
+        document.getElementById('runNestedLoop').addEventListener('click', function() {
+            const outerLoops = parseInt(document.getElementById('outerLoopRange').value);
+            const innerLoops = parseInt(document.getElementById('innerLoopRange').value);
+            const resultDiv = document.getElementById('loopResult');
+            
+            resultDiv.innerHTML = '';
+            
+            for (let i = 0; i < outerLoops; i++) {
+                const outerDiv = document.createElement('div');
+                outerDiv.className = 'mb-2 p-2 bg-pink-100 rounded';
+                outerDiv.innerHTML = `<strong>外層迴圈 (i=${i})：</strong>`;
+                
+                const innerDiv = document.createElement('div');
+                innerDiv.className = 'ml-4 p-2 bg-pink-50 rounded mt-1';
+                
+                for (let j = 0; j < innerLoops; j++) {
+                    const line = document.createElement('p');
+                    line.textContent = `內層迴圈 (j=${j}): 生產線 ${i+1} 正在製作第 ${j+1} 種口味的糖果`;
+                    innerDiv.appendChild(line);
+                }
+                
+                outerDiv.appendChild(innerDiv);
+                resultDiv.appendChild(outerDiv);
+            }
+        });
+
+        // 巢狀條件判斷示範
+        document.getElementById('showNestedIfDemo').addEventListener('click', function() {
+            const demo = document.getElementById('nestedIfDemo');
+            demo.classList.toggle('hidden');
+        });
+
+        document.getElementById('getRecommendation').addEventListener('click', function() {
+            const age = document.getElementById('ageSelect').value;
+            const preference = document.getElementById('preferenceSelect').value;
+            const sugar = document.getElementById('sugarSelect').value;
+            const resultDiv = document.getElementById('recommendationResult');
+            
+            let recommendation = '';
+            
+            if (age === 'child') {
+                if (preference === 'fruit') {
+                    if (sugar === 'low') {
+                        recommendation = '無糖水果軟糖 🍬';
+                    } else {
+                        recommendation = '水果口味棒棒糖 🍭';
+                    }
+                } else if (preference === 'chocolate') {
+                    if (sugar === 'low') {
+                        recommendation = '低糖巧克力豆 🍫';
+                    } else {
+                        recommendation = '牛奶巧克力 🍫';
+                    }
+                } else {
+                    recommendation = '綜合軟糖 🍬';
+                }
+            } else {
+                if (preference === 'chocolate') {
+                    if (sugar === 'low') {
+                        recommendation = '黑巧克力 🍫';
+                    } else {
+                        recommendation = '榛果牛奶巧克力 🍫';
+                    }
+                } else if (preference === 'fruit') {
+                    if (sugar === 'low') {
+                        recommendation = '低糖水果硬糖 🍬';
+                    } else {
+                        recommendation = '水果軟糖組合 🍬';
+                    }
+                } else {
+                    recommendation = '綜合口味硬糖 🍬';
+                }
+            }
+            
+            resultDiv.textContent = recommendation;
+        });
+
+        // 巢狀資料結構示範
+        document.getElementById('showNestedDataDemo').addEventListener('click', function() {
+            const demo = document.getElementById('nestedDataDemo');
+            demo.classList.toggle('hidden');
+        });
+
+        document.querySelectorAll('.data-nav').forEach(button => {
+            button.addEventListener('click', function() {
+                const path = this.getAttribute('data-path');
+                const resultDiv = document.getElementById('dataResult');
+                
+                switch(path) {
+                    case 'shop_name':
+                        resultDiv.innerHTML = `<p class="font-bold">店名：</p><p>${candyShopData["店名"]}</p>`;
+                        break;
+                    case 'shelf_1_name':
+                        resultDiv.innerHTML = `<p class="font-bold">第一個貨架名稱：</p><p>${candyShopData["貨架"][0]["名稱"]}</p>`;
+                        break;
+                    case 'shelf_1_products':
+                        resultDiv.innerHTML = `<p class="font-bold">第一個貨架產品：</p><p>${candyShopData["貨架"][0]["產品"].join(', ')}</p>`;
+                        break;
+                    case 'shelf_2_name':
+                        resultDiv.innerHTML = `<p class="font-bold">第二個貨架名稱：</p><p>${candyShopData["貨架"][1]["名稱"]}</p>`;
+                        break;
+                    case 'shelf_2_products':
+                        resultDiv.innerHTML = `<p class="font-bold">第二個貨架產品：</p><p>${candyShopData["貨架"][1]["產品"].join(', ')}</p>`;
+                        break;
+                    case 'hot_selling':
+                        resultDiv.innerHTML = `<p class="font-bold">本週熱銷：</p><p>${candyShopData["銷售數據"]["本週熱銷"].join(', ')}</p>`;
+                        break;
+                    case 'discounts':
+                        let discounts = '';
+                        for (const [product, discount] of Object.entries(candyShopData["銷售數據"]["折扣商品"])) {
+                            discounts += `${product}: ${discount * 10}折<br>`;
+                        }
+                        resultDiv.innerHTML = `<p class="font-bold">折扣商品：</p><p>${discounts}</p>`;
+                        break;
+                }
+            });
+        });
+
+        document.getElementById('updateData').addEventListener('click', function() {
+            const path = document.getElementById('dataPathSelect').value;
+            const newValue = document.getElementById('newDataValue').value.trim();
+            
+            if (!newValue) {
+                alert('請輸入新值！');
+                return;
+            }
+            
+            switch(path) {
+                case 'hot_selling':
+                    candyShopData["銷售數據"]["本週熱銷"].push(newValue);
+                    break;
+                case 'shelf_1_products':
+                    candyShopData["貨架"][0]["產品"].push(newValue);
+                    break;
+                case 'shelf_2_products':
+                    candyShopData["貨架"][1]["產品"].push(newValue);
+                    break;
+                case 'discounts':
+                    candyShopData["銷售數據"]["折扣商品"][newValue] = 0.85;
+                    break;
+            }
+            
+            document.getElementById('dataResult').innerHTML = `<p class="text-green-600 font-bold">資料已更新！</p>`;
+            document.getElementById('newDataValue').value = '';
+        });
+
+        // 互動練習 - 標籤切換
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // 移除所有標籤的活動狀態
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                    content.classList.add('hidden');
+                });
+                
+                // 設置當前標籤為活動狀態
+                this.classList.add('active');
+                const activeTab = document.getElementById(tabId);
+                activeTab.classList.add('active');
+                activeTab.classList.remove('hidden');
+            });
+        });
+
+        // 互動練習 - 巢狀迴圈
+        document.getElementById('patternRows').addEventListener('input', function() {
+            document.getElementById('rowsValue').textContent = this.value;
+        });
+
+        document.getElementById('generatePattern').addEventListener('click', function() {
+            const rows = parseInt(document.getElementById('patternRows').value);
+            const patternType = document.getElementById('patternType').value;
+            const symbol = document.getElementById('candySymbol').value;
+            const resultDiv = document.getElementById('patternResult');
+            
+            resultDiv.innerHTML = '';
+            
+            if (patternType === 'triangle') {
+                for (let i = 0; i < rows; i++) {
+                    const row = document.createElement('div');
+                    let rowContent = '';
+                    for (let j = 0; j <= i; j++) {
+                        rowContent += symbol + ' ';
+                    }
+                    row.textContent = rowContent;
+                    resultDiv.appendChild(row);
+                }
+            } else if (patternType === 'square') {
+                for (let i = 0; i < rows; i++) {
+                    const row = document.createElement('div');
+                    let rowContent = '';
+                    for (let j = 0; j < rows; j++) {
+                        rowContent += symbol + ' <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a4771c891ceddfb',t:'MTc2NDEzOTc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
