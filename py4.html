@@ -1,0 +1,868 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流程圖與迴圈結構學習</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f9ff;
+            color: #1e293b;
+        }
+        
+        .diamond {
+            width: 200px;
+            height: 200px;
+            transform: rotate(45deg);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .diamond-content {
+            transform: rotate(-45deg);
+            position: absolute;
+            width: 140%;
+            height: 140%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            top: -20%;
+            left: -20%;
+        }
+        
+        .flowchart-box {
+            transition: all 0.3s ease;
+        }
+        
+        .flowchart-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .code-block {
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .character {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 120px;
+            height: 120px;
+            z-index: 100;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .character:hover {
+            transform: scale(1.1);
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 1000;
+            max-width: 300px;
+        }
+        
+        .interactive-demo {
+            border: 2px solid #4f46e5;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .progress-container {
+            height: 8px;
+            width: 100%;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background-color: #4f46e5;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="character" id="helper">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="45" fill="#FFD166" />
+            <circle cx="35" cy="40" r="5" fill="#333" />
+            <circle cx="65" cy="40" r="5" fill="#333" />
+            <path d="M 35 65 Q 50 80 65 65" stroke="#333" stroke-width="3" fill="none" />
+            <path d="M 25 25 Q 35 15 45 25" stroke="#333" stroke-width="2" fill="none" />
+            <path d="M 55 25 Q 65 15 75 25" stroke="#333" stroke-width="2" fill="none" />
+        </svg>
+        <div class="tooltip" id="helper-tooltip">
+            嗨！我是小流程，你的學習助手！點擊頁面上的互動元素來學習更多關於流程圖和迴圈的知識！
+        </div>
+    </div>
+
+    <header class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-12 px-4 shadow-lg">
+        <div class="container mx-auto text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">流程圖與迴圈結構</h1>
+            <p class="text-xl md:text-2xl">一起探索程式設計的基本邏輯與流程控制！</p>
+        </div>
+    </header>
+
+    <nav class="bg-white shadow-md py-4 sticky top-0 z-50">
+        <div class="container mx-auto px-4">
+            <ul class="flex space-x-1 md:space-x-8 overflow-x-auto whitespace-nowrap pb-2">
+                <li><a href="#intro" class="px-3 py-2 rounded-lg hover:bg-indigo-100 font-medium text-indigo-600">流程圖介紹</a></li>
+                <li><a href="#pre-loop" class="px-3 py-2 rounded-lg hover:bg-indigo-100 font-medium text-indigo-600">前測迴圈</a></li>
+                <li><a href="#post-loop" class="px-3 py-2 rounded-lg hover:bg-indigo-100 font-medium text-indigo-600">後測迴圈</a></li>
+                <li><a href="#examples" class="px-3 py-2 rounded-lg hover:bg-indigo-100 font-medium text-indigo-600">生活例子</a></li>
+                <li><a href="#interactive" class="px-3 py-2 rounded-lg hover:bg-indigo-100 font-medium text-indigo-600">互動練習</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8">
+        <section id="intro" class="mb-16">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <h2 class="text-3xl font-bold mb-6 text-indigo-700">什麼是流程圖？</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <p class="mb-4">流程圖是一種使用圖形符號來表示演算法、工作流程或程序的圖表。它能幫助我們清晰地理解程式的執行順序和邏輯結構。</p>
+                        <p class="mb-4">想像流程圖就像是一張地圖，指引程式從起點到終點的路徑，告訴電腦該如何一步一步執行任務。</p>
+                        <h3 class="text-xl font-semibold mb-3 text-indigo-600">流程圖的基本元素：</h3>
+                        <ul class="list-disc pl-6 mb-4">
+                            <li class="mb-2"><span class="font-medium">開始/結束</span>：橢圓形，表示程序的開始或結束</li>
+                            <li class="mb-2"><span class="font-medium">處理</span>：矩形，表示執行的動作或操作</li>
+                            <li class="mb-2"><span class="font-medium">決策</span>：菱形，表示條件判斷，通常有「是/否」兩個分支</li>
+                            <li class="mb-2"><span class="font-medium">輸入/輸出</span>：平行四邊形，表示數據的輸入或輸出</li>
+                            <li class="mb-2"><span class="font-medium">連接線</span>：箭頭，表示程序的流向</li>
+                        </ul>
+                    </div>
+                    <div class="flex justify-center items-center">
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="flowchart-box bg-blue-100 rounded-full p-4 flex items-center justify-center h-24 w-full">
+                                <div class="text-center">
+                                    <p class="font-medium">開始/結束</p>
+                                    <p class="text-sm text-gray-600">橢圓形</p>
+                                </div>
+                            </div>
+                            <div class="flowchart-box bg-green-100 rounded-lg p-4 flex items-center justify-center h-24 w-full">
+                                <div class="text-center">
+                                    <p class="font-medium">處理</p>
+                                    <p class="text-sm text-gray-600">矩形</p>
+                                </div>
+                            </div>
+                            <div class="diamond mx-auto flowchart-box bg-yellow-100">
+                                <div class="diamond-content">
+                                    <div class="text-center">
+                                        <p class="font-medium">決策</p>
+                                        <p class="text-sm text-gray-600">菱形</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flowchart-box bg-purple-100 transform skew-x-12 p-4 flex items-center justify-center h-24 w-full">
+                                <div class="transform -skew-x-12 text-center">
+                                    <p class="font-medium">輸入/輸出</p>
+                                    <p class="text-sm text-gray-600">平行四邊形</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pre-loop" class="mb-16">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <h2 class="text-3xl font-bold mb-6 text-indigo-700">前測迴圈 (Pre-test Loop)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <p class="mb-4">前測迴圈是指在執行迴圈主體之前先進行條件測試的迴圈結構。如果條件為假，迴圈可能一次都不執行。</p>
+                        <h3 class="text-xl font-semibold mb-3 text-indigo-600">生活例子：</h3>
+                        <div class="bg-indigo-50 p-4 rounded-lg mb-4">
+                            <p>想像你在超市購物：<strong>「如果還有錢，就繼續購物」</strong></p>
+                            <p class="text-sm text-gray-600 mt-2">你會先檢查錢包裡是否還有錢（條件測試），然後才決定是否繼續購物（迴圈主體）。如果一開始就沒錢，你就不會購物。</p>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 text-indigo-600">Python 中的前測迴圈：</h3>
+                        <div class="bg-gray-800 text-white p-4 rounded-lg mb-4 code-block">
+# while 迴圈（前測迴圈）
+money = 100
+while money > 0:
+    print(f"我還有 {money} 元，可以繼續購物")
+    money -= 20
+print("錢用完了，不能再購物了")</div>
+                    </div>
+                    <div class="flex flex-col justify-center items-center">
+                        <div class="w-full max-w-md">
+                            <svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg" class="w-full">
+                                <!-- 開始 -->
+                                <ellipse cx="150" cy="30" rx="60" ry="25" fill="#93c5fd" stroke="#1e40af" stroke-width="2"/>
+                                <text x="150" y="35" text-anchor="middle" font-size="14">開始</text>
+                                
+                                <!-- 初始化 -->
+                                <rect x="90" y="70" width="120" height="40" fill="#bbf7d0" stroke="#166534" stroke-width="2"/>
+                                <text x="150" y="95" text-anchor="middle" font-size="14">money = 100</text>
+                                
+                                <!-- 連接線 -->
+                                <line x1="150" y1="55" x2="150" y2="70" stroke="#000" stroke-width="2"/>
+                                <line x1="150" y1="110" x2="150" y2="130" stroke="#000" stroke-width="2"/>
+                                
+                                <!-- 條件判斷 -->
+                                <polygon points="150,130 200,170 150,210 100,170" fill="#fef08a" stroke="#854d0e" stroke-width="2"/>
+                                <text x="150" y="175" text-anchor="middle" font-size="14">money > 0?</text>
+                                
+                                <!-- 是分支 -->
+                                <line x1="200" y1="170" x2="230" y2="170" stroke="#000" stroke-width="2"/>
+                                <text x="215" y="160" text-anchor="middle" font-size="12">是</text>
+                                <line x1="230" y1="170" x2="230" y2="190" stroke="#000" stroke-width="2"/>
+                                
+                                <!-- 處理區塊 -->
+                                <rect x="170" y="190" width="120" height="40" fill="#bbf7d0" stroke="#166534" stroke-width="2"/>
+                                <text x="230" y="210" text-anchor="middle" font-size="12">購物</text>
+                                <text x="230" y="225" text-anchor="middle" font-size="12">money -= 20</text>
+                                
+                                <!-- 迴圈返回 -->
+                                <line x1="230" y1="230" x2="230" y2="250" stroke="#000" stroke-width="2"/>
+                                <line x1="230" y1="250" x2="100" y2="250" stroke="#000" stroke-width="2"/>
+                                <line x1="100" y1="250" x2="100" y2="170" stroke="#000" stroke-width="2"/>
+                                
+                                <!-- 否分支 -->
+                                <line x1="150" y1="210" x2="150" y2="280" stroke="#000" stroke-width="2"/>
+                                <text x="160" y="240" text-anchor="middle" font-size="12">否</text>
+                                
+                                <!-- 結束處理 -->
+                                <rect x="90" y="280" width="120" height="40" fill="#bbf7d0" stroke="#166534" stroke-width="2"/>
+                                <text x="150" y="305" text-anchor="middle" font-size="12">錢用完了</text>
+                                
+                                <!-- 結束 -->
+                                <line x1="150" y1="320" x2="150" y2="340" stroke="#000" stroke-width="2"/>
+                                <ellipse cx="150" cy="365" rx="60" ry="25" fill="#93c5fd" stroke="#1e40af" stroke-width="2"/>
+                                <text x="150" y="370" text-anchor="middle" font-size="14">結束</text>
+                            </svg>
+                        </div>
+                        <div class="mt-6 w-full">
+                            <button id="runPreLoop" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg w-full">
+                                執行前測迴圈示範
+                            </button>
+                            <div id="preLoopOutput" class="mt-4 p-4 bg-gray-100 rounded-lg h-40 overflow-y-auto hidden">
+                                <p class="font-mono">程式輸出將顯示在這裡...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="post-loop" class="mb-16">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <h2 class="text-3xl font-bold mb-6 text-indigo-700">後測迴圈 (Post-test Loop)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <p class="mb-4">後測迴圈是指先執行迴圈主體，然後再進行條件測試的迴圈結構。無論條件如何，迴圈主體至少會執行一次。</p>
+                        <h3 class="text-xl font-semibold mb-3 text-indigo-600">生活例子：</h3>
+                        <div class="bg-indigo-50 p-4 rounded-lg mb-4">
+                            <p>想像你在玩遊戲：<strong>「先玩一局遊戲，然後問自己是否還想繼續玩」</strong></p>
+                            <p class="text-sm text-gray-600 mt-2">你會先玩一局遊戲（迴圈主體），然後才決定是否繼續（條件測試）。無論如何，你至少會玩一次。</p>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3 text-indigo-600">Python 中的後測迴圈模擬：</h3>
+                        <div class="bg-gray-800 text-white p-4 rounded-lg mb-4 code-block">
+# Python 沒有內建 do-while，但可以模擬
+game_count = 0
+while True:
+    game_count += 1
+    print(f"玩了第 {game_count} 局遊戲")
+    
+    # 條件檢查
+    if game_count >= 3:  # 假設玩了3局後不想玩了
+        print("不想玩了，休息一下")
+        break</div>
+                    </div>
+                    <div class="flex flex-col justify-center items-center">
+                        <div class="w-full max-w-md">
+                            <svg viewBox="0 0 300 450" xmlns="http://www.w3.org/2000/svg" class="w-full">
+                                <!-- 開始 -->
+                                <ellipse cx="150" cy="30" rx="60" ry="25" fill="#93c5fd" stroke="#1e40af" stroke-width="2"/>
+                                <text x="150" y="35" text-anchor="middle" font-size="14">開始</text>
+                                
+                                <!-- 初始化 -->
+                                <rect x="90" y="70" width="120" height="40" fill="#bbf7d0" stroke="#166534" stroke-width="2"/>
+                                <text x="150" y="95" text-anchor="middle" font-size="14">game_count = 0</text>
+                                
+                                <!-- 連接線 -->
+                                <line x1="150" y1="55" x2="150" y2="70" stroke="#000" stroke-width="2"/>
+                                <line x1="150" y1="110" x2="150" y2="130" stroke="#000" stroke-width="2"/>
+                                
+                                <!-- 處理區塊 (先執行) -->
+                                <rect x="90" y="130" width="120" height="60" fill="#bbf7d0" stroke="#166534" stroke-width="2"/>
+                                <text x="150" y="155" text-anchor="middle" font-size="14">玩遊戲</text>
+                                <text x="150" y="175" text-anchor="middle" font-size="14">game_count += 1</text>
+                                
+                                <!-- 連接線 -->
+                                <line x1="150" y1="190" x2="150" y2="220" stroke="#000" stroke-width="2"/>
+                                
+                                <!-- 條件判斷 -->
+                                <polygon points="150,220 200,260 150,300 100,260" fill="#fef08a" stroke="#854d0e" stroke-width="2"/>
+                                <text x="150" y="255" text-anchor="middle" font-size="12">想繼續玩?</text>
+                                <text x="150" y="270" text-anchor="middle" font-size="12">(game_count < 3)</text>
+                                
+                                <!-- 是分支 -->
+                                <line x1="100" y1="260" x2="70" y2="260" stroke="#000" stroke-width="2"/>
+                                <text x="85" y="250" text-anchor="middle" font-size="12">是</text>
+                                <line x1="70" y1="260" x2="70" y2="160" stroke="#000" stroke-width="2"/>
+                                <line x1="70" y1="160" x2="90" y2="160" stroke="#000" stroke-width="2"/>
+                                
+                                <!-- 否分支 -->
+                                <line x1="150" y1="300" x2="150" y2="330" stroke="#000" stroke-width="2"/>
+                                <text x="160" y="320" text-anchor="middle" font-size="12">否</text>
+                                
+                                <!-- 結束處理 -->
+                                <rect x="90" y="330" width="120" height="40" fill="#bbf7d0" stroke="#166534" stroke-width="2"/>
+                                <text x="150" y="355" text-anchor="middle" font-size="12">不想玩了，休息一下</text>
+                                
+                                <!-- 結束 -->
+                                <line x1="150" y1="370" x2="150" y2="390" stroke="#000" stroke-width="2"/>
+                                <ellipse cx="150" cy="415" rx="60" ry="25" fill="#93c5fd" stroke="#1e40af" stroke-width="2"/>
+                                <text x="150" y="420" text-anchor="middle" font-size="14">結束</text>
+                            </svg>
+                        </div>
+                        <div class="mt-6 w-full">
+                            <button id="runPostLoop" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg w-full">
+                                執行後測迴圈示範
+                            </button>
+                            <div id="postLoopOutput" class="mt-4 p-4 bg-gray-100 rounded-lg h-40 overflow-y-auto hidden">
+                                <p class="font-mono">程式輸出將顯示在這裡...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="examples" class="mb-16">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <h2 class="text-3xl font-bold mb-6 text-indigo-700">迴圈結構的生活例子</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-semibold mb-4 text-indigo-700">前測迴圈 (while) 例子</h3>
+                        <div class="mb-4">
+                            <h4 class="font-medium text-indigo-600 mb-2">1. 洗碗比喻</h4>
+                            <p>「只要還有髒碗盤，就繼續洗」</p>
+                            <p class="text-sm text-gray-600 mt-1">如果一開始就沒有髒碗盤，你就不會開始洗。</p>
+                        </div>
+                        <div class="mb-4">
+                            <h4 class="font-medium text-indigo-600 mb-2">2. 閱讀比喻</h4>
+                            <p>「只要還有時間，就繼續閱讀下一章」</p>
+                            <p class="text-sm text-gray-600 mt-1">如果一開始就沒時間，你就不會開始閱讀。</p>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-indigo-600 mb-2">3. 下樓梯比喻</h4>
+                            <p>「只要還沒到一樓，就繼續下一階樓梯」</p>
+                            <p class="text-sm text-gray-600 mt-1">如果你已經在一樓，就不需要下樓梯。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-purple-50 to-pink-100 p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-semibold mb-4 text-purple-700">後測迴圈 (do-while) 例子</h3>
+                        <div class="mb-4">
+                            <h4 class="font-medium text-purple-600 mb-2">1. 嘗鮮比喻</h4>
+                            <p>「先嘗一口新食物，再決定是否繼續吃」</p>
+                            <p class="text-sm text-gray-600 mt-1">無論如何，你至少會嘗一口。</p>
+                        </div>
+                        <div class="mb-4">
+                            <h4 class="font-medium text-purple-600 mb-2">2. 搭車比喻</h4>
+                            <p>「先搭一站公車，再決定是否繼續搭乘」</p>
+                            <p class="text-sm text-gray-600 mt-1">無論如何，你至少會搭一站。</p>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-purple-600 mb-2">3. 學習比喻</h4>
+                            <p>「先學一課，再決定是否繼續學習這門課程」</p>
+                            <p class="text-sm text-gray-600 mt-1">無論如何，你至少會學一課。</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 bg-gradient-to-br from-amber-50 to-yellow-100 p-6 rounded-xl shadow-sm">
+                    <h3 class="text-xl font-semibold mb-4 text-amber-700">for 迴圈與 downto 迴圈</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium text-amber-600 mb-2">for 迴圈 (遞增)</h4>
+                            <p class="mb-2">「從1數到10」- 從小到大的計數</p>
+                            <div class="bg-white bg-opacity-70 p-3 rounded-lg code-block">
+# Python for 迴圈
+for i in range(1, 11):
+    print(f"數到 {i}")</div>
+                            <p class="text-sm text-gray-600 mt-2">生活例子：從1樓爬到10樓</p>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-amber-600 mb-2">downto 迴圈 (遞減)</h4>
+                            <p class="mb-2">「從10數到1」- 從大到小的計數</p>
+                            <div class="bg-white bg-opacity-70 p-3 rounded-lg code-block">
+# Python 遞減迴圈
+for i in range(10, 0, -1):
+    print(f"倒數 {i}")</div>
+                            <p class="text-sm text-gray-600 mt-2">生活例子：火箭發射倒數計時</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="interactive" class="mb-16">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-3xl font-bold mb-6 text-indigo-700">互動學習區</h2>
+                
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold mb-4 text-indigo-600">迴圈結構選擇器</h3>
+                    <p class="mb-4">根據不同的情境，選擇最適合的迴圈結構：</p>
+                    
+                    <div class="bg-indigo-50 p-6 rounded-lg">
+                        <div id="scenario-container" class="mb-4">
+                            <p class="font-medium text-lg" id="scenario-text">情境：你想要玩遊戲直到累了為止。</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <button id="pre-loop-btn" class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium">
+                                前測迴圈 (while)
+                            </button>
+                            <button id="post-loop-btn" class="bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-lg font-medium">
+                                後測迴圈 (do-while)
+                            </button>
+                        </div>
+                        
+                        <div id="feedback-container" class="mt-4 p-4 rounded-lg hidden">
+                            <p id="feedback-text"></p>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button id="next-scenario" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg font-medium">
+                                下一個情境
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold mb-4 text-indigo-600">流程圖拼圖</h3>
+                    <p class="mb-4">拖曳下方的流程圖元素，將它們放到正確的位置：</p>
+                    
+                    <div class="interactive-demo p-6 bg-gray-50">
+                        <div class="text-center mb-4">
+                            <p class="font-medium">目標：建立一個「猜數字」遊戲的流程圖</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-medium mb-2 text-center">可用元素</h4>
+                                <div id="available-elements" class="bg-white p-4 rounded-lg min-h-[300px] border-2 border-dashed border-gray-300">
+                                    <div class="flowchart-element p-2 mb-2 bg-blue-100 rounded-lg cursor-move" data-type="start" data-order="1">
+                                        開始
+                                    </div>
+                                    <div class="flowchart-element p-2 mb-2 bg-green-100 rounded-lg cursor-move" data-type="process" data-order="2">
+                                        產生隨機數字
+                                    </div>
+                                    <div class="flowchart-element p-2 mb-2 bg-purple-100 rounded-lg cursor-move" data-type="input" data-order="3">
+                                        輸入猜測數字
+                                    </div>
+                                    <div class="flowchart-element p-2 mb-2 bg-yellow-100 rounded-lg cursor-move" data-type="decision" data-order="4">
+                                        猜對了嗎？
+                                    </div>
+                                    <div class="flowchart-element p-2 mb-2 bg-green-100 rounded-lg cursor-move" data-type="process" data-order="5">
+                                        顯示「猜對了！」
+                                    </div>
+                                    <div class="flowchart-element p-2 mb-2 bg-blue-100 rounded-lg cursor-move" data-type="end" data-order="6">
+                                        結束
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-medium mb-2 text-center">流程圖區域</h4>
+                                <div id="flowchart-canvas" class="bg-white p-4 rounded-lg min-h-[300px] border-2 border-dashed border-gray-300">
+                                    <!-- 拖曳元素將放置在這裡 -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 text-center">
+                            <button id="check-flowchart" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-lg font-medium">
+                                檢查流程圖
+                            </button>
+                            <button id="reset-flowchart" class="ml-4 bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium">
+                                重置
+                            </button>
+                        </div>
+                        
+                        <div id="flowchart-feedback" class="mt-4 p-4 rounded-lg hidden"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 text-indigo-600">Python 迴圈挑戰</h3>
+                    <p class="mb-4">完成下面的 Python 程式碼，使用適當的迴圈結構：</p>
+                    
+                    <div class="bg-gray-800 text-white p-4 rounded-lg mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-medium">挑戰：計算 1 到 10 的總和</span>
+                            <div>
+                                <button id="show-hint" class="bg-indigo-600 hover:bg-indigo-700 text-white py-1 px-3 rounded text-sm">
+                                    提示
+                                </button>
+                                <button id="show-solution" class="ml-2 bg-green-600 hover:bg-green-700 text-white py-1 px-3 rounded text-sm">
+                                    解答
+                                </button>
+                            </div>
+                        </div>
+                        <div class="code-editor font-mono text-sm">
+                            <textarea id="code-input" rows="8" class="w-full bg-gray-900 text-white p-3 rounded border border-gray-700 focus:outline-none focus:border-indigo-500" placeholder="在這裡編寫你的 Python 程式碼...">total = 0
+# 在這裡使用迴圈計算 1 到 10 的總和
+
+print(f"1 到 10 的總和是: {total}")
+</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <button id="run-code" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-lg font-medium">
+                            執行程式碼
+                        </button>
+                        <button id="reset-code" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium">
+                            重置程式碼
+                        </button>
+                    </div>
+                    
+                    <div id="code-output" class="mt-4 p-4 bg-gray-100 rounded-lg hidden">
+                        <p class="font-medium mb-2">輸出結果：</p>
+                        <div id="output-content" class="font-mono"></div>
+                    </div>
+                    
+                    <div id="hint-box" class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg hidden">
+                        <p class="font-medium mb-1">提示：</p>
+                        <p>你可以使用 for 迴圈遍歷 1 到 10 的數字，並將每個數字加到 total 變數中。</p>
+                    </div>
+                    
+                    <div id="solution-box" class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg hidden">
+                        <p class="font-medium mb-1">解答：</p>
+                        <pre class="bg-gray-800 text-white p-3 rounded font-mono text-sm">total = 0
+for i in range(1, 11):
+    total += i
+    
+print(f"1 到 10 的總和是: {total}")</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="mb-2">流程圖與迴圈結構學習資源</p>
+            <p class="text-gray-400 text-sm">© 2023 程式學習資源</p>
+        </div>
+    </footer>
+
+    <script>
+        // 助手角色互動
+        const helper = document.getElementById('helper');
+        const helperTooltip = document.getElementById('helper-tooltip');
+        
+        helper.addEventListener('mouseenter', () => {
+            helperTooltip.style.display = 'block';
+        });
+        
+        helper.addEventListener('mouseleave', () => {
+            helperTooltip.style.display = 'none';
+        });
+        
+        helper.addEventListener('click', () => {
+            alert('嗨！我是小流程，你的學習助手！\n\n你可以點擊頁面上的互動元素來學習更多關於流程圖和迴圈的知識！\n\n有任何問題都可以問我喔！');
+        });
+        
+        // 前測迴圈示範
+        document.getElementById('runPreLoop').addEventListener('click', function() {
+            const output = document.getElementById('preLoopOutput');
+            output.classList.remove('hidden');
+            output.innerHTML = '<p class="font-mono">執行中...</p>';
+            
+            let money = 100;
+            let result = '';
+            let i = 0;
+            
+            const interval = setInterval(() => {
+                if (money > 0) {
+                    result += `<p class="font-mono">我還有 ${money} 元，可以繼續購物</p>`;
+                    money -= 20;
+                    output.innerHTML = result;
+                    output.scrollTop = output.scrollHeight;
+                } else {
+                    result += `<p class="font-mono text-red-500">錢用完了，不能再購物了</p>`;
+                    output.innerHTML = result;
+                    clearInterval(interval);
+                }
+                i++;
+            }, 800);
+        });
+        
+        // 後測迴圈示範
+        document.getElementById('runPostLoop').addEventListener('click', function() {
+            const output = document.getElementById('postLoopOutput');
+            output.classList.remove('hidden');
+            output.innerHTML = '<p class="font-mono">執行中...</p>';
+            
+            let gameCount = 0;
+            let result = '';
+            
+            const interval = setInterval(() => {
+                gameCount++;
+                result += `<p class="font-mono">玩了第 ${gameCount} 局遊戲</p>`;
+                output.innerHTML = result;
+                output.scrollTop = output.scrollHeight;
+                
+                if (gameCount >= 3) {
+                    result += `<p class="font-mono text-red-500">不想玩了，休息一下</p>`;
+                    output.innerHTML = result;
+                    clearInterval(interval);
+                }
+            }, 800);
+        });
+        
+        // 情境選擇器
+        const scenarios = [
+            {
+                text: "情境：你想要玩遊戲直到累了為止。",
+                answer: "post-loop",
+                feedback: {
+                    correct: "正確！這是後測迴圈的好例子，因為你至少會玩一次遊戲，然後才決定是否繼續。",
+                    incorrect: "不太對。這個情境更適合用後測迴圈，因為你至少會玩一次遊戲，然後才決定是否繼續。"
+                }
+            },
+            {
+                text: "情境：只要還有髒衣服，就繼續洗。",
+                answer: "pre-loop",
+                feedback: {
+                    correct: "正確！這是前測迴圈的好例子，因為你會先檢查是否有髒衣服，如果沒有，就不會開始洗。",
+                    incorrect: "不太對。這個情境更適合用前測迴圈，因為你會先檢查是否有髒衣服，如果沒有，就不會開始洗。"
+                }
+            },
+            {
+                text: "情境：先嘗一口新食物，再決定是否繼續吃。",
+                answer: "post-loop",
+                feedback: {
+                    correct: "正確！這是後測迴圈的好例子，因為你至少會嘗一口，然後才決定是否繼續。",
+                    incorrect: "不太對。這個情境更適合用後測迴圈，因為你至少會嘗一口，然後才決定是否繼續。"
+                }
+            },
+            {
+                text: "情境：只要還有錢，就繼續購物。",
+                answer: "pre-loop",
+                feedback: {
+                    correct: "正確！這是前測迴圈的好例子，因為你會先檢查是否有錢，如果沒有，就不會開始購物。",
+                    incorrect: "不太對。這個情境更適合用前測迴圈，因為你會先檢查是否有錢，如果沒有，就不會開始購物。"
+                }
+            }
+        ];
+        
+        let currentScenario = 0;
+        
+        function loadScenario() {
+            document.getElementById('scenario-text').textContent = scenarios[currentScenario].text;
+            document.getElementById('feedback-container').classList.add('hidden');
+        }
+        
+        document.getElementById('pre-loop-btn').addEventListener('click', function() {
+            checkAnswer('pre-loop');
+        });
+        
+        document.getElementById('post-loop-btn').addEventListener('click', function() {
+            checkAnswer('post-loop');
+        });
+        
+        function checkAnswer(answer) {
+            const feedbackContainer = document.getElementById('feedback-container');
+            const feedbackText = document.getElementById('feedback-text');
+            
+            if (answer === scenarios[currentScenario].answer) {
+                feedbackContainer.classList.remove('hidden', 'bg-red-100');
+                feedbackContainer.classList.add('bg-green-100');
+                feedbackText.textContent = scenarios[currentScenario].feedback.correct;
+            } else {
+                feedbackContainer.classList.remove('hidden', 'bg-green-100');
+                feedbackContainer.classList.add('bg-red-100');
+                feedbackText.textContent = scenarios[currentScenario].feedback.incorrect;
+            }
+        }
+        
+        document.getElementById('next-scenario').addEventListener('click', function() {
+            currentScenario = (currentScenario + 1) % scenarios.length;
+            loadScenario();
+        });
+        
+        loadScenario();
+        
+        // 流程圖拼圖
+        let draggedElement = null;
+        
+        document.querySelectorAll('.flowchart-element').forEach(element => {
+            element.addEventListener('dragstart', function(e) {
+                draggedElement = this;
+                e.dataTransfer.setData('text/plain', this.dataset.type);
+                setTimeout(() => {
+                    this.classList.add('opacity-50');
+                }, 0);
+            });
+            
+            element.addEventListener('dragend', function() {
+                this.classList.remove('opacity-50');
+            });
+            
+            element.setAttribute('draggable', true);
+        });
+        
+        const flowchartCanvas = document.getElementById('flowchart-canvas');
+        
+        flowchartCanvas.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        flowchartCanvas.addEventListener('drop', function(e) {
+            e.preventDefault();
+            if (draggedElement) {
+                const clone = draggedElement.cloneNode(true);
+                clone.classList.add('mb-2');
+                flowchartCanvas.appendChild(clone);
+                draggedElement.remove();
+                draggedElement = null;
+            }
+        });
+        
+        document.getElementById('check-flowchart').addEventListener('click', function() {
+            const elements = flowchartCanvas.querySelectorAll('.flowchart-element');
+            const feedback = document.getElementById('flowchart-feedback');
+            
+            if (elements.length < 6) {
+                feedback.classList.remove('hidden', 'bg-green-100');
+                feedback.classList.add('bg-yellow-100');
+                feedback.textContent = '請先將所有流程圖元素放到流程圖區域。';
+                return;
+            }
+            
+            let isCorrect = true;
+            let lastOrder = 0;
+            
+            elements.forEach(element => {
+                const order = parseInt(element.dataset.order);
+                if (order < lastOrder) {
+                    isCorrect = false;
+                }
+                lastOrder = order;
+            });
+            
+            feedback.classList.remove('hidden');
+            
+            if (isCorrect) {
+                feedback.classList.remove('bg-yellow-100', 'bg-red-100');
+                feedback.classList.add('bg-green-100');
+                feedback.textContent = '太棒了！你的流程圖順序正確！';
+            } else {
+                feedback.classList.remove('bg-green-100', 'bg-yellow-100');
+                feedback.classList.add('bg-red-100');
+                feedback.textContent = '流程圖順序不正確，請再試一次。提示：開始 → 產生隨機數字 → 輸入猜測數字 → 判斷是否猜對 → 顯示結果 → 結束';
+            }
+        });
+        
+        document.getElementById('reset-flowchart').addEventListener('click', function() {
+            const availableElements = document.getElementById('available-elements');
+            const flowchartCanvas = document.getElementById('flowchart-canvas');
+            
+            // 將流程圖區域的元素移回可用元素區域
+            const elements = flowchartCanvas.querySelectorAll('.flowchart-element');
+            elements.forEach(element => {
+                availableElements.appendChild(element);
+            });
+            
+            document.getElementById('flowchart-feedback').classList.add('hidden');
+        });
+        
+        // Python 挑戰
+        document.getElementById('show-hint').addEventListener('click', function() {
+            document.getElementById('hint-box').classList.toggle('hidden');
+        });
+        
+        document.getElementById('show-solution').addEventListener('click', function() {
+            document.getElementById('solution-box').classList.toggle('hidden');
+        });
+        
+        document.getElementById('run-code').addEventListener('click', function() {
+            const code = document.getElementById('code-input').value;
+            const output = document.getElementById('code-output');
+            const outputContent = document.getElementById('output-content');
+            
+            output.classList.remove('hidden');
+            
+            try {
+                // 簡單的 Python 程式碼模擬執行
+                let total = 0;
+                
+                if (code.includes('for') && code.includes('range') && code.includes('total +=')) {
+                    // 假設程式碼正確
+                    for (let i = 1; i <= 10; i++) {
+                        total += i;
+                    }
+                    outputContent.innerHTML = `<p class="text-green-600">1 到 10 的總和是: ${total}</p>`;
+                    outputContent.innerHTML += `<p class="text-green-600">恭喜！你的程式碼執行正確！</p>`;
+                } else {
+                    outputContent.innerHTML = `<p class="text-red-600">程式碼執行錯誤或不完整。</p>`;
+                    outputContent.innerHTML += `<p class="text-red-600">請確保你使用了迴圈來計算總和。</p>`;
+                }
+            } catch (error) {
+                outputContent.innerHTML = `<p class="text-red-600">執行錯誤: ${error.message}</p>`;
+            }
+        });
+        
+        document.getElementById('reset-code').addEventListener('click', function() {
+            document.getElementById('code-input').value = 'total = 0\n# 在這裡使用迴圈計算 1 到 10 的總和\n\nprint(f"1 到 10 的總和是: {total}")';
+            document.getElementById('code-output').classList.add('hidden');
+            document.getElementById('hint-box').classList.add('hidden');
+            document.getElementById('solution-box').classList.add('hidden');
+        });
+        
+        // 平滑滾動
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a4770be6408f4f8',t:'MTc2NDEzOTcwOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
