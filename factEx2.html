@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Math Hero: Time Attack V30</title>
+    <title>Math Hero: Time Attack V31</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     
@@ -61,7 +61,7 @@
         .hero-grid { display: flex; gap: 10px; margin: 15px 0; justify-content: center; flex-wrap: wrap; }
         .hero-opt { font-size: 2rem; cursor: pointer; padding: 8px; border-radius: 50%; border: 2px solid transparent; background: rgba(255,255,255,0.1); transition: 0.2s; }
         .hero-opt.sel { border-color: #facc15; background: rgba(250, 204, 21, 0.2); }
-        .btn { background: linear-gradient(90deg, #4f46e5, #7c3aed); border: none; padding: 12px 30px; font-size: 1.2rem; color: white; border-radius: 50px; cursor: pointer; margin-top: 10px; font-weight: bold; box-shadow: 0 5px 15px rgba(124,58,237,0.4); }
+        .btn { background: linear-gradient(90deg, #4f46e5, #7c3aed); border: none; padding: 12px 30px; font-size: 1.2rem; color: white; border-radius: 50px; cursor: pointer; margin-top: 10px; font-weight: bold; box-shadow: 0 5px 15px rgba(124,58,237,0.4); min-width: 120px; }
         
         .log { background: #1e293b; width: 100%; max-width: 600px; max-height: 40vh; overflow-y: auto; border-radius: 10px; margin: 15px 0; border: 1px solid #334155; font-size: 0.9rem; }
         table { width: 100%; border-collapse: collapse; }
@@ -134,9 +134,10 @@
     <div class="log">
         <table id="log-tbl"><thead><tr><th>Q</th><th>You</th><th>Ans</th><th>Trap</th></tr></thead><tbody id="log-body"></tbody></table>
     </div>
-    <div style="display:flex; gap:10px">
+    <div style="display:flex; gap:10px; flex-wrap: wrap; justify-content: center;">
         <button class="btn" style="background:#059669" onclick="Game.export()">💾 Save</button>
         <button class="btn" id="btn-restart" onclick="Game.tryRestart()">↻ Retry</button>
+        <button class="btn" style="background:#64748b" onclick="Game.restart()">🏠 Menu</button>
     </div>
 </div>
 
@@ -206,7 +207,7 @@ const Gen = {
     decks: {},
     isUnique: (q) => {
         if(Gen.history.includes(q)) return false;
-        Gen.history.push(q); if(Gen.history.length>30) Gen.history.shift(); // Increased buffer
+        Gen.history.push(q); if(Gen.history.length>30) Gen.history.shift();
         return true;
     },
     getDeck: (lvl, types) => {
@@ -289,7 +290,7 @@ const Gen = {
         return res;
     },
 
-    // L5: Inferno (Strict 2-Step & Advanced)
+    // L5: Inferno
     getL5: () => {
         let type = Gen.getDeck(5, ['expSq', 'expDiff', 'x4', 'x3']);
         let [x] = Utils.vars();
@@ -312,18 +313,18 @@ const Gen = {
         }
     },
 
-    // L6: Abyss (Mixed L6)
+    // L6: Abyss
     getL6: () => { 
         let type = Gen.getDeck(6, ['group', '5term', 'expand']);
         if(type === 'expand') { // (a+b)(x+y)
             let [v1,v2] = Utils.vars(); let [c1,c2] = Utils.vars(); if(c1===v1) c1='z'; if(c2===v2) c2='w';
             let t1={c:1,v:{[v1]:1,[v2]:1}}, t2={c:1,v:{[v1]:1,[c1]:1}}, t3={c:1,v:{[c2]:1,[v2]:1}}, t4={c:1,v:{[c2]:1,[c1]:1}};
-            return { q: `\\text{Expand: } (${v1}+${c2})(${v2}+${c1})`, a: Sym.poly([t1,t2,t3,t4], false), ds: [{v:Sym.poly([t1,t4]), r:"Missing terms"}, {v:"Incomplete", r:"Sign Error"}]};
+            return { q: `\\text{Expand: } (${v1}+${c2})(${v2}+${c1})`, a: Sym.poly([t1,t2,t3,t4], false), ds: [{v:Sym.poly([t1,t4]), r:"Missing terms"}, {v:Sym.poly([t1,t2,t3,{c:-1,v:{[c2]:1,[c1]:1}}]), r:"Sign Error"}]};
         } else if(type === 'group') { // ax + ay + nx + ny
             let [v1,v2] = Utils.vars(); let [c1,c2] = Utils.vars(); if(c1===v1) c1='z';
             let n = -Utils.rand(2,5);
             let t1={c:1,v:{[c1]:1,[v1]:1}}, t2={c:1,v:{[c1]:1,[v2]:1}}, t3={c:n,v:{[v1]:1}}, t4={c:n,v:{[v2]:1}};
-            return { q: `\\text{Factorize: } ${Sym.poly([t1,t2,t3,t4], true)}`, a: `(${c1}${n})(${v1}+${v2})`, ds: [{v:`(${c1}+${v1})(${n}+${v2})`, r:"Bad Grouping"}, {v:`${c1}(${v1}+${v2})+${n}...`, r:"Unfinished"}] };
+            return { q: `\\text{Factorize: } ${Sym.poly([t1,t2,t3,t4], true)}`, a: `(${c1}${n})(${v1}+${v2})`, ds: [{v:`(${c1}+${v1})(${n}+${v2})`, r:"Bad Grouping"}, {v:`${c1}(${v1}+${v2})+${n}(${v1}+${v2})`, r:"Unfinished"}] };
         } else { // x^2 + 2xy + y^2 - a^2
             let [x,y] = Utils.vars(); let a=Utils.rand(2,5), a2=a*a;
             let t1=Sym.term(1,{[x]:2}), t2=Sym.term(2,{[x]:1,[y]:1}), t3=Sym.term(1,{[y]:2}), t4=Sym.term(-a2,{});
@@ -331,15 +332,13 @@ const Gen = {
         }
     },
 
-    // L7: The End (Progressive)
+    // L7: The End
     getL7: (qIndex) => {
-        if(qIndex < 3) return Gen.getL4(); // Q1-3: Mixed Common
-        if(qIndex < 6) return Gen.getL5(); // Q4-6: Inferno
-        if(qIndex < 9) return Gen.getL6(); // Q7-9: Abyss
+        if(qIndex < 3) return Gen.getL4(); 
+        if(qIndex < 6) return Gen.getL5();
+        if(qIndex < 9) return Gen.getL6();
 
-        // BOSS QUESTION: 6 Term or 4 term Hard (x^2 - y^2 + x - y)
         if(Math.random() > 0.5) {
-            // x^2 - y^2 + x - y -> (x-y)(x+y) + (x-y) -> (x-y)(x+y+1)
             let [x,y] = Utils.vars();
             let t1=Sym.term(1,{[x]:2}), t2=Sym.term(-1,{[y]:2}), t3=Sym.term(1,{[x]:1}), t4=Sym.term(-1,{[y]:1});
             return {
@@ -348,8 +347,7 @@ const Gen = {
                 ds: [{v:`(${x}-${y})(${x}+${y})`, r:"Missing +1"}, {v:`(${x}+${y})(${x}-${y}+1)`, r:"Sign Error"}]
             };
         } else {
-            // 6 Term grouping: ax+ay+az + bx+by+bz
-            let [x,y] = Utils.vars(); let a='a', b='b', c='c';
+            let [x,y] = Utils.vars(); let a='a', b='b';
             return {
                 q: `\\text{Factorize: } ax+ay+az+bx+by+bz`,
                 a: `(a+b)(x+y+z)`,
@@ -378,10 +376,9 @@ const Game = {
     },
     restart: () => { document.getElementById('scr-intro').classList.remove('hidden'); document.getElementById('scr-end').classList.add('hidden'); },
     tryRestart: () => {
-        let target = Math.max(1, Game.lvl - 1); // Restart from prev level or current-1
-        if(Game.hp > 0 && Game.lvl >= 7) target = 1; // If cleared, restart all
+        let target = Math.max(1, Game.lvl - 1); 
+        if(Game.hp > 0 && Game.lvl >= 7) target = 1; 
         else if (Game.lvl === 1) target = 1;
-        
         Game.run(target);
     },
     updEnv: () => {
@@ -399,7 +396,7 @@ const Game = {
         }
         
         let gen;
-        if(Game.lvl === 7) gen = () => Gen.getL7(Game.qN); // Pass question index for difficulty
+        if(Game.lvl === 7) gen = () => Gen.getL7(Game.qN); 
         else gen = [Gen.getL1, Gen.getL2, Gen.getL3, Gen.getL4, Gen.getL5, Gen.getL6][Game.lvl-1];
         
         let raw = Gen.generate(Game.lvl, gen);
@@ -513,7 +510,7 @@ const Renderer = {
         Renderer.en.c = p[Math.floor(Math.random() * p.length)]; 
         Renderer.en.x = Renderer.cw + 50; 
         Renderer.en.dead = false;
-        Renderer.parts = []; // CLEAR OLD PROJECTILES TO PREVENT INSTANT KILL
+        Renderer.parts = []; 
     },
     atk:()=>{ Renderer.parts.push({t:'atk',x:Renderer.hero.x,y:Renderer.hero.y-20,vx:20,l:30}); },
     hit:()=>{ Renderer.hero.s=30; },
