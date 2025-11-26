@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Conditionals: Traffic Control Center 🚦</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        .bubble-tail:after { content: ''; position: absolute; width: 0; height: 0; border-top: 20px solid transparent; border-bottom: 20px solid transparent; border-right: 20px solid white; left: -20px; top: 20px; }
+        @keyframes flow { 0% { transform: translateX(0); } 100% { transform: translateX(100%); } }
+        .token-flow { animation: flow 1.5s ease-in-out forwards; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
+        .shake { animation: shake 0.3s; }
+        .light-green { background-color: #10b981; /* emerald-500 */ }
+        .light-red { background-color: #ef4444; /* red-500 */ }
+        .light-yellow { background-color: #facc15; /* yellow-400 */ }
+        .traffic-light { transition: background-color 0.3s, transform 0.3s; }
+        .road-diverter { transition: transform 0.5s; }
+        .draggable-fix { cursor: grab; user-select: none; }
+        .code-block { cursor: grab; user-select: none; transition: transform 0.1s; }
+        .assembly-area.drag-over { border: 2px dashed #3b82f6; background-color: #eff6ff; }
+        
+        /* Custom slider track */
+        .slider-input {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #d1d5db;
+            border-radius: 4px;
+            outline: none;
+            transition: opacity .2s;
+        }
+        .slider-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 2px rgba(0,0,0,0.5);
+        }
+        .road-blocked { background-color: #fee2e2; border: 2px solid #ef4444; opacity: 0.5; }
+    </style>
+</head>
+<body class="bg-slate-50 font-[Inter] text-slate-700 p-8">
+
+    <header class="mb-12">
+        <div class="max-w-6xl mx-auto p-4 bg-purple-600 text-white rounded-xl shadow-lg">
+            <h1 class="text-3xl font-extrabold">🚦 The Traffic Control Center: Conditionals</h1>
+            <p class="text-purple-200">Blueprint 6 & 7: If/Else and Comparison Operators</p>
+        </div>
+
+        <div class="max-w-6xl mx-auto mt-6 relative">
+            <div class="ml-24 p-4 bg-white rounded-2xl shadow-md bubble-tail border-2 border-purple-200 transition-all duration-300">
+                <p class="font-semibold text-purple-700">
+                    Attention, Code Driver! We can't just drive straight; sometimes we need to change direction based on a **rule**! These Decision Gates control the entire flow of your program. **Only one road can ever be open at a time!**
+                </p>
+            </div>
+            <div class="absolute w-20 h-20 -top-4 rounded-full border-4 border-white shadow-xl bg-purple-100 p-1 z-10 flex items-center justify-center text-4xl">
+                 🤖
+            </div>
+        </div>
+    </header>
+
+    ---
+
+    <section class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-green-400 p-6">
+        <h2 class="text-2xl font-bold mb-6 text-green-600">6. The If-Else Decision Gate 🛣️</h2>
+        
+        <h3 class="text-xl font-bold mb-3 text-blue-600">Simulation: Checking a Student Score</h3>
+        <div class="grid grid-cols-2 gap-8">
+            <div>
+                <div class="bg-gray-800 text-green-400 font-mono p-4 rounded-lg shadow-lg mb-4">
+                    <p id="sim-line-1">score = 85</p>
+                    <p id="sim-line-2">if score >= 70:</p>
+                    <p id="sim-line-3" class="pl-4">status = "Pass"</p>
+                    <p id="sim-line-4">else:</p>
+                    <p id="sim-line-5" class="pl-4">status = "Fail"</p>
+                    <p id="sim-line-6">print(status)</p>
+                </div>
+                <button onclick="runIfElseSimulation()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition">
+                    ▶️ Run Decision Flow
+                </button>
+            </div>
+
+            <div class="bg-gray-100 p-4 rounded-lg border-2 border-blue-400 relative overflow-hidden">
+                <div class="flex justify-around mb-4">
+                    <p class="font-bold text-lg">Score: <span id="sim-score" class="text-xl text-blue-600">85</span></p>
+                    <p class="font-bold text-lg">Status: <span id="sim-status" class="text-xl text-red-600">Empty</span></p>
+                </div>
+
+                <div class="flex justify-center items-center h-48 relative">
+                    <div id="traffic-light-container" class="absolute left-0 top-1/2 transform -translate-y-1/2 flex flex-col items-center">
+                        <div id="traffic-light" class="traffic-light w-10 h-20 rounded-full light-yellow border-4 border-gray-600 flex items-center justify-center text-xl font-bold text-white shadow-inner">
+                            ?
+                        </div>
+                        <p class="text-xs font-bold mt-1">score $\ge 70$</p>
+                    </div>
+
+                    <div id="road-diverter" class="road-diverter absolute left-14 top-1/2 w-4 h-4 bg-gray-600 rounded-full transform -translate-y-1/2 z-10" style="transform: translateY(-50%) rotate(0deg);"></div>
+
+                    <div id="pass-road" class="absolute left-16 top-10 w-2/3 h-12 bg-green-200 rounded-lg border-2 border-green-600 flex items-center px-4 font-bold text-green-800">
+                        IF Road: status = "Pass"
+                        <div id="pass-token" class="absolute left-0 w-3 h-3 bg-blue-600 rounded-full hidden"></div>
+                    </div>
+
+                    <div id="fail-road" class="absolute left-16 bottom-10 w-2/3 h-12 bg-red-200 rounded-lg border-2 border-red-600 flex items-center px-4 font-bold text-red-800">
+                        ELSE Road: status = "Fail"
+                        <div id="fail-token" class="absolute left-0 w-3 h-3 bg-blue-600 rounded-full hidden"></div>
+                    </div>
+                </div>
+
+                <p id="sim-log" class="mt-4 p-2 bg-purple-100 rounded text-purple-700 font-semibold text-center"></p>
+            </div>
+        </div>
+
+        <hr class="my-6 border-gray-300">
+
+        <h3 class="text-xl font-bold mb-4 text-red-600">🚩 The Trap: Missing Colon (:)</h3>
+        
+        <div class="grid grid-cols-3 gap-6 items-center">
+            <div id="trap-display" class="bg-red-50 p-4 rounded-xl border-4 border-red-400 text-center relative min-h-[120px]">
+                <p class="font-mono text-lg font-bold">if score $\ge$ 70</p>
+                <div class="mt-3 text-red-700 font-bold text-2xl shake">SYNTAX ERROR!</div>
+                <p class="text-red-700 mt-2">I can't build the gate! The colon is like the final lock that connects the rule to the road!</p>
+            </div>
+            
+            <div id="colon-drop-area" class="text-center p-4 border-dashed border-2 border-red-500 rounded-lg bg-white relative">
+                <span id="missing-colon" class="text-5xl text-red-600 font-bold p-2 draggable-fix" draggable="true" data-fix="colon">:</span>
+                <p class="mt-2 text-sm text-red-600 font-semibold">Drag the colon $\text{:}$ to the end of the code to fix the lock!</p>
+            </div>
+
+            <div id="colon-fixed-code" class="bg-green-50 p-4 rounded-xl border-4 border-green-400 text-center relative min-h-[120px]">
+                <p id="colon-code-display" class="font-mono text-lg font-bold">if score $\ge$ 70</p>
+                <div id="colon-feedback" class="absolute inset-0 hidden items-center justify-center text-green-700 text-2xl font-black bg-green-900/10 rounded-xl">FIXED SIGNAL!</div>
+                <div id="colon-ready-light" class="traffic-light w-10 h-10 rounded-full light-yellow border-4 border-gray-600 mx-auto mt-2"></div>
+            </div>
+        </div>
+
+        <hr class="my-6 border-gray-300">
+
+        <h3 class="text-xl font-bold mb-4 text-purple-600">🎮 The Playground: Gatekeeper Mission (Age $\ge 18$)</h3>
+        
+        <div class="grid grid-cols-2 gap-8">
+            <div>
+                <p class="font-bold mb-2">Assemble the Gate Code:</p>
+                <div id="code-blocks-source" class="flex flex-wrap gap-2 mb-4 p-3 bg-gray-200 rounded-lg">
+                    </div>
+                <div id="code-assembly-if" class="assembly-area min-h-[120px] bg-slate-100 rounded-lg p-3 flex flex-col gap-1 items-start" ondrop="dropCodeBlock(event)" ondragover="allowDrop(event)">
+                    <p class="text-sm text-slate-500">Drag blocks here...</p>
+                </div>
+                <button onclick="runGatekeeperChallenge()" class="w-full mt-4 bg-purple-600 text-white font-bold py-2 rounded-lg hover:bg-purple-700">
+                    Run Gate Check! 🚦
+                </button>
+            </div>
+
+            <div class="bg-purple-50 p-4 rounded-lg border-2 border-purple-400">
+                <p class="font-bold mb-2">Set Age Input:</p>
+                <input type="range" id="age-slider" min="10" max="25" value="15" class="slider-input">
+                <p class="text-center text-lg font-bold">Age: <span id="age-value" class="text-purple-600">15</span></p>
+
+                <div class="mt-4 p-4 bg-gray-800 rounded-lg text-green-400 font-mono text-center">
+                    <p>Access Status: <span id="access-status" class="text-xl">?</span></p>
+                </div>
+
+                <div class="mt-4 flex flex-col items-center">
+                    <div id="gate-viz" class="w-20 h-20 bg-gray-300 border-4 border-gray-500 rounded-lg flex items-center justify-center text-2xl font-bold">
+                        GATE
+                    </div>
+                    <div id="token-car" class="w-8 h-4 bg-blue-600 rounded-md mt-2 absolute transform -translate-x-1/2 hidden">🚗</div>
+                </div>
+                <p id="gate-message" class="mt-4 text-center font-bold text-slate-700"></p>
+            </div>
+        </div>
+    </section>
+
+    ---
+
+    <section class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-400 p-6">
+        <h2 class="text-2xl font-bold mb-6 text-blue-600">7. Comparison Operators: Rule Check Detectives 📏</h2>
+
+        <h3 class="text-xl font-bold mb-3 text-blue-600">The Measuring Scales (limit=10, score=10)</h3>
+
+        <div class="grid grid-cols-3 gap-6">
+            <div class="p-4 bg-yellow-50 rounded-lg border-2 border-yellow-400 text-center">
+                <span class="text-4xl"> $==$ </span><p class="font-bold">Balance Scale</p>
+                <p class="text-sm">check1 = score == limit $\rightarrow$ <strong id="check1-result">True</strong></p>
+                <div id="scale-equal" class="w-full h-10 bg-green-200 border-b-4 border-green-600 mt-2 flex items-center justify-center text-green-800 font-semibold">Balanced! (True)</div>
+            </div>
+            
+            <div class="p-4 bg-red-50 rounded-lg border-2 border-red-400 text-center">
+                <span class="text-4xl"> $\neq$ </span><p class="font-bold">Broken Scale</p>
+                <p class="text-sm">check2 = score != limit $\rightarrow$ <strong id="check2-result">False</strong></p>
+                <div id="scale-not-equal" class="w-full h-10 bg-red-200 border-b-4 border-red-600 mt-2 flex items-center justify-center text-red-800 font-semibold">Unequal? (False)</div>
+            </div>
+
+            <div class="p-4 bg-gray-50 rounded-lg border-2 border-gray-400 text-center">
+                <span class="text-4xl"> $>$ </span><p class="font-bold">Digital Gauge</p>
+                <p class="text-sm">check3 = score $>$ limit $\rightarrow$ <strong id="check3-result">False</strong></p>
+                <div id="gauge-greater" class="w-full h-10 bg-red-200 border-b-4 border-red-600 mt-2 flex items-center justify-center text-red-800 font-semibold">Not Higher (False)</div>
+            </div>
+        </div>
+
+        <hr class="my-6 border-gray-300">
+
+        <h3 class="text-xl font-bold mb-4 text-red-600">🚩 The Trap: Assignment ($\text{=}$) vs. Comparison ($\text{==}$)</h3>
+
+        <div class="grid grid-cols-3 gap-6 items-center">
+            <div id="assignment-trap" class="bg-red-50 p-4 rounded-xl border-4 border-red-400 text-center relative min-h-[120px]">
+                <p class="font-mono text-lg font-bold">if score $\text{=}$ 70:</p>
+                <div class="mt-3 text-red-700 font-bold text-2xl shake">CONFUSED!</div>
+                <p class="text-red-700 mt-2">I am trying to check a rule AND change a variable at the same time!</p>
+            </div>
+            
+            <div id="equal-drop-area" class="text-center p-4 border-dashed border-2 border-red-500 rounded-lg bg-white relative">
+                <span id="missing-equal" class="text-5xl text-red-600 font-bold p-2 draggable-fix" draggable="true" data-fix="equal">=</span>
+                <p class="mt-2 text-sm text-red-600 font-semibold">Drag the second $\text{=}$ to create the Balance Scale!</p>
+            </div>
+
+            <div id="equal-fixed-code" class="bg-green-50 p-4 rounded-xl border-4 border-green-400 text-center relative min-h-[120px]">
+                <p id="equal-code-display" class="font-mono text-lg font-bold">if score $\text{=}$ 70:</p>
+                <div id="equal-feedback" class="absolute inset-0 hidden items-center justify-center text-green-700 text-2xl font-black bg-green-900/10 rounded-xl">RULE CHECK ACTIVE!</div>
+                <div id="balance-scale-viz" class="w-20 h-10 bg-yellow-200 border-b-4 border-yellow-600 mx-auto mt-2 hidden items-center justify-center text-sm font-bold">Balance Scale</div>
+            </div>
+        </div>
+
+        <hr class="my-6 border-gray-300">
+
+        <h3 class="text-xl font-bold mb-4 text-blue-600">🎮 The Playground: Rule Designer Challenge</h3>
+
+        <div class="grid grid-cols-2 gap-8">
+            <div>
+                <p class="font-bold text-lg mb-2 text-blue-800">🎯 Rule Goal: Allow traffic ONLY if the speed is less than or equal to 60.</p>
+                
+                <div class="p-4 bg-gray-100 rounded-lg mb-4">
+                    <p class="font-bold mb-2">Select the Correct Operator:</p>
+                    <select id="operator-select" class="w-full p-2 border-2 border-blue-400 rounded-lg text-lg font-mono">
+                        <option value="none">--- Select Operator ---</option>
+                        <option value="==">== (Equal)</option>
+                        <option value="!=">!= (Not Equal)</option>
+                        <option value=">">&gt; (Greater Than)</option>
+                        <option value="<">&lt; (Less Than)</option>
+                        <option value=">=">&gt;= (Greater or Equal)</option>
+                        <option value="<=">&lt;= (Less or Equal)</option>
+                    </select>
+                </div>
+
+                <div class="p-4 bg-yellow-100 rounded-lg">
+                    <p class="font-bold mb-2">Variables in Check:</p>
+                    <label for="speed-slider" class="block">Current Speed: <span id="speed-value">55</span></label>
+                    <input type="range" id="speed-slider" min="10" max="100" value="55" class="slider-input">
+                    
+                    <label for="limit-input" class="block mt-2">Speed Limit: 60</label>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-400">
+                <button onclick="runRuleDesignerChallenge()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 mb-4">
+                    Run Rule Check! 📏
+                </button>
+                
+                <div class="bg-gray-800 p-4 rounded-lg text-green-400 font-mono text-lg text-center">
+                    <p>if current\_speed <span id="op-display">?</span> limit:</p>
+                    <p>Result: <span id="check-result-display" class="text-xl">?</span></p>
+                </div>
+                
+                <div class="mt-4 flex flex-col items-center">
+                    <div id="rule-traffic-light" class="traffic-light w-12 h-12 rounded-full light-yellow border-4 border-gray-600"></div>
+                    <div id="rule-car-message" class="mt-2 text-center font-bold"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // --- 6. If-Else Simulation Logic ---
+        const scoreElement = document.getElementById('sim-score');
+        const statusElement = document.getElementById('sim-status');
+        const trafficLight = document.getElementById('traffic-light');
+        const roadDiverter = document.getElementById('road-diverter');
+        const passRoad = document.getElementById('pass-road');
+        const failRoad = document.getElementById('fail-road');
+        const passToken = document.getElementById('pass-token');
+        const failToken = document.getElementById('fail-token');
+        const simLog = document.getElementById('sim-log');
+
+        const simLines = [
+            document.getElementById('sim-line-1'),
+            document.getElementById('sim-line-2'),
+            document.getElementById('sim-line-3'),
+            document.getElementById('sim-line-4'),
+            document.getElementById('sim-line-5'),
+            document.getElementById('sim-line-6')
+        ];
+
+        const delay = ms => new Promise(r => setTimeout(r, ms));
+
+        async function runIfElseSimulation() {
+            // Reset
+            statusElement.textContent = 'Empty';
+            statusElement.className = 'text-xl text-red-600';
+            trafficLight.className = 'traffic-light w-10 h-20 rounded-full light-yellow border-4 border-gray-600 flex items-center justify-center text-xl font-bold text-white shadow-inner';
+            roadDiverter.style.transform = 'translateY(-50%) rotate(0deg)'; // Neutral position
+            passRoad.classList.remove('road-blocked');
+            failRoad.classList.remove('road-blocked');
+            passToken.classList.add('hidden');
+            failToken.classList.add('hidden');
+            passToken.style.transform = 'translateX(0)';
+            failToken.style.transform = 'translateX(0)';
+            simLog.textContent = 'Simulation started...';
+            simLines.forEach(line => line.classList.remove('bg-yellow-200', 'bg-opacity-20'));
+
+            const score = 85;
+
+            // Step 1: score = 85
+            simLines[0].classList.add('bg-yellow-200', 'bg-opacity-20');
+            simLog.textContent = 'Step 1: Variable score is set to 85.';
+            await delay(1000);
+            simLines[0].classList.remove('bg-yellow-200', 'bg-opacity-20');
+
+            // Step 2: if score >= 70:
+            simLines[1].classList.add('bg-yellow-200', 'bg-opacity-20');
+            simLog.textContent = 'Step 2: Checking condition (85 >= 70) -> True!';
+            await delay(500);
+            
+            // Animation: Light turns Green, Diverter moves
+            trafficLight.classList.remove('light-yellow');
+            trafficLight.classList.add('light-green');
+            trafficLight.textContent = 'T'; // True
+            roadDiverter.style.transform = 'translateY(-50%) rotate(-30deg)'; // Opens Pass, Blocks Fail
+            failRoad.classList.add('road-blocked');
+            await delay(1000);
+            simLines[1].classList.remove('bg-yellow-200', 'bg-opacity-20');
+
+            // Step 3: status = "Pass"
+            simLines[2].classList.add('bg-yellow-200', 'bg-opacity-20');
+            simLog.textContent = 'Step 3: Execution flows down the IF road. status = "Pass".';
+            
+            // Animation: Token drives down Pass Road
+            passToken.classList.remove('hidden');
+            passToken.classList.add('token-flow');
+            
+            statusElement.textContent = 'Pass';
+            statusElement.className = 'text-xl text-green-600';
+            await delay(1500);
+            passToken.classList.remove('token-flow');
+            passToken.classList.add('hidden');
+            passToken.style.transform = 'translateX(0)';
+            simLines[2].classList.remove('bg-yellow-200', 'bg-opacity-20');
+
+            // Step 4: else: (Skip)
+            simLines[3].classList.add('bg-yellow-200', 'bg-opacity-20');
+            simLog.textContent = 'Step 4: Skipping ELSE road. Only one path can execute.';
+            await delay(1000);
+            simLines[3].classList.remove('bg-yellow-200', 'bg-opacity-20');
+
+            // Step 5: status = "Fail" (Skip)
+            simLines[4].classList.add('bg-yellow-200', 'bg-opacity-20');
+            await delay(500);
+            simLines[4].classList.remove('bg-yellow-200', 'bg-opacity-20');
+
+            // Step 6: print(status)
+            simLines[5].classList.add('bg-yellow-200', 'bg-opacity-20');
+            simLog.textContent = 'Step 5: Program finishes and prints "Pass".';
+            await delay(1000);
+            simLines[5].classList.remove('bg-yellow-200', 'bg-opacity-20');
+
+            trafficLight.classList.remove('light-green');
+            trafficLight.classList.add('light-yellow');
+            trafficLight.textContent = '?';
+            roadDiverter.style.transform = 'translateY(-50%) rotate(0deg)';
+            failRoad.classList.remove('road-blocked');
+        }
+
+        // --- 6. Section 3: Colon Fix Logic ---
+        const missingColon = document.getElementById('missing-colon');
+        const colonFixedCode = document.getElementById('colon-fixed-code');
+        let colonFixed = false;
+
+        missingColon.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData("text/fix", e.target.getAttribute('data-fix'));
+            e.dataTransfer.effectAllowed = "move";
+        });
+
+        colonFixedCode.addEventListener('dragover', (e) => { e.preventDefault(); });
+        colonFixedCode.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (colonFixed) return;
+
+            const fix = e.dataTransfer.getData("text/fix");
+            if (fix === 'colon') {
+                document.getElementById('colon-code-display').innerHTML = 'if score $\ge$ 70<strong class="text-green-600">:</strong>';
+                document.getElementById('trap-display').classList.remove('shake');
+                document.getElementById('trap-display').querySelector('.text-2xl').textContent = 'Fixed!';
+
+                document.getElementById('colon-feedback').classList.remove('hidden');
+                document.getElementById('colon-feedback').classList.add('flex');
+                
+                // Traffic light animation: Yellow -> Green
+                document.getElementById('colon-ready-light').classList.remove('light-yellow');
+                document.getElementById('colon-ready-light').classList.add('light-green');
+                
+                missingColon.style.opacity = 0.3;
+                colonFixed = true;
+            }
+        });
+
+        // --- 6. Section 4: Gatekeeper Challenge Logic ---
+        const ageSlider = document.getElementById('age-slider');
+        const ageValueSpan = document.getElementById('age-value');
+        const blocksSource = document.getElementById('code-blocks-source');
+        const codeAssemblyIf = document.getElementById('code-assembly-if');
+        const gateViz = document.getElementById('gate-viz');
+        const accessStatus = document.getElementById('access-status');
+        const gateMessage = document.getElementById('gate-message');
+
+        ageSlider.addEventListener('input', () => {
+            ageValueSpan.textContent = ageSlider.value;
+        });
+
+        const gateBlocks = [
+            { value: 'if', text: 'if', color: 'bg-yellow-400' },
+            { value: 'age', text: 'age', color: 'bg-blue-400' },
+            { value: '>=', text: '>=', color: 'bg-pink-400' },
+            { value: '18', text: '18', color: 'bg-green-400' },
+            { value: ':', text: ':', color: 'bg-yellow-400' },
+            { value: 'else', text: 'else', color: 'bg-yellow-400' },
+            { value: '"Access Granted"', text: '"Access Granted"', color: 'bg-red-400' },
+            { value: '"Denied"', text: '"Denied"', color: 'bg-red-400' },
+            { value: 'access =', text: 'access =', color: 'bg-blue-400' }
+        ];
+
+        gateBlocks.forEach((blockData, index) => {
+            const block = document.createElement('div');
+            block.classList.add('code-block', blockData.color, 'text-white', 'px-3', 'py-1', 'rounded', 'font-mono');
+            block.setAttribute('draggable', 'true');
+            block.setAttribute('data-value', blockData.value);
+            block.setAttribute('data-index', index);
+            block.textContent = blockData.text;
+            
+            block.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData("text/html", e.target.outerHTML);
+                e.dataTransfer.effectAllowed = "copy";
+            });
+            blocksSource.appendChild(block);
+        });
+
+        function allowDrop(e) {
+            e.preventDefault();
+            if (e.currentTarget.id === 'code-assembly-if') {
+                e.currentTarget.classList.add('drag-over');
+            }
+        }
+        document.getElementById('code-assembly-if').addEventListener('dragleave', (e) => {
+            e.currentTarget.classList.remove('drag-over');
+        });
+
+        function dropCodeBlock(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            const data = e.dataTransfer.getData("text/html");
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = data;
+            const block = tempDiv.firstChild;
+            
+            block.classList.remove('px-3', 'py-1', 'rounded', 'font-mono', 'code-block', 'text-white', block.classList[0]);
+            block.classList.add('w-full', 'p-1', 'rounded', 'font-mono', 'mb-1', 'text-sm');
+            block.style.backgroundColor = block.getAttribute('data-value').includes('access =') ? '#93c5fd' : (block.getAttribute('data-value').includes('if') || block.getAttribute('data-value').includes('else') ? '#fcd34d' : (block.getAttribute('data-value').includes('>=') ? '#f472b6' : (block.getAttribute('data-value').includes('"') ? '#f87171' : '#60a5fa')));
+            block.style.color = 'black';
+            block.draggable = false;
+            block.onclick = (event) => { event.target.remove(); }; // Click to remove
+
+            // Simple placement logic: Append to the container
+            if (block.getAttribute('data-value') === 'if' || block.getAttribute('data-value') === 'else') {
+                 block.style.marginLeft = '0';
+            } else {
+                 block.style.marginLeft = '20px'; // Indent for code block
+            }
+            codeAssemblyIf.appendChild(block);
+        }
+
+        async function runGatekeeperChallenge() {
+            const blocks = Array.from(codeAssemblyIf.children).filter(b => b.hasAttribute('data-value'));
+            const codeSequence = blocks.map(b => b.getAttribute('data-value')).join(' ');
+            const age = parseInt(ageSlider.value);
+            let access = 'ERROR';
+            
+            // Expected sequence (simplified check):
+            // if age >= 18 : access = "Access Granted" else : access = "Denied"
+            const correctIf = 'if age >= 18 : access = "Access Granted"';
+            const correctElse = 'else : access = "Denied"';
+
+            if (!codeSequence.includes(correctIf) || !codeSequence.includes(correctElse)) {
+                 gateMessage.textContent = '❌ Fail! Incorrect code structure or missing parts. Ensure the full if/else structure is built.';
+                 gateViz.style.backgroundColor = '#ef4444'; // Red
+                 accessStatus.textContent = 'SYNTAX ERROR';
+                 return;
+            }
+
+            // Execution logic
+            if (age >= 18) {
+                access = "Granted";
+                gateMessage.textContent = `✅ Correctly Granted! Rule ${age} >= 18 is True.`;
+                gateViz.style.backgroundColor = '#10b981'; // Green
+                accessStatus.textContent = access;
+            } else {
+                access = "Denied";
+                gateMessage.textContent = `✅ Correctly Denied! Rule ${age} >= 18 is False.`;
+                gateViz.style.backgroundColor = '#ef4444'; // Red
+                accessStatus.textContent = access;
+            }
+            
+            // Gate animation
+            gateViz.textContent = access;
+            
+            const carToken = document.getElementById('token-car');
+            carToken.classList.remove('hidden');
+            carToken.style.left = '50%';
+            
+            await delay(100);
+            if (access === 'Granted') {
+                carToken.style.transition = 'transform 1.5s';
+                carToken.style.transform = 'translateX(100px)'; // Car drives forward
+            } else {
+                carToken.style.transition = 'transform 0.5s';
+                carToken.style.transform = 'translateX(-100px)'; // Car turns away
+            }
+            
+            await delay(1500);
+            carToken.classList.add('hidden');
+            carToken.style.transition = 'none';
+        }
+
+
+        // --- 7. Section 3: Assignment Fix Logic ---
+        const missingEqual = document.getElementById('missing-equal');
+        const equalFixedCode = document.getElementById('equal-fixed-code');
+        let equalFixed = false;
+
+        missingEqual.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData("text/fix", e.target.getAttribute('data-fix'));
+            e.dataTransfer.effectAllowed = "move";
+        });
+
+        equalFixedCode.addEventListener('dragover', (e) => { e.preventDefault(); });
+        equalFixedCode.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (equalFixed) return;
+
+            const fix = e.dataTransfer.getData("text/fix");
+            if (fix === 'equal') {
+                document.getElementById('equal-code-display').innerHTML = 'if score <strong class="text-green-600">==</strong> 70:';
+                document.getElementById('assignment-trap').classList.remove('shake');
+                document.getElementById('assignment-trap').querySelector('.text-2xl').textContent = 'Fixed!';
+
+                document.getElementById('equal-feedback').classList.remove('hidden');
+                document.getElementById('equal-feedback').classList.add('flex');
+                
+                document.getElementById('balance-scale-viz').classList.remove('hidden');
+                document.getElementById('balance-scale-viz').classList.add('flex');
+                
+                missingEqual.style.opacity = 0.3;
+                equalFixed = true;
+            }
+        });
+
+
+        // --- 7. Section 4: Rule Designer Challenge Logic ---
+        const opSelect = document.getElementById('operator-select');
+        const speedSlider = document.getElementById('speed-slider');
+        const speedValueSpan = document.getElementById('speed-value');
+        const opDisplay = document.getElementById('op-display');
+        const checkResultDisplay = document.getElementById('check-result-display');
+        const ruleTrafficLight = document.getElementById('rule-traffic-light');
+        const ruleCarMessage = document.getElementById('rule-car-message');
+        
+        speedSlider.addEventListener('input', () => {
+            speedValueSpan.textContent = speedSlider.value;
+        });
+
+        opSelect.addEventListener('change', () => {
+            opDisplay.textContent = opSelect.value === 'none' ? '?' : opSelect.value;
+        });
+
+        function runRuleDesignerChallenge() {
+            const selectedOp = opSelect.value;
+            const speed = parseInt(speedSlider.value);
+            const limit = 60;
+            let result = false;
+
+            if (selectedOp === 'none') {
+                 ruleCarMessage.textContent = 'Please select an operator!';
+                 return;
+            }
+            
+            // The logic check
+            switch (selectedOp) {
+                case '==': result = speed == limit; break;
+                case '!=': result = speed != limit; break;
+                case '>': result = speed > limit; break;
+                case '<': result = speed < limit; break;
+                case '>=': result = speed >= limit; break;
+                case '<=': result = speed <= limit; break;
+            }
+
+            checkResultDisplay.textContent = result ? 'True' : 'False';
+            ruleTrafficLight.classList.remove('light-green', 'light-red', 'light-yellow');
+            
+            const isCorrectRule = selectedOp === '<=';
+            
+            if (isCorrectRule && result === true) {
+                // Correct operator and result (Speed 55 <= 60 is True)
+                ruleTrafficLight.classList.add('light-green');
+                ruleCarMessage.textContent = `Rule ${speed} ${selectedOp} ${limit} is True! Car drives past.`;
+            } else if (isCorrectRule && result === false) {
+                 // Correct operator, but speed is too high (Speed 65 <= 60 is False)
+                ruleTrafficLight.classList.add('light-red');
+                ruleCarMessage.textContent = `Rule ${speed} ${selectedOp} ${limit} is False! Car stops.`;
+            } else if (!isCorrectRule && result === true) {
+                // Wrong operator, but result is True (e.g., Speed 55 > 60 is False, but Speed 65 > 60 is True - we want to fail the user on the operator selection)
+                ruleTrafficLight.classList.add('light-red');
+                ruleCarMessage.textContent = `❌ Wrong Operator! You chose ${selectedOp}. The rule should use <=`;
+            } else {
+                ruleTrafficLight.classList.add('light-red');
+                ruleCarMessage.textContent = `❌ Wrong Operator or Result! The rule is "less than or equal to".`;
+            }
+        }
+    </script>
+</body>
+</html>
