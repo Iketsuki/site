@@ -145,7 +145,7 @@
             <ul class="list-disc list-inside ml-4 text-sm">
                 <li><span class="font-bold">Text (String)</span>: Must be inside quotes. The megaphone speaks the exact message.</li>
                 <li><span class="font-bold">Variables</span>: The megaphone takes the value from the box and speaks that value.</li>
-                <li><span class="font-bold">Separators (Commas)</span>: If you separate items with a comma (e.g., `print(A, B)`), the megaphone automatically adds a <span class="font-bold">space</span> between them. **You only need one comma between any two items!**</li>
+                <li><span class="font-bold">Separators (Commas)</span>: If you separate items with a comma (e.g., `print(A, B)`), the megaphone automatically adds a <span class="font-bold">space</span> between them. **You need a comma for every separator needed.**</li>
                 <li><span class="font-bold">Newline</span>: After every full `print()` command, the screen cursor drops down one line.</li>
             </ul>
         </div>
@@ -269,7 +269,7 @@
                 <p class="font-bold mb-2">Variable in Memory:</p>
                 <div class="w-20 h-20 bg-yellow-600 p-1 rounded-lg relative border-2 border-yellow-800 mx-auto">
                     <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-2 py-0.5 rounded-full text-xs font-mono shadow-md border-2 border-white">final_score</div>
-                    <div class="data-item w-full h-full flex items-center justify-center">
+                    <div class="data-item w-full h-3/4 flex items-center justify-center">
                         <div class="w-3/4 h-3/4 bg-green-400 rounded-lg shadow-inner flex items-center justify-center text-xl font-bold text-slate-800">95</div>
                     </div>
                 </div>
@@ -448,33 +448,22 @@
         const codeBlocksSource = document.getElementById('code-blocks-source');
         const challengeOutput = document.getElementById('challenge-output');
         const challengeResult = document.getElementById('challenge-result');
+        // Retrieve the target output and trim it strictly for comparison.
         const targetOutputText = document.getElementById('target-output').textContent.trim();
         
-        // Define all blocks needed for the challenge
-        // IMPORTANT: Strings now have internal spaces where needed, but NO trailing/leading spaces on the *outside* of the content
-        const allChallengeBlocks = [
-            { value: 'print(', type: 'syntax', color: 'bg-pink-400', text: 'print(' },
-            { value: '"The score is"', type: 'string', color: 'bg-yellow-400', text: '"The score is"' }, // The space after 'is' will be added by the next comma's separator.
-            { value: ',', type: 'separator', color: 'bg-gray-400', text: ',' },
-            { value: 'final_score', type: 'variable', color: 'bg-green-400', text: 'final_score' },
-            { value: '"points!"', type: 'string', color: 'bg-yellow-400', text: '" points!"' }, // The space before 'points!' is included here for the final literal part.
-            { value: ')', type: 'syntax', color: 'bg-pink-400', text: ')' }
-        ];
-
-        // Correct blocks for the required output: "The score is 95 points!"
-        // Item 1: "The score is" - separated by space 
-        // Item 2: final_score (95) - separated by space 
-        // Item 3: "points!"
-        // This REQUIRES two commas. My previous attempt to use ONE comma for two separators was wrong. 
-        // Let's revert to TWO commas for the TWO necessary separators: (item1, item2, item3)
-        // Correct Block Configuration (Re-adding the second comma):
+        // Correct Block Configuration (Two commas for three items):
         const finalChallengeBlocks = [
             { value: 'print(', type: 'syntax', color: 'bg-pink-400', text: 'print(' },
+            // Content 1: Must NOT have trailing space inside the quotes
             { value: '"The score is"', type: 'string', color: 'bg-yellow-400', text: '"The score is"' }, 
+            // Separator 1: Inserts a space before the next item (95)
             { value: ',', type: 'separator', color: 'bg-gray-400', text: ',' },
+            // Content 2: Variable (95)
             { value: 'final_score', type: 'variable', color: 'bg-green-400', text: 'final_score' },
-            { value: ',', type: 'separator', color: 'bg-gray-400', text: ',' }, // The second required comma
-            { value: '"points!"', type: 'string', color: 'bg-yellow-400', text: '" points!"' }, 
+            // Separator 2: Inserts a space before the next item (" points!")
+            { value: ',', type: 'separator', color: 'bg-gray-400', text: ',' }, 
+            // Content 3: Must have leading space inside the quotes for " points!"
+            { value: '" points!"', type: 'string', color: 'bg-yellow-400', text: '" points!"' }, 
             { value: ')', type: 'syntax', color: 'bg-pink-400', text: ')' }
         ];
 
@@ -644,7 +633,7 @@
 
             let content = codeString.slice(6, -1); // Remove print()
             
-            // Final check for structural issues before splitting (like double comma or leading/trailing)
+            // Final check for structural issues before splitting
             if (content.startsWith(',') || content.endsWith(',') || content.includes(',,')) {
                 challengeOutput.innerHTML = `<span class="text-red-400">Syntax Error: Invalid comma usage.</span>`;
                 challengeResult.innerHTML = "❌ Fail! Invalid comma usage. Commas must separate items.";
@@ -655,30 +644,24 @@
             // Replace variable with its value
             content = content.replace(/final_score/g, '95');
             
-            // --- CRITICAL FIX: The parsing logic must accurately mimic Python's separator behavior.
-            // Python: print(A, B, C) -> "A" + " " + "B" + " " + "C"
+            // Split by comma. Python's print() separates items with a single space.
             let outputParts = content.split(',').map(part => part.trim());
 
             // 1. Remove quotes from the parts
             let finalOutput = outputParts.map(part => {
                 if (part.startsWith('"') && part.endsWith('"')) {
-                    // Remove quotes
-                    let stringContent = part.slice(1, -1);
-                    // The first string ("The score is") shouldn't have a trailing space, 
-                    // and the last string (" points!") needs its leading space. 
-                    // Since I controlled the string contents in the blocks, they should be accurate.
-                    return stringContent;
+                    // Return content inside quotes (which might contain spaces, like " points!")
+                    return part.slice(1, -1);
                 }
                 return part;
             }).join(' '); // Join using the default single space separator
 
-            // 2. Remove any extra spaces that might have accumulated
-            // (e.g., if "The score is" was accidentally written with two spaces at the end, it would cause "  ")
+            // 2. CRITICAL FIX: Aggressively normalize whitespace and trim the result
             finalOutput = finalOutput.replace(/\s+/g, ' ').trim();
-            // --- END CRITICAL FIX
 
             challengeOutput.innerHTML = finalOutput;
 
+            // Strict comparison
             if (finalOutput === targetOutputText) {
                 challengeResult.innerHTML = "🎉 SUCCESS! Your code runs perfectly and matches the target: <span class='font-mono'>" + finalOutput + "</span>";
                 challengeResult.classList.remove('text-red-600');
