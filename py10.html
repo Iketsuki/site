@@ -1,0 +1,953 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太空排序演算法視覺化</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #0a0a1a;
+            color: #e0e0ff;
+            overflow-x: hidden;
+        }
+        
+        .space-bg {
+            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .star {
+            position: absolute;
+            background-color: #fff;
+            border-radius: 50%;
+            animation: twinkle 4s infinite ease-in-out;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 10px rgba(100, 220, 255, 0.7);
+        }
+        
+        .glow-border {
+            box-shadow: 0 0 15px rgba(100, 220, 255, 0.5);
+        }
+        
+        .planet {
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.5s ease;
+            box-shadow: 0 0 15px rgba(100, 220, 255, 0.5);
+        }
+        
+        .algorithm-card {
+            background: rgba(20, 30, 60, 0.7);
+            border-radius: 1rem;
+            border: 2px solid rgba(100, 220, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .algorithm-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(100, 220, 255, 0.7);
+        }
+        
+        .btn-cosmic {
+            background: linear-gradient(135deg, #4b0082, #9400d3);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 10px rgba(148, 0, 211, 0.5);
+        }
+        
+        .btn-cosmic:hover {
+            box-shadow: 0 0 15px rgba(148, 0, 211, 0.8);
+            transform: translateY(-2px);
+        }
+        
+        .orbit {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            border: 1px dashed rgba(100, 220, 255, 0.3);
+            margin: 0 auto;
+        }
+        
+        .orbit-planet {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(100, 220, 255, 0.5);
+        }
+        
+        @keyframes orbit {
+            0% { transform: rotate(0deg) translateX(120px) rotate(0deg); }
+            100% { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
+        }
+        
+        .step-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .step-card {
+            scroll-snap-align: start;
+            flex: 0 0 auto;
+            width: 280px;
+            background: rgba(20, 30, 60, 0.7);
+            border-radius: 1rem;
+            border: 2px solid rgba(100, 220, 255, 0.3);
+            padding: 1rem;
+        }
+        
+        pre {
+            background: rgba(10, 15, 30, 0.8);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            color: #64ffda;
+            border: 1px solid rgba(100, 220, 255, 0.2);
+            margin: 1rem 0;
+            font-family: monospace;
+        }
+        
+        .code-tab {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+            background: rgba(30, 40, 70, 0.7);
+            border: 1px solid rgba(100, 220, 255, 0.2);
+            border-bottom: none;
+            display: inline-block;
+            margin-bottom: -1px;
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="space-bg" id="starfield"></div>
+    
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold mb-4 glow-text">太空排序演算法視覺化</h1>
+            <p class="text-xl">探索宇宙中的排序演算法奧秘</p>
+        </header>
+        
+        <div class="orbit mb-16">
+            <div class="orbit-planet bg-purple-500" style="width: 40px; height: 40px; animation: orbit 10s linear infinite;">5</div>
+            <div class="orbit-planet bg-blue-400" style="width: 30px; height: 30px; animation: orbit 7s linear infinite; animation-delay: -2s;">2</div>
+            <div class="orbit-planet bg-green-400" style="width: 35px; height: 35px; animation: orbit 12s linear infinite; animation-delay: -5s;">8</div>
+            <div class="orbit-planet bg-pink-400" style="width: 25px; height: 25px; animation: orbit 8s linear infinite; animation-delay: -3s;">1</div>
+            <div class="orbit-planet bg-yellow-300" style="width: 28px; height: 28px; animation: orbit 9s linear infinite; animation-delay: -7s;">4</div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <div class="algorithm-card p-6 glow-border">
+                <div class="flex items-center mb-4">
+                    <span class="text-4xl mr-3">🪐</span>
+                    <h2 class="text-2xl font-bold glow-text">選擇排序 (Selection Sort)</h2>
+                </div>
+                <p class="mb-4">選擇排序就像在太空中尋找最亮的星星。每次從未排序的行星中找出最小的一顆，放到已排序區域的末尾。</p>
+                <div class="code-tab">Python 代碼</div>
+                <pre>def selection_sort(arr):
+    n = len(arr)
+    
+    # 遍歷所有數組元素
+    for i in range(n):
+        # 找到未排序部分中的最小元素
+        min_idx = i
+        for j in range(i+1, n):
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+                
+        # 將找到的最小元素與第一個未排序元素交換
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]
+    
+    return arr</pre>
+                <button class="btn-cosmic mt-4" onclick="showAlgorithm('selection')">查看演示</button>
+            </div>
+            
+            <div class="algorithm-card p-6 glow-border">
+                <div class="flex items-center mb-4">
+                    <span class="text-4xl mr-3">🛰️</span>
+                    <h2 class="text-2xl font-bold glow-text">冒泡排序 (Bubble Sort)</h2>
+                </div>
+                <p class="mb-4">冒泡排序就像氣泡在太空中上升。較大的行星會不斷「上浮」，直到所有行星都按照大小排列好。</p>
+                <div class="code-tab">Python 代碼</div>
+                <pre>def bubble_sort(arr):
+    n = len(arr)
+    
+    # 遍歷所有數組元素
+    for i in range(n):
+        # 最後i個元素已經就位
+        for j in range(0, n-i-1):
+            # 如果當前元素大於下一個元素，則交換
+            if arr[j] > arr[j+1]:
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+    
+    return arr</pre>
+                <button class="btn-cosmic mt-4" onclick="showAlgorithm('bubble')">查看演示</button>
+            </div>
+            
+            <div class="algorithm-card p-6 glow-border">
+                <div class="flex items-center mb-4">
+                    <span class="text-4xl mr-3">🚀</span>
+                    <h2 class="text-2xl font-bold glow-text">插入排序 (Insertion Sort)</h2>
+                </div>
+                <p class="mb-4">插入排序就像太空站整理新到達的飛船。每次取一顆新行星，將它插入到已排序好的行星序列中的適當位置。</p>
+                <div class="code-tab">Python 代碼</div>
+                <pre>def insertion_sort(arr):
+    # 遍歷從第二個元素到最後一個元素
+    for i in range(1, len(arr)):
+        key = arr[i]  # 當前要插入的元素
+        
+        # 將比key大的元素向右移動
+        j = i-1
+        while j >= 0 and key < arr[j]:
+            arr[j+1] = arr[j]
+            j -= 1
+        arr[j+1] = key  # 插入key到正確位置
+    
+    return arr</pre>
+                <button class="btn-cosmic mt-4" onclick="showAlgorithm('insertion')">查看演示</button>
+            </div>
+            
+            <div class="algorithm-card p-6 glow-border">
+                <div class="flex items-center mb-4">
+                    <span class="text-4xl mr-3">⭐</span>
+                    <h2 class="text-2xl font-bold glow-text">合併排序 (Merge Sort)</h2>
+                </div>
+                <p class="mb-4">合併排序就像星系的合併。將行星分成小群組，分別排序後再合併，最終形成一個有序的星系。</p>
+                <div class="code-tab">Python 代碼</div>
+                <pre>def merge_sort(arr):
+    if len(arr) > 1:
+        # 找到中間點，分割數組
+        mid = len(arr) // 2
+        L = arr[:mid]
+        R = arr[mid:]
+        
+        # 遞歸排序兩半
+        merge_sort(L)
+        merge_sort(R)
+        
+        # 初始化指針
+        i = j = k = 0
+        
+        # 合併兩個已排序的子數組
+        while i < len(L) and j < len(R):
+            if L[i] < R[j]:
+                arr[k] = L[i]
+                i += 1
+            else:
+                arr[k] = R[j]
+                j += 1
+            k += 1
+        
+        # 檢查是否有剩餘元素
+        while i < len(L):
+            arr[k] = L[i]
+            i += 1
+            k += 1
+            
+        while j < len(R):
+            arr[k] = R[j]
+            j += 1
+            k += 1
+    
+    return arr</pre>
+                <button class="btn-cosmic mt-4" onclick="showAlgorithm('merge')">查看演示</button>
+            </div>
+        </div>
+        
+        <div id="visualization-container" class="hidden">
+            <div class="bg-gray-900 bg-opacity-70 rounded-xl p-6 mb-8 glow-border">
+                <h2 class="text-2xl font-bold mb-4 glow-text" id="current-algorithm-title">排序演算法視覺化</h2>
+                
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <button class="btn-cosmic mr-2" id="start-btn">開始排序</button>
+                        <button class="btn-cosmic mr-2" id="reset-btn">重置</button>
+                    </div>
+                    <div>
+                        <label class="mr-2">速度:</label>
+                        <input type="range" min="1" max="10" value="5" id="speed-slider" class="w-32">
+                    </div>
+                </div>
+                
+                <div class="flex flex-col items-center">
+                    <h3 class="text-xl mb-4">步驟演示：排序</h3>
+                    <div id="array-container" class="flex justify-center items-end h-64 w-full mb-6"></div>
+                    <p id="explanation" class="text-center text-lg"></p>
+                </div>
+            </div>
+            
+            <div class="bg-gray-900 bg-opacity-70 rounded-xl p-6 mb-8 glow-border">
+                <h3 class="text-xl font-bold mb-4 glow-text">步驟說明</h3>
+                <div id="steps-container" class="step-container"></div>
+            </div>
+            
+            <div class="bg-gray-900 bg-opacity-70 rounded-xl p-6 mb-8 glow-border">
+                <h3 class="text-xl font-bold mb-4 glow-text">Python 代碼實現</h3>
+                <div id="code-container" class="w-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create starfield background
+        function createStars() {
+            const starfield = document.getElementById('starfield');
+            const starsCount = 200;
+            
+            for (let i = 0; i < starsCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // Random position
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // Random size
+                const size = Math.random() * 3;
+                
+                // Random animation delay
+                const delay = Math.random() * 4;
+                
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.animationDelay = `${delay}s`;
+                
+                starfield.appendChild(star);
+            }
+        }
+        
+        createStars();
+        
+        // Sorting visualization
+        let array = [8, 4, 2, 9, 5, 1];
+        let arrayBars = [];
+        let animationSpeed = 500;
+        let animationTimeout;
+        let currentAlgorithm = '';
+        
+        function showAlgorithm(algorithm) {
+            currentAlgorithm = algorithm;
+            document.getElementById('visualization-container').classList.remove('hidden');
+            
+            // Set algorithm title
+            const titles = {
+                'selection': '選擇排序 (Selection Sort) 🪐',
+                'bubble': '冒泡排序 (Bubble Sort) 🛰️',
+                'insertion': '插入排序 (Insertion Sort) 🚀',
+                'merge': '合併排序 (Merge Sort) ⭐'
+            };
+            
+            document.getElementById('current-algorithm-title').textContent = titles[algorithm];
+            
+            // Reset and initialize
+            resetArray();
+            createStepCards(algorithm);
+            showAlgorithmCode(algorithm);
+            
+            // Scroll to visualization
+            document.getElementById('visualization-container').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+        
+        function resetArray() {
+            clearTimeout(animationTimeout);
+            array = [8, 4, 2, 9, 5, 1];
+            renderArray();
+            document.getElementById('explanation').textContent = '';
+        }
+        
+        function renderArray() {
+            const container = document.getElementById('array-container');
+            container.innerHTML = '';
+            arrayBars = [];
+            
+            const maxValue = Math.max(...array);
+            const width = Math.floor(container.clientWidth / (array.length * 1.5));
+            
+            array.forEach((value, index) => {
+                const height = (value / maxValue) * 200;
+                
+                const bar = document.createElement('div');
+                bar.className = 'planet';
+                bar.style.width = `${width}px`;
+                bar.style.height = `${width}px`;
+                bar.style.margin = '0 8px';
+                bar.style.backgroundColor = getRandomPlanetColor();
+                bar.style.fontSize = `${width / 2}px`;
+                bar.textContent = value;
+                
+                container.appendChild(bar);
+                arrayBars.push(bar);
+            });
+        }
+        
+        function getRandomPlanetColor() {
+            const colors = [
+                'rgb(100, 220, 255)', // Cyan
+                'rgb(180, 100, 255)', // Purple
+                'rgb(100, 255, 150)', // Green
+                'rgb(255, 150, 100)', // Orange
+                'rgb(255, 100, 200)'  // Pink
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        function swapBars(i, j) {
+            return new Promise(resolve => {
+                // Highlight bars being compared
+                arrayBars[i].style.boxShadow = '0 0 20px rgba(255, 255, 100, 0.9)';
+                arrayBars[j].style.boxShadow = '0 0 20px rgba(255, 255, 100, 0.9)';
+                
+                setTimeout(() => {
+                    // Swap values in array
+                    [array[i], array[j]] = [array[j], array[i]];
+                    
+                    // Swap visual representation
+                    const tempContent = arrayBars[i].textContent;
+                    const tempColor = arrayBars[i].style.backgroundColor;
+                    
+                    arrayBars[i].textContent = arrayBars[j].textContent;
+                    arrayBars[i].style.backgroundColor = arrayBars[j].style.backgroundColor;
+                    
+                    arrayBars[j].textContent = tempContent;
+                    arrayBars[j].style.backgroundColor = tempColor;
+                    
+                    // Reset highlight
+                    setTimeout(() => {
+                        arrayBars[i].style.boxShadow = '0 0 15px rgba(100, 220, 255, 0.5)';
+                        arrayBars[j].style.boxShadow = '0 0 15px rgba(100, 220, 255, 0.5)';
+                        resolve();
+                    }, animationSpeed / 2);
+                }, animationSpeed / 2);
+            });
+        }
+        
+        function highlightBar(index, color = 'rgba(255, 255, 100, 0.9)') {
+            return new Promise(resolve => {
+                arrayBars[index].style.boxShadow = `0 0 20px ${color}`;
+                setTimeout(() => {
+                    arrayBars[index].style.boxShadow = '0 0 15px rgba(100, 220, 255, 0.5)';
+                    resolve();
+                }, animationSpeed);
+            });
+        }
+        
+        function updateExplanation(text) {
+            document.getElementById('explanation').textContent = text;
+        }
+        
+        // Sorting Algorithms
+        async function selectionSort() {
+            const n = array.length;
+            
+            for (let i = 0; i < n - 1; i++) {
+                updateExplanation(`尋找從位置 ${i} 到 ${n-1} 的最小元素`);
+                let minIndex = i;
+                
+                // Highlight current position
+                arrayBars[i].style.boxShadow = '0 0 20px rgba(0, 255, 0, 0.9)';
+                
+                for (let j = i + 1; j < n; j++) {
+                    // Highlight bar being compared
+                    arrayBars[j].style.boxShadow = '0 0 20px rgba(255, 255, 100, 0.9)';
+                    
+                    await new Promise(resolve => {
+                        animationTimeout = setTimeout(() => {
+                            if (array[j] < array[minIndex]) {
+                                // Reset previous min
+                                if (minIndex !== i) {
+                                    arrayBars[minIndex].style.boxShadow = '0 0 15px rgba(100, 220, 255, 0.5)';
+                                }
+                                minIndex = j;
+                                // Highlight new min
+                                arrayBars[minIndex].style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
+                            } else {
+                                // Reset compared bar
+                                arrayBars[j].style.boxShadow = '0 0 15px rgba(100, 220, 255, 0.5)';
+                            }
+                            resolve();
+                        }, animationSpeed);
+                    });
+                }
+                
+                if (minIndex !== i) {
+                    updateExplanation(`交換位置 ${i} 和位置 ${minIndex} 的元素`);
+                    await swapBars(i, minIndex);
+                }
+                
+                // Mark as sorted
+                arrayBars[i].style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.5)';
+            }
+            
+            // Mark last element as sorted
+            arrayBars[n-1].style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.5)';
+            updateExplanation('排序完成！');
+        }
+        
+        async function bubbleSort() {
+            const n = array.length;
+            
+            for (let i = 0; i < n - 1; i++) {
+                let swapped = false;
+                
+                for (let j = 0; j < n - i - 1; j++) {
+                    updateExplanation(`比較位置 ${j} 和位置 ${j+1} 的元素`);
+                    
+                    // Highlight bars being compared
+                    arrayBars[j].style.boxShadow = '0 0 20px rgba(255, 255, 100, 0.9)';
+                    arrayBars[j+1].style.boxShadow = '0 0 20px rgba(255, 255, 100, 0.9)';
+                    
+                    await new Promise(resolve => {
+                        animationTimeout = setTimeout(() => {
+                            if (array[j] > array[j+1]) {
+                                swapped = true;
+                                updateExplanation(`交換位置 ${j} 和位置 ${j+1} 的元素`);
+                                swapBars(j, j+1).then(resolve);
+                            } else {
+                                arrayBars[j].style.boxShadow = '0 0 15px rgba(100, 220, 255, 0.5)';
+                                arrayBars[j+1].style.boxShadow = '0 0 15px rgba(100, 220, 255, 0.5)';
+                                resolve();
+                            }
+                        }, animationSpeed);
+                    });
+                }
+                
+                // Mark the last element in this pass as sorted
+                arrayBars[n-i-1].style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.5)';
+                
+                if (!swapped) {
+                    // Mark all remaining elements as sorted
+                    for (let k = 0; k < n-i-1; k++) {
+                        arrayBars[k].style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.5)';
+                    }
+                    break;
+                }
+            }
+            
+            updateExplanation('排序完成！');
+        }
+        
+        async function insertionSort() {
+            const n = array.length;
+            
+            // Mark first element as sorted
+            arrayBars[0].style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.5)';
+            
+            for (let i = 1; i < n; i++) {
+                updateExplanation(`取出位置 ${i} 的元素，尋找插入位置`);
+                
+                // Highlight current element
+                arrayBars[i].style.boxShadow = '0 0 20px rgba(255, 100, 100, 0.9)';
+                
+                await new Promise(resolve => {
+                    animationTimeout = setTimeout(resolve, animationSpeed);
+                });
+                
+                const key = array[i];
+                let j = i - 1;
+                
+                while (j >= 0 && array[j] > key) {
+                    updateExplanation(`將位置 ${j} 的元素移到位置 ${j+1}`);
+                    
+                    // Highlight comparison
+                    arrayBars[j].style.boxShadow = '0 0 20px rgba(255, 255, 100, 0.9)';
+                    
+                    await new Promise(resolve => {
+                        animationTimeout = setTimeout(() => {
+                            array[j+1] = array[j];
+                            arrayBars[j+1].textContent = array[j];
+                            arrayBars[j+1].style.backgroundColor = arrayBars[j].style.backgroundColor;
+                            
+                            arrayBars[j].style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.5)';
+                            resolve();
+                        }, animationSpeed);
+                    });
+                    
+                    j--;
+                }
+                
+                array[j+1] = key;
+                
+                // Update the visual for the inserted element
+                await new Promise(resolve => {
+                    animationTimeout = setTimeout(() => {
+                        arrayBars[j+1].textContent = key;
+                        arrayBars[j+1].style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.5)';
+                        resolve();
+                    }, animationSpeed);
+                });
+            }
+            
+            updateExplanation('排序完成！');
+        }
+        
+        async function mergeSort() {
+            updateExplanation('合併排序開始：將數組分解為更小的部分');
+            await mergeSortHelper(0, array.length - 1);
+            updateExplanation('排序完成！');
+            
+            // Mark all as sorted
+            for (let i = 0; i < array.length; i++) {
+                arrayBars[i].style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.5)';
+            }
+        }
+        
+        async function mergeSortHelper(start, end) {
+            if (start < end) {
+                const mid = Math.floor((start + end) / 2);
+                
+                // Highlight the current subarray
+                for (let i = start; i <= end; i++) {
+                    arrayBars[i].style.boxShadow = '0 0 20px rgba(255, 255, 100, 0.9)';
+                }
+                
+                await new Promise(resolve => {
+                    animationTimeout = setTimeout(() => {
+                        updateExplanation(`分解：從位置 ${start} 到 ${end}`);
+                        resolve();
+                    }, animationSpeed);
+                });
+                
+                // Reset highlight
+                for (let i = start; i <= end; i++) {
+                    arrayBars[i].style.boxShadow = '0 0 15px rgba(100, 220, 255, 0.5)';
+                }
+                
+                await mergeSortHelper(start, mid);
+                await mergeSortHelper(mid + 1, end);
+                await merge(start, mid, end);
+            }
+        }
+        
+        async function merge(start, mid, end) {
+            updateExplanation(`合併：從位置 ${start} 到 ${end}`);
+            
+            const leftSize = mid - start + 1;
+            const rightSize = end - mid;
+            
+            // Create temporary arrays
+            const leftArray = new Array(leftSize);
+            const rightArray = new Array(rightSize);
+            
+            // Copy data to temporary arrays
+            for (let i = 0; i < leftSize; i++) {
+                leftArray[i] = array[start + i];
+            }
+            for (let j = 0; j < rightSize; j++) {
+                rightArray[j] = array[mid + 1 + j];
+            }
+            
+            // Highlight subarrays
+            for (let i = start; i <= mid; i++) {
+                arrayBars[i].style.boxShadow = '0 0 20px rgba(100, 100, 255, 0.9)';
+            }
+            for (let i = mid + 1; i <= end; i++) {
+                arrayBars[i].style.boxShadow = '0 0 20px rgba(255, 100, 100, 0.9)';
+            }
+            
+            await new Promise(resolve => {
+                animationTimeout = setTimeout(resolve, animationSpeed);
+            });
+            
+            // Merge the temporary arrays back
+            let i = 0, j = 0, k = start;
+            
+            while (i < leftSize && j < rightSize) {
+                if (leftArray[i] <= rightArray[j]) {
+                    array[k] = leftArray[i];
+                    
+                    await updateArrayBar(k, leftArray[i]);
+                    i++;
+                } else {
+                    array[k] = rightArray[j];
+                    
+                    await updateArrayBar(k, rightArray[j]);
+                    j++;
+                }
+                k++;
+            }
+            
+            // Copy remaining elements
+            while (i < leftSize) {
+                array[k] = leftArray[i];
+                await updateArrayBar(k, leftArray[i]);
+                i++;
+                k++;
+            }
+            
+            while (j < rightSize) {
+                array[k] = rightArray[j];
+                await updateArrayBar(k, rightArray[j]);
+                j++;
+                k++;
+            }
+        }
+        
+        async function updateArrayBar(index, value) {
+            return new Promise(resolve => {
+                animationTimeout = setTimeout(() => {
+                    arrayBars[index].textContent = value;
+                    arrayBars[index].style.boxShadow = '0 0 20px rgba(0, 255, 0, 0.9)';
+                    
+                    setTimeout(() => {
+                        arrayBars[index].style.boxShadow = '0 0 15px rgba(100, 220, 255, 0.5)';
+                        resolve();
+                    }, animationSpeed / 2);
+                }, animationSpeed / 2);
+            });
+        }
+        
+        function createStepCards(algorithm) {
+            const stepsContainer = document.getElementById('steps-container');
+            stepsContainer.innerHTML = '';
+            
+            const steps = getAlgorithmSteps(algorithm);
+            
+            steps.forEach((step, index) => {
+                const card = document.createElement('div');
+                card.className = 'step-card';
+                
+                const stepNumber = document.createElement('div');
+                stepNumber.className = 'text-lg font-bold mb-2';
+                stepNumber.textContent = `步驟 ${index + 1}`;
+                
+                const stepDesc = document.createElement('p');
+                stepDesc.textContent = step;
+                
+                card.appendChild(stepNumber);
+                card.appendChild(stepDesc);
+                stepsContainer.appendChild(card);
+            });
+        }
+        
+        function getAlgorithmSteps(algorithm) {
+            switch(algorithm) {
+                case 'selection':
+                    return [
+                        '從未排序的行星中找出最小的一顆',
+                        '將它與未排序區域的第一顆行星交換位置',
+                        '已排序區域增加一顆行星',
+                        '重複以上步驟，直到所有行星都排序完成'
+                    ];
+                case 'bubble':
+                    return [
+                        '比較相鄰的兩顆行星',
+                        '如果前一顆比後一顆大，則交換它們的位置',
+                        '一輪比較後，最大的行星會「冒泡」到末尾',
+                        '重複以上步驟，每次排除已排序的行星'
+                    ];
+                case 'insertion':
+                    return [
+                        '從第二顆行星開始，取出當前行星',
+                        '與已排序區域的行星從右向左比較',
+                        '如果已排序的行星更大，則將它右移一位',
+                        '找到合適位置後，將當前行星插入'
+                    ];
+                case 'merge':
+                    return [
+                        '將行星序列分成兩半',
+                        '遞歸地對兩半進行排序',
+                        '合併兩個已排序的子序列',
+                        '比較兩個子序列的首元素，選擇較小者放入結果序列'
+                    ];
+                default:
+                    return [];
+            }
+        }
+        
+        function showAlgorithmCode(algorithm) {
+            const codeContainer = document.getElementById('code-container');
+            codeContainer.innerHTML = '';
+            
+            const codeTab = document.createElement('div');
+            codeTab.className = 'code-tab';
+            codeTab.textContent = 'Python 代碼';
+            
+            const pre = document.createElement('pre');
+            pre.textContent = getAlgorithmCode(algorithm);
+            
+            codeContainer.appendChild(codeTab);
+            codeContainer.appendChild(pre);
+        }
+        
+        function getAlgorithmCode(algorithm) {
+            switch(algorithm) {
+                case 'selection':
+                    return `def selection_sort(arr):
+    n = len(arr)
+    
+    # 遍歷所有數組元素
+    for i in range(n):
+        # 找到未排序部分中的最小元素
+        min_idx = i
+        for j in range(i+1, n):
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+                
+        # 將找到的最小元素與第一個未排序元素交換
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]
+    
+    return arr
+
+# 測試
+arr = [8, 4, 2, 9, 5, 1]
+sorted_arr = selection_sort(arr)
+print("排序後：", sorted_arr)  # 輸出: [1, 2, 4, 5, 8, 9]`;
+                case 'bubble':
+                    return `def bubble_sort(arr):
+    n = len(arr)
+    
+    # 遍歷所有數組元素
+    for i in range(n):
+        # 最後i個元素已經就位
+        swapped = False
+        for j in range(0, n-i-1):
+            # 如果當前元素大於下一個元素，則交換
+            if arr[j] > arr[j+1]:
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+                swapped = True
+        
+        # 如果在這輪中沒有發生交換，則數組已排序
+        if not swapped:
+            break
+    
+    return arr
+
+# 測試
+arr = [8, 4, 2, 9, 5, 1]
+sorted_arr = bubble_sort(arr)
+print("排序後：", sorted_arr)  # 輸出: [1, 2, 4, 5, 8, 9]`;
+                case 'insertion':
+                    return `def insertion_sort(arr):
+    # 遍歷從第二個元素到最後一個元素
+    for i in range(1, len(arr)):
+        key = arr[i]  # 當前要插入的元素
+        
+        # 將比key大的元素向右移動
+        j = i-1
+        while j >= 0 and key < arr[j]:
+            arr[j+1] = arr[j]
+            j -= 1
+        arr[j+1] = key  # 插入key到正確位置
+    
+    return arr
+
+# 測試
+arr = [8, 4, 2, 9, 5, 1]
+sorted_arr = insertion_sort(arr)
+print("排序後：", sorted_arr)  # 輸出: [1, 2, 4, 5, 8, 9]`;
+                case 'merge':
+                    return `def merge_sort(arr):
+    if len(arr) > 1:
+        # 找到中間點，分割數組
+        mid = len(arr) // 2
+        L = arr[:mid]
+        R = arr[mid:]
+        
+        # 遞歸排序兩半
+        merge_sort(L)
+        merge_sort(R)
+        
+        # 初始化指針
+        i = j = k = 0
+        
+        # 合併兩個已排序的子數組
+        while i < len(L) and j < len(R):
+            if L[i] < R[j]:
+                arr[k] = L[i]
+                i += 1
+            else:
+                arr[k] = R[j]
+                j += 1
+            k += 1
+        
+        # 檢查是否有剩餘元素
+        while i < len(L):
+            arr[k] = L[i]
+            i += 1
+            k += 1
+            
+        while j < len(R):
+            arr[k] = R[j]
+            j += 1
+            k += 1
+    
+    return arr
+
+# 測試
+arr = [8, 4, 2, 9, 5, 1]
+sorted_arr = merge_sort(arr.copy())  # 使用副本以保留原數組
+print("排序後：", sorted_arr)  # 輸出: [1, 2, 4, 5, 8, 9]`;
+                default:
+                    return '';
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('start-btn').addEventListener('click', () => {
+            switch(currentAlgorithm) {
+                case 'selection':
+                    selectionSort();
+                    break;
+                case 'bubble':
+                    bubbleSort();
+                    break;
+                case 'insertion':
+                    insertionSort();
+                    break;
+                case 'merge':
+                    mergeSort();
+                    break;
+            }
+        });
+        
+        document.getElementById('reset-btn').addEventListener('click', resetArray);
+        
+        document.getElementById('speed-slider').addEventListener('input', function() {
+            animationSpeed = 1000 / this.value;
+        });
+        
+        // Initialize
+        window.onload = function() {
+            renderArray();
+        };
+        
+        window.addEventListener('resize', renderArray);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a477788723a08c0',t:'MTc2NDEzOTk4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
