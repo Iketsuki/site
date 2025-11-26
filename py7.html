@@ -1,0 +1,1213 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資料結構互動演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .container-visual {
+            min-height: 220px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .data-cell {
+            width: 80px;
+            height: 100px;
+            margin: 5px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .data-cell:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .food-emoji {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+        
+        .btn {
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes highlight {
+            0% { background-color: #FED7D7; }
+            50% { background-color: #FC8181; }
+            100% { background-color: #FED7D7; }
+        }
+        
+        .highlight {
+            animation: highlight 1s ease;
+        }
+        
+        .log-container {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .circular-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+        }
+        
+        .circular-plate {
+            position: absolute;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            border: 2px solid #E53E3E;
+            top: 30px;
+            left: 30px;
+        }
+        
+        .circular-inner {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: white;
+            border: 2px solid #E53E3E;
+            top: 90px;
+            left: 90px;
+        }
+        
+        .circular-cell {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .circular-cell:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .pointer {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            color: white;
+            z-index: 10;
+        }
+        
+        .front-pointer {
+            background-color: #3182CE;
+        }
+        
+        .rear-pointer {
+            background-color: #E53E3E;
+        }
+        
+        .code-container {
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .code-header {
+            background-color: #282c34;
+            color: white;
+            padding: 0.5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .code-title {
+            font-family: monospace;
+            font-weight: bold;
+        }
+        
+        .code-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .hljs {
+            padding: 1rem;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .copy-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .copy-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-red-500 to-red-700 text-white p-6 rounded-lg mb-8">
+            <h1 class="text-3xl font-bold">資料結構互動演示</h1>
+            <p class="mt-2">探索不同資料結構的運作方式：陣列、佇列和環形佇列</p>
+        </div>
+        
+        <!-- Navigation Tabs -->
+        <div class="flex flex-wrap mb-6 border-b border-gray-200">
+            <button id="tab-array" class="tab-btn px-6 py-3 font-medium text-white bg-red-600 rounded-t-lg">陣列 (Array)</button>
+            <button id="tab-queue" class="tab-btn px-6 py-3 font-medium text-gray-600 hover:text-red-600 ml-2">佇列 (Queue)</button>
+            <button id="tab-circular" class="tab-btn px-6 py-3 font-medium text-gray-600 hover:text-red-600 ml-2">環形佇列 (Circular Queue)</button>
+        </div>
+        
+        <!-- Array Content -->
+        <div id="content-array" class="tab-content active">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2 class="text-xl font-bold text-red-700 mb-4">陣列 (Array) 互動演示</h2>
+                <p class="mb-4">試試看在不同位置添加或刪除食物，觀察陣列的變化。</p>
+                
+                <div class="container-visual bg-gray-50 p-4 rounded-lg mb-6">
+                    <div id="array-visual" class="flex flex-wrap justify-center"></div>
+                    <div class="mt-2 text-center text-sm text-gray-500">點擊食物可以移除它</div>
+                </div>
+                
+                <div class="flex flex-wrap gap-3 mb-6">
+                    <button id="add-start" class="btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                        在開頭添加
+                    </button>
+                    <button id="add-end" class="btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                        在結尾添加
+                    </button>
+                    <button id="add-random" class="btn bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
+                        隨機位置添加
+                    </button>
+                    <button id="reset-array" class="btn bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">
+                        重置
+                    </button>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold mb-2">操作日誌：</h3>
+                    <div id="array-log" class="text-sm text-gray-700 log-container"></div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2 class="text-xl font-bold text-red-700 mb-4">陣列 (Array) 基本概念</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-bold mb-2">陣列特點：</h3>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>連續的記憶體位置</li>
+                            <li>可以通過索引快速訪問元素</li>
+                            <li>在 JavaScript 中，陣列可以動態調整大小</li>
+                            <li>適合需要隨機訪問的場景</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-bold mb-2">陣列操作時間複雜度：</h3>
+                        <ul class="space-y-1">
+                            <li><span class="font-medium">訪問：</span> O(1) - 直接通過索引訪問</li>
+                            <li><span class="font-medium">搜尋：</span> O(n) - 需要遍歷整個陣列</li>
+                            <li><span class="font-medium">插入/刪除（開頭）：</span> O(n) - 需要移動元素</li>
+                            <li><span class="font-medium">插入/刪除（結尾）：</span> O(1) - 直接添加/移除</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold text-red-700 mb-4">Python 中的陣列實現</h2>
+                
+                <p class="mb-4">在 Python 中，我們通常使用內建的 <code>list</code> 類型來實現陣列。以下是陣列基本操作的 Python 實現：</p>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="code-title">array_operations.py</span>
+                        <button class="copy-btn" data-code="array">複製代碼</button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code class="language-python">class Array:
+    def __init__(self, initial_elements=None):
+        """初始化陣列"""
+        self.elements = initial_elements if initial_elements else []
+    
+    def get(self, index):
+        """獲取指定索引的元素"""
+        if 0 <= index < len(self.elements):
+            return self.elements[index]
+        return None  # 索引超出範圍
+    
+    def insert_at_beginning(self, element):
+        """在陣列開頭插入元素"""
+        self.elements.insert(0, element)
+        return True
+    
+    def insert_at_end(self, element):
+        """在陣列末尾插入元素"""
+        self.elements.append(element)
+        return True
+    
+    def insert_at_position(self, position, element):
+        """在指定位置插入元素"""
+        if 0 <= position <= len(self.elements):
+            self.elements.insert(position, element)
+            return True
+        return False  # 位置超出範圍
+    
+    def delete_at_position(self, position):
+        """刪除指定位置的元素"""
+        if 0 <= position < len(self.elements):
+            removed = self.elements.pop(position)
+            return removed
+        return None  # 位置超出範圍
+    
+    def search(self, element):
+        """搜尋元素，返回索引（如果存在）"""
+        try:
+            return self.elements.index(element)
+        except ValueError:
+            return -1  # 元素不存在
+    
+    def size(self):
+        """返回陣列大小"""
+        return len(self.elements)
+    
+    def is_empty(self):
+        """檢查陣列是否為空"""
+        return len(self.elements) == 0
+    
+    def __str__(self):
+        """返回陣列的字符串表示"""
+        return str(self.elements)
+
+
+# 使用示例
+if __name__ == "__main__":
+    # 創建一個陣列並初始化
+    fruits = Array(["蘋果", "香蕉", "橙子"])
+    print(f"初始陣列: {fruits}")
+    
+    # 在開頭添加元素
+    fruits.insert_at_beginning("草莓")
+    print(f"在開頭添加後: {fruits}")
+    
+    # 在結尾添加元素
+    fruits.insert_at_end("葡萄")
+    print(f"在結尾添加後: {fruits}")
+    
+    # 在指定位置添加元素
+    fruits.insert_at_position(2, "西瓜")
+    print(f"在位置2添加後: {fruits}")
+    
+    # 刪除元素
+    removed = fruits.delete_at_position(1)
+    print(f"刪除位置1的元素 '{removed}' 後: {fruits}")
+    
+    # 搜尋元素
+    position = fruits.search("橙子")
+    print(f"'橙子' 的位置: {position}")
+    
+    # 獲取元素
+    element = fruits.get(2)
+    print(f"位置2的元素: {element}")
+    
+    # 陣列大小
+    print(f"陣列大小: {fruits.size()}")
+</code></pre>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h3 class="font-bold mb-2">執行結果：</h3>
+                    <div class="bg-gray-100 p-4 rounded-lg text-sm font-mono">
+                        <pre>初始陣列: ['蘋果', '香蕉', '橙子']
+在開頭添加後: ['草莓', '蘋果', '香蕉', '橙子']
+在結尾添加後: ['草莓', '蘋果', '香蕉', '橙子', '葡萄']
+在位置2添加後: ['草莓', '蘋果', '西瓜', '香蕉', '橙子', '葡萄']
+刪除位置1的元素 '蘋果' 後: ['草莓', '西瓜', '香蕉', '橙子', '葡萄']
+'橙子' 的位置: 3
+位置2的元素: 香蕉
+陣列大小: 5</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Queue Content -->
+        <div id="content-queue" class="tab-content">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2 class="text-xl font-bold text-red-700 mb-4">佇列 (Queue) 互動演示</h2>
+                <p class="mb-4">佇列遵循「先進先出」(FIFO) 的原則。試試看添加或移除食物，觀察佇列的變化。</p>
+                
+                <div class="container-visual bg-gray-50 p-4 rounded-lg mb-6">
+                    <div id="queue-visual" class="flex justify-center"></div>
+                    <div class="mt-2 text-center text-sm text-gray-500">
+                        <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded mr-2">隊首</span>
+                        <span class="inline-block px-2 py-1 bg-red-100 text-red-800 rounded">隊尾</span>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap gap-3 mb-6">
+                    <button id="enqueue" class="btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                        入隊 (Enqueue)
+                    </button>
+                    <button id="dequeue" class="btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                        出隊 (Dequeue)
+                    </button>
+                    <button id="reset-queue" class="btn bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">
+                        重置
+                    </button>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold mb-2">操作日誌：</h3>
+                    <div id="queue-log" class="text-sm text-gray-700 log-container"></div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2 class="text-xl font-bold text-red-700 mb-4">佇列 (Queue) 基本概念</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-bold mb-2">佇列特點：</h3>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>先進先出 (FIFO) 的數據結構</li>
+                            <li>只能從隊尾添加元素 (Enqueue)</li>
+                            <li>只能從隊首移除元素 (Dequeue)</li>
+                            <li>適合需要按順序處理的場景</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-bold mb-2">佇列操作時間複雜度：</h3>
+                        <ul class="space-y-1">
+                            <li><span class="font-medium">入隊 (Enqueue)：</span> O(1) - 直接添加到隊尾</li>
+                            <li><span class="font-medium">出隊 (Dequeue)：</span> O(1) - 直接從隊首移除</li>
+                            <li><span class="font-medium">查看隊首元素：</span> O(1) - 直接訪問隊首</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold text-red-700 mb-4">Python 中的佇列實現</h2>
+                
+                <p class="mb-4">在 Python 中，我們可以使用內建的 <code>collections.deque</code> 來實現高效的佇列，或者自己實現一個簡單的佇列類：</p>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="code-title">queue_implementation.py</span>
+                        <button class="copy-btn" data-code="queue">複製代碼</button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code class="language-python">from collections import deque
+
+class Queue:
+    def __init__(self, initial_elements=None):
+        """初始化佇列"""
+        self.elements = deque(initial_elements if initial_elements else [])
+    
+    def enqueue(self, element):
+        """入隊操作 - 在佇列尾部添加元素"""
+        self.elements.append(element)
+    
+    def dequeue(self):
+        """出隊操作 - 從佇列頭部移除元素"""
+        if not self.is_empty():
+            return self.elements.popleft()
+        return None  # 佇列為空
+    
+    def peek(self):
+        """查看佇列頭部元素但不移除"""
+        if not self.is_empty():
+            return self.elements[0]
+        return None  # 佇列為空
+    
+    def size(self):
+        """返回佇列大小"""
+        return len(self.elements)
+    
+    def is_empty(self):
+        """檢查佇列是否為空"""
+        return len(self.elements) == 0
+    
+    def __str__(self):
+        """返回佇列的字符串表示"""
+        return str(list(self.elements))
+
+
+# 使用示例
+if __name__ == "__main__":
+    # 創建一個佇列並初始化
+    fruit_queue = Queue(["蘋果", "香蕉", "橙子"])
+    print(f"初始佇列: {fruit_queue}")
+    
+    # 入隊操作
+    fruit_queue.enqueue("草莓")
+    print(f"入隊 '草莓' 後: {fruit_queue}")
+    
+    # 出隊操作
+    removed = fruit_queue.dequeue()
+    print(f"出隊後 (移除了 '{removed}'): {fruit_queue}")
+    
+    # 查看隊首元素
+    front = fruit_queue.peek()
+    print(f"隊首元素: {front}")
+    
+    # 佇列大小
+    print(f"佇列大小: {fruit_queue.size()}")
+    
+    # 多次出隊
+    print("\n連續出隊操作:")
+    while not fruit_queue.is_empty():
+        removed = fruit_queue.dequeue()
+        print(f"出隊: {removed}, 剩餘佇列: {fruit_queue}")
+    
+    # 檢查是否為空
+    print(f"佇列是否為空: {fruit_queue.is_empty()}")
+    
+    # 嘗試從空佇列出隊
+    removed = fruit_queue.dequeue()
+    print(f"從空佇列出隊結果: {removed}")
+</code></pre>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h3 class="font-bold mb-2">執行結果：</h3>
+                    <div class="bg-gray-100 p-4 rounded-lg text-sm font-mono">
+                        <pre>初始佇列: ['蘋果', '香蕉', '橙子']
+入隊 '草莓' 後: ['蘋果', '香蕉', '橙子', '草莓']
+出隊後 (移除了 '蘋果'): ['香蕉', '橙子', '草莓']
+隊首元素: 香蕉
+佇列大小: 3
+
+連續出隊操作:
+出隊: 香蕉, 剩餘佇列: ['橙子', '草莓']
+出隊: 橙子, 剩餘佇列: ['草莓']
+出隊: 草莓, 剩餘佇列: []
+佇列是否為空: True
+從空佇列出隊結果: None</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Circular Queue Content -->
+        <div id="content-circular" class="tab-content">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2 class="text-xl font-bold text-red-700 mb-4">環形佇列 (Circular Queue) 互動演示</h2>
+                <p class="mb-4">環形佇列就像旋轉壽司盤，當到達末尾時，可以繞回開始位置繼續使用空間。</p>
+                
+                <div class="container-visual bg-gray-50 p-4 rounded-lg mb-6">
+                    <div id="circular-visual" class="circular-container">
+                        <div class="circular-plate"></div>
+                        <div class="circular-inner"></div>
+                        <!-- 環形佇列的元素將在這裡動態生成 -->
+                    </div>
+                    <div class="mt-2 text-center text-sm text-gray-500">
+                        <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded mr-2">F: 隊首指針</span>
+                        <span class="inline-block px-2 py-1 bg-red-100 text-red-800 rounded">R: 隊尾指針</span>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap gap-3 mb-6">
+                    <button id="circular-enqueue" class="btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                        入隊 (Enqueue)
+                    </button>
+                    <button id="circular-dequeue" class="btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                        出隊 (Dequeue)
+                    </button>
+                    <button id="reset-circular" class="btn bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">
+                        重置
+                    </button>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold mb-2">操作日誌：</h3>
+                    <div id="circular-log" class="text-sm text-gray-700 log-container"></div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2 class="text-xl font-bold text-red-700 mb-4">環形佇列 (Circular Queue) 基本概念</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-bold mb-2">環形佇列特點：</h3>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>固定大小，但可以重複使用空間</li>
+                            <li>使用兩個指針：front（隊首）和 rear（隊尾）</li>
+                            <li>當 rear 到達末尾時，可以繞回到開始位置</li>
+                            <li>解決了普通佇列的「假溢出」問題</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-bold mb-2">環形佇列操作時間複雜度：</h3>
+                        <ul class="space-y-1">
+                            <li><span class="font-medium">入隊 (Enqueue)：</span> O(1) - 直接添加到隊尾</li>
+                            <li><span class="font-medium">出隊 (Dequeue)：</span> O(1) - 直接從隊首移除</li>
+                            <li><span class="font-medium">判斷是否已滿：</span> O(1) - 通過指針計算</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold text-red-700 mb-4">Python 中的環形佇列實現</h2>
+                
+                <p class="mb-4">環形佇列是一種特殊的佇列，它有固定的大小，但可以重複使用空間。以下是 Python 中環形佇列的實現：</p>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="code-title">circular_queue.py</span>
+                        <button class="copy-btn" data-code="circular">複製代碼</button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code class="language-python">class CircularQueue:
+    def __init__(self, capacity):
+        """初始化環形佇列，設置容量"""
+        self.capacity = capacity
+        self.queue = [None] * capacity
+        self.front = -1  # 隊首指針
+        self.rear = -1   # 隊尾指針
+        self.size = 0    # 當前元素數量
+    
+    def is_empty(self):
+        """檢查環形佇列是否為空"""
+        return self.size == 0
+    
+    def is_full(self):
+        """檢查環形佇列是否已滿"""
+        return self.size == self.capacity
+    
+    def enqueue(self, item):
+        """入隊操作 - 在佇列尾部添加元素"""
+        if self.is_full():
+            return False  # 佇列已滿
+        
+        # 如果是第一個元素
+        if self.front == -1:
+            self.front = 0
+        
+        # 移動 rear 指針並添加元素
+        self.rear = (self.rear + 1) % self.capacity
+        self.queue[self.rear] = item
+        self.size += 1
+        return True
+    
+    def dequeue(self):
+        """出隊操作 - 從佇列頭部移除元素"""
+        if self.is_empty():
+            return None  # 佇列為空
+        
+        # 獲取要移除的元素
+        item = self.queue[self.front]
+        self.queue[self.front] = None  # 清空該位置
+        
+        # 如果這是最後一個元素
+        if self.front == self.rear:
+            self.front = -1
+            self.rear = -1
+        else:
+            # 移動 front 指針
+            self.front = (self.front + 1) % self.capacity
+        
+        self.size -= 1
+        return item
+    
+    def peek(self):
+        """查看佇列頭部元素但不移除"""
+        if self.is_empty():
+            return None  # 佇列為空
+        return self.queue[self.front]
+    
+    def get_size(self):
+        """返回佇列中的元素數量"""
+        return self.size
+    
+    def __str__(self):
+        """返回環形佇列的字符串表示"""
+        if self.is_empty():
+            return "[]"
+        
+        result = []
+        index = self.front
+        for _ in range(self.size):
+            result.append(self.queue[index])
+            index = (index + 1) % self.capacity
+        
+        return str(result)
+
+
+# 使用示例
+if __name__ == "__main__":
+    # 創建一個容量為 5 的環形佇列
+    cq = CircularQueue(5)
+    print(f"初始環形佇列: {cq}")
+    
+    # 入隊操作
+    print("\n執行入隊操作:")
+    fruits = ["蘋果", "香蕉", "橙子", "草莓", "葡萄"]
+    for fruit in fruits:
+        success = cq.enqueue(fruit)
+        print(f"入隊 '{fruit}': {'成功' if success else '失敗'}, 佇列: {cq}")
+    
+    # 嘗試在已滿的佇列中入隊
+    success = cq.enqueue("西瓜")
+    print(f"入隊 '西瓜': {'成功' if success else '失敗 (佇列已滿)'}, 佇列: {cq}")
+    
+    # 出隊操作
+    print("\n執行出隊操作:")
+    for _ in range(3):
+        item = cq.dequeue()
+        print(f"出隊: {item}, 剩餘佇列: {cq}")
+    
+    # 在出隊後繼續入隊
+    print("\n出隊後繼續入隊:")
+    new_fruits = ["西瓜", "芒果"]
+    for fruit in new_fruits:
+        success = cq.enqueue(fruit)
+        print(f"入隊 '{fruit}': {'成功' if success else '失敗'}, 佇列: {cq}")
+    
+    # 查看隊首元素
+    print(f"\n隊首元素: {cq.peek()}")
+    print(f"佇列大小: {cq.get_size()}")
+    print(f"佇列容量: {cq.capacity}")
+    
+    # 清空佇列
+    print("\n清空佇列:")
+    while not cq.is_empty():
+        item = cq.dequeue()
+        print(f"出隊: {item}, 剩餘佇列: {cq}")
+</code></pre>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h3 class="font-bold mb-2">執行結果：</h3>
+                    <div class="bg-gray-100 p-4 rounded-lg text-sm font-mono">
+                        <pre>初始環形佇列: []
+
+執行入隊操作:
+入隊 '蘋果': 成功, 佇列: ['蘋果']
+入隊 '香蕉': 成功, 佇列: ['蘋果', '香蕉']
+入隊 '橙子': 成功, 佇列: ['蘋果', '香蕉', '橙子']
+入隊 '草莓': 成功, 佇列: ['蘋果', '香蕉', '橙子', '草莓']
+入隊 '葡萄': 成功, 佇列: ['蘋果', '香蕉', '橙子', '草莓', '葡萄']
+入隊 '西瓜': 失敗 (佇列已滿), 佇列: ['蘋果', '香蕉', '橙子', '草莓', '葡萄']
+
+執行出隊操作:
+出隊: 蘋果, 剩餘佇列: ['香蕉', '橙子', '草莓', '葡萄']
+出隊: 香蕉, 剩餘佇列: ['橙子', '草莓', '葡萄']
+出隊: 橙子, 剩餘佇列: ['草莓', '葡萄']
+
+出隊後繼續入隊:
+入隊 '西瓜': 成功, 佇列: ['草莓', '葡萄', '西瓜']
+入隊 '芒果': 成功, 佇列: ['草莓', '葡萄', '西瓜', '芒果']
+
+隊首元素: 草莓
+佇列大小: 4
+佇列容量: 5
+
+清空佇列:
+出隊: 草莓, 剩餘佇列: ['葡萄', '西瓜', '芒果']
+出隊: 葡萄, 剩餘佇列: ['西瓜', '芒果']
+出隊: 西瓜, 剩餘佇列: ['芒果']
+出隊: 芒果, 剩餘佇列: []</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化語法高亮
+            hljs.highlightAll();
+            
+            // 複製代碼功能
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const codeType = this.getAttribute('data-code');
+                    const codeElement = document.querySelector(`[data-code="${codeType}"]`).parentElement.nextElementSibling.querySelector('code');
+                    const textToCopy = codeElement.textContent;
+                    
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        const originalText = this.textContent;
+                        this.textContent = '已複製！';
+                        setTimeout(() => {
+                            this.textContent = originalText;
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('複製失敗:', err);
+                    });
+                });
+            });
+            
+            // 食物表情符號列表
+            const foodEmojis = ['🍎', '🍌', '🍊', '🍓', '🍇', '🍉', '🍍', '🥭', '🍑', '🍒', '🥝', '🍋', '🥥', '🍈', '🍏'];
+            
+            // 切換標籤頁
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 移除所有活動狀態
+                    tabBtns.forEach(b => {
+                        b.classList.remove('bg-red-600', 'text-white');
+                        b.classList.add('text-gray-600', 'hover:text-red-600');
+                    });
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    // 設置當前標籤為活動狀態
+                    btn.classList.remove('text-gray-600', 'hover:text-red-600');
+                    btn.classList.add('bg-red-600', 'text-white');
+                    
+                    // 顯示對應內容
+                    const contentId = 'content-' + btn.id.split('-')[1];
+                    document.getElementById(contentId).classList.add('active');
+                });
+            });
+            
+            //===== 陣列 (Array) 功能 =====//
+            let arrayData = ['🍎', '🍌', '🍊'];
+            const arrayVisual = document.getElementById('array-visual');
+            const arrayLog = document.getElementById('array-log');
+            
+            // 渲染陣列
+            function renderArray() {
+                arrayVisual.innerHTML = '';
+                
+                if (arrayData.length === 0) {
+                    arrayVisual.innerHTML = '<div class="text-gray-500 py-8">陣列為空，請添加食物</div>';
+                    return;
+                }
+                
+                arrayData.forEach((food, index) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'data-cell flex flex-col items-center justify-center bg-white';
+                    cell.innerHTML = `
+                        <div class="food-emoji mb-2">${food}</div>
+                        <div class="text-xs text-gray-500">索引: ${index}</div>
+                    `;
+                    
+                    // 添加點擊事件來移除食物
+                    cell.addEventListener('click', () => removeArrayItem(index));
+                    
+                    arrayVisual.appendChild(cell);
+                });
+            }
+            
+            // 添加陣列日誌
+            function addArrayLog(message) {
+                const logEntry = document.createElement('div');
+                logEntry.className = 'py-1 border-b border-gray-200';
+                logEntry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+                arrayLog.prepend(logEntry);
+                
+                // 限制日誌條目數量
+                if (arrayLog.children.length > 10) {
+                    arrayLog.removeChild(arrayLog.lastChild);
+                }
+            }
+            
+            // 在開頭添加食物
+            function addArrayItemAtStart() {
+                const randomFood = getRandomFood();
+                arrayData.unshift(randomFood);
+                renderArray();
+                addArrayLog(`在開頭添加了 ${randomFood}，現在陣列長度為 ${arrayData.length}`);
+                highlightArrayCell(0);
+            }
+            
+            // 在結尾添加食物
+            function addArrayItemAtEnd() {
+                const randomFood = getRandomFood();
+                arrayData.push(randomFood);
+                renderArray();
+                addArrayLog(`在結尾添加了 ${randomFood}，現在陣列長度為 ${arrayData.length}`);
+                highlightArrayCell(arrayData.length - 1);
+            }
+            
+            // 在隨機位置添加食物
+            function addArrayItemAtRandom() {
+                if (arrayData.length === 0) {
+                    addArrayItemAtStart();
+                    return;
+                }
+                
+                const randomIndex = Math.floor(Math.random() * (arrayData.length + 1));
+                const randomFood = getRandomFood();
+                
+                arrayData.splice(randomIndex, 0, randomFood);
+                renderArray();
+                addArrayLog(`在索引 ${randomIndex} 處添加了 ${randomFood}，現在陣列長度為 ${arrayData.length}`);
+                highlightArrayCell(randomIndex);
+            }
+            
+            // 移除陣列元素
+            function removeArrayItem(index) {
+                const removedFood = arrayData[index];
+                arrayData.splice(index, 1);
+                renderArray();
+                addArrayLog(`移除了索引 ${index} 處的 ${removedFood}，現在陣列長度為 ${arrayData.length}`);
+            }
+            
+            // 重置陣列
+            function resetArray() {
+                arrayData = ['🍎', '🍌', '🍊'];
+                renderArray();
+                addArrayLog('陣列已重置');
+            }
+            
+            // 高亮顯示陣列單元格
+            function highlightArrayCell(index) {
+                setTimeout(() => {
+                    const cells = arrayVisual.querySelectorAll('.data-cell');
+                    if (cells[index]) {
+                        cells[index].classList.add('highlight');
+                        setTimeout(() => {
+                            cells[index].classList.remove('highlight');
+                        }, 1000);
+                    }
+                }, 10);
+            }
+            
+            // 添加陣列事件監聽器
+            document.getElementById('add-start').addEventListener('click', addArrayItemAtStart);
+            document.getElementById('add-end').addEventListener('click', addArrayItemAtEnd);
+            document.getElementById('add-random').addEventListener('click', addArrayItemAtRandom);
+            document.getElementById('reset-array').addEventListener('click', resetArray);
+            
+            //===== 佇列 (Queue) 功能 =====//
+            let queueData = ['🍎', '🍌', '🍊'];
+            const queueVisual = document.getElementById('queue-visual');
+            const queueLog = document.getElementById('queue-log');
+            
+            // 渲染佇列
+            function renderQueue() {
+                queueVisual.innerHTML = '';
+                
+                if (queueData.length === 0) {
+                    queueVisual.innerHTML = '<div class="text-gray-500 py-8">佇列為空，請添加食物</div>';
+                    return;
+                }
+                
+                queueData.forEach((food, index) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'data-cell flex flex-col items-center justify-center bg-white';
+                    
+                    // 為隊首和隊尾添加特殊樣式
+                    let specialClass = '';
+                    let specialLabel = '';
+                    
+                    if (index === 0) {
+                        specialClass = 'border-2 border-blue-500';
+                        specialLabel = '<div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">隊首</div>';
+                    }
+                    
+                    if (index === queueData.length - 1) {
+                        specialClass = index === 0 ? 'border-2 border-purple-500' : 'border-2 border-red-500';
+                        specialLabel = index === 0 ? 
+                            '<div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">隊首/隊尾</div>' : 
+                            '<div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded">隊尾</div>';
+                    }
+                    
+                    cell.className += ' ' + specialClass;
+                    cell.innerHTML = `
+                        ${specialLabel}
+                        <div class="food-emoji mb-2">${food}</div>
+                        <div class="text-xs text-gray-500">索引: ${index}</div>
+                    `;
+                    
+                    queueVisual.appendChild(cell);
+                });
+            }
+            
+            // 添加佇列日誌
+            function addQueueLog(message) {
+                const logEntry = document.createElement('div');
+                logEntry.className = 'py-1 border-b border-gray-200';
+                logEntry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+                queueLog.prepend(logEntry);
+                
+                // 限制日誌條目數量
+                if (queueLog.children.length > 10) {
+                    queueLog.removeChild(queueLog.lastChild);
+                }
+            }
+            
+            // 入隊操作
+            function enqueue() {
+                const randomFood = getRandomFood();
+                queueData.push(randomFood);
+                renderQueue();
+                addQueueLog(`入隊: 添加了 ${randomFood}，現在佇列長度為 ${queueData.length}`);
+                highlightQueueCell(queueData.length - 1);
+            }
+            
+            // 出隊操作
+            function dequeue() {
+                if (queueData.length === 0) {
+                    addQueueLog('出隊失敗: 佇列為空');
+                    return;
+                }
+                
+                const removedFood = queueData.shift();
+                renderQueue();
+                addQueueLog(`出隊: 移除了 ${removedFood}，現在佇列長度為 ${queueData.length}`);
+            }
+            
+            // 重置佇列
+            function resetQueue() {
+                queueData = ['🍎', '🍌', '🍊'];
+                renderQueue();
+                addQueueLog('佇列已重置');
+            }
+            
+            // 高亮顯示佇列單元格
+            function highlightQueueCell(index) {
+                setTimeout(() => {
+                    const cells = queueVisual.querySelectorAll('.data-cell');
+                    if (cells[index]) {
+                        cells[index].classList.add('highlight');
+                        setTimeout(() => {
+                            cells[index].classList.remove('highlight');
+                        }, 1000);
+                    }
+                }, 10);
+            }
+            
+            // 添加佇列事件監聽器
+            document.getElementById('enqueue').addEventListener('click', enqueue);
+            document.getElementById('dequeue').addEventListener('click', dequeue);
+            document.getElementById('reset-queue').addEventListener('click', resetQueue);
+            
+            //===== 環形佇列 (Circular Queue) 功能 =====//
+            const CIRCULAR_SIZE = 8; // 環形佇列的大小
+            let circularQueue = Array(CIRCULAR_SIZE).fill(null);
+            let frontPointer = -1;
+            let rearPointer = -1;
+            
+            const circularVisual = document.getElementById('circular-visual');
+            const circularLog = document.getElementById('circular-log');
+            
+            // 渲染環形佇列
+            function renderCircularQueue() {
+                // 清除之前的元素和指針
+                const existingCells = circularVisual.querySelectorAll('.circular-cell');
+                const existingPointers = circularVisual.querySelectorAll('.pointer');
+                
+                existingCells.forEach(cell => cell.remove());
+                existingPointers.forEach(pointer => pointer.remove());
+                
+                // 計算環形佇列中的位置
+                const centerX = 150;
+                const centerY = 150;
+                const radius = 90;
+                
+                for (let i = 0; i < CIRCULAR_SIZE; i++) {
+                    // 計算角度和位置
+                    const angle = (i * (2 * Math.PI / CIRCULAR_SIZE)) - Math.PI / 2;
+                    const x = centerX + radius * Math.cos(angle);
+                    const y = centerY + radius * Math.sin(angle);
+                    
+                    // 創建單元格
+                    const cell = document.createElement('div');
+                    cell.className = 'circular-cell';
+                    cell.style.left = `${x - 30}px`;
+                    cell.style.top = `${y - 30}px`;
+                    
+                    // 如果該位置有數據，顯示食物表情符號
+                    if (circularQueue[i] !== null) {
+                        cell.innerHTML = `
+                            <div class="food-emoji">${circularQueue[i]}</div>
+                            <div class="text-xs text-gray-500">位置: ${i}</div>
+                        `;
+                        cell.style.backgroundColor = '#FFFFFF';
+                    } else {
+                        cell.innerHTML = `
+                            <div class="text-gray-300 text-2xl">⚪</div>
+                            <div class="text-xs text-gray-500">位置: ${i}</div>
+                        `;
+                        cell.style.backgroundColor = '#F9FAFB';
+                    }
+                    
+                    circularVisual.appendChild(cell);
+                    
+                    // 添加指針
+                    if (frontPointer !== -1 && i === frontPointer) {
+                        const pointer = document.createElement('div');
+                        pointer.className = 'pointer front-pointer';
+                        pointer.textContent = 'F';
+                        pointer.style.left = `${x - 10}px`;
+                        pointer.style.top = `${y - 45}px`;
+                        circularVisual.appendChild(pointer);
+                    }
+                    
+                    if (rearPointer !== -1 && i === rearPointer) {
+                        const pointer = document.createElement('div');
+                        pointer.className = 'pointer rear-pointer';
+                        pointer.textContent = 'R';
+                        pointer.style.left = `${x - 10}px`;
+                        pointer.style.top = `${y - 45}px`;
+                        
+                        // 如果前後指針在同一位置，調整位置
+                        if (frontPointer === rearPointer) {
+                            pointer.style.left = `${x + 10}px`;
+                        }
+                        
+                        circularVisual.appendChild(pointer);
+                    }
+                }
+            }
+            
+            // 添加環形佇列日誌
+            function addCircularLog(message) {
+                const logEntry = document.createElement('div');
+                logEntry.className = 'py-1 border-b border-gray-200';
+                logEntry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+                circularLog.prepend(logEntry);
+                
+                // 限制日誌條目數量
+                if (circularLog.children.length > 10) {
+                    circularLog.removeChild(circularLog.lastChild);
+                }
+            }
+            
+            // 環形佇列入隊操作
+            function circularEnqueue() {
+                // 檢查是否已滿
+                if ((rearPointer + 1) % CIRCULAR_SIZE === frontPointer) {
+                    addCircularLog('入隊失敗: 環形佇列已滿');
+                    return;
+                }
+                
+                // 如果是第一個元素
+                if (frontPointer === -1) {
+                    frontPointer = 0;
+                }
+                
+                // 移動 rear 指針並添加元素
+                rearPointer = (rearPointer + 1) % CIRCULAR_SIZE;
+                const randomFood = getRandomFood();
+                circularQueue[rearPointer] = randomFood;
+                
+                renderCircularQueue();
+                addCircularLog(`入隊: 在位置 ${rearPointer} 添加了 ${randomFood}`);
+            }
+            
+            // 環形佇列出隊操作
+            function circularDequeue() {
+                // 檢查是否為空
+                if (frontPointer === -1) {
+                    addCircularLog('出隊失敗: 環形佇列為空');
+                    return;
+                }
+                
+                // 獲取要移除的元素
+                const removedFood = circularQueue[frontPointer];
+                circularQueue[frontPointer] = null;
+                
+                // 如果只有一個元素
+                if (frontPointer === rearPointer) {
+                    frontPointer = rearPointer = -1;
+                } else {
+                    // 移動 front 指針
+                    frontPointer = (frontPointer + 1) % CIRCULAR_SIZE;
+                }
+                
+                renderCircularQueue();
+                addCircularLog(`出隊: 移除了位置 ${frontPointer === 0 ? CIRCULAR_SIZE - 1 : frontPointer - 1} 的 ${removedFood}`);
+            }
+            
+            // 重置環形佇列
+            function resetCircularQueue() {
+                circularQueue = Array(CIRCULAR_SIZE).fill(null);
+                frontPointer = -1;
+                rearPointer = -1;
+                
+                renderCircularQueue();
+                addCircularLog('環形佇列已重置');
+            }
+            
+            // 添加環形佇列事件監聽器
+            document.getElementById('circular-enqueue').addEventListener('click', circularEnqueue);
+            document.getElementById('circular-dequeue').addEventListener('click', circularDequeue);
+            document.getElementById('reset-circular').addEventListener('click', resetCircularQueue);
+            
+            // 獲取隨機食物表情符號
+            function getRandomFood() {
+                return foodEmojis[Math.floor(Math.random() * foodEmojis.length)];
+            }
+            
+            // 初始化所有視覺化
+            renderArray();
+            addArrayLog('陣列已初始化');
+            
+            renderQueue();
+            addQueueLog('佇列已初始化');
+            
+            renderCircularQueue();
+            addCircularLog('環形佇列已初始化');
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a4774f596f1dd8c',t:'MTc2NDEzOTg4Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
