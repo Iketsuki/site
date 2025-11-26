@@ -1,0 +1,983 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python 迴圈詳解 - for 與 while 迴圈</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f9ff;
+        }
+        
+        .code-block {
+            font-family: monospace;
+            background-color: #2d3748;
+            color: #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            position: relative;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            white-space: pre-wrap;
+        }
+        
+        .character {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            z-index: 10;
+        }
+        
+        .speech-bubble {
+            position: relative;
+            background: #ffffff;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-left: 80px;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .speech-bubble:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 0;
+            height: 0;
+            border: 20px solid transparent;
+            border-right-color: #ffffff;
+            border-left: 0;
+            margin-top: -20px;
+            margin-left: -20px;
+        }
+        
+        .interactive-area {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn {
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .concept-card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-left: 6px solid #4c1d95;
+            transition: transform 0.3s ease;
+        }
+        
+        .concept-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 1.5rem 0;
+        }
+        
+        .comparison-table th, .comparison-table td {
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .comparison-table th {
+            background-color: #f3e8ff;
+            color: #4c1d95;
+            font-weight: bold;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background-color: #faf5ff;
+        }
+        
+        .step-card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-left: 6px solid #4c1d95;
+            display: flex;
+            align-items: center;
+        }
+        
+        .step-number {
+            background-color: #4c1d95;
+            color: white;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .pseudocode {
+            font-family: monospace;
+            background-color: #f8fafc;
+            border-left: 4px solid #a855f7;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #334155;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .animation-container {
+            position: relative;
+            height: 200px;
+            background-color: #f8fafc;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+        
+        .loop-element {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            transition: all 0.5s ease;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .highlight {
+            background-color: #fef9c3;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+        }
+        
+        .note-card {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+        }
+        
+        .example-card {
+            background-color: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+        }
+        
+        .warning-card {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <header class="text-center mb-12">
+            <div class="flex justify-center mb-4">
+                <svg class="w-24 h-24 float-animation" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" fill="#4c1d95" />
+                    <circle cx="50" cy="50" r="40" fill="#7c3aed" />
+                    <path d="M30,35 Q50,20 70,35" stroke="#fff" stroke-width="3" fill="none" />
+                    <circle cx="35" cy="45" r="5" fill="#fff" />
+                    <circle cx="65" cy="45" r="5" fill="#fff" />
+                    <path d="M40,65 Q50,75 60,65" stroke="#fff" stroke-width="3" fill="none" />
+                </svg>
+            </div>
+            <h1 class="text-4xl font-bold text-purple-900 mb-2">Python 迴圈詳解</h1>
+            <p class="text-xl text-purple-700">深入理解 for 迴圈與 while 迴圈的運作原理</p>
+        </header>
+
+        <div class="flex items-center mb-8">
+            <svg class="character float-animation" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="40" r="30" fill="#7c3aed" />
+                <circle cx="40" cy="35" r="5" fill="#fff" />
+                <circle cx="60" cy="35" r="5" fill="#fff" />
+                <circle cx="40" cy="35" r="2" fill="#000" />
+                <circle cx="60" cy="35" r="2" fill="#000" />
+                <path d="M40,50 Q50,55 60,50" stroke="#fff" stroke-width="2" fill="none" />
+                <rect x="35" y="70" width="30" height="20" fill="#7c3aed" rx="5" />
+                <rect x="25" y="75" width="10" height="30" fill="#7c3aed" rx="5" />
+                <rect x="65" y="75" width="10" height="30" fill="#7c3aed" rx="5" />
+            </svg>
+            <div class="speech-bubble">
+                <p class="text-lg">嗨！我是小紫，今天我們將深入探討 Python 中的迴圈結構。我會詳細解釋 for 迴圈和 while 迴圈的運作原理，以及如何用 while 迴圈實現 for 迴圈的功能。準備好了嗎？</p>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-xl p-4">
+                <h2 class="text-2xl font-bold">迴圈的基本概念</h2>
+            </div>
+            <div class="bg-white rounded-b-xl p-6 shadow-lg">
+                <p class="mb-4">在程式設計中，迴圈是一種重複執行特定程式碼區塊的控制結構。Python 主要有兩種迴圈：</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h3 class="text-xl font-bold text-purple-800 mb-3">for 迴圈</h3>
+                        <p>用於已知迭代次數的情況，通常用來遍歷序列（如列表、字串）或在指定範圍內重複執行。</p>
+                        <div class="code-block mt-3">
+                            <pre><code>for 變數 in 序列:
+    # 執行的程式碼</code></pre>
+                        </div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h3 class="text-xl font-bold text-purple-800 mb-3">while 迴圈</h3>
+                        <p>用於未知迭代次數的情況，只要條件為真就會持續執行，直到條件變為假。</p>
+                        <div class="code-block mt-3">
+                            <pre><code>while 條件:
+    # 執行的程式碼</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="note-card">
+                    <h4 class="font-bold text-amber-600 mb-2">重要概念</h4>
+                    <p>迴圈是程式設計中最強大的工具之一，它讓我們能夠用少量的程式碼完成重複性的工作。想像一下，如果沒有迴圈，你需要複製貼上相同的程式碼多次來完成重複任務！</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-xl p-4">
+                <h2 class="text-2xl font-bold">for 迴圈詳解</h2>
+            </div>
+            <div class="bg-white rounded-b-xl p-6 shadow-lg">
+                <h3 class="text-xl font-bold text-purple-800 mb-4">for 迴圈的基本結構</h3>
+                
+                <div class="code-block">
+                    <pre><code>for 變數 in 可迭代物件:
+    # 執行的程式碼區塊</code></pre>
+                </div>
+                
+                <h3 class="text-xl font-bold text-purple-800 mb-4 mt-6">for 迴圈的運作原理</h3>
+                
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div>
+                        <h4 class="font-bold text-purple-800">初始化</h4>
+                        <p>Python 取得可迭代物件（如列表、字串、range 等）並準備進行迭代。</p>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div>
+                        <h4 class="font-bold text-purple-800">迭代</h4>
+                        <p>Python 從可迭代物件中取出第一個元素，將其賦值給迴圈變數。</p>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div>
+                        <h4 class="font-bold text-purple-800">執行程式碼區塊</h4>
+                        <p>執行 for 迴圈內的程式碼區塊。</p>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <div>
+                        <h4 class="font-bold text-purple-800">重複步驟 2-3</h4>
+                        <p>Python 取出下一個元素，賦值給迴圈變數，然後執行程式碼區塊。這個過程會一直重複，直到所有元素都被處理完畢。</p>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">5</div>
+                    <div>
+                        <h4 class="font-bold text-purple-800">結束迴圈</h4>
+                        <p>當所有元素都被處理完畢後，迴圈結束，程式繼續執行迴圈之後的程式碼。</p>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-bold text-purple-800 mb-4 mt-6">for 迴圈的常見用法</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-purple-700 mb-2">使用 range() 函數</h4>
+                        <div class="code-block">
+                            <pre><code># 印出 0 到 4 的數字
+for i in range(5):
+    print(i)
+
+# 輸出:
+# 0
+# 1
+# 2
+# 3
+# 4</code></pre>
+                        </div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-purple-700 mb-2">遍歷列表</h4>
+                        <div class="code-block">
+                            <pre><code># 遍歷水果列表
+水果 = ["蘋果", "香蕉", "橘子"]
+for 水果名稱 in 水果:
+    print(水果名稱)
+
+# 輸出:
+# 蘋果
+# 香蕉
+# 橘子</code></pre>
+                        </div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-purple-700 mb-2">遍歷字串</h4>
+                        <div class="code-block">
+                            <pre><code># 遍歷字串中的每個字符
+名字 = "小紫"
+for 字符 in 名字:
+    print(字符)
+
+# 輸出:
+# 小
+# 紫</code></pre>
+                        </div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-purple-700 mb-2">使用 enumerate() 函數</h4>
+                        <div class="code-block">
+                            <pre><code># 同時獲取索引和值
+水果 = ["蘋果", "香蕉", "橘子"]
+for 索引, 水果名稱 in enumerate(水果):
+    print(f"索引 {索引}: {水果名稱}")
+
+# 輸出:
+# 索引 0: 蘋果
+# 索引 1: 香蕉
+# 索引 2: 橘子</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pseudocode">
+                    <h4 class="font-bold mb-2">for 迴圈的傳統中文虛擬碼</h4>
+                    <pre>對於 序列中的每個元素:
+    將元素賦值給變數
+    執行程式碼區塊
+迴圈結束後繼續執行</pre>
+                </div>
+                
+                <div class="example-card mt-6">
+                    <h4 class="font-bold text-green-600 mb-2">生活例子</h4>
+                    <p>想像你是一位老師，需要點名班上的每個學生。你有一份學生名單，從第一個學生開始，一個接一個地點名，直到所有學生都被點到。這就像 for 迴圈遍歷一個學生列表，每次處理一個學生名字。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-xl p-4">
+                <h2 class="text-2xl font-bold">while 迴圈詳解</h2>
+            </div>
+            <div class="bg-white rounded-b-xl p-6 shadow-lg">
+                <h3 class="text-xl font-bold text-purple-800 mb-4">while 迴圈的基本結構</h3>
+                
+                <div class="code-block">
+                    <pre><code>while 條件:
+    # 執行的程式碼區塊</code></pre>
+                </div>
+                
+                <h3 class="text-xl font-bold text-purple-800 mb-4 mt-6">while 迴圈的運作原理</h3>
+                
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div>
+                        <h4 class="font-bold text-purple-800">檢查條件</h4>
+                        <p>Python 評估 while 後面的條件表達式。</p>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div>
+                        <h4 class="font-bold text-purple-800">條件為真時執行</h4>
+                        <p>如果條件為真（True），則執行 while 迴圈內的程式碼區塊。</p>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div>
+                        <h4 class="font-bold text-purple-800">重新檢查條件</h4>
+                        <p>執行完程式碼區塊後，回到步驟 1，重新評估條件。</p>
+                    </div>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <div>
+                        <h4 class="font-bold text-purple-800">條件為假時結束</h4>
+                        <p>如果條件為假（False），則結束迴圈，程式繼續執行迴圈之後的程式碼。</p>
+                    </div>
+                </div>
+                
+                <div class="warning-card mt-6">
+                    <h4 class="font-bold text-red-600 mb-2">注意事項</h4>
+                    <p>使用 while 迴圈時，必須確保在某個時刻條件會變為假，否則會形成無限迴圈，導致程式永遠不會結束。通常需要在迴圈內部修改用於條件判斷的變數。</p>
+                </div>
+                
+                <h3 class="text-xl font-bold text-purple-800 mb-4 mt-6">while 迴圈的常見用法</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-purple-700 mb-2">計數器迴圈</h4>
+                        <div class="code-block">
+                            <pre><code># 印出 0 到 4 的數字
+計數器 = 0
+while 計數器 < 5:
+    print(計數器)
+    計數器 += 1  # 等同於 計數器 = 計數器 + 1
+
+# 輸出:
+# 0
+# 1
+# 2
+# 3
+# 4</code></pre>
+                        </div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-purple-700 mb-2">條件控制迴圈</h4>
+                        <div class="code-block">
+                            <pre><code># 猜數字遊戲
+import random
+目標數字 = random.randint(1, 10)
+猜對了 = False
+
+while not 猜對了:
+    猜測 = int(input("猜一個 1-10 的數字: "))
+    if 猜測 == 目標數字:
+        print("恭喜你猜對了！")
+        猜對了 = True
+    else:
+        print("猜錯了，再試一次！")</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pseudocode">
+                    <h4 class="font-bold mb-2">while 迴圈的傳統中文虛擬碼</h4>
+                    <pre>當 條件為真 時:
+    執行程式碼區塊
+    (通常需要更新條件相關的變數)
+條件為假時結束迴圈</pre>
+                </div>
+                
+                <div class="example-card mt-6">
+                    <h4 class="font-bold text-green-600 mb-2">生活例子</h4>
+                    <p>想像你在洗碗，只要還有髒碗盤，你就會繼續洗。你不知道確切有多少碗盤需要洗（未知迭代次數），但你知道「當沒有髒碗盤時」就可以停止了（結束條件）。這就是 while 迴圈的工作方式。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-xl p-4">
+                <h2 class="text-2xl font-bold">用 while 迴圈實現 for 迴圈功能</h2>
+            </div>
+            <div class="bg-white rounded-b-xl p-6 shadow-lg">
+                <p class="mb-6">在 Python 中，for 迴圈實際上是 while 迴圈的一種語法糖（syntactic sugar），意味著 for 迴圈可以用 while 迴圈來實現。讓我們看看如何用 while 迴圈來模擬 for 迴圈的行為。</p>
+                
+                <h3 class="text-xl font-bold text-purple-800 mb-4">模擬 for 迴圈遍歷 range()</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h4 class="font-bold text-purple-700 mb-2">使用 for 迴圈</h4>
+                        <div class="code-block">
+                            <pre><code># 使用 for 迴圈印出 0 到 4 的數字
+for i in range(5):
+    print(i)</code></pre>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-purple-700 mb-2">使用 while 迴圈實現相同功能</h4>
+                        <div class="code-block">
+                            <pre><code># 使用 while 迴圈實現相同功能
+i = 0
+while i < 5:
+    print(i)
+    i += 1</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-bold text-purple-800 mb-4 mt-6">模擬 for 迴圈遍歷列表</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h4 class="font-bold text-purple-700 mb-2">使用 for 迴圈</h4>
+                        <div class="code-block">
+                            <pre><code># 使用 for 迴圈遍歷列表
+水果 = ["蘋果", "香蕉", "橘子"]
+for 水果名稱 in 水果:
+    print(水果名稱)</code></pre>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-purple-700 mb-2">使用 while 迴圈實現相同功能</h4>
+                        <div class="code-block">
+                            <pre><code># 使用 while 迴圈實現相同功能
+水果 = ["蘋果", "香蕉", "橘子"]
+索引 = 0
+while 索引 < len(水果):
+    水果名稱 = 水果[索引]
+    print(水果名稱)
+    索引 += 1</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-bold text-purple-800 mb-4 mt-6">模擬 for 迴圈遍歷字串</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h4 class="font-bold text-purple-700 mb-2">使用 for 迴圈</h4>
+                        <div class="code-block">
+                            <pre><code># 使用 for 迴圈遍歷字串
+名字 = "小紫"
+for 字符 in 名字:
+    print(字符)</code></pre>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-purple-700 mb-2">使用 while 迴圈實現相同功能</h4>
+                        <div class="code-block">
+                            <pre><code># 使用 while 迴圈實現相同功能
+名字 = "小紫"
+索引 = 0
+while 索引 < len(名字):
+    字符 = 名字[索引]
+    print(字符)
+    索引 += 1</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="note-card mt-6">
+                    <h4 class="font-bold text-amber-600 mb-2">for 迴圈轉換為 while 迴圈的一般步驟</h4>
+                    <ol class="list-decimal pl-6 space-y-2">
+                        <li>創建一個索引變數（通常初始化為 0）</li>
+                        <li>設定 while 條件為「索引 < 序列長度」</li>
+                        <li>在迴圈內部，從序列中獲取當前索引的元素</li>
+                        <li>執行原 for 迴圈中的程式碼</li>
+                        <li>增加索引值（索引 += 1）</li>
+                    </ol>
+                </div>
+                
+                <div class="pseudocode mt-6">
+                    <h4 class="font-bold mb-2">for 迴圈轉換為 while 迴圈的傳統中文虛擬碼</h4>
+                    <pre># for 迴圈
+對於 序列中的每個元素:
+    執行程式碼區塊
+
+# 等價的 while 迴圈
+索引 = 0
+當 索引 < 序列長度 時:
+    元素 = 序列[索引]
+    執行程式碼區塊
+    索引 = 索引 + 1</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-xl p-4">
+                <h2 class="text-2xl font-bold">迴圈比較與選擇指南</h2>
+            </div>
+            <div class="bg-white rounded-b-xl p-6 shadow-lg">
+                <h3 class="text-xl font-bold text-purple-800 mb-4">for 迴圈與 while 迴圈的比較</h3>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>特性</th>
+                            <th>for 迴圈</th>
+                            <th>while 迴圈</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>適用場景</td>
+                            <td>已知迭代次數或需要遍歷序列</td>
+                            <td>未知迭代次數或基於條件的迭代</td>
+                        </tr>
+                        <tr>
+                            <td>控制方式</td>
+                            <td>自動遍歷序列中的每個元素</td>
+                            <td>基於條件表達式的真假</td>
+                        </tr>
+                        <tr>
+                            <td>迭代變數</td>
+                            <td>自動賦值</td>
+                            <td>需要手動更新</td>
+                        </tr>
+                        <tr>
+                            <td>無限迴圈風險</td>
+                            <td>低（序列有限時）</td>
+                            <td>高（如果忘記更新條件）</td>
+                        </tr>
+                        <tr>
+                            <td>程式碼簡潔度</td>
+                            <td>通常更簡潔</td>
+                            <td>可能需要更多程式碼</td>
+                        </tr>
+                        <tr>
+                            <td>靈活性</td>
+                            <td>較低（固定遍歷模式）</td>
+                            <td>較高（可以根據複雜條件控制）</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3 class="text-xl font-bold text-purple-800 mb-4 mt-6">何時使用 for 迴圈</h3>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li>當你知道需要執行的確切次數</li>
+                    <li>當你需要遍歷序列（列表、元組、字串等）中的每個元素</li>
+                    <li>當你使用 range() 函數生成一個數字序列</li>
+                    <li>當你需要同時獲取索引和值（使用 enumerate()）</li>
+                </ul>
+                
+                <h3 class="text-xl font-bold text-purple-800 mb-4 mt-6">何時使用 while 迴圈</h3>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li>當迭代次數事先未知</li>
+                    <li>當你需要基於某個條件來控制迴圈</li>
+                    <li>當你需要在滿足特定條件時才結束迴圈</li>
+                    <li>當你需要實現更複雜的迴圈控制邏輯</li>
+                </ul>
+                
+                <div class="example-card mt-6">
+                    <h4 class="font-bold text-green-600 mb-2">選擇指南</h4>
+                    <p>如果你能回答「我需要重複這個動作多少次？」，通常使用 for 迴圈更合適。如果你的回答是「直到某個條件成立為止」，那麼 while 迴圈可能是更好的選擇。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-xl p-4">
+                <h2 class="text-2xl font-bold">互動練習：迴圈轉換</h2>
+            </div>
+            <div class="bg-white rounded-b-xl p-6 shadow-lg">
+                <h3 class="text-xl font-bold text-purple-800 mb-4">練習 1：將 for 迴圈轉換為 while 迴圈</h3>
+                
+                <div class="bg-purple-50 p-4 rounded-lg mb-6">
+                    <h4 class="font-bold text-purple-700 mb-2">原始 for 迴圈程式碼</h4>
+                    <div class="code-block">
+                        <pre><code># 計算 1 到 10 的總和
+總和 = 0
+for 數字 in range(1, 11):
+    總和 += 數字
+print("總和是:", 總和)</code></pre>
+                    </div>
+                </div>
+                
+                <button id="show-solution1" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg btn mb-4">顯示解答</button>
+                
+                <div id="solution1" class="bg-green-50 p-4 rounded-lg mb-6 hidden">
+                    <h4 class="font-bold text-green-700 mb-2">等價的 while 迴圈程式碼</h4>
+                    <div class="code-block">
+                        <pre><code># 計算 1 到 10 的總和
+總和 = 0
+數字 = 1
+while 數字 <= 10:
+    總和 += 數字
+    數字 += 1
+print("總和是:", 總和)</code></pre>
+                    </div>
+                    <p class="mt-3">解釋：</p>
+                    <ol class="list-decimal pl-6 space-y-1">
+                        <li>我們創建了一個變數 <code>數字</code> 並初始化為 1（range 的起始值）</li>
+                        <li>while 條件設為 <code>數字 <= 10</code>（range 的結束值）</li>
+                        <li>在迴圈內部，我們執行與 for 迴圈相同的操作</li>
+                        <li>最後，我們增加 <code>數字</code> 的值，使迴圈能夠進行到下一個數字</li>
+                    </ol>
+                </div>
+                
+                <h3 class="text-xl font-bold text-purple-800 mb-4 mt-6">練習 2：將 for 迴圈轉換為 while 迴圈</h3>
+                
+                <div class="bg-purple-50 p-4 rounded-lg mb-6">
+                    <h4 class="font-bold text-purple-700 mb-2">原始 for 迴圈程式碼</h4>
+                    <div class="code-block">
+                        <pre><code># 印出列表中的偶數
+數字列表 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+for 數字 in 數字列表:
+    if 數字 % 2 == 0:  # 檢查是否為偶數
+        print(數字, "是偶數")</code></pre>
+                    </div>
+                </div>
+                
+                <button id="show-solution2" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg btn mb-4">顯示解答</button>
+                
+                <div id="solution2" class="bg-green-50 p-4 rounded-lg mb-6 hidden">
+                    <h4 class="font-bold text-green-700 mb-2">等價的 while 迴圈程式碼</h4>
+                    <div class="code-block">
+                        <pre><code># 印出列表中的偶數
+數字列表 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+索引 = 0
+while 索引 < len(數字列表):
+    數字 = 數字列表[索引]
+    if 數字 % 2 == 0:  # 檢查是否為偶數
+        print(數字, "是偶數")
+    索引 += 1</code></pre>
+                    </div>
+                    <p class="mt-3">解釋：</p>
+                    <ol class="list-decimal pl-6 space-y-1">
+                        <li>我們創建了一個索引變數並初始化為 0</li>
+                        <li>while 條件設為 <code>索引 < len(數字列表)</code>，確保我們不會超出列表範圍</li>
+                        <li>在迴圈內部，我們通過索引從列表中獲取當前數字</li>
+                        <li>執行與 for 迴圈相同的條件檢查和操作</li>
+                        <li>最後，增加索引值以移動到下一個元素</li>
+                    </ol>
+                </div>
+                
+                <h3 class="text-xl font-bold text-purple-800 mb-4 mt-6">練習 3：將 for 迴圈轉換為 while 迴圈（進階）</h3>
+                
+                <div class="bg-purple-50 p-4 rounded-lg mb-6">
+                    <h4 class="font-bold text-purple-700 mb-2">原始 for 迴圈程式碼</h4>
+                    <div class="code-block">
+                        <pre><code># 使用 enumerate() 印出水果及其索引
+水果 = ["蘋果", "香蕉", "橘子", "葡萄"]
+for 索引, 水果名稱 in enumerate(水果):
+    print(f"索引 {索引}: {水果名稱}")</code></pre>
+                    </div>
+                </div>
+                
+                <button id="show-solution3" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg btn mb-4">顯示解答</button>
+                
+                <div id="solution3" class="bg-green-50 p-4 rounded-lg mb-6 hidden">
+                    <h4 class="font-bold text-green-700 mb-2">等價的 while 迴圈程式碼</h4>
+                    <div class="code-block">
+                        <pre><code># 使用 while 迴圈實現 enumerate 功能
+水果 = ["蘋果", "香蕉", "橘子", "葡萄"]
+索引 = 0
+while 索引 < len(水果):
+    水果名稱 = 水果[索引]
+    print(f"索引 {索引}: {水果名稱}")
+    索引 += 1</code></pre>
+                    </div>
+                    <p class="mt-3">解釋：</p>
+                    <ol class="list-decimal pl-6 space-y-1">
+                        <li>我們創建了一個索引變數並初始化為 0</li>
+                        <li>while 條件設為 <code>索引 < len(水果)</code></li>
+                        <li>在迴圈內部，我們獲取當前索引的水果名稱</li>
+                        <li>使用與 for 迴圈相同的格式輸出索引和水果名稱</li>
+                        <li>增加索引值以移動到下一個元素</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-xl p-4">
+                <h2 class="text-2xl font-bold">迴圈的進階技巧</h2>
+            </div>
+            <div class="bg-white rounded-b-xl p-6 shadow-lg">
+                <h3 class="text-xl font-bold text-purple-800 mb-4">break 和 continue 語句</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-purple-700 mb-2">break 語句</h4>
+                        <p>用於立即結束迴圈，不再執行剩餘的迭代。</p>
+                        <div class="code-block mt-3">
+                            <pre><code># 找到第一個偶數後結束迴圈
+for 數字 in range(1, 10):
+    if 數字 % 2 == 0:
+        print("找到偶數:", 數字)
+        break
+    print("檢查數字:", 數字)
+
+# 輸出:
+# 檢查數字: 1
+# 找到偶數: 2</code></pre>
+                        </div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-purple-700 mb-2">continue 語句</h4>
+                        <p>用於跳過當前迭代，直接進入下一次迭代。</p>
+                        <div class="code-block mt-3">
+                            <pre><code># 只印出奇數
+for 數字 in range(1, 6):
+    if 數字 % 2 == 0:
+        continue
+    print("這是奇數:", 數字)
+
+# 輸出:
+# 這是奇數: 1
+# 這是奇數: 3
+# 這是奇數: 5</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-bold text-purple-800 mb-4 mt-6">巢狀迴圈</h3>
+                
+                <div class="bg-purple-50 p-4 rounded-lg mb-6">
+                    <h4 class="font-bold text-purple-700 mb-2">迴圈中的迴圈</h4>
+                    <p class="mb-3">巢狀迴圈是指在一個迴圈內部包含另一個迴圈。每當外部迴圈執行一次，內部迴圈就會完整執行一遍。</p>
+                    <div class="code-block">
+                        <pre><code># 印出乘法表 (1x1 到 5x5)
+for i in range(1, 6):
+    for j in range(1, 6):
+        結果 = i * j
+        print(f"{i} x {j} = {結果}", end="\t")
+    print()  # 換行</code></pre>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-bold text-purple-800 mb-4 mt-6">列表推導式（List Comprehension）</h3>
+                
+                <div class="bg-purple-50 p-4 rounded-lg mb-6">
+                    <h4 class="font-bold text-purple-700 mb-2">簡潔的迴圈替代方案</h4>
+                    <p class="mb-3">列表推導式是一種簡潔的方式來創建列表，它結合了 for 迴圈和條件表達式。</p>
+                    <div class="code-block">
+                        <pre><code># 傳統 for 迴圈
+平方列表 = []
+for x in range(1, 6):
+    平方列表.append(x ** 2)
+print(平方列表)  # 輸出: [1, 4, 9, 16, 25]
+
+# 使用列表推導式
+平方列表 = [x ** 2 for x in range(1, 6)]
+print(平方列表)  # 輸出: [1, 4, 9, 16, 25]
+
+# 帶條件的列表推導式
+偶數平方 = [x ** 2 for x in range(1, 11) if x % 2 == 0]
+print(偶數平方)  # 輸出: [4, 16, 36, 64, 100]</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-xl p-4">
+                <h2 class="text-2xl font-bold">總結</h2>
+            </div>
+            <div class="bg-white rounded-b-xl p-6 shadow-lg">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="concept-card">
+                        <h3 class="text-xl font-bold text-purple-800 mb-3">for 迴圈</h3>
+                        <ul class="list-disc pl-6 space-y-2">
+                            <li>適用於已知迭代次數的情況</li>
+                            <li>自動遍歷序列中的每個元素</li>
+                            <li>語法簡潔，易於理解</li>
+                            <li>常用於遍歷列表、字串、範圍等</li>
+                            <li>自動處理迭代變數</li>
+                        </ul>
+                    </div>
+                    <div class="concept-card">
+                        <h3 class="text-xl font-bold text-purple-800 mb-3">while 迴圈</h3>
+                        <ul class="list-disc pl-6 space-y-2">
+                            <li>適用於未知迭代次數的情況</li>
+                            <li>基於條件表達式控制迴圈</li>
+                            <li>更靈活，可以實現複雜的迴圈邏輯</li>
+                            <li>需要手動更新迭代變數</li>
+                            <li>需要注意避免無限迴圈</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="note-card">
+                    <h4 class="font-bold text-amber-600 mb-2">重要提示</h4>
+                    <p>雖然 for 迴圈可以用 while 迴圈來實現，但在實際編程中，應該根據具體情況選擇最合適的迴圈類型。使用正確的工具可以使程式碼更簡潔、更易讀、更不容易出錯。</p>
+                </div>
+                
+                <div class="pseudocode mt-6">
+                    <h4 class="font-bold mb-2">迴圈選擇的傳統中文虛擬碼</h4>
+                    <pre>如果 知道確切的迭代次數 或 需要遍歷序列:
+    使用 for 迴圈
+否則 如果 基於條件控制迴圈:
+    使用 while 迴圈</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center mb-8">
+            <svg class="character float-animation" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="40" r="30" fill="#7c3aed" />
+                <circle cx="40" cy="35" r="5" fill="#fff" />
+                <circle cx="60" cy="35" r="5" fill="#fff" />
+                <circle cx="40" cy="35" r="2" fill="#000" />
+                <circle cx="60" cy="35" r="2" fill="#000" />
+                <path d="M40,50 Q50,55 60,50" stroke="#fff" stroke-width="2" fill="none" />
+                <rect x="35" y="70" width="30" height="20" fill="#7c3aed" rx="5" />
+                <rect x="25" y="75" width="10" height="30" fill="#7c3aed" rx="5" />
+                <rect x="65" y="75" width="10" height="30" fill="#7c3aed" rx="5" />
+            </svg>
+            <div class="speech-bubble">
+                <p class="text-lg">恭喜你！現在你應該對 for 迴圈和 while 迴圈有了更深入的理解，也知道如何用 while 迴圈實現 for 迴圈的功能。記住，選擇合適的迴圈類型可以讓你的程式碼更加清晰和高效。繼續練習，你會越來越熟練！</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 顯示解答按鈕功能
+        document.getElementById('show-solution1').addEventListener('click', function() {
+            document.getElementById('solution1').classList.toggle('hidden');
+            this.textContent = document.getElementById('solution1').classList.contains('hidden') ? '顯示解答' : '隱藏解答';
+        });
+        
+        document.getElementById('show-solution2').addEventListener('click', function() {
+            document.getElementById('solution2').classList.toggle('hidden');
+            this.textContent = document.getElementById('solution2').classList.contains('hidden') ? '顯示解答' : '隱藏解答';
+        });
+        
+        document.getElementById('show-solution3').addEventListener('click', function() {
+            document.getElementById('solution3').classList.toggle('hidden');
+            this.textContent = document.getElementById('solution3').classList.contains('hidden') ? '顯示解答' : '隱藏解答';
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a476eac568b045b',t:'MTc2NDEzOTYyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
