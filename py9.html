@@ -1,0 +1,476 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索算法</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f4f8;
+        }
+        
+        .algorithm-container {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .algorithm-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .step {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .step.active {
+            opacity: 1;
+        }
+        
+        .cat-icon {
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        pre {
+            overflow-x: auto;
+            background-color: #1e293b;
+            color: #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-6 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="cat-icon text-3xl">🐱</div>
+                    <h1 class="text-2xl sm:text-3xl font-bold">搜索算法</h1>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <!-- Introduction -->
+            <section class="mb-12 text-center">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">了解搜索算法的基礎</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">搜索算法是計算機科學中的基本概念，用於在數據集中查找特定元素。</p>
+            </section>
+
+            <!-- Algorithm Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Linear Search -->
+                <div class="algorithm-container bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="bg-blue-500 text-white p-4">
+                        <h3 class="text-xl font-bold">線性搜索</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <p class="text-gray-700">線性搜索是最簡單的搜索算法，它按順序檢查數組中的每個元素，直到找到目標值或搜索完整個數組。</p>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <h4 class="font-bold text-gray-800 mb-2">複雜度</h4>
+                            <ul class="list-disc pl-5 text-gray-700">
+                                <li>時間複雜度: O(n)</li>
+                                <li>空間複雜度: O(1)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <h4 class="font-bold text-gray-800 mb-2">程式碼實現</h4>
+                            <pre><code>function 線性搜索(arr, 目標值) {
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] === 目標值) {
+            return i; // 找到目標值，返回索引
+        }
+    }
+    return -1; // 未找到目標值
+}
+
+// 使用範例
+const 數組 = [5, 2, 9, 1, 7, 3, 8, 4];
+const 目標 = 7;
+const 結果 = 線性搜索(數組, 目標);
+console.log(結果 !== -1 ? `找到目標值，索引為 ${結果}` : "未找到目標值");</code></pre>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <button id="linearDemoBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">查看演示</button>
+                        </div>
+                        
+                        <div id="linearDemo" class="mt-6 hidden">
+                            <div class="bg-gray-100 p-4 rounded-lg">
+                                <div class="flex flex-wrap gap-2 mb-4" id="linearArray">
+                                    <!-- Array elements will be inserted here -->
+                                </div>
+                                <div class="mt-4">
+                                    <div class="mb-2">
+                                        <span>搜索目標: </span>
+                                        <span id="linearTarget" class="font-bold"></span>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button id="linearStepBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded transition">下一步</button>
+                                        <button id="linearResetBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded transition">重置</button>
+                                    </div>
+                                </div>
+                                <div class="mt-4" id="linearSteps">
+                                    <!-- Steps will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Binary Search -->
+                <div class="algorithm-container bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="bg-indigo-600 text-white p-4">
+                        <h3 class="text-xl font-bold">二元搜尋</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <p class="text-gray-700">二元搜尋是一種更高效的算法，適用於已排序的數組。它通過將搜索範圍減半來快速定位目標值。</p>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <h4 class="font-bold text-gray-800 mb-2">複雜度</h4>
+                            <ul class="list-disc pl-5 text-gray-700">
+                                <li>時間複雜度: O(log n)</li>
+                                <li>空間複雜度: O(1)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <h4 class="font-bold text-gray-800 mb-2">程式碼實現</h4>
+                            <pre><code>function 二元搜尋(arr, 目標值) {
+    let 左 = 0;
+    let 右 = arr.length - 1;
+    
+    while (左 <= 右) {
+        let 中間 = Math.floor((左 + 右) / 2);
+        
+        // 找到目標值
+        if (arr[中間] === 目標值) {
+            return 中間;
+        }
+        
+        // 如果目標值較大，忽略左半部分
+        if (arr[中間] < 目標值) {
+            左 = 中間 + 1;
+        }
+        // 如果目標值較小，忽略右半部分
+        else {
+            右 = 中間 - 1;
+        }
+    }
+    
+    return -1; // 未找到目標值
+}
+
+// 使用範例
+const 排序數組 = [1, 2, 3, 4, 5, 7, 8, 9];
+const 目標 = 7;
+const 結果 = 二元搜尋(排序數組, 目標);
+console.log(結果 !== -1 ? `找到目標值，索引為 ${結果}` : "未找到目標值");</code></pre>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <button id="binaryDemoBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition">查看演示</button>
+                        </div>
+                        
+                        <div id="binaryDemo" class="mt-6 hidden">
+                            <div class="bg-gray-100 p-4 rounded-lg">
+                                <div class="flex flex-wrap gap-2 mb-4" id="binaryArray">
+                                    <!-- Array elements will be inserted here -->
+                                </div>
+                                <div class="mt-4">
+                                    <div class="mb-2">
+                                        <span>搜索目標: </span>
+                                        <span id="binaryTarget" class="font-bold"></span>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button id="binaryStepBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded transition">下一步</button>
+                                        <button id="binaryResetBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded transition">重置</button>
+                                    </div>
+                                </div>
+                                <div class="mt-4" id="binarySteps">
+                                    <!-- Steps will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <section class="mt-12">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">算法比較</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-lg">
+                        <thead class="bg-gray-800 text-white">
+                            <tr>
+                                <th class="py-3 px-4 text-left">特性</th>
+                                <th class="py-3 px-4 text-left">線性搜索</th>
+                                <th class="py-3 px-4 text-left">二元搜尋</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr>
+                                <td class="py-3 px-4 bg-gray-50">時間複雜度</td>
+                                <td class="py-3 px-4">O(n)</td>
+                                <td class="py-3 px-4">O(log n)</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 bg-gray-50">數據要求</td>
+                                <td class="py-3 px-4">無序或有序</td>
+                                <td class="py-3 px-4">必須有序</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 bg-gray-50">最佳用例</td>
+                                <td class="py-3 px-4">小數據集或無序數據</td>
+                                <td class="py-3 px-4">大型有序數據集</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 bg-gray-50">實現難度</td>
+                                <td class="py-3 px-4">簡單</td>
+                                <td class="py-3 px-4">中等</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 bg-gray-50">空間複雜度</td>
+                                <td class="py-3 px-4">O(1)</td>
+                                <td class="py-3 px-4">O(1) 迭代版，O(log n) 遞歸版</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Recursive Binary Search -->
+            <section class="mt-12">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">二元搜尋的遞歸實現</h2>
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden p-6">
+                    <p class="text-gray-700 mb-4">除了迭代方法外，二元搜尋也可以使用遞歸方式實現：</p>
+                    <pre><code>function 遞歸二元搜尋(arr, 目標值, 左 = 0, 右 = arr.length - 1) {
+    // 基本情況：如果左指針超過右指針，表示未找到目標值
+    if (左 > 右) {
+        return -1;
+    }
+    
+    // 計算中間索引
+    const 中間 = Math.floor((左 + 右) / 2);
+    
+    // 找到目標值
+    if (arr[中間] === 目標值) {
+        return 中間;
+    }
+    
+    // 如果目標值較小，在左半部分搜索
+    if (arr[中間] > 目標值) {
+        return 遞歸二元搜尋(arr, 目標值, 左, 中間 - 1);
+    }
+    
+    // 如果目標值較大，在右半部分搜索
+    return 遞歸二元搜尋(arr, 目標值, 中間 + 1, 右);
+}
+
+// 使用範例
+const 排序數組 = [1, 2, 3, 4, 5, 7, 8, 9];
+const 目標 = 7;
+const 結果 = 遞歸二元搜尋(排序數組, 目標);
+console.log(結果 !== -1 ? `找到目標值，索引為 ${結果}` : "未找到目標值");</code></pre>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-6 px-4 sm:px-6 lg:px-8 mt-12">
+            <div class="max-w-5xl mx-auto text-center">
+                <div class="flex justify-center items-center space-x-2 mb-4">
+                    <div class="cat-icon text-2xl">🐱</div>
+                    <p class="text-lg font-medium">搜索算法教學</p>
+                </div>
+                <p class="text-sm text-gray-400">© 2023 搜索算法教學 | 使用 Canva Code 創建</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Linear Search Demo
+        const linearDemoBtn = document.getElementById('linearDemoBtn');
+        const linearDemo = document.getElementById('linearDemo');
+        const linearArray = document.getElementById('linearArray');
+        const linearTarget = document.getElementById('linearTarget');
+        const linearStepBtn = document.getElementById('linearStepBtn');
+        const linearResetBtn = document.getElementById('linearResetBtn');
+        const linearSteps = document.getElementById('linearSteps');
+
+        let linearData = [5, 2, 9, 1, 7, 3, 8, 4];
+        let linearTargetValue = 7;
+        let linearCurrentStep = 0;
+
+        linearDemoBtn.addEventListener('click', () => {
+            linearDemo.classList.toggle('hidden');
+            if (!linearDemo.classList.contains('hidden')) {
+                initLinearSearch();
+            }
+        });
+
+        function initLinearSearch() {
+            linearArray.innerHTML = '';
+            linearSteps.innerHTML = '';
+            linearCurrentStep = 0;
+            linearStepBtn.disabled = false;
+            
+            linearData.forEach((num, index) => {
+                const element = document.createElement('div');
+                element.id = `linear-${index}`;
+                element.className = 'w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded-md';
+                element.textContent = num;
+                linearArray.appendChild(element);
+            });
+            
+            linearTarget.textContent = linearTargetValue;
+        }
+
+        linearStepBtn.addEventListener('click', () => {
+            if (linearCurrentStep < linearData.length) {
+                // Reset previous step styling
+                for (let i = 0; i < linearData.length; i++) {
+                    document.getElementById(`linear-${i}`).className = 'w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded-md';
+                }
+                
+                // Highlight current element
+                const currentElement = document.getElementById(`linear-${linearCurrentStep}`);
+                currentElement.className = 'w-10 h-10 flex items-center justify-center bg-yellow-200 border border-yellow-400 rounded-md';
+                
+                // Create step description
+                const stepElement = document.createElement('div');
+                stepElement.className = 'step active py-1';
+                
+                if (linearData[linearCurrentStep] === linearTargetValue) {
+                    stepElement.textContent = `步驟 ${linearCurrentStep + 1}: 檢查元素 ${linearData[linearCurrentStep]} - 找到目標值!`;
+                    currentElement.className = 'w-10 h-10 flex items-center justify-center bg-green-200 border border-green-400 rounded-md';
+                    linearStepBtn.disabled = true;
+                } else {
+                    stepElement.textContent = `步驟 ${linearCurrentStep + 1}: 檢查元素 ${linearData[linearCurrentStep]} - 不匹配`;
+                }
+                
+                linearSteps.appendChild(stepElement);
+                linearCurrentStep++;
+            }
+        });
+
+        linearResetBtn.addEventListener('click', initLinearSearch);
+
+        // Binary Search Demo
+        const binaryDemoBtn = document.getElementById('binaryDemoBtn');
+        const binaryDemo = document.getElementById('binaryDemo');
+        const binaryArray = document.getElementById('binaryArray');
+        const binaryTarget = document.getElementById('binaryTarget');
+        const binaryStepBtn = document.getElementById('binaryStepBtn');
+        const binaryResetBtn = document.getElementById('binaryResetBtn');
+        const binarySteps = document.getElementById('binarySteps');
+
+        let binaryData = [1, 2, 3, 4, 5, 7, 8, 9];
+        let binaryTargetValue = 7;
+        let binaryCurrentStep = 0;
+        let binaryLeft = 0;
+        let binaryRight = binaryData.length - 1;
+        let binaryMid = 0;
+
+        binaryDemoBtn.addEventListener('click', () => {
+            binaryDemo.classList.toggle('hidden');
+            if (!binaryDemo.classList.contains('hidden')) {
+                initBinarySearch();
+            }
+        });
+
+        function initBinarySearch() {
+            binaryArray.innerHTML = '';
+            binarySteps.innerHTML = '';
+            binaryCurrentStep = 0;
+            binaryLeft = 0;
+            binaryRight = binaryData.length - 1;
+            binaryStepBtn.disabled = false;
+            
+            binaryData.forEach((num, index) => {
+                const element = document.createElement('div');
+                element.id = `binary-${index}`;
+                element.className = 'w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded-md';
+                element.textContent = num;
+                binaryArray.appendChild(element);
+            });
+            
+            binaryTarget.textContent = binaryTargetValue;
+        }
+
+        binaryStepBtn.addEventListener('click', () => {
+            if (binaryLeft <= binaryRight) {
+                // Reset previous step styling
+                for (let i = 0; i < binaryData.length; i++) {
+                    document.getElementById(`binary-${i}`).className = 'w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded-md';
+                }
+                
+                // Highlight current search range
+                for (let i = binaryLeft; i <= binaryRight; i++) {
+                    document.getElementById(`binary-${i}`).className = 'w-10 h-10 flex items-center justify-center bg-blue-100 border border-blue-300 rounded-md';
+                }
+                
+                binaryMid = Math.floor((binaryLeft + binaryRight) / 2);
+                const midElement = document.getElementById(`binary-${binaryMid}`);
+                midElement.className = 'w-10 h-10 flex items-center justify-center bg-yellow-200 border border-yellow-400 rounded-md';
+                
+                // Create step description
+                const stepElement = document.createElement('div');
+                stepElement.className = 'step active py-1';
+                
+                if (binaryData[binaryMid] === binaryTargetValue) {
+                    stepElement.textContent = `步驟 ${binaryCurrentStep + 1}: 中間元素 ${binaryData[binaryMid]} - 找到目標值!`;
+                    midElement.className = 'w-10 h-10 flex items-center justify-center bg-green-200 border border-green-400 rounded-md';
+                    binaryStepBtn.disabled = true;
+                } else if (binaryData[binaryMid] < binaryTargetValue) {
+                    stepElement.textContent = `步驟 ${binaryCurrentStep + 1}: 中間元素 ${binaryData[binaryMid]} < 目標值 ${binaryTargetValue} - 搜索右半部分`;
+                    binaryLeft = binaryMid + 1;
+                } else {
+                    stepElement.textContent = `步驟 ${binaryCurrentStep + 1}: 中間元素 ${binaryData[binaryMid]} > 目標值 ${binaryTargetValue} - 搜索左半部分`;
+                    binaryRight = binaryMid - 1;
+                }
+                
+                binarySteps.appendChild(stepElement);
+                binaryCurrentStep++;
+            }
+        });
+
+        binaryResetBtn.addEventListener('click', initBinarySearch);
+
+        // Initialize demos
+        initLinearSearch();
+        initBinarySearch();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a4776f500c40574',t:'MTc2NDEzOTk2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
