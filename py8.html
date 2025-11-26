@@ -1,0 +1,1100 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美食資料結構學習：堆疊與鏈結串列</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #fffbeb;
+            color: #4b5563;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(251, 146, 60, 0.1) 0%, rgba(0, 0, 0, 0) 20%),
+                radial-gradient(circle at 80% 60%, rgba(249, 115, 22, 0.1) 0%, rgba(0, 0, 0, 0) 20%);
+        }
+        
+        .section {
+            background-color: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 4px 20px -2px rgba(234, 88, 12, 0.2);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            border: 1px solid rgba(251, 146, 60, 0.3);
+        }
+        
+        .section-header {
+            background: linear-gradient(90deg, #f97316 0%, #fb923c 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            font-weight: bold;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-content {
+            padding: 1.5rem;
+        }
+        
+        .stack-container, .linkedlist-container {
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 251, 235, 0.7);
+            border: 1px solid rgba(251, 146, 60, 0.3);
+            border-radius: 0.5rem;
+        }
+        
+        .stack-item, .list-node {
+            transition: all 0.5s ease;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(234, 88, 12, 0.3);
+        }
+        
+        .stack-item {
+            width: 80%;
+            height: 50px;
+            background: linear-gradient(135deg, #fdba74 0%, #f97316 100%);
+            border: 2px solid #fed7aa;
+            left: 10%;
+            border-radius: 8px;
+            color: white;
+        }
+        
+        .list-node {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #86efac 0%, #22c55e 100%);
+            border: 2px solid #bbf7d0;
+            border-radius: 50%;
+            color: white;
+        }
+        
+        .list-pointer {
+            position: absolute;
+            height: 3px;
+            background-color: #22c55e;
+            transform-origin: left center;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+        }
+        
+        .list-pointer:after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -4px;
+            width: 0;
+            height: 0;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: 10px solid #22c55e;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .btn:active {
+            transform: scale(0.97);
+        }
+        
+        .btn-orange {
+            background: linear-gradient(135deg, #fdba74 0%, #f97316 100%);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.5);
+        }
+        
+        .btn-orange:hover {
+            box-shadow: 0 4px 12px -1px rgba(249, 115, 22, 0.7);
+        }
+        
+        .btn-green {
+            background: linear-gradient(135deg, #86efac 0%, #22c55e 100%);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.5);
+        }
+        
+        .btn-green:hover {
+            box-shadow: 0 4px 12px -1px rgba(34, 197, 94, 0.7);
+        }
+        
+        .btn-red {
+            background: linear-gradient(135deg, #fca5a5 0%, #ef4444 100%);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.5);
+        }
+        
+        .btn-red:hover {
+            box-shadow: 0 4px 12px -1px rgba(239, 68, 68, 0.7);
+        }
+        
+        .code-block {
+            background-color: #f8fafc;
+            color: #334155;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+            border: 1px solid rgba(251, 146, 60, 0.3);
+        }
+        
+        .highlight {
+            animation: highlight 1s ease;
+        }
+        
+        @keyframes highlight {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(234, 88, 12, 0.5); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(234, 88, 12, 0.8); }
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tab {
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+            background-color: #fff;
+            border: 1px solid rgba(251, 146, 60, 0.3);
+            border-bottom: none;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+            color: white;
+        }
+        
+        .metaphor-box {
+            background-color: rgba(254, 240, 138, 0.3);
+            border-left: 4px solid #eab308;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        
+        .example-box {
+            background-color: rgba(219, 234, 254, 0.3);
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        
+        .food-particle {
+            position: absolute;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            animation: float 8s infinite ease-in-out;
+            opacity: 0.7;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        
+        input[type="text"] {
+            background-color: #fff;
+            border: 1px solid rgba(251, 146, 60, 0.3);
+            color: #4b5563;
+        }
+        
+        input[type="text"]::placeholder {
+            color: rgba(107, 114, 128, 0.5);
+        }
+        
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        th, td {
+            border: 1px solid rgba(251, 146, 60, 0.3);
+        }
+        
+        th {
+            background-color: rgba(251, 146, 60, 0.1);
+        }
+        
+        td {
+            background-color: #fff;
+        }
+        
+        /* Food SVG styles */
+        .pancake {
+            fill: #f59e0b;
+            stroke: #b45309;
+            stroke-width: 1;
+        }
+        
+        .syrup {
+            fill: #92400e;
+        }
+        
+        .butter {
+            fill: #fcd34d;
+            stroke: #f59e0b;
+            stroke-width: 1;
+        }
+        
+        .spaghetti {
+            fill: #fbbf24;
+            stroke: #d97706;
+            stroke-width: 1;
+        }
+        
+        .sauce {
+            fill: #dc2626;
+        }
+        
+        .meatball {
+            fill: #7f1d1d;
+            stroke: #b91c1c;
+            stroke-width: 1;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <!-- Food particles background -->
+    <div id="food-particles-container"></div>
+    
+    <header class="max-w-6xl mx-auto mb-8">
+        <h1 class="text-4xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500 mb-2">美食資料結構學習：堆疊與鏈結串列</h1>
+        <p class="text-xl text-center text-orange-800">以美食視覺化互動方式學習 Python 中的基本資料結構</p>
+    </header>
+
+    <main class="max-w-6xl mx-auto">
+        <!-- Introduction -->
+        <section class="section">
+            <div class="section-header">
+                <svg class="w-8 h-8 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="white"/>
+                </svg>
+                資料結構簡介
+            </div>
+            <div class="section-content">
+                <p class="mb-4">資料結構是電腦科學中組織和儲存資料的特定方式，能夠高效地存取和修改資料。今天我們將學習兩種基本但非常重要的資料結構：<strong class="text-orange-500">堆疊（Stack）</strong>和<strong class="text-green-600">鏈結串列（Linked List）</strong>。</p>
+                <p>這些資料結構不僅是程式設計的基礎，也在我們的日常生活中隨處可見。透過互動式的視覺化學習，你將能夠更好地理解這些概念，並學會如何在 Python 中實現它們。</p>
+                <div class="flex justify-center mt-4">
+                    <svg width="200" height="100" viewBox="0 0 200 100">
+                        <!-- Plate of pancakes -->
+                        <ellipse cx="100" cy="85" rx="70" ry="15" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+                        <circle cx="100" cy="80" r="60" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
+                        
+                        <!-- Pancakes stack -->
+                        <ellipse cx="100" cy="75" rx="50" ry="10" class="pancake"/>
+                        <ellipse cx="100" cy="65" rx="48" ry="9" class="pancake"/>
+                        <ellipse cx="100" cy="55" rx="46" ry="8" class="pancake"/>
+                        <ellipse cx="100" cy="45" rx="44" ry="7" class="pancake"/>
+                        <ellipse cx="100" cy="35" rx="42" ry="6" class="pancake"/>
+                        
+                        <!-- Syrup -->
+                        <path d="M80 20 Q100 10 120 20 Q110 35 100 30 Q90 35 80 20" class="syrup"/>
+                        <path d="M85 30 Q100 40 115 30 Q105 45 100 40 Q95 45 85 30" class="syrup"/>
+                        
+                        <!-- Butter -->
+                        <rect x="90" y="15" width="20" height="15" rx="2" class="butter"/>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stack Section -->
+        <section class="section" id="stack-section">
+            <div class="section-header">
+                <svg class="w-8 h-8 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 3H17C17.5523 3 18 3.44772 18 4V6C18 6.55228 17.5523 7 17 7H7C6.44772 7 6 6.55228 6 6V4C6 3.44772 6.44772 3 7 3Z" fill="white"/>
+                    <path d="M5 9H19C19.5523 9 20 9.44772 20 10V12C20 12.5523 19.5523 13 19 13H5C4.44772 13 4 12.5523 4 12V10C4 9.44772 4.44772 9 5 9Z" fill="white"/>
+                    <path d="M3 16H21C21.5523 16 22 16.4477 22 17V19C22 19.5523 21.5523 20 21 20H3C2.44772 20 2 19.5523 2 19V17C2 16.4477 2.44772 16 3 16Z" fill="white"/>
+                </svg>
+                堆疊（Stack）- 美食疊疊樂
+            </div>
+            <div class="section-content">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-xl font-bold mb-3 text-orange-500">什麼是堆疊？</h3>
+                        <p class="mb-4">堆疊是一種遵循「後進先出」（LIFO, Last-In-First-Out）原則的線性資料結構。就像一疊鬆餅，你只能從頂部添加或取走鬆餅。</p>
+                        
+                        <div class="metaphor-box">
+                            <h4 class="font-bold text-yellow-600">美食中的例子：</h4>
+                            <p>想像一下廚師在製作一疊鬆餅。每一塊新鬆餅都會放在最上面，而當你要享用時，也是從最上面的鬆餅開始吃起。這正是堆疊的工作原理：最後放入的，最先取出。</p>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold mt-6 mb-3 text-orange-500">堆疊的基本操作</h3>
+                        <ul class="list-disc pl-6 mb-4">
+                            <li><strong>Push（推入）</strong>：將元素添加到堆疊頂部（放一塊新鬆餅）</li>
+                            <li><strong>Pop（彈出）</strong>：移除堆疊頂部的元素（拿走最上面的鬆餅）</li>
+                            <li><strong>Peek（查看）</strong>：查看堆疊頂部的元素，但不移除（看看最上面是什麼鬆餅）</li>
+                            <li><strong>isEmpty（是否為空）</strong>：檢查堆疊是否為空（盤子是否空了）</li>
+                        </ul>
+                        
+                        <div class="example-box">
+                            <h4 class="font-bold text-blue-600">應用場景：</h4>
+                            <ul class="list-disc pl-6">
+                                <li>餐廳的盤子堆疊</li>
+                                <li>自助餐廳的托盤堆疊</li>
+                                <li>廚師的食譜步驟追蹤</li>
+                                <li>三明治的製作層次</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-bold mb-3 text-orange-500">互動式堆疊示範</h3>
+                        <div class="bg-amber-50 p-4 rounded-lg mb-4 border border-orange-300">
+                            <div class="stack-container relative mb-4">
+                                <!-- Stack items will be added here by JavaScript -->
+                            </div>
+                            <div class="flex space-x-2 mb-4">
+                                <input type="text" id="stack-input" placeholder="輸入食物名稱" class="border border-orange-300 rounded px-3 py-2 flex-grow" maxlength="10">
+                                <button id="stack-push" class="btn btn-orange">推入 (Push)</button>
+                                <button id="stack-pop" class="btn btn-red">彈出 (Pop)</button>
+                            </div>
+                            <div id="stack-message" class="text-center text-orange-800 italic">試著添加一些美食到堆疊中！</div>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold mb-3 text-orange-500">Python 實現</h3>
+                        <div class="code-block text-sm">
+class Stack:
+    def __init__(self):
+        self.items = []
+        
+    def push(self, item):
+        self.items.append(item)
+        
+    def pop(self):
+        if not self.is_empty():
+            return self.items.pop()
+        return None
+        
+    def peek(self):
+        if not self.is_empty():
+            return self.items[-1]
+        return None
+        
+    def is_empty(self):
+        return len(self.items) == 0
+        
+    def size(self):
+        return len(self.items)
+
+# 使用範例
+stack = Stack()
+stack.push("鬆餅")
+stack.push("漢堡")
+stack.push("薯條")
+print(stack.pop())  # 輸出: 薯條
+print(stack.peek())  # 輸出: 漢堡</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Linked List Section -->
+        <section class="section" id="linkedlist-section">
+            <div class="section-header">
+                <svg class="w-8 h-8 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 11H6C4.89543 11 4 11.8954 4 13V15C4 16.1046 4.89543 17 6 17H8C9.10457 17 10 16.1046 10 15V13C10 11.8954 9.10457 11 8 11Z" fill="white"/>
+                    <path d="M18 7H16C14.8954 7 14 7.89543 14 9V11C14 12.1046 14.8954 13 16 13H18C19.1046 13 20 12.1046 20 11V9C20 7.89543 19.1046 7 18 7Z" fill="white"/>
+                    <path d="M10 9.5H14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                鏈結串列（Linked List）- 美食串串燒
+            </div>
+            <div class="section-content">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-xl font-bold mb-3 text-green-600">什麼是鏈結串列？</h3>
+                        <p class="mb-4">鏈結串列是由一系列節點組成的線性資料結構，每個節點包含資料和指向下一個節點的參考（指標）。不同於陣列，鏈結串列的元素在記憶體中不需要連續存放。</p>
+                        
+                        <div class="metaphor-box">
+                            <h4 class="font-bold text-yellow-600">美食中的例子：</h4>
+                            <p>想像一串美味的串燒，每個食材（節點）都用竹籤（指標）連接到下一個食材。你可以輕鬆地在任何位置添加新的食材或移除現有的食材，而不影響整個串燒的結構。</p>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold mt-6 mb-3 text-green-600">鏈結串列的基本操作</h3>
+                        <ul class="list-disc pl-6 mb-4">
+                            <li><strong>插入（Insert）</strong>：在指定位置添加新節點（加入新食材）</li>
+                            <li><strong>刪除（Delete）</strong>：移除指定節點（取下某個食材）</li>
+                            <li><strong>搜尋（Search）</strong>：查找包含特定值的節點（找到特定食材）</li>
+                            <li><strong>遍歷（Traverse）</strong>：訪問串列中的每個節點（檢視每個食材）</li>
+                        </ul>
+                        
+                        <div class="example-box">
+                            <h4 class="font-bold text-blue-600">應用場景：</h4>
+                            <ul class="list-disc pl-6">
+                                <li>餐廳的點餐隊列</li>
+                                <li>食譜的步驟順序</li>
+                                <li>食材的供應鏈追蹤</li>
+                                <li>自助餐廳的食物擺放順序</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-bold mb-3 text-green-600">互動式鏈結串列示範</h3>
+                        <div class="bg-green-50 p-4 rounded-lg mb-4 border border-green-300">
+                            <div class="linkedlist-container relative mb-4">
+                                <!-- Linked list nodes will be added here by JavaScript -->
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <input type="text" id="list-input" placeholder="輸入食物名稱" class="border border-green-300 rounded px-3 py-2 flex-grow" maxlength="10">
+                                <button id="list-append" class="btn btn-green">添加到尾部</button>
+                                <button id="list-prepend" class="btn btn-orange">添加到頭部</button>
+                                <button id="list-remove" class="btn btn-red">移除第一個</button>
+                            </div>
+                            <div id="list-message" class="text-center text-green-800 italic">試著添加一些美食到鏈結串列中！</div>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold mb-3 text-green-600">Python 實現</h3>
+                        <div class="code-block text-sm">
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+        
+    def append(self, data):
+        new_node = Node(data)
+        if self.head is None:
+            self.head = new_node
+            return
+        
+        last_node = self.head
+        while last_node.next:
+            last_node = last_node.next
+        last_node.next = new_node
+        
+    def prepend(self, data):
+        new_node = Node(data)
+        new_node.next = self.head
+        self.head = new_node
+        
+    def delete_node(self, key):
+        current_node = self.head
+        
+        # 如果要刪除的是頭節點
+        if current_node and current_node.data == key:
+            self.head = current_node.next
+            return
+            
+        # 搜尋要刪除的節點
+        prev = None
+        while current_node and current_node.data != key:
+            prev = current_node
+            current_node = current_node.next
+            
+        # 如果找不到要刪除的節點
+        if current_node is None:
+            return
+            
+        # 刪除節點
+        prev.next = current_node.next
+
+# 使用範例
+llist = LinkedList()
+llist.append("牛肉丸")
+llist.append("蝦球")
+llist.prepend("豬肉片")  # 豬肉片 -> 牛肉丸 -> 蝦球
+llist.delete_node("牛肉丸")  # 豬肉片 -> 蝦球</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Section -->
+        <section class="section">
+            <div class="section-header">
+                <svg class="w-8 h-8 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15M9 5C9 6.10457 9.89543 7 11 7H13C14.1046 7 15 6.10457 15 5M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 12H15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 16H15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                堆疊與鏈結串列的比較
+            </div>
+            <div class="section-content">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full border border-orange-300">
+                        <thead>
+                            <tr>
+                                <th class="py-3 px-4 border-b border-orange-300 text-left">特性</th>
+                                <th class="py-3 px-4 border-b border-orange-300 text-left">堆疊（Stack）</th>
+                                <th class="py-3 px-4 border-b border-orange-300 text-left">鏈結串列（Linked List）</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="py-3 px-4 border-b border-orange-300 font-medium">存取方式</td>
+                                <td class="py-3 px-4 border-b border-orange-300">後進先出 (LIFO)，像是一疊鬆餅</td>
+                                <td class="py-3 px-4 border-b border-orange-300">可從任意位置存取，像是串燒</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 border-b border-orange-300 font-medium">實現方式</td>
+                                <td class="py-3 px-4 border-b border-orange-300">可用陣列或鏈結串列實現</td>
+                                <td class="py-3 px-4 border-b border-orange-300">節點和指標</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 border-b border-orange-300 font-medium">記憶體分配</td>
+                                <td class="py-3 px-4 border-b border-orange-300">如果用陣列實現，可能需要連續記憶體</td>
+                                <td class="py-3 px-4 border-b border-orange-300">不需要連續記憶體空間</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 border-b border-orange-300 font-medium">操作複雜度</td>
+                                <td class="py-3 px-4 border-b border-orange-300">Push/Pop: O(1)</td>
+                                <td class="py-3 px-4 border-b border-orange-300">插入/刪除: O(1)，搜尋: O(n)</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 border-b border-orange-300 font-medium">美食比喻</td>
+                                <td class="py-3 px-4 border-b border-orange-300">一疊鬆餅，最上面的先吃</td>
+                                <td class="py-3 px-4 border-b border-orange-300">串燒，可以在任何位置添加或移除食材</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex justify-center mt-6 space-x-8">
+                    <div class="text-center">
+                        <svg width="120" height="120" viewBox="0 0 120 120">
+                            <!-- Pancake stack -->
+                            <ellipse cx="60" cy="100" rx="50" ry="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+                            <ellipse cx="60" cy="90" rx="40" ry="8" class="pancake"/>
+                            <ellipse cx="60" cy="75" rx="38" ry="7" class="pancake"/>
+                            <ellipse cx="60" cy="60" rx="36" ry="6" class="pancake"/>
+                            <ellipse cx="60" cy="45" rx="34" ry="5" class="pancake"/>
+                            <ellipse cx="60" cy="30" rx="32" ry="4" class="pancake"/>
+                            <rect x="50" y="10" width="20" height="15" rx="2" class="butter"/>
+                            <path d="M45 25 Q60 15 75 25" class="syrup" fill-opacity="0.8"/>
+                        </svg>
+                        <p class="font-bold text-orange-500 mt-2">堆疊 (Stack)</p>
+                    </div>
+                    <div class="text-center">
+                        <svg width="120" height="120" viewBox="0 0 120 120">
+                            <!-- Skewer -->
+                            <line x1="60" y1="10" x2="60" y2="110" stroke="#92400e" stroke-width="2"/>
+                            
+                            <!-- Food items -->
+                            <circle cx="60" cy="30" r="15" fill="#fbbf24" stroke="#d97706" stroke-width="1"/>
+                            <circle cx="60" cy="60" r="15" fill="#ef4444" stroke="#b91c1c" stroke-width="1"/>
+                            <circle cx="60" cy="90" r="15" fill="#22c55e" stroke="#15803d" stroke-width="1"/>
+                            
+                            <!-- Arrows -->
+                            <path d="M60 45 L60 55" stroke="#92400e" stroke-width="2" stroke-dasharray="2,2"/>
+                            <path d="M60 75 L60 85" stroke="#92400e" stroke-width="2" stroke-dasharray="2,2"/>
+                        </svg>
+                        <p class="font-bold text-green-600 mt-2">鏈結串列 (Linked List)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Practice Section -->
+        <section class="section">
+            <div class="section-header">
+                <svg class="w-8 h-8 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 6V12L16 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/>
+                </svg>
+                練習題
+            </div>
+            <div class="section-content">
+                <div class="mb-4">
+                    <div class="flex mb-4">
+                        <div class="tab active" data-tab="question1">問題 1：堆疊應用</div>
+                        <div class="tab" data-tab="question2">問題 2：鏈結串列應用</div>
+                    </div>
+                    
+                    <div id="question1" class="tab-content active">
+                        <h3 class="text-xl font-bold mb-3 text-orange-500">餐盤堆疊問題</h3>
+                        <p class="mb-4">餐廳的服務員需要確保餐盤堆疊的穩定性。每個餐盤都有特定的大小（用括號表示），大餐盤必須在小餐盤下面。給定一個餐盤序列，判斷其中的括號是否匹配。例如 "(())" 和 "()[]{}" 是匹配的，而 "([)]" 和 "(((" 是不匹配的。</p>
+                        
+                        <div class="bg-amber-50 p-4 rounded-lg mb-4 border border-orange-300">
+                            <input type="text" id="bracket-input" placeholder="輸入括號序列，如: ({})" class="border border-orange-300 rounded px-3 py-2 w-full mb-3">
+                            <button id="check-brackets" class="btn btn-orange w-full">檢查餐盤堆疊是否穩定</button>
+                            <div id="bracket-result" class="mt-3 text-center"></div>
+                        </div>
+                        
+                        <div class="code-block text-sm">
+def is_valid_brackets(s):
+    stack = []
+    mapping = {")": "(", "}": "{", "]": "["}
+    
+    for char in s:
+        if char in mapping:  # 如果是右括號
+            top_element = stack.pop() if stack else '#'
+            if mapping[char] != top_element:
+                return False
+        else:  # 如果是左括號
+            stack.append(char)
+    
+    return not stack  # 如果堆疊為空，則所有括號都匹配
+
+# 測試
+print(is_valid_brackets("()"))  # True - 大小餐盤匹配
+print(is_valid_brackets("()[]{}"))  # True - 多組餐盤都匹配
+print(is_valid_brackets("(]"))  # False - 餐盤大小不匹配
+print(is_valid_brackets("([)]"))  # False - 餐盤疊放順序錯誤
+print(is_valid_brackets("{[]}"))  # True - 餐盤正確疊放</div>
+                    </div>
+                    
+                    <div id="question2" class="tab-content">
+                        <h3 class="text-xl font-bold mb-3 text-green-600">食物傳送帶循環檢測</h3>
+                        <p class="mb-4">在迴轉壽司餐廳，食物在傳送帶上循環移動。給定一個食物傳送帶（鏈結串列），判斷其中是否有循環，以確保食物能夠正確地傳送。</p>
+                        
+                        <div class="bg-green-50 p-4 rounded-lg mb-4 border border-green-300">
+                            <div class="cycle-detection-container bg-white border border-green-300 rounded-lg relative h-64 mb-4">
+                                <!-- Cycle detection visualization will be added here by JavaScript -->
+                            </div>
+                            <div class="flex space-x-2">
+                                <button id="create-list" class="btn btn-orange flex-grow">創建新傳送帶</button>
+                                <button id="create-cycle" class="btn btn-green flex-grow">創建循環傳送帶</button>
+                                <button id="detect-cycle" class="btn btn-red flex-grow">檢測循環</button>
+                            </div>
+                            <div id="cycle-result" class="mt-3 text-center"></div>
+                        </div>
+                        
+                        <div class="code-block text-sm">
+def has_cycle(head):
+    if not head or not head.next:
+        return False
+    
+    slow = head
+    fast = head
+    
+    while fast and fast.next:
+        slow = slow.next  # 慢指針每次移動一步
+        fast = fast.next.next  # 快指針每次移動兩步
+        
+        if slow == fast:  # 如果兩個指針相遇，說明有循環
+            return True
+    
+    return False  # 如果快指針到達了末尾，說明沒有循環
+
+# 測試
+# 創建一個有循環的鏈結串列: 壽司->天婦羅->烤肉->沙拉->天婦羅(循環回天婦羅)
+node1 = Node("壽司")
+node2 = Node("天婦羅")
+node3 = Node("烤肉")
+node4 = Node("沙拉")
+node1.next = node2
+node2.next = node3
+node3.next = node4
+node4.next = node2  # 創建循環
+
+print(has_cycle(node1))  # True
+
+# 創建一個沒有循環的鏈結串列: 壽司->天婦羅->烤肉->沙拉->None
+node1 = Node("壽司")
+node2 = Node("天婦羅")
+node3 = Node("烤肉")
+node4 = Node("沙拉")
+node1.next = node2
+node2.next = node3
+node3.next = node4
+
+print(has_cycle(node1))  # False</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="max-w-6xl mx-auto mt-8 p-4 text-center text-orange-800">
+        <p>© 2023 美食資料結構學習平台 | 以美食探索程式設計的美味世界</p>
+    </footer>
+
+    <script>
+        // Create food particles background
+        function createFoodParticles() {
+            const foodContainer = document.getElementById('food-particles-container');
+            const numParticles = 15;
+            const foodEmojis = ['🍔', '🍕', '🍣', '🍜', '🍩', '🍰', '🍦', '🍪', '🥐', '🥞', '🍗', '🍓', '🍇', '🥗', '🌮'];
+            
+            for (let i = 0; i < numParticles; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'food-particle';
+                
+                // Random emoji
+                const emoji = foodEmojis[Math.floor(Math.random() * foodEmojis.length)];
+                particle.textContent = emoji;
+                particle.style.fontSize = `${Math.random() * 20 + 10}px`;
+                
+                // Random position
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                particle.style.left = `${x}%`;
+                particle.style.top = `${y}%`;
+                
+                // Random float delay
+                particle.style.animationDelay = `${Math.random() * 8}s`;
+                
+                foodContainer.appendChild(particle);
+            }
+        }
+        
+        // Stack Implementation
+        const stackContainer = document.querySelector('.stack-container');
+        const stackInput = document.getElementById('stack-input');
+        const stackPushBtn = document.getElementById('stack-push');
+        const stackPopBtn = document.getElementById('stack-pop');
+        const stackMessage = document.getElementById('stack-message');
+        
+        let stack = [];
+        const maxStackSize = 5;
+        
+        function updateStackView() {
+            // Clear existing stack items
+            const existingItems = document.querySelectorAll('.stack-item');
+            existingItems.forEach(item => item.remove());
+            
+            // Add new stack items
+            stack.forEach((value, index) => {
+                const item = document.createElement('div');
+                item.className = 'stack-item';
+                item.textContent = value;
+                item.style.bottom = `${index * 60}px`;
+                stackContainer.appendChild(item);
+            });
+            
+            // Update message
+            if (stack.length === 0) {
+                stackMessage.textContent = '堆疊是空的！試著添加一些美食。';
+            } else {
+                stackMessage.textContent = `堆疊中有 ${stack.length} 個美食項目。`;
+            }
+        }
+        
+        stackPushBtn.addEventListener('click', () => {
+            const value = stackInput.value.trim();
+            if (value && stack.length < maxStackSize) {
+                stack.push(value);
+                updateStackView();
+                stackInput.value = '';
+                
+                // Highlight the top item
+                const topItem = document.querySelector('.stack-item');
+                if (topItem) {
+                    topItem.classList.add('highlight');
+                    setTimeout(() => {
+                        topItem.classList.remove('highlight');
+                    }, 1000);
+                }
+            } else if (stack.length >= maxStackSize) {
+                stackMessage.textContent = '堆疊已滿！請先移除一些美食。';
+            } else {
+                stackMessage.textContent = '請輸入一個美食名稱！';
+            }
+        });
+        
+        stackPopBtn.addEventListener('click', () => {
+            if (stack.length > 0) {
+                const topItem = document.querySelector('.stack-item');
+                if (topItem) {
+                    topItem.classList.add('highlight');
+                    setTimeout(() => {
+                        stack.pop();
+                        updateStackView();
+                    }, 500);
+                }
+            } else {
+                stackMessage.textContent = '堆疊是空的！無法取出美食。';
+            }
+        });
+        
+        // Linked List Implementation
+        const listContainer = document.querySelector('.linkedlist-container');
+        const listInput = document.getElementById('list-input');
+        const listAppendBtn = document.getElementById('list-append');
+        const listPrependBtn = document.getElementById('list-prepend');
+        const listRemoveBtn = document.getElementById('list-remove');
+        const listMessage = document.getElementById('list-message');
+        
+        let linkedList = [];
+        const maxListSize = 5;
+        
+        function updateListView() {
+            // Clear existing list nodes
+            const existingNodes = document.querySelectorAll('.list-node, .list-pointer');
+            existingNodes.forEach(node => node.remove());
+            
+            // Add new list nodes
+            linkedList.forEach((value, index) => {
+                const node = document.createElement('div');
+                node.className = 'list-node';
+                node.textContent = value;
+                node.style.left = `${50 + index * 100}px`;
+                node.style.top = '120px';
+                listContainer.appendChild(node);
+                
+                // Add pointer if not the last node
+                if (index < linkedList.length - 1) {
+                    const pointer = document.createElement('div');
+                    pointer.className = 'list-pointer';
+                    pointer.style.left = `${85 + index * 100}px`;
+                    pointer.style.top = '150px';
+                    pointer.style.width = '70px';
+                    listContainer.appendChild(pointer);
+                }
+            });
+            
+            // Update message
+            if (linkedList.length === 0) {
+                listMessage.textContent = '鏈結串列是空的！試著添加一些美食節點。';
+            } else {
+                listMessage.textContent = `鏈結串列中有 ${linkedList.length} 個美食節點。`;
+            }
+        }
+        
+        listAppendBtn.addEventListener('click', () => {
+            const value = listInput.value.trim();
+            if (value && linkedList.length < maxListSize) {
+                linkedList.push(value);
+                updateListView();
+                listInput.value = '';
+                
+                // Highlight the last node
+                const nodes = document.querySelectorAll('.list-node');
+                if (nodes.length > 0) {
+                    const lastNode = nodes[nodes.length - 1];
+                    lastNode.classList.add('highlight');
+                    setTimeout(() => {
+                        lastNode.classList.remove('highlight');
+                    }, 1000);
+                }
+            } else if (linkedList.length >= maxListSize) {
+                listMessage.textContent = '鏈結串列已滿！請先移除一些美食節點。';
+            } else {
+                listMessage.textContent = '請輸入一個美食名稱！';
+            }
+        });
+        
+        listPrependBtn.addEventListener('click', () => {
+            const value = listInput.value.trim();
+            if (value && linkedList.length < maxListSize) {
+                linkedList.unshift(value);
+                updateListView();
+                listInput.value = '';
+                
+                // Highlight the first node
+                const firstNode = document.querySelector('.list-node');
+                if (firstNode) {
+                    firstNode.classList.add('highlight');
+                    setTimeout(() => {
+                        firstNode.classList.remove('highlight');
+                    }, 1000);
+                }
+            } else if (linkedList.length >= maxListSize) {
+                listMessage.textContent = '鏈結串列已滿！請先移除一些美食節點。';
+            } else {
+                listMessage.textContent = '請輸入一個美食名稱！';
+            }
+        });
+        
+        listRemoveBtn.addEventListener('click', () => {
+            if (linkedList.length > 0) {
+                const firstNode = document.querySelector('.list-node');
+                if (firstNode) {
+                    firstNode.classList.add('highlight');
+                    setTimeout(() => {
+                        linkedList.shift();
+                        updateListView();
+                    }, 500);
+                }
+            } else {
+                listMessage.textContent = '鏈結串列是空的！無法移除美食節點。';
+            }
+        });
+        
+        // Bracket Matching Implementation
+        const bracketInput = document.getElementById('bracket-input');
+        const checkBracketsBtn = document.getElementById('check-brackets');
+        const bracketResult = document.getElementById('bracket-result');
+        
+        checkBracketsBtn.addEventListener('click', () => {
+            const input = bracketInput.value.trim();
+            if (input) {
+                const isValid = isValidBrackets(input);
+                if (isValid) {
+                    bracketResult.innerHTML = '<span class="text-green-600 font-bold">✓ 餐盤堆疊穩定！可以安全使用。</span>';
+                } else {
+                    bracketResult.innerHTML = '<span class="text-red-600 font-bold">✗ 餐盤堆疊不穩定！可能會倒塌。</span>';
+                }
+            } else {
+                bracketResult.textContent = '請輸入餐盤序列！';
+            }
+        });
+        
+        function isValidBrackets(s) {
+            const stack = [];
+            const mapping = {')': '(', '}': '{', ']': '['};
+            
+            for (let i = 0; i < s.length; i++) {
+                const char = s[i];
+                if (mapping[char]) {
+                    const topElement = stack.length > 0 ? stack.pop() : '#';
+                    if (mapping[char] !== topElement) {
+                        return false;
+                    }
+                } else if (char === '(' || char === '{' || char === '[') {
+                    stack.push(char);
+                }
+            }
+            
+            return stack.length === 0;
+        }
+        
+        // Cycle Detection Implementation
+        const cycleContainer = document.querySelector('.cycle-detection-container');
+        const createListBtn = document.getElementById('create-list');
+        const createCycleBtn = document.getElementById('create-cycle');
+        const detectCycleBtn = document.getElementById('detect-cycle');
+        const cycleResult = document.getElementById('cycle-result');
+        
+        let cycleList = [];
+        let hasCycle = false;
+        
+        function updateCycleView() {
+            // Clear existing nodes
+            cycleContainer.innerHTML = '';
+            
+            // Food emojis for nodes
+            const foodEmojis = ['🍣', '🍤', '🍙', '🍱', '🍜'];
+            
+            // Add new nodes
+            cycleList.forEach((value, index) => {
+                const node = document.createElement('div');
+                node.className = 'list-node';
+                node.innerHTML = `${foodEmojis[index % foodEmojis.length]}<br>${value}`;
+                node.style.fontSize = '12px';
+                node.style.left = `${50 + (index % 4) * 100}px`;
+                node.style.top = `${50 + Math.floor(index / 4) * 80}px`;
+                cycleContainer.appendChild(node);
+                
+                // Add pointer
+                if (index < cycleList.length - 1 || hasCycle) {
+                    const pointer = document.createElement('div');
+                    pointer.className = 'list-pointer';
+                    
+                    if (index === cycleList.length - 1 && hasCycle) {
+                        // Cycle back to the second node
+                        const targetIndex = 1;
+                        const startX = 50 + (index % 4) * 100 + 30;
+                        const startY = 50 + Math.floor(index / 4) * 80 + 30;
+                        const endX = 50 + (targetIndex % 4) * 100 + 30;
+                        const endY = 50 + Math.floor(targetIndex / 4) * 80 + 30;
+                        
+                        // Calculate distance and angle
+                        const dx = endX - startX;
+                        const dy = endY - startY;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                        
+                        pointer.style.width = `${distance - 30}px`;
+                        pointer.style.left = `${startX}px`;
+                        pointer.style.top = `${startY}px`;
+                        pointer.style.transform = `rotate(${angle}deg)`;
+                    } else if (index < cycleList.length - 1) {
+                        // Normal pointer to next node
+                        const nextIndex = index + 1;
+                        const startX = 50 + (index % 4) * 100 + 30;
+                        const startY = 50 + Math.floor(index / 4) * 80 + 30;
+                        const endX = 50 + (nextIndex % 4) * 100 + 30;
+                        const endY = 50 + Math.floor(nextIndex / 4) * 80 + 30;
+                        
+                        // Calculate distance and angle
+                        const dx = endX - startX;
+                        const dy = endY - startY;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                        
+                        pointer.style.width = `${distance - 30}px`;
+                        pointer.style.left = `${startX}px`;
+                        pointer.style.top = `${startY}px`;
+                        pointer.style.transform = `rotate(${angle}deg)`;
+                    }
+                    
+                    cycleContainer.appendChild(pointer);
+                }
+            });
+        }
+        
+        createListBtn.addEventListener('click', () => {
+            cycleList = ['壽司', '天婦羅', '烤肉', '沙拉', '甜點'];
+            hasCycle = false;
+            updateCycleView();
+            cycleResult.textContent = '已創建一個沒有循環的食物傳送帶。';
+        });
+        
+        createCycleBtn.addEventListener('click', () => {
+            if (cycleList.length > 0) {
+                hasCycle = true;
+                updateCycleView();
+                cycleResult.textContent = '已創建一個有循環的食物傳送帶（最後一個食物連回第二個食物）。';
+            } else {
+                cycleResult.textContent = '請先創建一個食物傳送帶！';
+            }
+        });
+        
+        detectCycleBtn.addEventListener('click', () => {
+            if (cycleList.length > 0) {
+                if (hasCycle) {
+                    cycleResult.innerHTML = '<span class="text-green-600 font-bold">✓ 檢測到循環！這是一個迴轉壽司傳送帶。</span>';
+                } else {
+                    cycleResult.innerHTML = '<span class="text-red-600 font-bold">✗ 沒有檢測到循環。這是一個直線傳送帶。</span>';
+                }
+            } else {
+                cycleResult.textContent = '請先創建一個食物傳送帶！';
+            }
+        });
+        
+        // Tab Switching
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update active content
+                const tabContents = document.querySelectorAll('.tab-content');
+                tabContents.forEach(content => content.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Initialize views
+        createFoodParticles();
+        updateStackView();
+        updateListView();
+        
+        // Create initial cycle list
+        createListBtn.click();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a477639b5f6dd8c',t:'MTc2NDEzOTkzNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
