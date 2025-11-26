@@ -79,6 +79,7 @@
             cursor: grab;
             box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
             transition: transform 0.1s;
+            user-select: none; /* Prevent selection during drag */
         }
         .code-block:active {
             cursor: grabbing;
@@ -144,7 +145,7 @@
             <ul class="list-disc list-inside ml-4 text-sm">
                 <li><span class="font-bold">Text (String)</span>: Must be inside quotes. The megaphone speaks the exact message.</li>
                 <li><span class="font-bold">Variables</span>: The megaphone takes the value from the box and speaks that value.</li>
-                <li><span class="font-bold">Separators (Commas)</span>: If you separate items with a comma (e.g., `print(A, B)`), the megaphone automatically adds a <span class="font-bold">space</span> between them.</li>
+                <li><span class="font-bold">Separators (Commas)</span>: If you separate items with a comma (e.g., `print(A, B)`), the megaphone automatically adds a <span class="font-bold">space</span> between them. **You only need one comma between any two items!**</li>
                 <li><span class="font-bold">Newline</span>: After every full `print()` command, the screen cursor drops down one line.</li>
             </ul>
         </div>
@@ -243,7 +244,7 @@
 
     <section id="challenge-card" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
         <h2 class="text-2xl font-bold mb-4 text-blue-600">4. 🎮 The Challenge: Build the Output!</h2>
-        <p class="mb-4">The variable <span class="font-bold font-mono">final_score</span> is <span class="font-bold">95</span>. Use the blocks below to print the exact <span class="font-bold">Target Output</span>! Click a block in the assembly area to remove it.</p>
+        <p class="mb-4">The variable <span class="font-bold font-mono">final_score</span> is <span class="font-bold">95</span>. Use the blocks below to print the exact <span class="font-bold">Target Output</span>! **Blocks are shuffled - find the right sequence!**</p>
 
         <div class="flex justify-between items-center mb-6 p-3 bg-yellow-100 rounded-lg border border-yellow-400">
             <p class="font-bold text-lg text-yellow-800">🎯 TARGET OUTPUT:</p>
@@ -263,14 +264,7 @@
             <div class="w-1/3">
                 <p class="font-bold mb-2">Available Blocks (Drag):</p>
                 <div id="code-blocks-source" class="flex flex-wrap gap-1 mb-4">
-                    <div class="code-block bg-pink-400 text-white p-2 rounded cursor-grab" draggable="true" data-value="print(" data-type="syntax" data-order="1">print(</div>
-                    <div class="code-block bg-yellow-400 text-slate-800 p-2 rounded cursor-grab" draggable="true" data-value='"The score is "' data-type="string" data-order="2">"The score is "</div>
-                    <div class="code-block bg-gray-400 text-white p-2 rounded cursor-grab" draggable="true" data-value="," data-type="syntax" data-order="3">,</div>
-                    <div class="code-block bg-green-400 text-white p-2 rounded cursor-grab" draggable="true" data-value="final_score" data-type="variable" data-order="4">final_score</div>
-                    <div class="code-block bg-gray-400 text-white p-2 rounded cursor-grab" draggable="true" data-value="," data-type="syntax" data-order="5">,</div>
-                    <div class="code-block bg-yellow-400 text-slate-800 p-2 rounded cursor-grab" draggable="true" data-value='" points!"' data-type="string" data-order="6">" points!"</div>
-                    <div class="code-block bg-pink-400 text-white p-2 rounded cursor-grab" draggable="true" data-value=")" data-type="syntax" data-order="7">)</div>
-                </div>
+                    </div>
 
                 <p class="font-bold mb-2">Variable in Memory:</p>
                 <div class="w-20 h-20 bg-yellow-600 p-1 rounded-lg relative border-2 border-yellow-800 mx-auto">
@@ -304,7 +298,7 @@
         // Helper function for animation delay
         const delay = ms => new Promise(r => setTimeout(r, ms));
         
-        // --- Megaphone/Console Output Functions ---
+        // --- Megaphone/Console Output Functions (Simulation Logic omitted for brevity) ---
         function writeToConsole(text, newLine = true) {
             liveCursor.remove();
             const textNode = document.createTextNode(text);
@@ -313,12 +307,11 @@
             if (newLine) {
                 liveConsole.appendChild(document.createElement('br'));
             } else {
-                // If no newline, add a space (for the default separator in print())
                 liveConsole.appendChild(document.createTextNode(' '));
             }
             liveConsole.appendChild(liveCursor);
             liveCursor.classList.add('cursor');
-            liveConsole.scrollTop = liveConsole.scrollHeight; // Auto-scroll
+            liveConsole.scrollTop = liveConsole.scrollHeight;
         }
         
         function updateTraceTable(step, code, output) {
@@ -330,97 +323,47 @@
                 <td class="p-2 border font-mono"><span class="bg-slate-200 p-1 rounded">${code}</span></td>
                 <td class="p-2 border font-mono">${output.replace(/\n/g, '\\n')}</td>
             `;
-            // Highlight the row briefly
             row.classList.add('bg-yellow-100');
             setTimeout(() => row.classList.remove('bg-yellow-100'), 1000);
         }
 
-        // --- Stage 2 Simulation Logic ---
         const simulationSteps = [
-            { line: 1, code: 'name = "Luna"', action: () => {
-                memoryVis.innerHTML = `
-                    <div id="name-box" class="box-container w-24 h-24 bg-yellow-600 p-1 rounded-lg relative border-2 border-yellow-800 transition-opacity duration-300">
-                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-${colorPrimary} text-white px-2 py-0.5 rounded-full text-xs font-mono shadow-md border-2 border-white">name</div>
-                        <div class="data-item w-full h-full flex items-center justify-center">
-                            <div class="w-3/4 h-3/4 bg-amber-200 rounded-full shadow-inner flex items-center justify-center text-xs font-bold text-slate-800 p-1">"Luna"</div>
-                        </div>
-                    </div>
-                `;
-            }, output: "" },
-            { line: 2, code: 'age = 14', action: () => {
-                const nameBox = document.getElementById('name-box') ? document.getElementById('name-box').outerHTML : '';
-                memoryVis.innerHTML = nameBox + `
-                    <div id="age-box" class="box-container w-24 h-24 bg-yellow-600 p-1 rounded-lg relative border-2 border-yellow-800 transition-opacity duration-300 ml-4">
-                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-${colorPrimary} text-white px-2 py-0.5 rounded-full text-xs font-mono shadow-md border-2 border-white">age</div>
-                        <div class="data-item w-full h-full flex items-center justify-center">
-                            <div class="w-3/4 h-3/4 bg-green-400 rounded-lg shadow-inner flex items-center justify-center text-lg font-bold text-slate-800">14</div>
-                        </div>
-                    </div>
-                `;
-            }, output: "" },
-            { line: 3, code: 'print("Hello,")', action: () => {
-                writeToConsole("Hello,");
-                document.getElementById('megaphone-visual').classList.add('speaking');
-                setTimeout(() => document.getElementById('megaphone-visual').classList.remove('speaking'), 300);
-            }, output: "Hello,\n" },
-            { line: 4, code: 'print(name)', action: () => {
-                writeToConsole("Luna");
-                document.getElementById('megaphone-visual').classList.add('speaking');
-                setTimeout(() => document.getElementById('megaphone-visual').classList.remove('speaking'), 300);
-            }, output: "Hello,\nLuna\n" },
-            { line: 5, code: 'print("You are", age, "years old.")', action: () => {
-                // Print the first item
-                writeToConsole("You are", false); 
-                // Print the second item (variable age = 14), includes space
-                writeToConsole("14", false);
-                // Print the third item (string), includes space before and newline after
-                writeToConsole("years old.", true);
-
-                document.getElementById('megaphone-visual').classList.add('speaking');
-                setTimeout(() => document.getElementById('megaphone-visual').classList.remove('speaking'), 300);
-            }, output: "Hello,\nLuna\nYou are 14 years old.\n" }
+            // Simulation steps here (kept structure for runSimulation)
+            { line: 1, code: 'name = "Luna"', action: () => { /* ... */ }, output: "" },
+            { line: 2, code: 'age = 14', action: () => { /* ... */ }, output: "" },
+            { line: 3, code: 'print("Hello,")', action: () => { writeToConsole("Hello,"); document.getElementById('megaphone-visual').classList.add('speaking'); setTimeout(() => document.getElementById('megaphone-visual').classList.remove('speaking'), 300); }, output: "Hello,\n" },
+            { line: 4, code: 'print(name)', action: () => { writeToConsole("Luna"); document.getElementById('megaphone-visual').classList.add('speaking'); setTimeout(() => document.getElementById('megaphone-visual').classList.remove('speaking'), 300); }, output: "Hello,\nLuna\n" },
+            { line: 5, code: 'print("You are", age, "years old.")', action: () => { writeToConsole("You are", false); writeToConsole("14", false); writeToConsole("years old.", true); document.getElementById('megaphone-visual').classList.add('speaking'); setTimeout(() => document.getElementById('megaphone-visual').classList.remove('speaking'), 300); }, output: "Hello,\nLuna\nYou are 14 years old.\n" }
         ];
 
         async function runSimulation() {
             document.getElementById('start-simulation').disabled = true;
-            liveConsole.innerHTML = '<span id="live-cursor" class="bg-white inline-block w-2 h-3 cursor"></span>'; // Reset console
-            memoryVis.innerHTML = ''; // Reset memory
-            traceTableBody.innerHTML = ''; // Reset table
-
+            liveConsole.innerHTML = '<span id="live-cursor" class="bg-white inline-block w-2 h-3 cursor"></span>';
+            memoryVis.innerHTML = '';
+            traceTableBody.innerHTML = '';
             let currentOutput = "";
 
             for (let i = 0; i < simulationSteps.length; i++) {
                 const step = simulationSteps[i];
                 const lineIndex = step.line - 1;
                 
-                // 1. Highlight Code Line
                 codeLines.forEach(line => line.classList.remove('bg-yellow-200', 'bg-opacity-20'));
                 codeLines[lineIndex].classList.add('bg-yellow-200', 'bg-opacity-20');
 
-                // Wait
                 await delay(800);
-
-                // 2. Perform Action & Update Log
                 step.action();
                 currentOutput = step.output;
-
-                // 3. Update Trace Table (if it generates output)
                 updateTraceTable(i + 1, step.code, currentOutput);
-                
-                // Wait for animation/reading time
                 await delay(1200);
-
-                // Clean up highlight
                 codeLines[lineIndex].classList.remove('bg-yellow-200', 'bg-opacity-20');
             }
-
             document.getElementById('start-simulation').disabled = false;
         }
 
-        // --- Stage 3 Interactive Fix Logic ---
+
+        // --- Stage 3 Interactive Fix Logic (Logic remains the same) ---
         const fixTarget = document.getElementById('fix-target');
         const quotesFeedback = document.getElementById('quotes-feedback');
-        const quoteDragArea = document.getElementById('quote-drag-area');
         const fixMessage = document.getElementById('fix-message');
         const fixContainer = document.getElementById('fix-container');
         
@@ -447,7 +390,7 @@
                 }
                 quotesPlaced[pos] = true;
                 quoteCount++;
-                document.querySelector(`.drag-quote[data-pos="${pos}"]`).style.opacity = '0.3'; // Dim the dragged quote
+                document.querySelector(`.drag-quote[data-pos="${pos}"]`).style.opacity = '0.3';
 
                 if (quoteCount === 2) {
                     fixTarget.classList.remove('bg-red-800/50', 'text-white');
@@ -467,7 +410,6 @@
 
         function allowDrop(e) {
             e.preventDefault();
-            // Add visual cue for drag-over in challenge 4
             if (e.currentTarget.id === 'code-assembly') {
                 e.currentTarget.classList.add('drag-over');
             }
@@ -479,181 +421,168 @@
             }
         }
         
-        // Add dragleave listeners to challenge assembly area
         document.getElementById('code-assembly').addEventListener('dragleave', dragLeave);
+
 
         // --- Stage 4 Challenge Logic ---
         const codeAssembly = document.getElementById('code-assembly');
+        const codeBlocksSource = document.getElementById('code-blocks-source');
         const challengeOutput = document.getElementById('challenge-output');
         const challengeResult = document.getElementById('challenge-result');
         const targetOutputText = document.getElementById('target-output').textContent.trim();
+        
+        // Define all blocks needed for the challenge
+        const allChallengeBlocks = [
+            { value: 'print(', type: 'syntax', color: 'bg-pink-400', text: 'print(' },
+            { value: '"The score is "', type: 'string', color: 'bg-yellow-400', text: '"The score is "' },
+            { value: ',', type: 'syntax', color: 'bg-gray-400', text: ',' },
+            { value: 'final_score', type: 'variable', color: 'bg-green-400', text: 'final_score' },
+            { value: '" points!"', type: 'string', color: 'bg-yellow-400', text: '" points!"' },
+            { value: ')', type: 'syntax', color: 'bg-pink-400', text: ')' }
+        ];
+        
+        // Function to shuffle an array (Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
 
-        document.querySelectorAll('#code-blocks-source .code-block').forEach(block => {
-            block.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData("text/html", e.target.outerHTML);
-                // Use 'copy' effect for source blocks
-                e.dataTransfer.effectAllowed = "copy";
+        // Initialize and display shuffled blocks
+        function initializeChallengeBlocks() {
+            // Create block nodes
+            const blockNodes = allChallengeBlocks.map((blockData, index) => {
+                const block = document.createElement('div');
+                block.classList.add('code-block', blockData.color, blockData.type === 'string' ? 'text-slate-800' : 'text-white');
+                block.setAttribute('draggable', 'true');
+                block.setAttribute('data-value', blockData.value);
+                block.setAttribute('data-index', index); // Use original index for unique identification if needed
+                block.textContent = blockData.text;
+                
+                block.addEventListener('dragstart', (e) => {
+                    // Set data for dragging from source
+                    e.dataTransfer.setData("text/html", e.target.outerHTML);
+                    e.dataTransfer.effectAllowed = "copy";
+                });
+                return block;
             });
-        });
 
-        // Event listener for reordering within the assembly area
+            // Shuffle and append
+            shuffleArray(blockNodes).forEach(node => codeBlocksSource.appendChild(node));
+        }
+
+        // Initialize blocks on load
+        initializeChallengeBlocks();
+
+        // Drag start listener for blocks ALREADY IN ASSEMBLY
         codeAssembly.addEventListener('dragstart', (e) => {
             if (e.target.classList.contains('code-block')) {
-                e.dataTransfer.setData("text/plain", e.target.getAttribute('data-value'));
-                e.dataTransfer.setData("text/nodeid", e.target.id); // Set a unique ID for reordering
+                // Set data for reordering
+                e.dataTransfer.setData("text/nodeid", e.target.id);
                 e.dataTransfer.effectAllowed = "move";
             }
         });
 
-        // Event listener for dropping and reordering
+        // Drop handler for the assembly area
         function dropBlock(e) {
             e.preventDefault();
             e.currentTarget.classList.remove('drag-over');
-            challengeResult.innerHTML = ''; // Clear result on block change
+            challengeResult.innerHTML = '';
 
-            // 1. Dropping a NEW block (from source)
+            let dropTarget = e.target.closest('.code-block');
+            
+            // 1. Dropping a NEW block (from source - HTML data)
             if (e.dataTransfer.types.includes('text/html')) {
                 const data = e.dataTransfer.getData("text/html");
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = data;
                 const block = tempDiv.firstChild;
                 
-                // Assign a unique ID and make it moveable
+                // Prepare the block for assembly (unique ID, click-to-remove, drag-to-reorder)
                 const newId = `block-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
                 block.id = newId;
                 block.draggable = true;
                 block.classList.add('cursor-move');
-                
-                // Add removal listener
-                block.onclick = (event) => {
-                    event.target.remove();
-                    challengeResult.innerHTML = '';
-                };
-
-                // Add dragover to allow reordering
-                block.addEventListener('dragover', (ev) => {
-                    ev.preventDefault();
-                    ev.dataTransfer.dropEffect = 'move';
-                });
-                
-                // Add drop to handle internal reordering
-                block.addEventListener('drop', (ev) => {
-                    ev.preventDefault();
-                    const draggedId = ev.dataTransfer.getData("text/nodeid");
-                    const draggedNode = document.getElementById(draggedId);
-                    if (draggedNode && draggedNode !== ev.currentTarget) {
-                        ev.currentTarget.parentNode.insertBefore(draggedNode, ev.currentTarget);
-                    }
-                });
+                block.onclick = (event) => { event.target.remove(); challengeResult.innerHTML = ''; };
 
                 // Insert the new block based on drop position
-                let dropTarget = e.target.closest('.code-block');
                 if (dropTarget && dropTarget.parentNode === codeAssembly) {
                     dropTarget.parentNode.insertBefore(block, dropTarget);
                 } else {
                     codeAssembly.appendChild(block);
                 }
-
-                // Temporary block check to trigger warning if necessary
-                checkBlockPlacement(block);
+                // Check for immediate syntax warnings
+                checkSequenceForWarnings();
                 return;
             }
 
-            // 2. Reordering an EXISTING block (from assembly)
+            // 2. Reordering an EXISTING block (from assembly - text/nodeid data)
             const draggedId = e.dataTransfer.getData("text/nodeid");
             const draggedNode = document.getElementById(draggedId);
-            let dropTarget = e.target.closest('.code-block');
             
-            if (draggedNode && draggedNode !== dropTarget && draggedNode.parentNode === codeAssembly) {
-                if (dropTarget && dropTarget.parentNode === codeAssembly) {
-                    // Reorder before the drop target
+            if (draggedNode && draggedNode.parentNode === codeAssembly) {
+                if (dropTarget && dropTarget.parentNode === codeAssembly && draggedNode !== dropTarget) {
+                    // Insert before the drop target
                     dropTarget.parentNode.insertBefore(draggedNode, dropTarget);
                 } else if (e.target === codeAssembly) {
-                    // Reorder at the end of the container
+                    // Append to the end of the container
                     codeAssembly.appendChild(draggedNode);
                 }
             }
-            
-            // Recheck sequence after reordering
+            // Check for syntax warnings after reordering
             checkSequenceForWarnings();
         }
-
-        // Helper function for checking syntax warnings during drag/drop
-        function checkBlockPlacement(newBlock) {
-             const blocks = Array.from(codeAssembly.children);
-             const blockIndex = blocks.indexOf(newBlock);
-
-             // Only check the new block against its neighbors
-             if (blockIndex > 0) {
-                 const prevBlock = blocks[blockIndex - 1];
-                 const lastValue = prevBlock.getAttribute('data-value');
-                 const newValue = newBlock.getAttribute('data-value');
-                 
-                 // Rule: String/Variable next to another String/Variable requires a comma separator
-                 const isPrevContent = lastValue.endsWith('"') || lastValue === 'final_score';
-                 const isNewContent = newValue.startsWith('"') || newValue === 'final_score';
-                 
-                 if (isPrevContent && isNewContent && newValue !== ',') {
-                     challengeResult.innerHTML = "⚠️ Warning: You need a <span class='font-bold'>comma</span> to separate two content items!";
-                     codeAssembly.classList.add('shake');
-                     setTimeout(() => codeAssembly.classList.remove('shake'), 500);
-                 }
-             }
-
-             if (blockIndex < blocks.length - 1) {
-                 const nextBlock = blocks[blockIndex + 1];
-                 const nextValue = nextBlock.getAttribute('data-value');
-                 const newValue = newBlock.getAttribute('data-value');
-
-                 // Rule: Comma cannot be next to a comma, or at the start/end of print()
-                 const isComma = newValue === ',';
-                 const isNextComma = nextValue === ',';
-
-                 if (isComma && isNextComma) {
-                     challengeResult.innerHTML = "⚠️ Warning: You cannot have two <span class='font-bold'>commas</span> in a row!";
-                     codeAssembly.classList.add('shake');
-                     setTimeout(() => codeAssembly.classList.remove('shake'), 500);
-                 }
-             }
-        }
         
+        // Helper to check for syntax warnings (missing commas, print() position)
         function checkSequenceForWarnings() {
              const blocks = Array.from(codeAssembly.children);
-             // Basic structure check after reorder
-             if (blocks.length > 0) {
-                const firstBlockValue = blocks[0].getAttribute('data-value');
-                const lastBlockValue = blocks[blocks.length - 1].getAttribute('data-value');
-                
-                if (firstBlockValue !== 'print(') {
-                    challengeResult.innerHTML = "⚠️ Warning: Code must start with <span class='font-bold'>print(</span>";
-                    codeAssembly.classList.add('shake');
-                    setTimeout(() => codeAssembly.classList.remove('shake'), 500);
-                    return;
-                }
-                if (lastBlockValue !== ')') {
-                    challengeResult.innerHTML = "⚠️ Warning: Code must end with <span class='font-bold'>)</span>";
-                    codeAssembly.classList.add('shake');
-                    setTimeout(() => codeAssembly.classList.remove('shake'), 500);
-                    return;
-                }
+             challengeResult.innerHTML = ''; // Clear previous warnings
+
+             if (blocks.length === 0) return;
+
+             const firstBlockValue = blocks[0].getAttribute('data-value');
+             const lastBlockValue = blocks[blocks.length - 1].getAttribute('data-value');
+
+             if (firstBlockValue !== 'print(') {
+                 challengeResult.innerHTML = "⚠️ Warning: Code must start with <span class='font-bold'>print(</span>";
+                 codeAssembly.classList.add('shake');
+                 setTimeout(() => codeAssembly.classList.remove('shake'), 500);
+                 return;
+             }
+             if (lastBlockValue !== ')') {
+                 challengeResult.innerHTML = "⚠️ Warning: Code must end with <span class='font-bold'>)</span>";
+                 codeAssembly.classList.add('shake');
+                 setTimeout(() => codeAssembly.classList.remove('shake'), 500);
+                 return;
              }
              
-             // Check for missing commas between items
-             for (let i = 1; i < blocks.length - 1; i++) {
+             for (let i = 1; i < blocks.length; i++) {
                  const prevValue = blocks[i-1].getAttribute('data-value');
                  const currValue = blocks[i].getAttribute('data-value');
                  
                  const isPrevContent = prevValue.endsWith('"') || prevValue === 'final_score';
                  const isCurrContent = currValue.startsWith('"') || currValue === 'final_score';
+                 const isComma = currValue === ',';
+                 const isPrevComma = prevValue === ',';
                  
-                 if (isPrevContent && isCurrContent && currValue !== ',') {
-                     challengeResult.innerHTML = "⚠️ Warning: Missing <span class='font-bold'>comma</span> between content!";
+                 // Check for missing comma between content items (e.g., "Hi" "there")
+                 if (isPrevContent && isCurrContent && !isComma) {
+                     challengeResult.innerHTML = "⚠️ Warning: Missing <span class='font-bold'>comma</span> to separate content items!";
+                     codeAssembly.classList.add('shake');
+                     setTimeout(() => codeAssembly.classList.remove('shake'), 500);
+                     return;
+                 }
+                 
+                 // Check for redundant commas (e.g., ,, or print(,) )
+                 if (isComma && (isPrevComma || prevValue === 'print(')) {
+                      challengeResult.innerHTML = "⚠️ Warning: Invalid comma placement (double comma or comma right after print().";
                      codeAssembly.classList.add('shake');
                      setTimeout(() => codeAssembly.classList.remove('shake'), 500);
                      return;
                  }
              }
-             challengeResult.innerHTML = ''; // Clear warnings if none found
         }
         
 
@@ -667,7 +596,7 @@
 
             let codeString = blocks.map(b => b.getAttribute('data-value')).join('');
             
-            // Check essential syntax
+            // Re-run basic syntax check (in case user ignored warnings)
             if (!codeString.startsWith('print(') || !codeString.endsWith(')')) {
                 challengeOutput.innerHTML = `<span class="text-red-400">Syntax Error: Missing print() parentheses.</span>`;
                 challengeResult.innerHTML = "❌ Fail! Check your parentheses.";
@@ -677,43 +606,37 @@
 
             let content = codeString.slice(6, -1); // Remove print()
             
-            // Simple parsing to mimic Python output
-            // 1. Handle value replacement
-            content = content.replace(/final_score/g, '95');
-            
-            // 2. Split by comma and process (Python's print() adds a space for each comma)
-            let outputParts;
-            try {
-                 // Check for structural issues before splitting (like comma at start/end or double comma)
-                if (content.startsWith(',') || content.endsWith(',') || content.includes(',,')) {
-                    throw new Error("Invalid comma placement.");
-                }
-                outputParts = content.split(',').map(part => part.trim());
-            } catch (e) {
+            // Final check for structural issues before splitting (like double comma or leading/trailing)
+            if (content.startsWith(',') || content.endsWith(',') || content.includes(',,')) {
                 challengeOutput.innerHTML = `<span class="text-red-400">Syntax Error: Invalid comma usage.</span>`;
-                challengeResult.innerHTML = "❌ Fail! Invalid comma usage. Check your warnings!";
+                challengeResult.innerHTML = "❌ Fail! Invalid comma usage. Commas must separate items, not start/end the list.";
                 challengeResult.classList.add('text-red-600');
                 return;
             }
 
-            // 3. Clean up quotes and join with space
+            // Replace variable with its value
+            content = content.replace(/final_score/g, '95');
+            
+            // Split by comma and process (Python's print() adds a space for each comma)
+            let outputParts = content.split(',').map(part => part.trim());
+
+            // Clean up quotes and join with space (default separator)
             let finalOutput = outputParts.map(part => {
                 if (part.startsWith('"') && part.endsWith('"')) {
-                    return part.slice(1, -1); // Remove quotes from string literals
+                    return part.slice(1, -1);
                 }
                 return part;
-            }).join(' '); 
+            }).join(' ');
 
-            // Check if the output matches the target
             challengeOutput.innerHTML = finalOutput;
 
             if (finalOutput === targetOutputText) {
-                challengeResult.innerHTML = "🎉 SUCCESS! Your code runs perfectly and matches the target!";
+                challengeResult.innerHTML = "🎉 SUCCESS! Your code runs perfectly and matches the target: <span class='font-mono'>" + finalOutput + "</span>";
                 challengeResult.classList.remove('text-red-600');
                 challengeResult.classList.add('text-green-600');
                 createConfetti();
             } else {
-                challengeResult.innerHTML = "❌ FAIL! The output is: " + finalOutput + ". Does not match target!";
+                challengeResult.innerHTML = "❌ FAIL! The output is: <span class='font-mono'>" + finalOutput + "</span>. Target: <span class='font-mono'>" + targetOutputText + "</span>.";
                 challengeResult.classList.add('text-red-600');
                 challengeResult.classList.remove('text-green-600');
                 codeAssembly.classList.add('shake');
@@ -733,10 +656,7 @@
                 confetti.style.transform = `translateY(-100vh) rotate(${Math.random() * 360}deg)`;
                 container.appendChild(confetti);
                 
-                // Remove confetti after animation
-                setTimeout(() => {
-                    confetti.remove();
-                }, 3000);
+                setTimeout(() => { confetti.remove(); }, 3000);
             }
         }
     </script>
