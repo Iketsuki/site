@@ -1,0 +1,762 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>子程式教學</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f9ff;
+        }
+        
+        .code-block {
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+            border-radius: 0.5rem;
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+        }
+        
+        .highlight {
+            background-color: rgba(255, 255, 0, 0.2);
+            padding: 0 2px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tab {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .output-area {
+            min-height: 100px;
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .illustration {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .step {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid #3b82f6;
+            background-color: #f8fafc;
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 9999px;
+            background-color: #3b82f6;
+            color: white;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        
+        .speech-bubble {
+            position: relative;
+            background: #ffffff;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 200px;
+        }
+        
+        .speech-bubble:after {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 100%;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+            border-top-color: #ffffff;
+            border-bottom: 0;
+            margin-left: -10px;
+            margin-bottom: -10px;
+        }
+        
+        .character {
+            text-align: center;
+            margin: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+        
+        .emoji-large {
+            font-size: 4rem;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        
+        .emoji-medium {
+            font-size: 2.5rem;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        
+        .arrow {
+            font-size: 2rem;
+            margin: 0 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .scenario {
+            background-color: #fff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .scenario-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+            display: flex;
+            align-items: center;
+        }
+        
+        .scenario-emoji {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+        
+        .explanation-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        
+        .explanation-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .explanation-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .explanation-list li {
+            padding: 0.25rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .explanation-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0.5rem;
+            color: #3b82f6;
+        }
+        
+        @media (max-width: 640px) {
+            .illustration {
+                flex-direction: column;
+            }
+            
+            .arrow {
+                transform: rotate(90deg);
+                margin: 0.5rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h1 class="text-3xl font-bold text-blue-700 mb-4">子程式 (Subprogram) 教學</h1>
+            
+            <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/4 text-center mb-4 md:mb-0">
+                        <div class="emoji-large">🧩</div>
+                        <p class="font-bold mt-2">子程式是什麼？</p>
+                    </div>
+                    <div class="md:w-3/4 md:pl-6">
+                        <p class="text-lg">子程式就像是一個可重複使用的積木，把常用的程式碼包裝在一個區塊中，方便我們在寫程式時隨時呼叫、使用。</p>
+                        <div class="mt-3">
+                            <p class="font-bold">好處：</p>
+                            <ul class="list-disc ml-5 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <li>可重覆使用，節省時間</li>
+                                <li>方便除錯及找出錯誤</li>
+                                <li>提高程式碼可讀性</li>
+                                <li>減少重複撰寫相同功能的程式碼</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="scenario">
+                <div class="scenario-title"><span class="scenario-emoji">🏫</span> 想像一下學校的校務處</div>
+                <p>我們可以把子程式比喻成校務處提供的各種服務。每種服務都有不同的操作方式，有些需要你提供資訊，有些會給你回應，有些兩者都有，有些兩者都沒有。</p>
+                <div class="illustration">
+                    <div class="character">
+                        <div class="emoji-large">👨‍🎓</div>
+                        <p>學生</p>
+                    </div>
+                    <div class="arrow">↔️</div>
+                    <div class="character">
+                        <div class="emoji-large">🏢</div>
+                        <p>校務處</p>
+                    </div>
+                </div>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-blue-600 mb-4">子程式的四種操作方式</h2>
+            
+            <div class="mb-8">
+                <div class="flex flex-wrap border-b border-gray-200">
+                    <div class="tab active px-4 py-2 border-b-2 border-blue-500" data-tab="1">
+                        1. 無輸入，無輸出
+                    </div>
+                    <div class="tab px-4 py-2" data-tab="2">
+                        2. 有輸入，無輸出
+                    </div>
+                    <div class="tab px-4 py-2" data-tab="3">
+                        3. 無輸入，有輸出
+                    </div>
+                    <div class="tab px-4 py-2" data-tab="4">
+                        4. 有輸入，有輸出
+                    </div>
+                </div>
+                
+                <!-- Tab 1 Content -->
+                <div id="tab-1" class="tab-content active p-4 bg-gray-50 rounded-b-lg">
+                    <h3 class="text-xl font-bold mb-2">無輸入，無輸出 (沒帶參數呼叫，沒有返回值)</h3>
+                    
+                    <div class="explanation-box">
+                        <div class="explanation-title">當你去校務處報告冷氣機壞了：</div>
+                        <ul class="explanation-list">
+                            <li>你不需要提供任何特定資訊（無輸入）</li>
+                            <li>你只是通知他們有問題</li>
+                            <li>你不期望立即得到任何回應或結果（無輸出）</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="scenario">
+                        <div class="scenario-title"><span class="scenario-emoji">❄️</span> 真實例子：報告冷氣機壞了</div>
+                        <p>就像向校務處報告冷氣機壞了，你只是告知一件事，不需要提供額外資訊，也不需要得到回應。</p>
+                        
+                        <div class="illustration">
+                            <div class="character">
+                                <div class="emoji-medium">👨‍🎓</div>
+                                <div class="speech-bubble">
+                                    冷氣機壞了！
+                                </div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="character">
+                                <div class="emoji-medium">👩‍💼</div>
+                                <p>校務處人員</p>
+                                <p class="text-sm text-gray-500">(記錄問題)</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h4 class="font-bold text-lg mb-2">程式碼實例：</h4>
+                        <div class="code-block mb-4">
+# 定義子程式
+def report_broken_ac():
+    print("報告：冷氣機壞了！")
+
+# 使用子程式
+report_broken_ac()
+# 印出 "報告：冷氣機壞了！"</div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h4 class="font-bold text-lg mb-2">步驟解析：</h4>
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <span class="font-bold">定義子程式</span>：使用 <code class="bg-gray-200 px-1 rounded">def</code> 關鍵字，後面接子程式名稱和一對空括號 <code class="bg-gray-200 px-1 rounded">()</code>，表示這個子程式不需要任何輸入參數。
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <span class="font-bold">子程式內容</span>：子程式只是執行一個簡單的 <code class="bg-gray-200 px-1 rounded">print()</code> 函數，印出訊息。
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <span class="font-bold">呼叫子程式</span>：直接使用子程式名稱加上一對空括號 <code class="bg-gray-200 px-1 rounded">report_broken_ac()</code> 來呼叫子程式。
+                        </div>
+                        <div class="step">
+                            <span class="step-number">4</span>
+                            <span class="font-bold">結果</span>：子程式執行後，只是印出訊息，沒有返回任何值。
+                        </div>
+                    </div>
+                    
+                    <button id="run-1" class="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">執行程式</button>
+                    <div id="output-1" class="output-area"></div>
+                </div>
+                
+                <!-- Tab 2 Content -->
+                <div id="tab-2" class="tab-content p-4 bg-gray-50 rounded-b-lg">
+                    <h3 class="text-xl font-bold mb-2">有輸入，無輸出 (帶參數呼叫，沒有返回值)</h3>
+                    
+                    <div class="explanation-box">
+                        <div class="explanation-title">當你去校務處繳交雜費：</div>
+                        <ul class="explanation-list">
+                            <li>你需要提供特定資訊，如金額、學生資料等（有輸入）</li>
+                            <li>校務處接收這些資訊並處理</li>
+                            <li>你不期望得到特定的回應或結果，只是完成繳費（無輸出）</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="scenario">
+                        <div class="scenario-title"><span class="scenario-emoji">💰</span> 真實例子：繳交雜費</div>
+                        <p>就像向校務處繳交雜費，你需要提供資訊（金額、學生資料等），但不需要得到特定的回應。</p>
+                        
+                        <div class="illustration">
+                            <div class="character">
+                                <div class="emoji-medium">👨‍🎓</div>
+                                <div class="speech-bubble">
+                                    我要繳交雜費 1000 元，我是三年級的小明。
+                                </div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="character">
+                                <div class="emoji-medium">👩‍💼</div>
+                                <p>校務處人員</p>
+                                <p class="text-sm text-gray-500">(處理繳費)</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h4 class="font-bold text-lg mb-2">程式碼實例：</h4>
+                        <div class="code-block mb-4">
+# 定義子程式
+def pay_fee(name, grade, amount):
+    print(f"{grade}年級的{name}繳交了{amount}元雜費。")
+
+# 使用子程式
+pay_fee("小明", 3, 1000)
+# 印出 "3年級的小明繳交了1000元雜費。"</div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h4 class="font-bold text-lg mb-2">步驟解析：</h4>
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <span class="font-bold">定義子程式</span>：使用 <code class="bg-gray-200 px-1 rounded">def</code> 關鍵字，後面接子程式名稱和括號，括號內放入參數名稱 <code class="bg-gray-200 px-1 rounded">(name, grade, amount)</code>，表示這個子程式需要三個輸入參數。
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <span class="font-bold">子程式內容</span>：子程式使用輸入的參數來執行 <code class="bg-gray-200 px-1 rounded">print()</code> 函數，印出包含這些參數的訊息。
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <span class="font-bold">呼叫子程式</span>：使用子程式名稱，並在括號內提供對應的參數值 <code class="bg-gray-200 px-1 rounded">pay_fee("小明", 3, 1000)</code>。
+                        </div>
+                        <div class="step">
+                            <span class="step-number">4</span>
+                            <span class="font-bold">結果</span>：子程式執行後，使用提供的參數印出訊息，但沒有返回任何值。
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 mb-4">
+                        <label class="block mb-2">學生姓名：</label>
+                        <input id="name-input" type="text" class="border border-gray-300 rounded px-3 py-2 w-full max-w-xs" value="小明">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block mb-2">年級：</label>
+                        <input id="grade-input" type="number" class="border border-gray-300 rounded px-3 py-2 w-full max-w-xs" value="3" min="1" max="6">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block mb-2">金額：</label>
+                        <input id="amount-input" type="number" class="border border-gray-300 rounded px-3 py-2 w-full max-w-xs" value="1000" min="0">
+                    </div>
+                    
+                    <button id="run-2" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">執行程式</button>
+                    <div id="output-2" class="output-area"></div>
+                </div>
+                
+                <!-- Tab 3 Content -->
+                <div id="tab-3" class="tab-content p-4 bg-gray-50 rounded-b-lg">
+                    <h3 class="text-xl font-bold mb-2">無輸入，有輸出 (沒帶參數呼叫，有返回值)</h3>
+                    
+                    <div class="explanation-box">
+                        <div class="explanation-title">當你去校務處拿粉筆：</div>
+                        <ul class="explanation-list">
+                            <li>你不需要提供任何特定資訊，只是提出請求（無輸入）</li>
+                            <li>校務處處理你的請求</li>
+                            <li>你期望得到具體的回應或物品 - 粉筆（有輸出）</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="scenario">
+                        <div class="scenario-title"><span class="scenario-emoji">🖍️</span> 真實例子：向校務處拿粉筆</div>
+                        <p>就像向校務處拿粉筆，你不需要提供額外資訊，但會得到回應（粉筆）。</p>
+                        
+                        <div class="illustration">
+                            <div class="character">
+                                <div class="emoji-medium">👨‍🎓</div>
+                                <div class="speech-bubble">
+                                    我需要粉筆！
+                                </div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="character">
+                                <div class="emoji-medium">👩‍💼</div>
+                                <p>校務處人員</p>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="character">
+                                <div class="emoji-medium">👨‍🎓</div>
+                                <div class="speech-bubble text-center">
+                                    謝謝！<br>
+                                    <span class="emoji-medium">🖍️</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h4 class="font-bold text-lg mb-2">程式碼實例：</h4>
+                        <div class="code-block mb-4">
+# 定義子程式
+def get_chalk():
+    return "一盒新粉筆"
+
+# 使用子程式
+chalk = get_chalk()
+print(f"我從校務處拿到了：{chalk}")
+# 印出 "我從校務處拿到了：一盒新粉筆"</div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h4 class="font-bold text-lg mb-2">步驟解析：</h4>
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <span class="font-bold">定義子程式</span>：使用 <code class="bg-gray-200 px-1 rounded">def</code> 關鍵字，後面接子程式名稱和一對空括號 <code class="bg-gray-200 px-1 rounded">()</code>，表示這個子程式不需要任何輸入參數。
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <span class="font-bold">子程式內容</span>：子程式使用 <code class="bg-gray-200 px-1 rounded">return</code> 關鍵字返回一個值（在這個例子中是字串 "一盒新粉筆"）。
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <span class="font-bold">呼叫子程式</span>：使用一個變數 <code class="bg-gray-200 px-1 rounded">chalk</code> 來接收子程式返回的值 <code class="bg-gray-200 px-1 rounded">chalk = get_chalk()</code>。
+                        </div>
+                        <div class="step">
+                            <span class="step-number">4</span>
+                            <span class="font-bold">結果</span>：子程式執行後，返回一個值，這個值被存儲在變數 <code class="bg-gray-200 px-1 rounded">chalk</code> 中，然後我們可以使用這個變數。
+                        </div>
+                    </div>
+                    
+                    <button id="run-3" class="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">執行程式</button>
+                    <div id="output-3" class="output-area"></div>
+                </div>
+                
+                <!-- Tab 4 Content -->
+                <div id="tab-4" class="tab-content p-4 bg-gray-50 rounded-b-lg">
+                    <h3 class="text-xl font-bold mb-2">有輸入，有輸出 (帶參數呼叫，有返回值)</h3>
+                    
+                    <div class="explanation-box">
+                        <div class="explanation-title">當你去校務處申請補領成績表：</div>
+                        <ul class="explanation-list">
+                            <li>你需要提供特定資訊，如學號、姓名等（有輸入）</li>
+                            <li>校務處根據你提供的資訊處理請求</li>
+                            <li>你期望得到具體的回應或物品 - 成績表（有輸出）</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="scenario">
+                        <div class="scenario-title"><span class="scenario-emoji">📝</span> 真實例子：申請補領成績表</div>
+                        <p>就像向校務處申請補領成績表，你需要提供資訊（學號、姓名等），也會得到回應（成績表）。</p>
+                        
+                        <div class="illustration">
+                            <div class="character">
+                                <div class="emoji-medium">👨‍🎓</div>
+                                <div class="speech-bubble">
+                                    我是三年級的小明，學號 A12345，需要補領成績表。
+                                </div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="character">
+                                <div class="emoji-medium">👩‍💼</div>
+                                <p>校務處人員</p>
+                                <p class="text-sm text-gray-500">(查詢資料)</p>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="character">
+                                <div class="emoji-medium">👨‍🎓</div>
+                                <div class="speech-bubble text-center">
+                                    謝謝！<br>
+                                    <span class="emoji-medium">📄</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h4 class="font-bold text-lg mb-2">程式碼實例：</h4>
+                        <div class="code-block mb-4">
+# 定義子程式
+def get_transcript(name, grade, student_id):
+    # 模擬查詢成績的過程
+    scores = {
+        "國文": 85,
+        "數學": 92,
+        "英文": 78,
+        "自然": 88,
+        "社會": 90
+    }
+    
+    # 返回一個包含學生資訊和成績的字典
+    return {
+        "name": name,
+        "grade": grade,
+        "student_id": student_id,
+        "scores": scores
+    }
+
+# 使用子程式
+transcript = get_transcript("小明", 3, "A12345")
+print(f"學生：{transcript['name']}, {transcript['grade']}年級")
+print(f"學號：{transcript['student_id']}")
+print("成績：")
+for subject, score in transcript['scores'].items():
+    print(f"  {subject}: {score}分")</div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h4 class="font-bold text-lg mb-2">步驟解析：</h4>
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <span class="font-bold">定義子程式</span>：使用 <code class="bg-gray-200 px-1 rounded">def</code> 關鍵字，後面接子程式名稱和括號，括號內放入參數名稱 <code class="bg-gray-200 px-1 rounded">(name, grade, student_id)</code>，表示這個子程式需要三個輸入參數。
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <span class="font-bold">子程式內容</span>：子程式使用輸入的參數，進行一些處理（在這個例子中是模擬查詢成績），然後使用 <code class="bg-gray-200 px-1 rounded">return</code> 關鍵字返回一個包含結果的字典。
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <span class="font-bold">呼叫子程式</span>：使用一個變數 <code class="bg-gray-200 px-1 rounded">transcript</code> 來接收子程式返回的值，並在呼叫時提供所需的參數 <code class="bg-gray-200 px-1 rounded">transcript = get_transcript("小明", 3, "A12345")</code>。
+                        </div>
+                        <div class="step">
+                            <span class="step-number">4</span>
+                            <span class="font-bold">結果</span>：子程式執行後，返回一個值（字典），這個值被存儲在變數 <code class="bg-gray-200 px-1 rounded">transcript</code> 中，然後我們可以使用這個變數來存取返回的資料。
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 mb-4">
+                        <label class="block mb-2">學生姓名：</label>
+                        <input id="student-name" type="text" class="border border-gray-300 rounded px-3 py-2 w-full max-w-xs" value="小明">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block mb-2">年級：</label>
+                        <input id="student-grade" type="number" class="border border-gray-300 rounded px-3 py-2 w-full max-w-xs" value="3" min="1" max="6">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block mb-2">學號：</label>
+                        <input id="student-id" type="text" class="border border-gray-300 rounded px-3 py-2 w-full max-w-xs" value="A12345">
+                    </div>
+                    
+                    <button id="run-4" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">執行程式</button>
+                    <div id="output-4" class="output-area"></div>
+                </div>
+            </div>
+            
+            <div class="bg-yellow-50 p-4 rounded-lg mb-6">
+                <h3 class="text-xl font-bold mb-2">有回傳值的子程式 (Subprogram with Return Value)</h3>
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/4 text-center mb-4 md:mb-0">
+                        <div class="emoji-large">🔄</div>
+                    </div>
+                    <div class="md:w-3/4 md:pl-6">
+                        <p>回傳值是子程式執行後吐出的結果。我們可以在子程式中使用 <span class="font-bold">return</span> 後面接要回傳的結果，並用一個變數接住回傳的結果。</p>
+                        <p class="mt-2 text-gray-700"><span class="font-bold">return</span> 傳出回傳值，並強制結束函數。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded-lg">
+                <h3 class="text-xl font-bold mb-2">練習區</h3>
+                <p class="mb-4">試著修改下面的子程式，計算兩個數字的和，並返回結果：</p>
+                
+                <textarea id="practice-code" class="w-full h-40 p-4 font-mono border border-gray-300 rounded-lg" spellcheck="false">
+# 定義子程式
+def add_numbers(a, b):
+    # 在這裡寫程式碼，計算 a + b 並返回結果
+    pass
+
+# 使用子程式
+result = add_numbers(5, 3)
+print(f"5 + 3 = {result}")
+                </textarea>
+                
+                <button id="run-practice" class="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">執行程式</button>
+                <div id="output-practice" class="output-area"></div>
+            </div>
+            
+            <div class="mt-8 bg-blue-50 p-4 rounded-lg">
+                <h3 class="text-xl font-bold mb-2">子程式總結</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex items-center mb-2">
+                            <div class="mr-2">🚫➡️🚫⬅️</div>
+                            <h4 class="font-bold">1. 無輸入，無輸出</h4>
+                        </div>
+                        <p>像是報告事件，不需要提供資訊，也不需要得到回應。</p>
+                        <p class="mt-2 text-sm text-gray-600">例如：報告冷氣機壞了</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex items-center mb-2">
+                            <div class="mr-2">✅➡️🚫⬅️</div>
+                            <h4 class="font-bold">2. 有輸入，無輸出</h4>
+                        </div>
+                        <p>像是提交資料，需要提供資訊，但不需要得到回應。</p>
+                        <p class="mt-2 text-sm text-gray-600">例如：繳交雜費</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex items-center mb-2">
+                            <div class="mr-2">🚫➡️✅⬅️</div>
+                            <h4 class="font-bold">3. 無輸入，有輸出</h4>
+                        </div>
+                        <p>像是索取物品，不需要提供資訊，但會得到回應。</p>
+                        <p class="mt-2 text-sm text-gray-600">例如：向校務處拿粉筆</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex items-center mb-2">
+                            <div class="mr-2">✅➡️✅⬅️</div>
+                            <h4 class="font-bold">4. 有輸入，有輸出</h4>
+                        </div>
+                        <p>像是申請文件，需要提供資訊，也會得到回應。</p>
+                        <p class="mt-2 text-sm text-gray-600">例如：申請補領成績表</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+            });
+        });
+        
+        // Example 1: No input, no output
+        document.getElementById('run-1').addEventListener('click', () => {
+            const output = document.getElementById('output-1');
+            output.innerHTML = '報告：冷氣機壞了！';
+        });
+        
+        // Example 2: With input, no output
+        document.getElementById('run-2').addEventListener('click', () => {
+            const name = document.getElementById('name-input').value || '學生';
+            const grade = document.getElementById('grade-input').value || '1';
+            const amount = document.getElementById('amount-input').value || '0';
+            const output = document.getElementById('output-2');
+            output.innerHTML = `${grade}年級的${name}繳交了${amount}元雜費。`;
+        });
+        
+        // Example 3: No input, with output
+        document.getElementById('run-3').addEventListener('click', () => {
+            const output = document.getElementById('output-3');
+            output.innerHTML = '我從校務處拿到了：一盒新粉筆';
+        });
+        
+        // Example 4: With input, with output
+        document.getElementById('run-4').addEventListener('click', () => {
+            const name = document.getElementById('student-name').value || '學生';
+            const grade = document.getElementById('student-grade').value || '1';
+            const studentId = document.getElementById('student-id').value || 'A00000';
+            const output = document.getElementById('output-4');
+            
+            // Simulate random scores
+            const scores = {
+                "國文": Math.floor(Math.random() * 30) + 70,
+                "數學": Math.floor(Math.random() * 30) + 70,
+                "英文": Math.floor(Math.random() * 30) + 70,
+                "自然": Math.floor(Math.random() * 30) + 70,
+                "社會": Math.floor(Math.random() * 30) + 70
+            };
+            
+            let result = `<div class="bg-white p-4 rounded-lg border border-gray-300">`;
+            result += `<div class="text-center font-bold text-xl mb-4">成績單</div>`;
+            result += `<div class="mb-2">學生：${name}, ${grade}年級</div>`;
+            result += `<div class="mb-4">學號：${studentId}</div>`;
+            result += `<div class="font-bold mb-2">成績：</div>`;
+            result += `<table class="w-full border-collapse">`;
+            result += `<tr class="bg-gray-100"><th class="border px-2 py-1">科目</th><th class="border px-2 py-1">分數</th></tr>`;
+            
+            for (const [subject, score] of Object.entries(scores)) {
+                result += `<tr><td class="border px-2 py-1">${subject}</td><td class="border px-2 py-1">${score}</td></tr>`;
+            }
+            
+            result += `</table></div>`;
+            output.innerHTML = result;
+        });
+        
+        // Practice area
+        document.getElementById('run-practice').addEventListener('click', () => {
+            const code = document.getElementById('practice-code').value;
+            const output = document.getElementById('output-practice');
+            
+            try {
+                // Simple evaluation for the practice example
+                if (code.includes('return a + b') || code.includes('return b + a')) {
+                    output.innerHTML = '5 + 3 = 8<br><span class="text-green-600 font-bold">✓ 做得好！你成功地實現了加法子程式。</span>';
+                } else if (code.includes('return') && code.includes('+')) {
+                    output.innerHTML = '5 + 3 = 8<br><span class="text-green-600 font-bold">✓ 程式運作正確！</span>';
+                } else {
+                    output.innerHTML = '請確保你的程式碼包含 return 語句，並返回 a + b 的結果。';
+                }
+            } catch (e) {
+                output.innerHTML = `錯誤: ${e.message}`;
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a477443537dddfb',t:'MTc2NDEzOTg1My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
