@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>If/Else Conditionals (Sky Lab)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Bubble Tail for Mascot Speech */
+        .bubble-tail::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 20px 20px 0;
+            border-color: transparent #fff transparent transparent;
+            top: 20px;
+            left: -20px;
+            transform: rotate(45deg);
+        }
+        /* Custom Shake Animation for Errors */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+        /* Style for the Traffic Light (default Red) */
+        .traffic-light {
+            width: 60px;
+            height: 180px;
+            background: #2c3e50;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .light {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #444; /* Off state */
+            opacity: 0.3;
+            transition: all 0.3s;
+        }
+        .light.green { background: #27ae60; opacity: 1; box-shadow: 0 0 10px #2ecc71; }
+        .light.red { background: #c0392b; opacity: 1; box-shadow: 0 0 10px #e74c3c; }
+        .light.yellow { background: #f39c12; opacity: 1; box-shadow: 0 0 10px #f1c40f; }
+
+        /* General Card Style */
+        .card {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 2px solid #bfdbfe; /* blue-200 */
+            transition: all 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-['Inter'] p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- HEADER & MASCOT (The "Mascot" Layout) -->
+        <header class="mb-10 p-6 bg-blue-600 rounded-xl shadow-lg">
+            <h1 class="text-3xl md:text-5xl font-extrabold text-white mb-4">
+                Python Decision-Maker: If/Else 🚦
+            </h1>
+            <div class="relative flex items-start mt-6">
+                <!-- Mascot Emoji -->
+                <div class="w-20 h-20 absolute z-10 text-5xl flex items-center justify-center bg-white rounded-full border-4 border-white shadow-lg">
+                    🤖
+                </div>
+                <!-- Speech Bubble -->
+                <div class="ml-[90px] p-4 bg-white rounded-2xl bubble-tail shadow-md border border-blue-200 text-slate-700">
+                    <p class="text-lg">
+                        Hey there! In programming, we need to make <strong>decisions</strong>, just like when you decide what to wear based on the weather. These special traffic lights, called <strong>Conditionals</strong>, help our code choose the right path!
+                    </p>
+                </div>
+            </div>
+        </header>
+
+        <!-- STAGE 1: THE HOOK (Analogy & Visuals) -->
+        <section class="mb-12 card p-6">
+            <h2 class="text-2xl font-bold text-blue-600 mb-4">Stage 1: The Decision Road</h2>
+            <p class="mb-6">
+                An <strong>If/Else statement</strong> lets your program choose between two actions based on a rule. This rule is called a <strong>condition</strong>.
+            </p>
+
+            <div class="flex flex-col md:flex-row items-center justify-around space-y-6 md:space-y-0 md:space-x-6">
+                
+                <!-- Traffic Light - The Condition -->
+                <div class="flex flex-col items-center p-4 bg-blue-100 rounded-lg shadow-inner">
+                    <p class="font-bold text-blue-800 mb-2">The Condition (If Score ≥ 70)</p>
+                    <div class="traffic-light">
+                        <div class="light red" id="light-red-hook"></div>
+                        <div class="light yellow" id="light-yellow-hook"></div>
+                        <div class="light green" id="light-green-hook"></div>
+                    </div>
+                    <p class="mt-2 text-sm text-center"><strong>True</strong> is Green, <strong>False</strong> is Red.</p>
+                </div>
+
+                <!-- Roads - The Code Blocks -->
+                <div class="relative w-full md:w-1/2 h-40 bg-gray-300 rounded-full flex items-center justify-between shadow-xl overflow-hidden">
+                    <!-- Road -->
+                    <div class="absolute inset-0 border-y-4 border-dashed border-white"></div>
+                    
+                    <!-- Diverter (Initial Position: Blocking Left/If) -->
+                    <div id="diverter" class="absolute left-1/2 top-0 w-2 h-full bg-blue-600 transition-all duration-700 transform -translate-x-1 rotate-90 origin-top-left shadow-lg"></div>
+
+                    <!-- Left Road (IF) -->
+                    <div class="absolute left-0 w-1/2 h-full flex justify-center items-center">
+                        <span class="text-xl font-extrabold text-blue-700">IF Road (Pass Code)</span>
+                    </div>
+
+                    <!-- Right Road (ELSE) -->
+                    <div class="absolute right-0 w-1/2 h-full flex justify-center items-center">
+                        <span class="text-xl font-extrabold text-red-700">ELSE Road (Fail Code)</span>
+                    </div>
+                </div>
+            </div>
+            <p class="mt-4 text-center text-sm text-slate-600">
+                The <strong>Traffic Light</strong> (Condition) tells the <strong>Diverter</strong> (Program Logic) which road to take.
+            </p>
+        </section>
+
+        <!-- STAGE 2: THE SIMULATION (Trace & Visualize) -->
+        <section class="mb-12 card p-6">
+            <h2 class="text-2xl font-bold text-blue-600 mb-4">Stage 2: Code Run Simulator</h2>
+            <p class="mb-6">
+                Watch the program check the <strong>score</strong> and run the correct code line by line!
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Code Editor -->
+                <div class="lg:col-span-1">
+                    <div class="bg-slate-800 rounded-lg p-4 font-mono text-sm shadow-xl h-full">
+                        <div class="text-slate-500 mb-2"># Python Score Check</div>
+                        <!-- Line 1: Assignment -->
+                        <div id="sim-line-1" class="py-1">
+                            <span class="text-blue-300">score</span> <span class="text-yellow-300">=</span> <span class="text-yellow-400">75</span>
+                        </div>
+                        <!-- Line 2: IF Condition -->
+                        <div id="sim-line-2" class="py-1">
+                            <span class="text-pink-400">if</span> <span class="text-blue-300">score</span> <span class="text-yellow-300">>=</span> <span class="text-yellow-400">70</span><span class="text-yellow-300">:</span>
+                        </div>
+                        <!-- Line 3: IF Body -->
+                        <div id="sim-line-3" class="py-1 pl-4">
+                            <span class="text-blue-300">message</span> <span class="text-yellow-300">=</span> <span class="text-yellow-400">"Pass!"</span>
+                        </div>
+                        <!-- Line 4: ELSE Keyword (Colon fixed here) -->
+                        <div id="sim-line-4" class="py-1">
+                            <span class="text-pink-400">else</span><span class="text-yellow-300">:</span>
+                        </div>
+                        <!-- Line 5: ELSE Body -->
+                        <div id="sim-line-5" class="py-1 pl-4">
+                            <span class="text-blue-300">message</span> <span class="text-yellow-300">=</span> <span class="text-yellow-400">"Try Again"</span>
+                        </div>
+                        <!-- Line 6: Print -->
+                        <div id="sim-line-6" class="py-1">
+                            <span class="text-pink-400">print</span>(<span class="text-blue-300">message</span>)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trace Table and Visual Output -->
+                <div class="lg:col-span-2">
+                    <button id="run-sim-btn" onclick="runSimulation()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition mb-4 shadow-md">
+                        ▶ Run Simulation
+                    </button>
+                    
+                    <!-- Visual Output Area -->
+                    <div class="flex space-x-4 mb-4">
+                        <div class="p-3 bg-blue-100 rounded-lg flex-1 shadow-inner">
+                            <div class="font-bold text-blue-800">Variable: score</div>
+                            <div id="var-score" class="h-8 bg-white rounded flex items-center justify-center font-mono text-xl text-slate-700 mt-1"></div>
+                        </div>
+                        <div class="p-3 bg-blue-100 rounded-lg flex-1 shadow-inner">
+                            <div class="font-bold text-blue-800">Variable: message</div>
+                            <div id="var-message" class="h-8 bg-white rounded flex items-center justify-center font-mono text-sm text-slate-700 mt-1"></div>
+                        </div>
+                    </div>
+
+                    <!-- Trace Table -->
+                    <table class="min-w-full divide-y divide-blue-200 rounded-lg overflow-hidden border border-blue-200">
+                        <thead class="bg-blue-50">
+                            <tr>
+                                <th class="px-3 py-2 text-left text-xs font-bold text-blue-600 uppercase tracking-wider">Step</th>
+                                <th class="px-3 py-2 text-left text-xs font-bold text-blue-600 uppercase tracking-wider">Line of Code</th>
+                                <th class="px-3 py-2 text-left text-xs font-bold text-blue-600 uppercase tracking-wider">Condition (score≥70)</th>
+                                <th class="px-3 py-2 text-left text-xs font-bold text-blue-600 uppercase tracking-wider">Output</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trace-table-body" class="bg-white divide-y divide-blue-100 text-sm">
+                            <!-- Rows will be added by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- STAGE 3: COMMON MISTAKES (Pattern Recognition) -->
+        <section class="mb-12 card p-6">
+            <h2 class="text-2xl font-bold text-blue-600 mb-4">Stage 3: Common Mistakes (The Trap)</h2>
+            <p class="mb-6">
+                Be careful! Programmers often confuse two important symbols: <strong>Assignment</strong> vs. <strong>Comparison</strong>.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- ❌ The Trap -->
+                <div class="p-4 rounded-xl border-4 border-red-500 bg-red-50 transition-all duration-300 hover:shadow-xl">
+                    <h3 class="text-xl font-bold text-red-700 mb-3 flex items-center">
+                        ❌ The Trap: Using = (Assignment)
+                    </h3>
+                    <div class="bg-slate-800 rounded-lg p-3 font-mono text-sm shadow-inner mb-4">
+                        <div class="py-1">
+                            <span class="text-pink-400">if</span> <span class="text-blue-300">age</span> <span class="text-red-300">=</span> <span class="text-yellow-400">16</span><span class="text-yellow-300">:</span>
+                        </div>
+                    </div>
+                    <p class="text-red-700">
+                        The <strong>single equals sign</strong> (`=`) means <strong>set this value</strong>. Python thinks you are trying to change the <strong>age</strong> inside the <strong>if</strong> rule. This will cause an <strong>Error</strong> or strange behavior!
+                    </p>
+                </div>
+
+                <!-- ✅ The Fix -->
+                <div class="p-4 rounded-xl border-4 border-green-500 bg-green-50 transition-all duration-300 hover:shadow-xl">
+                    <h3 class="text-xl font-bold text-green-700 mb-3 flex items-center">
+                        ✅ The Fix: Using == (Comparison)
+                    </h3>
+                    <div class="bg-slate-800 rounded-lg p-3 font-mono text-sm shadow-inner mb-4">
+                        <div class="py-1">
+                            <span class="text-pink-400">if</span> <span class="text-blue-300">age</span> <span class="text-green-300">==</span> <span class="text-yellow-400">16</span><span class="text-yellow-300">:</span>
+                        </div>
+                    </div>
+                    <p class="text-green-700">
+                        The <strong>double equals sign</strong> (`==`) means <strong>check if they are equal</strong>. This is the correct way to write a rule (condition) in an <strong>if</strong> statement. Always use `==` for checking!
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- STAGE 4: THE CHALLENGE (Immediate Feedback) -->
+        <section class="mb-12 card p-6">
+            <h2 class="text-2xl font-bold text-blue-600 mb-4">Stage 4: Your Turn! The Concert Check</h2>
+            <p class="mb-6">
+                Write a program that checks if a person can enter a concert. They must be <strong>age 16 or older</strong>.
+            </p>
+
+            <div class="bg-slate-100 p-6 rounded-xl shadow-inner">
+                <div class="flex items-center space-x-4 mb-4">
+                    <label for="input-age" class="font-bold text-slate-700">1. Enter Age:</label>
+                    <input type="number" id="input-age" placeholder="e.g. 17" value="17" min="1" class="p-2 border border-blue-300 rounded-lg w-32 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div class="bg-slate-800 rounded-lg p-4 font-mono text-sm shadow-xl mb-6">
+                    <div class="text-blue-300 mb-2">age <span class="text-yellow-300">=</span> <span id="challenge-age-display">17</span></div>
+                    <div class="py-1">
+                        <span class="text-pink-400">if</span> <span class="text-blue-300">age</span> 
+                        <select id="challenge-condition" class="bg-slate-700 text-yellow-400 border border-slate-600 rounded-md p-1">
+                            <option value="">-- Choose Condition --</option>
+                            <option value="> 16"> &gt; 16 </option>
+                            <option value=">= 16"> &gt;= 16 </option>
+                            <option value="< 16"> &lt; 16 </option>
+                            <option value="== 16"> == 16 </option>
+                        </select>
+                        <span class="text-yellow-300">:</span>
+                    </div>
+                    <div class="py-1 pl-4">
+                        <span class="text-blue-300">result</span> <span class="text-yellow-300">=</span> 
+                        <input type="text" id="challenge-if-msg" value="Welcome!" placeholder="If Message (e.g., Welcome!)" class="bg-slate-700 text-yellow-400 border border-slate-600 rounded-md p-1 w-full max-w-xs">
+                    </div>
+                    <div class="py-1">
+                        <span class="text-pink-400">else</span><span class="text-yellow-300">:</span>
+                    </div>
+                    <div class="py-1 pl-4">
+                        <span class="text-blue-300">result</span> <span class="text-yellow-300">=</span> 
+                        <input type="text" id="challenge-else-msg" value="Go Home" placeholder="Else Message (e.g., Go Home)" class="bg-slate-700 text-yellow-400 border border-slate-600 rounded-md p-1 w-full max-w-xs">
+                    </div>
+                </div>
+
+                <button id="check-challenge-btn" onclick="checkChallenge()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition shadow-lg transform active:scale-95">
+                    Check My Code & Run!
+                </button>
+
+                <!-- Feedback Area -->
+                <div id="challenge-feedback" class="mt-6 p-4 rounded-xl text-center font-bold text-lg hidden"></div>
+            </div>
+            
+            <!-- Visual Result Area for Challenge -->
+            <div id="challenge-visual-result" class="mt-6 p-4 bg-white rounded-xl border-2 border-slate-200">
+                <div class="flex flex-col items-center">
+                    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Person&skinColor=9a6d36" class="w-16 h-16 rounded-full border-2 border-slate-400 mb-4" alt="Person Checking In" onerror="this.onerror=null;this.src='https://placehold.co/64x64/9a6d36/ffffff?text=👤';">
+                    <div id="visual-traffic-light" class="traffic-light mb-4">
+                        <div class="light red" id="visual-light-red"></div>
+                        <div class="light yellow" id="visual-light-yellow"></div>
+                        <div class="light green" id="visual-light-green"></div>
+                    </div>
+                    <p id="visual-result-message" class="text-xl font-extrabold text-blue-700 min-h-[1.5em]"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- STAGE 5: SYNTAX CHALLENGE (Indentation & Colon) -->
+        <section class="mb-12 card p-6">
+            <h2 class="text-2xl font-bold text-blue-600 mb-4">Stage 5: Python Syntax Fixer</h2>
+            <p class="mb-6">
+                Python relies on <strong>colons (:)</strong> and specific <strong>indentation</strong> to define code blocks. Fix the code to make it runnable!
+            </p>
+
+            <div class="bg-slate-800 rounded-lg p-4 font-mono text-sm shadow-xl mb-6">
+                <!-- Initial score setting -->
+                <div class="text-blue-300 mb-2">score <span class="text-yellow-300">=</span> <span class="text-yellow-400">85</span></div>
+                
+                <!-- IF line: Text input for colon -->
+                <div class="flex justify-between items-center py-1" id="syntax-line-if">
+                    <div>
+                        <span class="text-pink-400">if</span> <span class="text-blue-300">score</span> <span class="text-yellow-300">></span> <span class="text-yellow-400">50</span>
+                        <input type="text" id="syntax-colon" maxlength="1" value="" placeholder=":" class="bg-slate-700 text-yellow-400 w-4 p-0.5 ml-1 text-center rounded-sm">
+                    </div>
+                    <div class="w-36"></div> <!-- Spacer -->
+                </div>
+                
+                <!-- IF Body line: Dynamic Indentation & Select on Right -->
+                <div class="flex items-center justify-between py-1" id="syntax-line-if-body">
+                    <div id="if-body-code" class="transition-all duration-300">
+                        <span class="text-blue-300">result</span> <span class="text-yellow-300">=</span> <span class="text-yellow-400">"High"</span>
+                    </div>
+                    <select id="syntax-indent-if" class="bg-slate-700 text-slate-300 p-1 mr-1 rounded-md text-xs w-36">
+                        <option value="none">-- Indent IF Body --</option>
+                        <option value="4">Indented (4 spaces)</option>
+                        <option value="0">No Indent</option>
+                    </select>
+                </div>
+
+                <!-- ELSE line: Dynamic Indentation & Select on Right (Colon fixed here) -->
+                <div class="flex items-center justify-between py-1" id="syntax-line-else">
+                    <div id="else-keyword-code" class="transition-all duration-300">
+                        <span class="text-pink-400">else</span><span class="text-yellow-300">:</span>
+                    </div>
+                    <select id="syntax-indent-else" class="bg-slate-700 text-slate-300 p-1 mr-1 rounded-md text-xs w-36">
+                        <option value="none">-- Indent ELSE Keyword --</option>
+                        <option value="4">Indented (4 spaces)</option>
+                        <option value="0">No Indent</option>
+                    </select>
+                </div>
+                
+                <!-- ELSE Body line: Dynamic Indentation & Select on Right -->
+                <div class="flex items-center justify-between py-1" id="syntax-line-else-body">
+                    <div id="else-body-code" class="transition-all duration-300">
+                        <span class="text-blue-300">result</span> <span class="text-yellow-300">=</span> <span class="text-yellow-400">"Low"</span>
+                    </div>
+                    <select id="syntax-indent-else-body" class="bg-slate-700 text-slate-300 p-1 mr-1 rounded-md text-xs w-36">
+                        <option value="none">-- Indent ELSE Body --</option>
+                        <option value="4">Standard Indent</option>
+                        <option value="8">Double Indent</option>
+                        <option value="0">No Indent</option>
+                    </select>
+                </div>
+            </div>
+            <button id="check-syntax-btn" onclick="checkSyntaxChallenge()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg transition shadow-lg transform active:scale-95">
+                Fix and Run!
+            </button>
+            <div id="syntax-feedback" class="mt-4 p-4 rounded-xl text-center font-bold text-lg hidden"></div>
+        </section>
+        
+    </div>
+
+    <script>
+        // --- Utility Functions ---
+        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        function createTraceRow(step, line, condition, message) {
+            const row = document.createElement('tr');
+            row.id = `trace-row-${step}`;
+            row.classList.add('hover:bg-blue-50', 'transition-colors', 'duration-200');
+            row.innerHTML = `
+                <td class="px-3 py-2 whitespace-nowrap font-medium text-slate-900">${step}</td>
+                <td class="px-3 py-2 whitespace-nowrap text-slate-700 font-mono text-xs">${line}</td>
+                <td class="px-3 py-2 whitespace-nowrap text-slate-700">${condition}</td>
+                <td class="px-3 py-2 whitespace-nowrap font-bold text-slate-800">${message}</td>
+            `;
+            return row;
+        }
+
+        function highlightLine(lineId, remove = false) {
+            const line = document.getElementById(lineId);
+            if (line) {
+                if (remove) {
+                    line.classList.remove('bg-yellow-800/50');
+                } else {
+                    line.classList.add('bg-yellow-800/50');
+                }
+            }
+        }
+
+        function alertMessage(title, text, isSuccess = false, targetId = 'challenge-feedback') {
+            const feedback = document.getElementById(targetId); 
+
+            if (!feedback) return;
+
+            feedback.classList.remove('hidden', 'bg-red-100', 'bg-green-100', 'text-red-700', 'text-green-700', 'shake');
+            
+            // Ensures only plain text is output
+            feedback.innerHTML = `${title}: ${text}`;
+            
+            if (isSuccess) {
+                feedback.classList.add('bg-green-100', 'text-green-700');
+            } else {
+                feedback.classList.add('bg-red-100', 'text-red-700');
+            }
+            
+            setTimeout(() => { feedback.classList.add('hidden'); }, 4000);
+        }
+
+        // --- STAGE 2: SIMULATION LOGIC ---
+
+        const traceData = [
+            { step: 1, lineId: 'sim-line-1', line: 'score = 75', condition: 'N/A', message: 'score = 75' },
+            { step: 2, lineId: 'sim-line-2', line: 'if score >= 70:', condition: 'True', message: 'Diverter moves to IF Road (Green Light)' },
+            { step: 3, lineId: 'sim-line-3', line: 'message = "Pass!"', condition: 'True', message: 'message = "Pass!"' },
+            { step: 4, lineId: 'sim-line-4', line: 'else:', condition: 'N/A', message: 'Skipped ELSE Road' },
+            { step: 5, lineId: 'sim-line-6', line: 'print(message)', condition: 'N/A', message: 'Final Output: Pass!' },
+        ];
+
+        async function runSimulation() {
+            const traceBody = document.getElementById('trace-table-body');
+            const runBtn = document.getElementById('run-sim-btn');
+            const varScore = document.getElementById('var-score');
+            const varMessage = document.getElementById('var-message');
+            const diverter = document.getElementById('diverter');
+
+            runBtn.disabled = true;
+            traceBody.innerHTML = '';
+            varScore.textContent = '';
+            varMessage.textContent = '';
+            // Reset diverter visual state
+            diverter.style.transform = 'translate(-50%, -50%) rotate(90deg)'; 
+
+            const greenLight = document.getElementById('light-green-hook');
+            const redLight = document.getElementById('light-red-hook');
+
+            greenLight.classList.remove('green');
+            redLight.classList.remove('red');
+
+            await delay(500);
+
+            let currentScore = null;
+            let currentMessage = null;
+
+            for (const item of traceData) {
+                // Remove highlight from previous line
+                if (item.step > 1) {
+                    highlightLine(traceData[item.step - 2].lineId, true);
+                }
+
+                // Add row to table
+                const row = createTraceRow(item.step, item.line, item.condition, item.message);
+                traceBody.appendChild(row);
+                row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                
+                // Highlight current line
+                highlightLine(item.lineId);
+
+                // Perform Visual Actions
+                if (item.step === 1) {
+                    currentScore = 75;
+                    varScore.textContent = currentScore;
+                } else if (item.step === 2) {
+                    // Condition check (75 >= 70 is True)
+                    greenLight.classList.add('green');
+                    // Open IF road (rotate to horizontal)
+                    diverter.style.transform = 'translate(-50%, -50%) rotate(0deg)'; 
+                } else if (item.step === 3) {
+                    currentMessage = "Pass!";
+                    varMessage.textContent = currentMessage;
+                } else if (item.step === 4) {
+                    // Skip else
+                } else if (item.step === 5) {
+                    // Final output simulation
+                    alertMessage('Final Output', currentMessage, true, 'challenge-feedback'); 
+                }
+
+                await delay(1500); // Wait for visibility
+            }
+
+            // Clean up
+            highlightLine(traceData[traceData.length - 1].lineId, true);
+            alertMessage('Simulation Complete!', 'The program finished and printed "Pass!"', true);
+            
+            runBtn.disabled = false;
+        }
+
+        // --- Stage 4: Challenge Logic ---
+
+        document.getElementById('input-age').addEventListener('input', (e) => {
+            document.getElementById('challenge-age-display').textContent = e.target.value || '?';
+        });
+
+        function resetVisuals() {
+            document.getElementById('visual-light-red').classList.remove('red');
+            document.getElementById('visual-light-green').classList.remove('green');
+            document.getElementById('visual-result-message').textContent = '';
+        }
+
+        async function checkChallenge() {
+            resetVisuals();
+            const ageInput = document.getElementById('input-age');
+            const conditionSelect = document.getElementById('challenge-condition');
+            const ifMsgInput = document.getElementById('challenge-if-msg');
+            const elseMsgInput = document.getElementById('challenge-else-msg');
+            const visualResult = document.getElementById('challenge-visual-result');
+            const btn = document.getElementById('check-challenge-btn');
+
+            btn.disabled = true;
+
+            const age = parseInt(ageInput.value, 10);
+            const condition = conditionSelect.value.trim();
+            const ifMsg = ifMsgInput.value.trim();
+            const elseMsg = elseMsgInput.value.trim();
+            
+            // 1. Input Validation
+            if (isNaN(age) || age < 1 || !condition || !ifMsg || !elseMsg) {
+                visualResult.classList.add('shake', 'border-red-400');
+                alertMessage('Input Error', 'Please fill in a valid age, condition, and both messages.');
+                await delay(500);
+                visualResult.classList.remove('shake', 'border-red-400');
+                btn.disabled = false;
+                return;
+            }
+
+            // 2. Logic Check: The correct condition is >= 16
+            const isCorrectCondition = condition === '>= 16';
+
+            // 3. The Program Run (Evaluate the user's code)
+            let resultMsg = "";
+            let conditionResult = false;
+            
+            // This mimics the user's code logic
+            try {
+                if (eval(`${age} ${condition}`)) { 
+                    resultMsg = ifMsg;
+                    conditionResult = true;
+                } else {
+                    resultMsg = elseMsg;
+                    conditionResult = false;
+                }
+            } catch (e) {
+                alertMessage('Runtime Error', 'There was an issue running the condition.');
+                btn.disabled = false;
+                return;
+            }
+
+
+            // 4. Visual Feedback
+            await delay(500);
+
+            // Traffic Light Update
+            if (conditionResult) {
+                document.getElementById('visual-light-green').classList.add('green');
+            } else {
+                document.getElementById('visual-light-red').classList.add('red');
+            }
+            
+            await delay(800);
+            document.getElementById('visual-result-message').textContent = `Result: "${resultMsg}"`;
+
+            // 5. Final Challenge Success/Fail Check (Pedagogical Check)
+            const isCorrectIfMsg = ifMsg.toLowerCase().includes("welcome");
+            const isCorrectElseMsg = elseMsg.toLowerCase().includes("home") || elseMsg.toLowerCase().includes("sorry");
+
+            if (isCorrectCondition && isCorrectIfMsg && isCorrectElseMsg) {
+                alertMessage('CHALLENGE PASSED!', 'You correctly wrote the full Conditional statement! Amazing job!', true);
+                // Simple Confetti effect by rapidly changing background
+                visualResult.classList.add('bg-green-100');
+                await delay(1000);
+                visualResult.classList.remove('bg-green-100');
+            } else {
+                visualResult.classList.add('shake', 'border-red-400');
+                if (!isCorrectCondition) {
+                    alertMessage('Code Error', `The chosen condition ${condition} is wrong. You need to check for '16 or older'.`);
+                } else if (!isCorrectIfMsg) {
+                    alertMessage('Code Error', 'Check your message for the IF block (Age 16+). Is it a friendly message?');
+                } else if (!isCorrectElseMsg) {
+                    alertMessage('Code Error', 'Check your message for the ELSE block (Age < 16). Is it a message to deny entry?');
+                }
+                await delay(500);
+                visualResult.classList.remove('shake', 'border-red-400');
+            }
+            
+            btn.disabled = false;
+        }
+
+        // --- Stage 5: Syntax Challenge Logic & Visuals ---
+        
+        // Function to dynamically update indentation visualization
+        function updateIndentationVisual(selectId, codeElementId) {
+            const select = document.getElementById(selectId);
+            const codeElement = document.getElementById(codeElementId);
+            
+            if (!select || !codeElement) return;
+
+            select.addEventListener('change', (e) => {
+                const indentValue = e.target.value;
+                
+                // Reset all indentation classes
+                codeElement.classList.remove('pl-0', 'pl-4', 'pl-8');
+
+                if (indentValue === '4') {
+                    // 4 spaces = pl-4 in Tailwind (Standard Indent)
+                    codeElement.classList.add('pl-4');
+                } else if (indentValue === '8') {
+                    // 8 spaces = pl-8 in Tailwind (Double Indent)
+                    codeElement.classList.add('pl-8');
+                } else if (indentValue === '0') {
+                    // 0 spaces = pl-0 (No Indent)
+                    codeElement.classList.add('pl-0');
+                }
+                // 'none' option leaves no class
+            });
+        }
+
+        async function checkSyntaxChallenge() {
+            const colon = document.getElementById('syntax-colon').value.trim();
+            const indentIf = document.getElementById('syntax-indent-if').value;
+            const indentElse = document.getElementById('syntax-indent-else').value;
+            const indentElseBody = document.getElementById('syntax-indent-else-body').value;
+            const btn = document.getElementById('check-syntax-btn');
+            const feedback = document.getElementById('syntax-feedback');
+
+            btn.disabled = true;
+
+            // Correct values: Colon: ':', Indent IF Body: '4', Indent ELSE Keyword: '0', Indent ELSE Body: '4'
+            const isColonCorrect = colon === ':';
+            const isIndentIfCorrect = indentIf === '4'; 
+            const isIndentElseCorrect = indentElse === '0'; // 'else' must align with 'if'
+            const isIndentElseBodyCorrect = indentElseBody === '4'; 
+
+            const allCorrect = isColonCorrect && isIndentIfCorrect && isIndentElseCorrect && isIndentElseBodyCorrect;
+
+            feedback.classList.remove('hidden', 'bg-red-100', 'bg-green-100', 'text-red-700', 'text-green-700', 'shake');
+
+            if (allCorrect) {
+                feedback.classList.add('bg-green-100', 'text-green-700');
+                feedback.textContent = "SUCCESS! That code is syntactically perfect. Colon and indentation are crucial in Python!";
+                await delay(500);
+                feedback.classList.add('shake');
+            } else {
+                feedback.classList.add('bg-red-100', 'text-red-700', 'shake');
+                let message = "SYNTAX ERROR! You need to fix: ";
+
+                if (!isColonCorrect) message += "the missing colon (:) on the 'if' line; ";
+                if (!isIndentIfCorrect) message += "the indentation of the 'if' body (needs 4 spaces); ";
+                if (!isIndentElseCorrect) message += "the indentation of the 'else' keyword (needs 0 spaces, aligned with 'if'); ";
+                if (!isIndentElseBodyCorrect) message += "the indentation of the 'else' body (needs 4 spaces); ";
+                
+                feedback.textContent = message.replace(/; $/, '.'); // Clean up end
+            }
+
+            await delay(2000);
+            feedback.classList.remove('shake');
+            btn.disabled = false;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Stage 5 listeners for instant visual feedback
+            updateIndentationVisual('syntax-indent-if', 'if-body-code');
+            updateIndentationVisual('syntax-indent-else', 'else-keyword-code');
+            updateIndentationVisual('syntax-indent-else-body', 'else-body-code');
+            
+            // Set initial visual state to the CORRECT state
+            // This is just to ensure a clean starting appearance, but users must still select the correct options.
+            document.getElementById('if-body-code').classList.add('pl-4');
+            document.getElementById('else-keyword-code').classList.add('pl-0');
+            document.getElementById('else-body-code').classList.add('pl-4');
+
+            // Set default values for selectors to match the visually correct state
+            document.getElementById('syntax-indent-if').value = '4';
+            document.getElementById('syntax-indent-else').value = '0';
+            document.getElementById('syntax-indent-else-body').value = '4';
+        });
+    </script>
+</body>
+</html>
