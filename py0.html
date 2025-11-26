@@ -1,0 +1,962 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python 學習筆記 - 基礎編程概念</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f9ff;
+        }
+        
+        .code-block {
+            font-family: monospace;
+            background-color: #2d3748;
+            color: #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            position: relative;
+        }
+        
+        .code-block pre {
+            white-space: pre-wrap;
+        }
+        
+        .character {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            z-index: 10;
+        }
+        
+        .speech-bubble {
+            position: relative;
+            background: #ffffff;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-left: 80px;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .speech-bubble:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 0;
+            height: 0;
+            border: 20px solid transparent;
+            border-right-color: #ffffff;
+            border-left: 0;
+            margin-top: -20px;
+            margin-left: -20px;
+        }
+        
+        .interactive-area {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn {
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e2e8f0;
+            border-radius: 5px;
+            margin: 1rem 0;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: #4c1d95;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .concept-card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-left: 6px solid #4c1d95;
+            transition: transform 0.3s ease;
+        }
+        
+        .concept-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .turtle-canvas {
+            background-color: white;
+            border: 2px solid #4c1d95;
+            border-radius: 0.5rem;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <header class="text-center mb-12">
+            <div class="flex justify-center mb-4">
+                <svg class="w-24 h-24 float-animation" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" fill="#4c1d95" />
+                    <circle cx="50" cy="50" r="40" fill="#7c3aed" />
+                    <path d="M30,35 Q50,20 70,35" stroke="#fff" stroke-width="3" fill="none" />
+                    <circle cx="35" cy="45" r="5" fill="#fff" />
+                    <circle cx="65" cy="45" r="5" fill="#fff" />
+                    <path d="M40,65 Q50,75 60,65" stroke="#fff" stroke-width="3" fill="none" />
+                </svg>
+            </div>
+            <h1 class="text-4xl font-bold text-purple-900 mb-2">Python 奇妙冒險</h1>
+            <p class="text-xl text-purple-700">與小紫一起學習 Python 基礎編程</p>
+        </header>
+
+        <div class="flex items-center mb-8">
+            <svg class="character float-animation" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="40" r="30" fill="#7c3aed" />
+                <circle cx="40" cy="35" r="5" fill="#fff" />
+                <circle cx="60" cy="35" r="5" fill="#fff" />
+                <circle cx="40" cy="35" r="2" fill="#000" />
+                <circle cx="60" cy="35" r="2" fill="#000" />
+                <path d="M40,50 Q50,55 60,50" stroke="#fff" stroke-width="2" fill="none" />
+                <rect x="35" y="70" width="30" height="20" fill="#7c3aed" rx="5" />
+                <rect x="25" y="75" width="10" height="30" fill="#7c3aed" rx="5" />
+                <rect x="65" y="75" width="10" height="30" fill="#7c3aed" rx="5" />
+            </svg>
+            <div class="speech-bubble">
+                <p class="text-lg">嗨！我是小紫，你的 Python 學習夥伴！今天我們將一起探索 Python 的奇妙世界。準備好了嗎？</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-6 shadow-lg mb-8">
+            <h2 class="text-2xl font-bold text-purple-800 mb-4">學習目標</h2>
+            <ul class="list-disc pl-6 space-y-2">
+                <li>了解 Python 的基本語法</li>
+                <li>學習變數、資料型態和運算</li>
+                <li>掌握條件判斷和迴圈結構</li>
+                <li>認識函數的定義與使用</li>
+                <li>透過實例練習鞏固所學</li>
+            </ul>
+        </div>
+
+        <div class="mb-8">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-xl p-4">
+                <h2 class="text-2xl font-bold">選擇學習主題</h2>
+            </div>
+            <div class="bg-white rounded-b-xl p-6 shadow-lg">
+                <div class="flex flex-wrap gap-4 mb-6">
+                    <button id="tab1" class="tab-btn bg-purple-100 hover:bg-purple-200 text-purple-800 font-semibold py-2 px-4 rounded-lg btn active">變數與資料型態</button>
+                    <button id="tab2" class="tab-btn bg-purple-100 hover:bg-purple-200 text-purple-800 font-semibold py-2 px-4 rounded-lg btn">條件判斷</button>
+                    <button id="tab3" class="tab-btn bg-purple-100 hover:bg-purple-200 text-purple-800 font-semibold py-2 px-4 rounded-lg btn">迴圈結構</button>
+                    <button id="tab4" class="tab-btn bg-purple-100 hover:bg-purple-200 text-purple-800 font-semibold py-2 px-4 rounded-lg btn">函數定義</button>
+                </div>
+
+                <div id="content1" class="tab-content active">
+                    <div class="concept-card">
+                        <h3 class="text-xl font-bold text-purple-800 mb-3">變數：生活中的容器</h3>
+                        <p class="mb-4">想像變數就像是一個貼有標籤的盒子，你可以在裡面放入不同的物品。在 Python 中，我們可以用變數來儲存數字、文字或其他資料。</p>
+                        
+                        <div class="flex items-center mb-6">
+                            <svg class="w-16 h-16 mr-4" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="10" y="20" width="80" height="60" fill="#f3e8ff" stroke="#7c3aed" stroke-width="3" rx="5" />
+                                <rect x="20" y="10" width="60" height="20" fill="#f3e8ff" stroke="#7c3aed" stroke-width="3" rx="5" />
+                                <text x="50" y="25" font-size="14" text-anchor="middle" fill="#7c3aed">名稱</text>
+                                <text x="50" y="60" font-size="18" text-anchor="middle" fill="#7c3aed">值</text>
+                            </svg>
+                            <div>
+                                <p>就像我們在家中使用不同的容器來存放不同的物品：</p>
+                                <ul class="list-disc pl-6 mt-2">
+                                    <li>冰箱存放食物</li>
+                                    <li>衣櫃存放衣服</li>
+                                    <li>書架存放書籍</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code># 在 Python 中定義變數
+姓名 = "小明"
+年齡 = 12
+身高 = 150.5
+是否學生 = True
+
+print("我的名字是:", 姓名)
+print("我今年", 年齡, "歲")
+print("我的身高是", 身高, "公分")
+print("我是學生嗎?", 是否學生)</code></pre>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-purple-800 mb-3 mt-6">資料型態：不同種類的物品</h3>
+                        <p class="mb-4">Python 中有不同的資料型態，就像我們生活中有不同種類的物品：</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">字串 (str)</h4>
+                                <p>就像是一段文字或一本書</p>
+                                <div class="code-block mt-2">
+                                    <pre><code>名言 = "學習永無止境"</code></pre>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">整數 (int)</h4>
+                                <p>就像是你的年齡或班級人數</p>
+                                <div class="code-block mt-2">
+                                    <pre><code>學生人數 = 30</code></pre>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">浮點數 (float)</h4>
+                                <p>就像是你的身高或體重</p>
+                                <div class="code-block mt-2">
+                                    <pre><code>平均分數 = 85.5</code></pre>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">布林值 (bool)</h4>
+                                <p>就像是電燈的開關狀態</p>
+                                <div class="code-block mt-2">
+                                    <pre><code>燈開著 = True</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interactive-area">
+                        <h3 class="text-xl font-bold text-purple-800 mb-4">互動練習：創建你自己的變數</h3>
+                        <p class="mb-4">試著創建一些變數並觀察結果：</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-purple-700 mb-2">變數名稱：</label>
+                                <input id="var-name" type="text" placeholder="例如：我的名字" class="w-full p-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-purple-700 mb-2">變數值：</label>
+                                <input id="var-value" type="text" placeholder="例如：小紫" class="w-full p-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            </div>
+                        </div>
+                        
+                        <button id="create-var" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg btn">創建變數</button>
+                        
+                        <div id="var-result" class="mt-4 p-4 bg-gray-100 rounded-lg hidden">
+                            <p class="font-bold mb-2">結果：</p>
+                            <div id="var-output" class="code-block"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content2" class="tab-content">
+                    <div class="concept-card">
+                        <h3 class="text-xl font-bold text-purple-800 mb-3">條件判斷：做決定的能力</h3>
+                        <p class="mb-4">條件判斷就像是我們日常生活中做決定的過程。例如：如果下雨了，我就帶傘；如果沒下雨，我就不帶傘。</p>
+                        
+                        <div class="flex items-center mb-6">
+                            <svg class="w-24 h-24 mr-4" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                <polygon points="50,10 90,50 50,90 10,50" fill="#f3e8ff" stroke="#7c3aed" stroke-width="3" />
+                                <text x="50" y="55" font-size="14" text-anchor="middle" fill="#7c3aed">決定</text>
+                            </svg>
+                            <div>
+                                <p>生活中的條件判斷：</p>
+                                <ul class="list-disc pl-6 mt-2">
+                                    <li>如果肚子餓了，就去吃飯</li>
+                                    <li>如果天氣熱，就開冷氣</li>
+                                    <li>如果考試及格，就獲得獎勵</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code># Python 中的條件判斷
+分數 = 85
+
+if 分數 >= 90:
+    print("優秀！獲得 A 等級")
+elif 分數 >= 80:
+    print("良好！獲得 B 等級")
+elif 分數 >= 70:
+    print("尚可！獲得 C 等級")
+elif 分數 >= 60:
+    print("及格！獲得 D 等級")
+else:
+    print("需要加油！獲得 F 等級")</code></pre>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-purple-800 mb-3 mt-6">比較運算符：做比較</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">等於 (==)</h4>
+                                <p>檢查兩個值是否相等</p>
+                                <div class="code-block mt-2">
+                                    <pre><code>5 == 5  # True</code></pre>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">不等於 (!=)</h4>
+                                <p>檢查兩個值是否不相等</p>
+                                <div class="code-block mt-2">
+                                    <pre><code>5 != 3  # True</code></pre>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">大於 (>)</h4>
+                                <p>檢查左邊的值是否大於右邊</p>
+                                <div class="code-block mt-2">
+                                    <pre><code>7 > 3  # True</code></pre>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">小於 (<)</h4>
+                                <p>檢查左邊的值是否小於右邊</p>
+                                <div class="code-block mt-2">
+                                    <pre><code>2 < 8  # True</code></pre>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">大於等於 (>=)</h4>
+                                <p>檢查左邊的值是否大於或等於右邊</p>
+                                <div class="code-block mt-2">
+                                    <pre><code>5 >= 5  # True</code></pre>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">小於等於 (<=)</h4>
+                                <p>檢查左邊的值是否小於或等於右邊</p>
+                                <div class="code-block mt-2">
+                                    <pre><code>4 <= 4  # True</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interactive-area">
+                        <h3 class="text-xl font-bold text-purple-800 mb-4">互動練習：成績評估系統</h3>
+                        <p class="mb-4">輸入一個分數，看看你會獲得什麼等級：</p>
+                        
+                        <div class="mb-4">
+                            <label class="block text-purple-700 mb-2">輸入分數 (0-100)：</label>
+                            <input id="score-input" type="number" min="0" max="100" value="75" class="w-full p-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        
+                        <button id="check-score" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg btn">檢查等級</button>
+                        
+                        <div id="score-result" class="mt-4 p-4 bg-gray-100 rounded-lg hidden">
+                            <p class="font-bold mb-2">評估結果：</p>
+                            <div id="score-output" class="p-3 rounded-lg text-center text-white font-bold"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content3" class="tab-content">
+                    <div class="concept-card">
+                        <h3 class="text-xl font-bold text-purple-800 mb-3">迴圈：重複的力量</h3>
+                        <p class="mb-4">迴圈就像是重複做同一件事情，直到達成目標為止。就像是你在練習寫字時，會重複寫同一個字多次，直到寫得漂亮為止。</p>
+                        
+                        <div class="flex items-center mb-6">
+                            <svg class="w-24 h-24 mr-4" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="50" cy="50" r="40" fill="#f3e8ff" stroke="#7c3aed" stroke-width="3" />
+                                <path d="M50,20 A30,30 0 1 1 20,50" stroke="#7c3aed" stroke-width="3" fill="none" />
+                                <polygon points="20,40 20,60 10,50" fill="#7c3aed" />
+                            </svg>
+                            <div>
+                                <p>生活中的迴圈：</p>
+                                <ul class="list-disc pl-6 mt-2">
+                                    <li>每天刷牙</li>
+                                    <li>每週上學五天</li>
+                                    <li>重複練習鋼琴直到熟練</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-purple-800 mb-3">for 迴圈：已知次數的重複</h3>
+                        <p class="mb-4">當你知道要重複幾次時，使用 for 迴圈。就像是你要練習寫一個字 10 次。</p>
+
+                        <div class="code-block">
+                            <pre><code># 使用 for 迴圈印出 1 到 5
+for 數字 in range(1, 6):
+    print("這是第", 數字, "次重複")
+
+# 輸出:
+# 這是第 1 次重複
+# 這是第 2 次重複
+# 這是第 3 次重複
+# 這是第 4 次重複
+# 這是第 5 次重複</code></pre>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-purple-800 mb-3 mt-6">while 迴圈：條件式的重複</h3>
+                        <p class="mb-4">當你不確定要重複幾次，但知道什麼條件下要停止時，使用 while 迴圈。就像是你要練習鋼琴直到彈得完美為止。</p>
+
+                        <div class="code-block">
+                            <pre><code># 使用 while 迴圈計算 1+2+3+...+10 的總和
+總和 = 0
+數字 = 1
+
+while 數字 <= 10:
+    總和 = 總和 + 數字
+    數字 = 數字 + 1
+
+print("1 到 10 的總和是:", 總和)  # 輸出: 1 到 10 的總和是: 55</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="interactive-area">
+                        <h3 class="text-xl font-bold text-purple-800 mb-4">互動練習：九九乘法表</h3>
+                        <p class="mb-4">選擇一個數字，查看它的乘法表：</p>
+                        
+                        <div class="mb-4">
+                            <label class="block text-purple-700 mb-2">選擇數字 (1-9)：</label>
+                            <input id="multiplication-input" type="number" min="1" max="9" value="3" class="w-full p-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        
+                        <button id="generate-table" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg btn">生成乘法表</button>
+                        
+                        <div id="multiplication-result" class="mt-4 p-4 bg-gray-100 rounded-lg hidden">
+                            <p class="font-bold mb-2">乘法表：</p>
+                            <div id="multiplication-output" class="grid grid-cols-3 gap-2 mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content4" class="tab-content">
+                    <div class="concept-card">
+                        <h3 class="text-xl font-bold text-purple-800 mb-3">函數：可重複使用的工具</h3>
+                        <p class="mb-4">函數就像是一個特殊的工具，你可以隨時拿出來使用。就像是廚房中的食物調理機，你可以隨時使用它來處理食材。</p>
+                        
+                        <div class="flex items-center mb-6">
+                            <svg class="w-24 h-24 mr-4" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="10" y="30" width="80" height="50" fill="#f3e8ff" stroke="#7c3aed" stroke-width="3" rx="5" />
+                                <rect x="30" y="20" width="40" height="20" fill="#f3e8ff" stroke="#7c3aed" stroke-width="3" rx="5" />
+                                <text x="50" y="35" font-size="12" text-anchor="middle" fill="#7c3aed">函數名稱</text>
+                                <text x="50" y="60" font-size="12" text-anchor="middle" fill="#7c3aed">函數內容</text>
+                            </svg>
+                            <div>
+                                <p>生活中的函數：</p>
+                                <ul class="list-disc pl-6 mt-2">
+                                    <li>食譜：輸入食材，輸出美食</li>
+                                    <li>計算機：輸入數字，輸出計算結果</li>
+                                    <li>洗衣機：輸入髒衣服，輸出乾淨衣服</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code># 定義一個計算兩數之和的函數
+def 計算總和(數字1, 數字2):
+    結果 = 數字1 + 數字2
+    return 結果
+
+# 呼叫函數
+a = 5
+b = 3
+總和 = 計算總和(a, b)
+print(a, "+", b, "=", 總和)  # 輸出: 5 + 3 = 8</code></pre>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-purple-800 mb-3 mt-6">函數的組成部分</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">函數名稱</h4>
+                                <p>就像是工具的名字，讓你知道要使用哪個工具</p>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">參數</h4>
+                                <p>就像是工具需要的原料或設定</p>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">函數內容</h4>
+                                <p>就像是工具的運作方式</p>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-purple-700">返回值</h4>
+                                <p>就像是工具產生的結果</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interactive-area">
+                        <h3 class="text-xl font-bold text-purple-800 mb-4">互動練習：計算機函數</h3>
+                        <p class="mb-4">使用函數進行簡單的計算：</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label class="block text-purple-700 mb-2">第一個數字：</label>
+                                <input id="calc-num1" type="number" value="10" class="w-full p-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-purple-700 mb-2">運算：</label>
+                                <select id="calc-operation" class="w-full p-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                    <option value="add">加法 (+)</option>
+                                    <option value="subtract">減法 (-)</option>
+                                    <option value="multiply">乘法 (×)</option>
+                                    <option value="divide">除法 (÷)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-purple-700 mb-2">第二個數字：</label>
+                                <input id="calc-num2" type="number" value="5" class="w-full p-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            </div>
+                        </div>
+                        
+                        <button id="calculate" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg btn">計算結果</button>
+                        
+                        <div id="calc-result" class="mt-4 p-4 bg-gray-100 rounded-lg hidden">
+                            <p class="font-bold mb-2">計算結果：</p>
+                            <div id="calc-output" class="text-2xl text-center font-bold text-purple-800 p-3"></div>
+                            <div class="code-block mt-4">
+                                <pre id="calc-code"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-xl p-4">
+                <h2 class="text-2xl font-bold">Python 繪圖小遊戲</h2>
+            </div>
+            <div class="bg-white rounded-b-xl p-6 shadow-lg">
+                <p class="mb-4">使用 Python 的海龜繪圖概念，創造你自己的藝術作品！</p>
+                
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="flex-1">
+                        <div class="mb-4">
+                            <label class="block text-purple-700 mb-2">選擇形狀：</label>
+                            <select id="shape-select" class="w-full p-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="square">正方形</option>
+                                <option value="triangle">三角形</option>
+                                <option value="circle">圓形</option>
+                                <option value="star">星星</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-purple-700 mb-2">選擇顏色：</label>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="color-btn w-full h-10 bg-red-500 rounded-lg cursor-pointer" data-color="#ef4444"></div>
+                                <div class="color-btn w-full h-10 bg-blue-500 rounded-lg cursor-pointer" data-color="#3b82f6"></div>
+                                <div class="color-btn w-full h-10 bg-green-500 rounded-lg cursor-pointer" data-color="#22c55e"></div>
+                                <div class="color-btn w-full h-10 bg-yellow-500 rounded-lg cursor-pointer" data-color="#eab308"></div>
+                                <div class="color-btn w-full h-10 bg-purple-500 rounded-lg cursor-pointer" data-color="#a855f7"></div>
+                                <div class="color-btn w-full h-10 bg-pink-500 rounded-lg cursor-pointer" data-color="#ec4899"></div>
+                                <div class="color-btn w-full h-10 bg-orange-500 rounded-lg cursor-pointer" data-color="#f97316"></div>
+                                <div class="color-btn w-full h-10 bg-teal-500 rounded-lg cursor-pointer" data-color="#14b8a6"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-purple-700 mb-2">大小：<span id="size-value">50</span></label>
+                            <input id="size-slider" type="range" min="10" max="100" value="50" class="w-full">
+                        </div>
+                        
+                        <button id="draw-shape" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg btn w-full">繪製形狀</button>
+                        <button id="clear-canvas" class="mt-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg btn w-full">清除畫布</button>
+                    </div>
+                    
+                    <div class="flex-1">
+                        <canvas id="turtle-canvas" class="turtle-canvas w-full h-64 md:h-80"></canvas>
+                        <div class="mt-4">
+                            <h4 class="font-bold text-purple-800 mb-2">Python 程式碼：</h4>
+                            <div class="code-block">
+                                <pre id="turtle-code">import turtle
+
+t = turtle.Turtle()
+t.speed(3)
+
+# 點擊「繪製形狀」按鈕來生成程式碼</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-xl p-4">
+                <h2 class="text-2xl font-bold">學習進度</h2>
+            </div>
+            <div class="bg-white rounded-b-xl p-6 shadow-lg">
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-purple-800 mb-2">變數與資料型態</h3>
+                    <div class="progress-bar">
+                        <div id="progress1" class="progress" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-purple-800 mb-2">條件判斷</h3>
+                    <div class="progress-bar">
+                        <div id="progress2" class="progress" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-purple-800 mb-2">迴圈結構</h3>
+                    <div class="progress-bar">
+                        <div id="progress3" class="progress" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-purple-800 mb-2">函數定義</h3>
+                    <div class="progress-bar">
+                        <div id="progress4" class="progress" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-8">
+                    <p class="text-lg font-bold text-purple-800 mb-4">總體學習進度</p>
+                    <div class="progress-bar">
+                        <div id="total-progress" class="progress" style="width: 0%"></div>
+                    </div>
+                    <p id="progress-text" class="mt-2 text-purple-700">0% 完成</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center mb-8">
+            <svg class="character float-animation" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="40" r="30" fill="#7c3aed" />
+                <circle cx="40" cy="35" r="5" fill="#fff" />
+                <circle cx="60" cy="35" r="5" fill="#fff" />
+                <circle cx="40" cy="35" r="2" fill="#000" />
+                <circle cx="60" cy="35" r="2" fill="#000" />
+                <path d="M40,50 Q50,55 60,50" stroke="#fff" stroke-width="2" fill="none" />
+                <rect x="35" y="70" width="30" height="20" fill="#7c3aed" rx="5" />
+                <rect x="25" y="75" width="10" height="30" fill="#7c3aed" rx="5" />
+                <rect x="65" y="75" width="10" height="30" fill="#7c3aed" rx="5" />
+            </svg>
+            <div class="speech-bubble">
+                <p class="text-lg">恭喜你完成了 Python 基礎學習！記住，編程就像學習一門新語言，需要不斷練習。繼續探索，你會發現更多 Python 的奇妙之處！</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 標籤切換功能
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                // 移除所有標籤的活動狀態
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // 隱藏所有內容
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // 設置當前標籤為活動狀態
+                button.classList.add('active');
+                
+                // 顯示對應內容
+                const contentId = 'content' + button.id.slice(-1);
+                document.getElementById(contentId).classList.add('active');
+                
+                // 更新進度
+                updateProgress(parseInt(button.id.slice(-1)), 25);
+            });
+        });
+        
+        // 變數練習功能
+        document.getElementById('create-var').addEventListener('click', () => {
+            const varName = document.getElementById('var-name').value || '我的變數';
+            const varValue = document.getElementById('var-value').value || '預設值';
+            
+            let valueType = '';
+            if (!isNaN(varValue) && varValue.trim() !== '') {
+                if (varValue.includes('.')) {
+                    valueType = '浮點數 (float)';
+                } else {
+                    valueType = '整數 (int)';
+                }
+            } else if (varValue.toLowerCase() === 'true' || varValue.toLowerCase() === 'false') {
+                valueType = '布林值 (bool)';
+            } else {
+                valueType = '字串 (str)';
+            }
+            
+            const output = `${varName} = ${varValue}\nprint(${varName})  # 輸出: ${varValue}\nprint(type(${varName}))  # 輸出: <class '${valueType.split(' ')[0]}'>`;
+            
+            document.getElementById('var-output').textContent = output;
+            document.getElementById('var-result').classList.remove('hidden');
+            
+            updateProgress(1, 25);
+        });
+        
+        // 成績評估功能
+        document.getElementById('check-score').addEventListener('click', () => {
+            const score = parseInt(document.getElementById('score-input').value);
+            let grade, color;
+            
+            if (score >= 90) {
+                grade = 'A 等級 - 優秀！';
+                color = 'bg-green-600';
+            } else if (score >= 80) {
+                grade = 'B 等級 - 良好！';
+                color = 'bg-blue-600';
+            } else if (score >= 70) {
+                grade = 'C 等級 - 尚可！';
+                color = 'bg-yellow-600';
+            } else if (score >= 60) {
+                grade = 'D 等級 - 及格！';
+                color = 'bg-orange-600';
+            } else {
+                grade = 'F 等級 - 需要加油！';
+                color = 'bg-red-600';
+            }
+            
+            const output = document.getElementById('score-output');
+            output.textContent = grade;
+            output.className = 'p-3 rounded-lg text-center text-white font-bold ' + color;
+            
+            document.getElementById('score-result').classList.remove('hidden');
+            
+            updateProgress(2, 25);
+        });
+        
+        // 乘法表功能
+        document.getElementById('generate-table').addEventListener('click', () => {
+            const number = parseInt(document.getElementById('multiplication-input').value);
+            const output = document.getElementById('multiplication-output');
+            output.innerHTML = '';
+            
+            for (let i = 1; i <= 9; i++) {
+                const result = number * i;
+                const item = document.createElement('div');
+                item.className = 'p-2 bg-purple-100 rounded-lg text-center';
+                item.textContent = `${number} × ${i} = ${result}`;
+                output.appendChild(item);
+            }
+            
+            document.getElementById('multiplication-result').classList.remove('hidden');
+            
+            updateProgress(3, 25);
+        });
+        
+        // 計算機功能
+        document.getElementById('calculate').addEventListener('click', () => {
+            const num1 = parseFloat(document.getElementById('calc-num1').value);
+            const num2 = parseFloat(document.getElementById('calc-num2').value);
+            const operation = document.getElementById('calc-operation').value;
+            
+            let result, symbol, funcName;
+            
+            switch (operation) {
+                case 'add':
+                    result = num1 + num2;
+                    symbol = '+';
+                    funcName = '加法';
+                    break;
+                case 'subtract':
+                    result = num1 - num2;
+                    symbol = '-';
+                    funcName = '減法';
+                    break;
+                case 'multiply':
+                    result = num1 * num2;
+                    symbol = '×';
+                    funcName = '乘法';
+                    break;
+                case 'divide':
+                    result = num1 / num2;
+                    symbol = '÷';
+                    funcName = '除法';
+                    break;
+            }
+            
+            document.getElementById('calc-output').textContent = `${num1} ${symbol} ${num2} = ${result}`;
+            
+            const code = `def ${funcName}(數字1, 數字2):
+    return 數字1 ${operation === 'add' ? '+' : operation === 'subtract' ? '-' : operation === 'multiply' ? '*' : '/'} 數字2
+
+結果 = ${funcName}(${num1}, ${num2})
+print("${num1} ${symbol} ${num2} =", 結果)  # 輸出: ${num1} ${symbol} ${num2} = ${result}`;
+            
+            document.getElementById('calc-code').textContent = code;
+            document.getElementById('calc-result').classList.remove('hidden');
+            
+            updateProgress(4, 25);
+        });
+        
+        // 海龜繪圖功能
+        const canvas = document.getElementById('turtle-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 設置畫布大小
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // 顏色選擇
+        let selectedColor = '#a855f7';
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectedColor = btn.dataset.color;
+                document.querySelectorAll('.color-btn').forEach(b => {
+                    b.style.border = 'none';
+                });
+                btn.style.border = '3px solid #4c1d95';
+            });
+        });
+        
+        // 初始選中紫色
+        document.querySelector('.color-btn[data-color="#a855f7"]').style.border = '3px solid #4c1d95';
+        
+        // 大小滑塊
+        const sizeSlider = document.getElementById('size-slider');
+        const sizeValue = document.getElementById('size-value');
+        
+        sizeSlider.addEventListener('input', () => {
+            sizeValue.textContent = sizeSlider.value;
+        });
+        
+        // 繪製形狀
+        document.getElementById('draw-shape').addEventListener('click', () => {
+            const shape = document.getElementById('shape-select').value;
+            const size = parseInt(sizeSlider.value);
+            
+            // 隨機位置
+            const x = Math.random() * (canvas.width - size * 2) + size;
+            const y = Math.random() * (canvas.height - size * 2) + size;
+            
+            ctx.fillStyle = selectedColor;
+            ctx.strokeStyle = selectedColor;
+            ctx.lineWidth = 2;
+            
+            let code = `import turtle\n\nt = turtle.Turtle()\nt.speed(3)\nt.pencolor("${selectedColor}")\nt.fillcolor("${selectedColor}")\n\n`;
+            
+            switch (shape) {
+                case 'square':
+                    drawSquare(x, y, size);
+                    code += `# 繪製正方形\nt.penup()\nt.goto(${Math.round(x - size/2)}, ${Math.round(y - size/2)})\nt.pendown()\nt.begin_fill()\nfor i in range(4):\n    t.forward(${size})\n    t.left(90)\nt.end_fill()`;
+                    break;
+                case 'triangle':
+                    drawTriangle(x, y, size);
+                    code += `# 繪製三角形\nt.penup()\nt.goto(${Math.round(x)}, ${Math.round(y - size/2)})\nt.pendown()\nt.begin_fill()\nfor i in range(3):\n    t.forward(${size})\n    t.left(120)\nt.end_fill()`;
+                    break;
+                case 'circle':
+                    drawCircle(x, y, size/2);
+                    code += `# 繪製圓形\nt.penup()\nt.goto(${Math.round(x)}, ${Math.round(y - size/2)})\nt.pendown()\nt.begin_fill()\nt.circle(${size/2})\nt.end_fill()`;
+                    break;
+                case 'star':
+                    drawStar(x, y, size/2);
+                    code += `# 繪製星星\nt.penup()\nt.goto(${Math.round(x)}, ${Math.round(y)})\nt.pendown()\nt.begin_fill()\nfor i in range(5):\n    t.forward(${size})\n    t.right(144)\nt.end_fill()`;
+                    break;
+            }
+            
+            document.getElementById('turtle-code').textContent = code;
+        });
+        
+        // 清除畫布
+        document.getElementById('clear-canvas').addEventListener('click', () => {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('turtle-code').textContent = `import turtle\n\nt = turtle.Turtle()\nt.speed(3)\n\n# 點擊「繪製形狀」按鈕來生成程式碼`;
+        });
+        
+        // 繪製形狀函數
+        function drawSquare(x, y, size) {
+            ctx.beginPath();
+            ctx.rect(x - size/2, y - size/2, size, size);
+            ctx.fill();
+        }
+        
+        function drawTriangle(x, y, size) {
+            ctx.beginPath();
+            ctx.moveTo(x, y - size/2);
+            ctx.lineTo(x + size/2, y + size/2);
+            ctx.lineTo(x - size/2, y + size/2);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        function drawCircle(x, y, radius) {
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function drawStar(x, y, radius) {
+            ctx.beginPath();
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.moveTo(0, -radius);
+            for (let i = 0; i < 5; i++) {
+                ctx.rotate(Math.PI / 5);
+                ctx.lineTo(0, -radius / 2);
+                ctx.rotate(Math.PI / 5);
+                ctx.lineTo(0, -radius);
+            }
+            ctx.restore();
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // 進度更新功能
+        const progress = [0, 0, 0, 0];
+        
+        function updateProgress(section, value) {
+            progress[section - 1] = value;
+            
+            document.getElementById(`progress${section}`).style.width = `${value}%`;
+            
+            const totalProgress = progress.reduce((sum, val) => sum + val, 0) / 4;
+            document.getElementById('total-progress').style.width = `${totalProgress}%`;
+            document.getElementById('progress-text').textContent = `${Math.round(totalProgress)}% 完成`;
+        }
+        
+        // 初始化進度
+        updateProgress(1, 0);
+        updateProgress(2, 0);
+        updateProgress(3, 0);
+        updateProgress(4, 0);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a476cd654068142',t:'MTc2NDEzOTU0OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
