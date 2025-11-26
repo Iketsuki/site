@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variables: The Data Box 📦</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Bubble Tail CSS */
+        .bubble-tail:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+            border-right: 20px solid white;
+            left: -20px;
+            top: 20px;
+        }
+
+        /* Confetti CSS for Challenge Success */
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #60a5fa; /* blue-400 */
+            z-index: 100;
+            animation: confetti-fall 3s ease-out forwards;
+            pointer-events: none;
+        }
+
+        /* Shake Animation for Challenge Error */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        /* Simple animation for simulation box movement */
+        @keyframes drop-in {
+            0% { transform: translateY(-100px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .item-drop {
+            animation: drop-in 0.5s ease-out;
+        }
+
+        /* Custom color styles for code editor */
+        .keyword { color: #f472b6; /* Pink-400 */ }
+        .comment { color: #94a3b8; /* Slate-400 */ }
+        .string { color: #facc15; /* Yellow-400 */ }
+        .number { color: #34d399; /* Emerald-400 */ }
+    </style>
+</head>
+<body class="bg-slate-50 font-[Inter] text-slate-700 p-8">
+
+    <div id="confetti-container"></div>
+
+    <header class="mb-12">
+        <div class="max-w-4xl mx-auto p-4 bg-blue-600 text-white rounded-xl shadow-lg">
+            <h1 class="text-3xl font-extrabold">💻 The Data Box: Variables in Python</h1>
+            <p class="text-blue-200">Lesson 1: Storing your data like a pro!</p>
+        </div>
+
+        <div class="max-w-4xl mx-auto mt-6 relative">
+            <img src="https://api.dicebear.com/8.x/bottts/svg?seed=Archie&mouth=smile01&eyes=bulb&baseColor=60a5fa"
+                 alt="Mascot Archie"
+                 class="absolute w-20 h-20 -top-4 rounded-full border-4 border-white shadow-xl bg-blue-100 p-1 z-10">
+
+            <div class="ml-24 p-4 bg-white rounded-2xl shadow-md bubble-tail border-2 border-blue-200 transition-all duration-300 hover:shadow-lg">
+                <p class="font-semibold text-blue-700">
+                    Hello, future programmer! Everything you see on a website or game is **data**! We use these special boxes, called **Variables**, to store and remember that data. Let's name our first box!
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <section id="hook" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+        <h2 class="text-2xl font-bold mb-4 text-blue-600">1. 🎣 The Hook: What is a Variable?</h2>
+        <p class="mb-6">A **Variable** is a named storage container in the computer's memory. It holds one piece of **data**, like a word or a number. Think of it as a **Cardboard Box**!</p>
+
+        <div class="flex justify-around items-start text-center">
+            <div class="w-40 h-40 bg-yellow-600 p-4 rounded-lg shadow-xl relative border-4 border-yellow-800">
+                <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-mono shadow-md border-2 border-white">
+                    <span class="font-bold">score</span> </div>
+                <div class="mt-4 text-xl font-bold text-white">BOX of Data!</div>
+                <div id="analogy-data-item" class="w-2/3 h-2/3 bg-white mx-auto mt-2 rounded-md shadow-inner flex items-center justify-center text-lg font-bold text-slate-800">
+                    10
+                </div>
+            </div>
+
+            <div class="w-2/3 text-left pl-8">
+                <p class="mb-3">👉 The **name tag** on the box is the **Variable Name** (like **score**).</p>
+                <p class="mb-3">👉 The **object inside** the box is the **Value** (like the number **10**).</p>
+                <p class="font-bold text-blue-600">The Computer's Rules for Data (Types):</p>
+                <ul class="list-disc list-inside ml-4 text-sm">
+                    <li>**Text/Word (String)**: A scroll of paper with words. Must use quotes like **"Alex"**.</li>
+                    <li>**Whole Number (Integer)**: A solid block. Just a number like **10** or **15**.</li>
+                    <li>**Decimal Number (Float)**: A block of ice (it's "floating"). A number like **3.14**.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="simulation-card" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+        <h2 class="text-2xl font-bold mb-4 text-blue-600">2. 🧠 The Simulation: Watching the Code Run!</h2>
+        <p class="mb-4">Watch the computer's **memory** change as it runs three simple lines of code. Click **Start** to see the magic!</p>
+
+        <div class="flex gap-6">
+            <div class="w-1/2">
+                <div class="bg-slate-800 text-blue-300 font-mono rounded-lg p-4 shadow-lg mb-4">
+                    <div id="code-line-1" class="py-1">
+                        <span class="number">1</span> <span class="keyword">score</span> = <span class="number">10</span>
+                    </div>
+                    <div id="code-line-2" class="py-1">
+                        <span class="number">2</span> <span class="keyword">score</span> = <span class="keyword">score</span> + <span class="number">5</span>
+                    </div>
+                    <div id="code-line-3" class="py-1">
+                        <span class="number">3</span> <span class="keyword">user_name</span> = <span class="string">"Alex"</span>
+                    </div>
+                </div>
+                <button id="start-simulation" onclick="runSimulation()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150">
+                    ▶️ Start Simulation
+                </button>
+            </div>
+
+            <div class="w-1/2 bg-blue-50 p-4 rounded-lg border-2 border-blue-300">
+                <p class="font-bold text-blue-700 mb-2">Computer's Memory (The Boxes):</p>
+                <div id="memory-visualization" class="flex gap-4 min-h-[120px] items-end">
+                    </div>
+                <div id="simulation-log" class="mt-4 p-2 bg-blue-100 rounded text-sm font-mono text-blue-800">
+                    ...
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6">
+            <p class="font-bold text-blue-700 mb-2">Trace Table (What the Computer Remembers):</p>
+            <table class="w-full text-sm border-collapse">
+                <thead>
+                    <tr class="bg-blue-600 text-white">
+                        <th class="p-2 border border-blue-700">Step #</th>
+                        <th class="p-2 border border-blue-700">Line of Code</th>
+                        <th class="p-2 border border-blue-700">score Value</th>
+                        <th class="p-2 border border-blue-700">user_name Value</th>
+                    </tr>
+                </thead>
+                <tbody id="trace-table-body">
+                    <tr id="trace-row-1" class="bg-white hover:bg-blue-50"><td class="p-2 border"></td><td class="p-2 border font-mono"></td><td class="p-2 border"></td><td class="p-2 border"></td></tr>
+                    <tr id="trace-row-2" class="bg-white hover:bg-blue-50"><td class="p-2 border"></td><td class="p-2 border font-mono"></td><td class="p-2 border"></td><td class="p-2 border"></td></tr>
+                    <tr id="trace-row-3" class="bg-white hover:bg-blue-50"><td class="p-2 border"></td><td class="p-2 border font-mono"></td><td class="p-2 border"></td><td class="p-2 border"></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="mistakes" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+        <h2 class="text-2xl font-bold mb-4 text-blue-600">3. 🚩 Common Mistakes: Naming Rules</h2>
+        <p class="mb-6">Variables must follow special rules for their **names**. The computer will crash if you break them!</p>
+
+        <div class="grid grid-cols-2 gap-6">
+            <div class="bg-red-50 p-4 rounded-xl border-4 border-red-400 shadow-md">
+                <h3 class="text-xl font-bold text-red-700 mb-3">❌ The Trap (Invalid Name)</h3>
+                <div class="bg-slate-800 text-blue-300 font-mono rounded-lg p-3 mb-4">
+                    <span class="number">1st_score</span> = <span class="number">5</span>
+                </div>
+                <div id="trap-box-container" class="flex justify-center items-center h-24 relative">
+                    <div id="trap-box" class="w-20 h-20 bg-yellow-600 p-2 rounded-lg relative border-2 border-yellow-800 transition-all duration-150">
+                        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-2 py-0.5 rounded-full text-xs font-mono shadow-md border border-white">
+                            <span class="font-bold">1st_score</span>
+                        </div>
+                        <div class="absolute inset-0 flex items-center justify-center text-4xl text-red-500 font-extrabold bg-black bg-opacity-30 rounded-lg">
+                            <span id="trap-x" class="hidden">❌</span>
+                        </div>
+                    </div>
+                </div>
+                <p id="trap-message" class="text-red-700 text-center font-semibold mt-3">Variable names CANNOT start with a **number**!</p>
+            </div>
+
+            <div class="bg-green-50 p-4 rounded-xl border-4 border-green-400 shadow-md">
+                <h3 class="text-xl font-bold text-green-700 mb-3">✅ The Fix (Valid Name)</h3>
+                <div class="bg-slate-800 text-blue-300 font-mono rounded-lg p-3 mb-4">
+                    <span class="number">score_1</span> = <span class="number">5</span>
+                </div>
+                <div class="flex justify-center items-center h-24">
+                    <div class="w-20 h-20 bg-yellow-600 p-2 rounded-lg relative border-2 border-yellow-800">
+                        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-2 py-0.5 rounded-full text-xs font-mono shadow-md border border-white">
+                            <span class="font-bold">score_1</span>
+                        </div>
+                        <div class="w-full h-full flex items-center justify-center">
+                            <div class="w-3/4 h-3/4 bg-green-400 rounded-lg shadow-inner flex items-center justify-center text-xl font-bold text-slate-800 item-drop">5</div>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-green-700 text-center font-semibold mt-3">Use letters and numbers, but always **start with a letter**.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="challenge-card" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+        <h2 class="text-2xl font-bold mb-4 text-blue-600">4. 🎮 The Challenge: Build a Story!</h2>
+        <p class="mb-4">Create three variables to complete the story below. Use the correct **name** and **type** for each!</p>
+
+        <div class="grid grid-cols-3 gap-6 mb-8">
+            <div id="str-card" class="p-3 border-2 border-blue-400 rounded-lg bg-blue-50">
+                <p class="font-bold text-blue-700 mb-2">1. Your Pet's Name (String)</p>
+                <input type="text" id="str-name" placeholder="Variable Name (e.g., pet_name)" class="w-full p-2 mb-2 border rounded font-mono text-sm">
+                <input type="text" id="str-value" placeholder='String Value (e.g., "Fluffy")' class="w-full p-2 border rounded font-mono text-sm">
+                <div id="str-box-container" class="mt-3 flex justify-center h-20">
+                    </div>
+            </div>
+
+            <div id="int-card" class="p-3 border-2 border-blue-400 rounded-lg bg-blue-50">
+                <p class="font-bold text-blue-700 mb-2">2. Pet's Age (Integer)</p>
+                <input type="text" id="int-name" placeholder="Variable Name (e.g., age)" class="w-full p-2 mb-2 border rounded font-mono text-sm">
+                <input type="number" id="int-value" placeholder="Integer Value (e.g., 7)" class="w-full p-2 border rounded font-mono text-sm">
+                <div id="int-box-container" class="mt-3 flex justify-center h-20">
+                    </div>
+            </div>
+
+            <div id="float-card" class="p-3 border-2 border-blue-400 rounded-lg bg-blue-50">
+                <p class="font-bold text-blue-700 mb-2">3. Pet's Weight (Float)</p>
+                <input type="text" id="float-name" placeholder="Variable Name (e.g., weight)" class="w-full p-2 mb-2 border rounded font-mono text-sm">
+                <input type="number" id="float-value" placeholder="Float Value (e.g., 3.14)" class="w-full p-2 border rounded font-mono text-sm">
+                <div id="float-box-container" class="mt-3 flex justify-center h-20">
+                    </div>
+            </div>
+        </div>
+
+        <button id="check-challenge" onclick="checkChallenge()" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-150 text-xl">
+            Check My Variables!
+        </button>
+
+        <div id="challenge-result" class="mt-4 p-4 bg-gray-100 rounded-lg border-2 border-gray-300 text-center font-bold min-h-[60px] flex items-center justify-center">
+            Complete the inputs above and click Check!
+        </div>
+
+        <p class="mt-4 text-center text-sm">
+            Story: "<span id="story-str-val" class="text-red-500 font-extrabold">[PET NAME]</span> the pet is <span id="story-int-val" class="text-red-500 font-extrabold">[AGE]</span> years old and weighs <span id="story-float-val" class="text-red-500 font-extrabold">[WEIGHT]</span> kilograms."
+        </p>
+    </section>
+
+    <script>
+        const colorPrimary = 'blue-600';
+        const colorSecondary = 'blue-200';
+
+        // --- Stage 2 Simulation Logic ---
+        const traceTableBody = document.getElementById('trace-table-body');
+        const codeLines = [
+            document.getElementById('code-line-1'),
+            document.getElementById('code-line-2'),
+            document.getElementById('code-line-3')
+        ];
+        const memoryVis = document.getElementById('memory-visualization');
+        const simLog = document.getElementById('simulation-log');
+
+        const simulationSteps = [
+            {
+                line: 1, code: 'score = 10', score: 10, user_name: 'Empty',
+                action: (scoreBox, userNameBox) => {
+                    const boxHTML = `
+                        <div id="score-box" class="box-container w-24 h-24 bg-yellow-600 p-1 rounded-lg relative border-2 border-yellow-800 transition-opacity duration-300 opacity-0">
+                            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-${colorPrimary} text-white px-2 py-0.5 rounded-full text-xs font-mono shadow-md border-2 border-white">score</div>
+                            <div class="data-item w-full h-full flex items-center justify-center">
+                                <div id="score-item" class="w-3/4 h-3/4 bg-green-400 rounded-lg shadow-inner flex items-center justify-center text-lg font-bold text-slate-800 item-drop">10</div>
+                            </div>
+                        </div>
+                    `;
+                    memoryVis.innerHTML = boxHTML;
+                    document.getElementById('score-box').classList.remove('opacity-0');
+                    simLog.innerText = "Action: Created box 'score' and stored the Integer 10.";
+                }
+            },
+            {
+                line: 2, code: 'score = score + 5', score: 15, user_name: 'Empty',
+                action: (scoreBox, userNameBox) => {
+                    const scoreItem = document.getElementById('score-item');
+                    if (scoreItem) {
+                        scoreItem.innerHTML = '15';
+                        scoreItem.classList.add('bg-red-400', 'text-white', 'scale-110');
+                        setTimeout(() => {
+                            scoreItem.classList.remove('bg-red-400', 'text-white', 'scale-110');
+                            scoreItem.classList.add('bg-green-400');
+                        }, 500);
+                        simLog.innerText = "Action: The old value 10 is replaced with the new value 15.";
+                    }
+                }
+            },
+            {
+                line: 3, code: 'user_name = "Alex"', score: 15, user_name: '"Alex"',
+                action: (scoreBox, userNameBox) => {
+                    const boxHTML = `
+                        <div id="user-name-box" class="box-container w-24 h-24 bg-yellow-600 p-1 rounded-lg relative border-2 border-yellow-800 transition-opacity duration-300 opacity-0 ml-4">
+                            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-${colorPrimary} text-white px-2 py-0.5 rounded-full text-xs font-mono shadow-md border-2 border-white">user_name</div>
+                            <div class="data-item w-full h-full flex items-center justify-center">
+                                <div id="username-item" class="w-3/4 h-3/4 bg-amber-200 rounded-full shadow-inner flex items-center justify-center text-xs font-bold text-slate-800 item-drop p-1">"Alex"</div>
+                            </div>
+                        </div>
+                    `;
+                    memoryVis.insertAdjacentHTML('beforeend', boxHTML);
+                    document.getElementById('user-name-box').classList.remove('opacity-0');
+                    simLog.innerText = "Action: Created a new box 'user_name' and stored the String 'Alex'.";
+                }
+            }
+        ];
+
+        async function runSimulation() {
+            document.getElementById('start-simulation').disabled = true;
+            memoryVis.innerHTML = ''; // Reset visualization
+            simLog.innerText = 'Initializing...';
+            traceTableBody.innerHTML = `
+                <tr id="trace-row-1" class="bg-white hover:bg-blue-50"><td class="p-2 border"></td><td class="p-2 border font-mono"></td><td class="p-2 border"></td><td class="p-2 border"></td></tr>
+                <tr id="trace-row-2" class="bg-white hover:bg-blue-50"><td class="p-2 border"></td><td class="p-2 border font-mono"></td><td class="p-2 border"></td><td class="p-2 border"></td></tr>
+                <tr id="trace-row-3" class="bg-white hover:bg-blue-50"><td class="p-2 border"></td><td class="p-2 border font-mono"></td><td class="p-2 border"></td><td class="p-2 border"></td></tr>
+            `; // Reset table
+
+            // Reset code line highlights
+            codeLines.forEach(line => line.classList.remove('bg-yellow-200', 'bg-opacity-20'));
+
+            for (let i = 0; i < simulationSteps.length; i++) {
+                const step = simulationSteps[i];
+                const lineIndex = step.line - 1;
+                const row = document.getElementById(`trace-row-${step.line}`);
+
+                // 1. Highlight Code Line
+                codeLines[lineIndex].classList.add('bg-yellow-200', 'bg-opacity-20');
+
+                // 2. Perform Action & Update Log
+                step.action();
+
+                // 3. Update Trace Table
+                row.children[0].innerText = step.line;
+                row.children[1].innerHTML = `<span class="bg-slate-200 p-1 rounded">${step.code}</span>`;
+                row.children[2].innerText = step.score;
+                row.children[3].innerText = step.user_name;
+                row.classList.add('bg-yellow-100'); // Highlight row
+
+                // Wait
+                await new Promise(r => setTimeout(r, 1500));
+
+                // Clean up highlight
+                codeLines[lineIndex].classList.remove('bg-yellow-200', 'bg-opacity-20');
+                row.classList.remove('bg-yellow-100');
+            }
+
+            simLog.innerText = 'Simulation Finished! All data is stored in memory.';
+            document.getElementById('start-simulation').disabled = false;
+        }
+
+        // --- Stage 3 Trap Logic ---
+        document.getElementById('trap-box-container').addEventListener('mouseover', () => {
+            document.getElementById('trap-box').classList.add('shake');
+            document.getElementById('trap-x').classList.remove('hidden');
+        });
+        document.getElementById('trap-box-container').addEventListener('mouseout', () => {
+            document.getElementById('trap-box').classList.remove('shake');
+            document.getElementById('trap-x').classList.add('hidden');
+        });
+
+        // --- Stage 4 Challenge Logic ---
+        const challengeInputs = [
+            { type: 'str', nameInput: 'str-name', valueInput: 'str-value', boxContainer: 'str-box-container', storyElement: 'story-str-val', valueType: 'string', boxColor: 'bg-amber-200', nameRule: (name) => /^[a-zA-Z_]\w*$/.test(name) && !/\s/.test(name) },
+            { type: 'int', nameInput: 'int-name', valueInput: 'int-value', boxContainer: 'int-box-container', storyElement: 'story-int-val', valueType: 'integer', boxColor: 'bg-green-400', nameRule: (name) => /^[a-zA-Z_]\w*$/.test(name) && !/\s/.test(name) },
+            { type: 'float', nameInput: 'float-name', valueInput: 'float-value', boxContainer: 'float-box-container', storyElement: 'story-float-val', valueType: 'float', boxColor: 'bg-blue-400/50', nameRule: (name) => /^[a-zA-Z_]\w*$/.test(name) && !/\s/.test(name) }
+        ];
+
+        function createBoxHTML(type, name, value, boxColor) {
+            let itemHTML = '';
+            let itemClass = 'w-3/4 h-3/4 rounded-lg shadow-inner flex items-center justify-center text-sm font-bold text-slate-800 p-1';
+            
+            if (type === 'str') {
+                itemHTML = `<div class="${itemClass} ${boxColor} rounded-full text-xs">"${value}"</div>`; // Scroll/Round shape for string
+            } else if (type === 'int') {
+                itemHTML = `<div class="${itemClass} ${boxColor}"> ${value} </div>`; // Solid block
+            } else if (type === 'float') {
+                itemHTML = `<div class="${itemClass} ${boxColor}"> ${value} </div>`; // Ice block (lighter color)
+            }
+
+            return `
+                <div class="w-20 h-20 bg-yellow-600 p-1 rounded-lg relative border-2 border-yellow-800 item-drop">
+                    <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-${colorPrimary} text-white px-2 py-0.5 rounded-full text-xs font-mono shadow-md border-2 border-white">${name}</div>
+                    <div class="data-item w-full h-full flex items-center justify-center">
+                        ${itemHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        challengeInputs.forEach(inputDef => {
+            const nameEl = document.getElementById(inputDef.nameInput);
+            const valueEl = document.getElementById(inputDef.valueInput);
+            const boxContainer = document.getElementById(inputDef.boxContainer);
+            const storyEl = document.getElementById(inputDef.storyElement);
+
+            const updateVisuals = () => {
+                const name = nameEl.value.trim();
+                let value = valueEl.value.trim();
+
+                // Clear feedback first
+                boxContainer.innerHTML = '';
+                storyEl.textContent = `[${inputDef.type.toUpperCase()} VALUE]`;
+                storyEl.classList.add('text-red-500');
+                storyEl.classList.remove('text-green-600');
+                
+                if (name && value) {
+                    if (inputDef.nameRule(name)) {
+                        let displayValue = value;
+                        if (inputDef.type === 'str') {
+                            displayValue = value.replace(/"/g, ''); // Remove quotes for cleaner display
+                        }
+                        boxContainer.innerHTML = createBoxHTML(inputDef.type, name, displayValue, inputDef.boxColor);
+                        storyEl.textContent = displayValue;
+                        storyEl.classList.add('text-green-600');
+                        storyEl.classList.remove('text-red-500');
+                    } else {
+                         // Invalid name: Box is empty and shakes
+                        boxContainer.innerHTML = `<div class="w-20 h-20 bg-red-200 rounded-lg flex items-center justify-center text-red-600 font-bold text-lg shake">❌ NAME?</div>`;
+                    }
+                }
+            };
+
+            nameEl.addEventListener('input', updateVisuals);
+            valueEl.addEventListener('input', updateVisuals);
+        });
+
+        function isInteger(value) {
+            return /^-?\d+$/.test(value);
+        }
+
+        function isFloat(value) {
+            return /^-?\d+(\.\d+)?$/.test(value);
+        }
+
+        function isString(value) {
+            return value.startsWith('"') && value.endsWith('"') && value.length > 1;
+        }
+
+        function checkChallenge() {
+            let allCorrect = true;
+            const resultBox = document.getElementById('challenge-result');
+            resultBox.classList.remove('bg-red-100', 'border-red-400', 'bg-green-100', 'border-green-400', 'shake');
+
+            challengeInputs.forEach(inputDef => {
+                const nameEl = document.getElementById(inputDef.nameInput);
+                const valueEl = document.getElementById(inputDef.valueInput);
+                const cardEl = document.getElementById(`${inputDef.type}-card`);
+
+                const name = nameEl.value.trim();
+                const value = valueEl.value.trim();
+                let valueCheck = false;
+
+                // 1. Check Name Rule
+                const nameCorrect = inputDef.nameRule(name);
+
+                // 2. Check Value Type
+                if (inputDef.type === 'str') {
+                    valueCheck = isString(value);
+                } else if (inputDef.type === 'int') {
+                    valueCheck = isInteger(value);
+                } else if (inputDef.type === 'float') {
+                    // Float check is more relaxed, but must be a valid number string
+                    valueCheck = isFloat(value);
+                }
+
+                if (nameCorrect && valueCheck) {
+                    cardEl.classList.remove('border-red-400');
+                    cardEl.classList.add('border-green-400');
+                } else {
+                    cardEl.classList.add('border-red-400');
+                    cardEl.classList.remove('border-green-400');
+                    allCorrect = false;
+                }
+            });
+
+            if (allCorrect) {
+                resultBox.innerHTML = "🎉 GREAT JOB! All your variables are named and typed correctly! You are a master of data!";
+                resultBox.classList.add('bg-green-100', 'border-green-400');
+                createConfetti();
+            } else {
+                resultBox.innerHTML = "Not quite! Check the boxes with the red border. Remember: **Name** must start with a letter, and the **Value** must match the type (string needs quotes, int is a whole number, float has a decimal).";
+                resultBox.classList.add('bg-red-100', 'border-red-400', 'shake');
+            }
+        }
+
+        function createConfetti() {
+            const container = document.getElementById('confetti-container');
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = ['#60a5fa', '#f472b6', '#34d399', '#facc15'][Math.floor(Math.random() * 4)];
+                confetti.style.animationDelay = Math.random() * 0.8 + 's';
+                confetti.style.transform = `translateY(-100vh) rotate(${Math.random() * 360}deg)`;
+                container.appendChild(confetti);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
