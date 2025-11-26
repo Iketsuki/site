@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python Conditionals: Traffic Control Center 🚦</title>
+    <title>Python Logic & Math Factory</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -12,51 +12,39 @@
         .token-flow { animation: flow 1.5s ease-in-out forwards; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
         .shake { animation: shake 0.3s; }
-        .light-green { background-color: #10b981; /* emerald-500 */ }
-        .light-red { background-color: #ef4444; /* red-500 */ }
-        .light-yellow { background-color: #facc15; /* yellow-400 */ }
+        .light-green { background-color: #10b981; }
+        .light-red { background-color: #ef4444; }
+        .light-yellow { background-color: #facc15; }
         .traffic-light { transition: background-color 0.3s, transform 0.3s; }
         .road-diverter { transition: transform 0.5s; }
         .draggable-fix { cursor: grab; user-select: none; }
         .code-block { cursor: grab; user-select: none; transition: transform 0.1s; }
         .assembly-area.drag-over { border: 2px dashed #3b82f6; background-color: #eff6ff; }
-        
-        /* Custom slider track */
         .slider-input {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 8px;
-            background: #d1d5db;
-            border-radius: 4px;
-            outline: none;
-            transition: opacity .2s;
+            -webkit-appearance: none; width: 100%; height: 8px; background: #d1d5db; border-radius: 4px; outline: none; transition: opacity .2s;
         }
         .slider-input::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #3b82f6;
-            cursor: pointer;
-            border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 0 2px rgba(0,0,0,0.5);
+            -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: #3b82f6; cursor: pointer; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 2px rgba(0,0,0,0.5);
         }
         .road-blocked { background-color: #fee2e2; border: 2px solid #ef4444; opacity: 0.5; }
+        /* Data Type Colors */
+        .is-float { background-color: #3b82f6; /* blue-500 */ }
+        .is-int { background-color: #10b981; /* emerald-500 */ }
+        .operator-symbol { font-size: 2rem; font-weight: 800; width: 4rem; display: inline-block; text-align: center; }
     </style>
 </head>
 <body class="bg-slate-50 font-[Inter] text-slate-700 p-8">
 
     <header class="mb-12">
-        <div class="max-w-6xl mx-auto p-4 bg-purple-600 text-white rounded-xl shadow-lg">
-            <h1 class="text-3xl font-extrabold">🚦 The Traffic Control Center: Conditionals</h1>
-            <p class="text-purple-200">Blueprint 6 & 7: If/Else and Comparison Operators</p>
+        <div class="max-w-6xl mx-auto p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg">
+            <h1 class="text-3xl font-extrabold">⚙️ The Python Logic and Math Factory 🏭</h1>
+            <p class="text-white/80">Operators, Calculator, If-Else, and Comparisons</p>
         </div>
 
         <div class="max-w-6xl mx-auto mt-6 relative">
             <div class="ml-24 p-4 bg-white rounded-2xl shadow-md bubble-tail border-2 border-purple-200 transition-all duration-300">
-                <p class="font-semibold text-purple-700">
-                    Attention, Code Driver! We can't just drive straight; sometimes we need to change direction based on a **rule**! These Decision Gates control the entire flow of your program. **Only one road can ever be open at a time!**
+                <p id="mascot-speech-top" class="font-semibold text-purple-700">
+                    Welcome to the Math Factory! We use powerful machines, called **Operators**, to transform raw number blocks into calculated results. Watch how each machine performs a unique mathematical job!
                 </p>
             </div>
             <div class="absolute w-20 h-20 -top-4 rounded-full border-4 border-white shadow-xl bg-purple-100 p-1 z-10 flex items-center justify-center text-4xl">
@@ -65,12 +53,177 @@
         </div>
     </header>
 
+    <section class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-yellow-400 p-6">
+        <h2 class="text-2xl font-bold mb-6 text-yellow-600">4. The Arithmetic Operator Machines 🛠️</h2>
+
+        <div class="grid grid-cols-2 gap-8">
+            <div>
+                <h3 class="text-xl font-bold mb-3 text-blue-600">The Atomic Machines (A=10, B=3)</h3>
+                <div class="space-y-3">
+                    <div class="p-3 bg-gray-100 rounded-lg shadow-inner flex items-center">
+                        <span class="operator-symbol text-yellow-500"> + </span>
+                        <div><p class="font-semibold">The Fusion Press</p><p class="text-sm">Combines blocks. Result: 13</p></div>
+                    </div>
+                    <div class="p-3 bg-gray-100 rounded-lg shadow-inner flex items-center">
+                        <span class="operator-symbol text-yellow-500"> - </span>
+                        <div><p class="font-semibold">The Abrasive Cutter</p><p class="text-sm">Removes a specified amount. Result: 7</p></div>
+                    </div>
+                    <div class="p-3 bg-gray-100 rounded-lg shadow-inner flex items-center">
+                        <span class="operator-symbol text-yellow-500"> * </span>
+                        <div><p class="font-semibold">The Replication Stamper</p><p class="text-sm">Stamps out duplicates. Result: 30</p></div>
+                    </div>
+                    <div class="p-3 bg-red-100 rounded-lg shadow-inner flex items-center">
+                        <span class="operator-symbol text-red-500"> / </span>
+                        <div><p class="font-semibold">The Fluid Dispenser (Float)</p><p class="text-sm">Splits blocks, includes decimal liquid. Result: 3.33...</p></div>
+                    </div>
+                    <div class="p-3 bg-green-100 rounded-lg shadow-inner flex items-center">
+                        <span class="operator-symbol text-green-500"> // </span>
+                        <div><p class="font-semibold">The Whole Number Splitter</p><p class="text-sm">Splits into whole pieces, discards decimals. Result: 3</p></div>
+                    </div>
+                    <div class="p-3 bg-purple-100 rounded-lg shadow-inner flex items-center">
+                        <span class="operator-symbol text-purple-500"> % </span>
+                        <div><p class="font-semibold">The Remainder Isolator</p><p class="text-sm">Captures the small leftover piece. Result: 1</p></div>
+                    </div>
+                    <div class="p-3 bg-blue-100 rounded-lg shadow-inner flex items-center">
+                        <span class="operator-symbol text-blue-500"> ** </span>
+                        <div><p class="font-semibold">The Power Stack Machine</p><p class="text-sm">Multiplies the base by itself (exponent) times. Result: 8 (from 2 ** 3)</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-bold mb-3 text-blue-600">The Factory Trace ⚙️</h3>
+                <div class="bg-gray-800 p-4 rounded-lg mb-4 shadow-xl">
+                    <p class="text-green-400 font-mono mb-2">FACTORY INPUTS:</p>
+                    <div id="factory-memory" class="flex justify-around text-white font-mono text-lg">
+                        <div class="text-center">A: <span id="val-a" class="is-int px-2 rounded">2</span></div>
+                        <div class="text-center">B: <span id="val-b" class="is-int px-2 rounded">3</span></div>
+                    </div>
+                </div>
+                
+                <table class="w-full text-sm border-collapse bg-slate-100 shadow-md">
+                    <thead>
+                        <tr class="bg-blue-600 text-white">
+                            <th class="p-2 border border-blue-700">Step</th>
+                            <th class="p-2 border border-blue-700">Code</th>
+                            <th class="p-2 border border-blue-700">Result Block</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trace-table-factory">
+                        <tr id="step-3" class="hover:bg-blue-50">
+                            <td class="p-2 border">3</td>
+                            <td class="p-2 border font-mono">Power = A ** B</td>
+                            <td class="p-2 border console-output"><span id="res-power" class="is-int px-2 rounded-full">8</span></td>
+                        </tr>
+                        <tr id="step-4" class="hover:bg-blue-50">
+                            <td class="p-2 border">4</td>
+                            <td class="p-2 border font-mono">Remainder = 8 % 3</td>
+                            <td class="p-2 border console-output"><span id="res-remainder" class="is-int px-2 rounded-full">2</span></td>
+                        </tr>
+                        <tr id="step-5" class="hover:bg-blue-50">
+                            <td class="p-2 border">5</td>
+                            <td class="p-2 border font-mono">Clean_Cut = 7 // 2</td>
+                            <td class="p-2 border console-output"><span id="res-cleancut" class="is-int px-2 rounded-full">3</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p id="factory-message" class="mt-4 p-3 bg-blue-100 rounded font-semibold text-blue-700 text-center">Power Stack machine activated! Result: 8</p>
+            </div>
+        </div>
+
+        <hr class="my-6 border-yellow-300">
+
+        <h3 class="text-xl font-bold mb-4 text-red-600">🚩 The Trap: Messy vs. Clean Division (/) vs. (//)</h3>
+        
+        <div class="grid grid-cols-3 gap-6 items-center">
+            <div class="bg-red-50 p-4 rounded-xl border-4 border-red-400 text-center">
+                <p class="font-mono text-lg font-bold">clean_result = 10 / 3</p>
+                <div id="bad-result" class="mt-3 p-2 bg-slate-800 text-white rounded console-output">
+                    <span id="float-result" class="is-float px-3 py-1 rounded-lg">3.3333333333333335</span>
+                </div>
+                <p class="text-red-700 mt-2">Factory Alert! Float data detected! We only want **whole** pieces for this order!</p>
+            </div>
+            
+            <div id="drag-drop-area" class="text-center p-4 border-dashed border-2 border-red-500 rounded-lg bg-white relative">
+                <span id="missing-slash" class="text-5xl text-red-600 font-bold p-2 draggable-fix" draggable="true" data-fix="slash">/</span>
+                <p class="mt-2 text-sm text-red-600 font-semibold">Drag the missing slash **/** to the code above to fix it!</p>
+            </div>
+
+            <div id="fixed-code-container" class="bg-green-50 p-4 rounded-xl border-4 border-green-400 text-center relative">
+                <p id="fix-code-display" class="font-mono text-lg font-bold">clean_result = 10 / 3</p>
+                <div id="fix-result" class="mt-3 p-2 bg-slate-800 text-white rounded console-output">
+                    <span id="int-result" class="is-float px-3 py-1 rounded-lg">3.3333333333333335</span>
+                </div>
+                <div id="quality-badge" class="absolute inset-0 hidden items-center justify-center text-green-700 text-2xl font-black bg-green-900/10 rounded-xl">QUALITY CONTROL PASS!</div>
+                <p class="text-green-700 mt-2">The **Whole Number Splitter** is now active!</p>
+            </div>
+        </div>
+
+        <hr class="my-6 border-yellow-300">
+        
+        <h2 class="text-2xl font-bold mb-6 text-purple-600">5. The Data Control Panel 🎛️ (input() & int())</h2>
+
+        <h3 class="text-xl font-bold mb-4 text-red-600">🚩 The Trap: Missing Type Filter (int())</h3>
+        
+        <div class="grid grid-cols-3 gap-6 items-center">
+            <div class="bg-red-50 p-4 rounded-xl border-4 border-red-400 text-center">
+                <p class="font-mono text-lg font-bold">result = num1 ** num2</p>
+                <div class="mt-3 p-2 bg-slate-800 text-white rounded console-output">
+                    <div class="text-red-400 text-lg font-bold vibrating">TYPE MISMATCH ERROR!</div>
+                </div>
+                <p class="text-red-700 mt-2">The Math Processor only accepts solid number blocks, not text data.</p>
+            </div>
+
+            <div class="col-span-2 p-4 bg-white rounded-xl border-4 border-green-400 relative">
+                <h4 class="text-lg font-bold text-green-700 mb-2">Drag the Type Filters into the code:</h4>
+                <div class="bg-slate-800 text-blue-300 font-mono rounded-lg p-3 flex justify-center items-center gap-1">
+                    <span class="text-white">result = </span>
+                    <span id="target-1" class="text-white font-bold inline-block p-1 bg-red-800/50 rounded-sm drop-target" data-variable="num1">num1</span>
+                    <span class="text-white"> ** </span>
+                    <span id="target-2" class="text-white font-bold inline-block p-1 bg-red-800/50 rounded-sm drop-target" data-variable="num2">num2</span>
+                </div>
+                
+                <div id="filter-drag-area" class="mt-4 flex justify-center gap-4 bg-gray-200 p-3 rounded-lg">
+                    <span class="text-2xl text-green-600 font-bold p-2 bg-white rounded-lg shadow draggable-fix" draggable="true" data-fix="int">int()</span>
+                    <span class="text-2xl text-green-600 font-bold p-2 bg-white rounded-lg shadow draggable-fix" draggable="true" data-fix="int">int()</span>
+                </div>
+                <div id="fix-status" class="mt-3 text-center font-bold text-red-600">Missing filters! Drag both **int()** filters over the variable names.</div>
+            </div>
+        </div>
+
+        <hr class="my-6 border-yellow-300">
+
+        <h3 class="text-xl font-bold mb-4 text-green-600">🎮 The Playground: Power Stack Mission (**)</h3>
+        <p class="mb-4 text-center font-semibold p-2 bg-green-100 rounded">
+            Mission Briefing: The warehouse needs a **Block 125**! Use a **5** base block and a **3** exponent block. Use the **Power Stack** machine (**).
+        </p>
+
+        <div class="flex justify-around items-center bg-gray-100 p-6 rounded-lg">
+            <div class="text-center">
+                <p class="font-bold text-lg">Target Block:</p>
+                <div id="target-block" class="w-24 h-24 bg-yellow-400 border-4 border-yellow-600 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl">125</div>
+            </div>
+            
+            <div class="text-center">
+                <p class="font-bold text-lg mb-2">Enter Code (e.g., 5 ** 3):</p>
+                <input type="text" id="power-input" class="p-2 border-2 border-blue-400 rounded-lg font-mono text-lg w-48 text-center" value="5 ** 3">
+                <button onclick="runPowerStackChallenge()" class="block w-full mt-3 bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-700">Run Power Stack! 🚀</button>
+            </div>
+
+            <div class="text-center">
+                <p class="font-bold text-lg">Result Block:</p>
+                <div id="result-block" class="w-24 h-24 bg-gray-400 border-4 border-gray-600 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl">?</div>
+            </div>
+        </div>
+        <p id="power-message" class="mt-4 text-center font-bold text-slate-700"></p>
+    </section>
+
     ---
 
-    <section class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-green-400 p-6">
-        <h2 class="text-2xl font-bold mb-6 text-green-600">6. The If-Else Decision Gate 🛣️</h2>
-        
-        <h3 class="text-xl font-bold mb-3 text-blue-600">Simulation: Checking a Student Score</h3>
+    <section class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-purple-400 p-6">
+        <h2 class="text-2xl font-bold mb-6 text-purple-600">6 & 7. The Traffic Control Center: Conditionals 🚦</h2>
+
+        <h3 class="text-xl font-bold mb-3 text-blue-600">6. If-Else Simulation: Score Check</h3>
         <div class="grid grid-cols-2 gap-8">
             <div>
                 <div class="bg-gray-800 text-green-400 font-mono p-4 rounded-lg shadow-lg mb-4">
@@ -97,7 +250,7 @@
                         <div id="traffic-light" class="traffic-light w-10 h-20 rounded-full light-yellow border-4 border-gray-600 flex items-center justify-center text-xl font-bold text-white shadow-inner">
                             ?
                         </div>
-                        <p class="text-xs font-bold mt-1">score $\ge 70$</p>
+                        <p class="text-xs font-bold mt-1">score <span class="text-sm font-extrabold">≥</span> 70</p>
                     </div>
 
                     <div id="road-diverter" class="road-diverter absolute left-14 top-1/2 w-4 h-4 bg-gray-600 rounded-full transform -translate-y-1/2 z-10" style="transform: translateY(-50%) rotate(0deg);"></div>
@@ -117,123 +270,83 @@
             </div>
         </div>
 
-        <hr class="my-6 border-gray-300">
+        <hr class="my-6 border-purple-300">
 
         <h3 class="text-xl font-bold mb-4 text-red-600">🚩 The Trap: Missing Colon (:)</h3>
         
         <div class="grid grid-cols-3 gap-6 items-center">
             <div id="trap-display" class="bg-red-50 p-4 rounded-xl border-4 border-red-400 text-center relative min-h-[120px]">
-                <p class="font-mono text-lg font-bold">if score $\ge$ 70</p>
+                <p class="font-mono text-lg font-bold">if score <span class="font-extrabold">≥</span> 70</p>
                 <div class="mt-3 text-red-700 font-bold text-2xl shake">SYNTAX ERROR!</div>
-                <p class="text-red-700 mt-2">I can't build the gate! The colon is like the final lock that connects the rule to the road!</p>
+                <p class="text-red-700 mt-2">The colon is the **final lock** that connects the rule to the road!</p>
             </div>
             
             <div id="colon-drop-area" class="text-center p-4 border-dashed border-2 border-red-500 rounded-lg bg-white relative">
                 <span id="missing-colon" class="text-5xl text-red-600 font-bold p-2 draggable-fix" draggable="true" data-fix="colon">:</span>
-                <p class="mt-2 text-sm text-red-600 font-semibold">Drag the colon $\text{:}$ to the end of the code to fix the lock!</p>
+                <p class="mt-2 text-sm text-red-600 font-semibold">Drag the colon **:** to the end of the code to fix the lock!</p>
             </div>
 
             <div id="colon-fixed-code" class="bg-green-50 p-4 rounded-xl border-4 border-green-400 text-center relative min-h-[120px]">
-                <p id="colon-code-display" class="font-mono text-lg font-bold">if score $\ge$ 70</p>
+                <p id="colon-code-display" class="font-mono text-lg font-bold">if score <span class="font-extrabold">≥</span> 70</p>
                 <div id="colon-feedback" class="absolute inset-0 hidden items-center justify-center text-green-700 text-2xl font-black bg-green-900/10 rounded-xl">FIXED SIGNAL!</div>
                 <div id="colon-ready-light" class="traffic-light w-10 h-10 rounded-full light-yellow border-4 border-gray-600 mx-auto mt-2"></div>
             </div>
         </div>
 
-        <hr class="my-6 border-gray-300">
+        <hr class="my-6 border-purple-300">
 
-        <h3 class="text-xl font-bold mb-4 text-purple-600">🎮 The Playground: Gatekeeper Mission (Age $\ge 18$)</h3>
-        
-        <div class="grid grid-cols-2 gap-8">
-            <div>
-                <p class="font-bold mb-2">Assemble the Gate Code:</p>
-                <div id="code-blocks-source" class="flex flex-wrap gap-2 mb-4 p-3 bg-gray-200 rounded-lg">
-                    </div>
-                <div id="code-assembly-if" class="assembly-area min-h-[120px] bg-slate-100 rounded-lg p-3 flex flex-col gap-1 items-start" ondrop="dropCodeBlock(event)" ondragover="allowDrop(event)">
-                    <p class="text-sm text-slate-500">Drag blocks here...</p>
-                </div>
-                <button onclick="runGatekeeperChallenge()" class="w-full mt-4 bg-purple-600 text-white font-bold py-2 rounded-lg hover:bg-purple-700">
-                    Run Gate Check! 🚦
-                </button>
-            </div>
-
-            <div class="bg-purple-50 p-4 rounded-lg border-2 border-purple-400">
-                <p class="font-bold mb-2">Set Age Input:</p>
-                <input type="range" id="age-slider" min="10" max="25" value="15" class="slider-input">
-                <p class="text-center text-lg font-bold">Age: <span id="age-value" class="text-purple-600">15</span></p>
-
-                <div class="mt-4 p-4 bg-gray-800 rounded-lg text-green-400 font-mono text-center">
-                    <p>Access Status: <span id="access-status" class="text-xl">?</span></p>
-                </div>
-
-                <div class="mt-4 flex flex-col items-center">
-                    <div id="gate-viz" class="w-20 h-20 bg-gray-300 border-4 border-gray-500 rounded-lg flex items-center justify-center text-2xl font-bold">
-                        GATE
-                    </div>
-                    <div id="token-car" class="w-8 h-4 bg-blue-600 rounded-md mt-2 absolute transform -translate-x-1/2 hidden">🚗</div>
-                </div>
-                <p id="gate-message" class="mt-4 text-center font-bold text-slate-700"></p>
-            </div>
-        </div>
-    </section>
-
-    ---
-
-    <section class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-400 p-6">
-        <h2 class="text-2xl font-bold mb-6 text-blue-600">7. Comparison Operators: Rule Check Detectives 📏</h2>
-
-        <h3 class="text-xl font-bold mb-3 text-blue-600">The Measuring Scales (limit=10, score=10)</h3>
+        <h3 class="text-xl font-bold mb-3 text-blue-600">7. Comparison Operators: Rule Check Detectives 📏</h3>
 
         <div class="grid grid-cols-3 gap-6">
             <div class="p-4 bg-yellow-50 rounded-lg border-2 border-yellow-400 text-center">
-                <span class="text-4xl"> $==$ </span><p class="font-bold">Balance Scale</p>
-                <p class="text-sm">check1 = score == limit $\rightarrow$ <strong id="check1-result">True</strong></p>
+                <span class="operator-symbol text-4xl"> == </span><p class="font-bold">Balance Scale</p>
+                <p class="text-sm">score == limit $\rightarrow$ <strong id="check1-result">True</strong></p>
                 <div id="scale-equal" class="w-full h-10 bg-green-200 border-b-4 border-green-600 mt-2 flex items-center justify-center text-green-800 font-semibold">Balanced! (True)</div>
             </div>
             
             <div class="p-4 bg-red-50 rounded-lg border-2 border-red-400 text-center">
-                <span class="text-4xl"> $\neq$ </span><p class="font-bold">Broken Scale</p>
-                <p class="text-sm">check2 = score != limit $\rightarrow$ <strong id="check2-result">False</strong></p>
+                <span class="operator-symbol text-4xl"> != </span><p class="font-bold">Broken Scale</p>
+                <p class="text-sm">score != limit $\rightarrow$ <strong id="check2-result">False</strong></p>
                 <div id="scale-not-equal" class="w-full h-10 bg-red-200 border-b-4 border-red-600 mt-2 flex items-center justify-center text-red-800 font-semibold">Unequal? (False)</div>
             </div>
 
             <div class="p-4 bg-gray-50 rounded-lg border-2 border-gray-400 text-center">
-                <span class="text-4xl"> $>$ </span><p class="font-bold">Digital Gauge</p>
-                <p class="text-sm">check3 = score $>$ limit $\rightarrow$ <strong id="check3-result">False</strong></p>
+                <span class="operator-symbol text-4xl"> > </span><p class="font-bold">Digital Gauge</p>
+                <p class="text-sm">score > limit $\rightarrow$ <strong id="check3-result">False</strong></p>
                 <div id="gauge-greater" class="w-full h-10 bg-red-200 border-b-4 border-red-600 mt-2 flex items-center justify-center text-red-800 font-semibold">Not Higher (False)</div>
             </div>
         </div>
 
-        <hr class="my-6 border-gray-300">
+        <hr class="my-6 border-purple-300">
 
-        <h3 class="text-xl font-bold mb-4 text-red-600">🚩 The Trap: Assignment ($\text{=}$) vs. Comparison ($\text{==}$)</h3>
+        <h3 class="text-xl font-bold mb-4 text-red-600">🚩 The Trap: Assignment (=) vs. Comparison (==)</h3>
 
         <div class="grid grid-cols-3 gap-6 items-center">
             <div id="assignment-trap" class="bg-red-50 p-4 rounded-xl border-4 border-red-400 text-center relative min-h-[120px]">
-                <p class="font-mono text-lg font-bold">if score $\text{=}$ 70:</p>
+                <p class="font-mono text-lg font-bold">if score = 70:</p>
                 <div class="mt-3 text-red-700 font-bold text-2xl shake">CONFUSED!</div>
-                <p class="text-red-700 mt-2">I am trying to check a rule AND change a variable at the same time!</p>
+                <p class="text-red-700 mt-2">Trying to check a rule **AND** change a variable simultaneously!</p>
             </div>
             
             <div id="equal-drop-area" class="text-center p-4 border-dashed border-2 border-red-500 rounded-lg bg-white relative">
                 <span id="missing-equal" class="text-5xl text-red-600 font-bold p-2 draggable-fix" draggable="true" data-fix="equal">=</span>
-                <p class="mt-2 text-sm text-red-600 font-semibold">Drag the second $\text{=}$ to create the Balance Scale!</p>
+                <p class="mt-2 text-sm text-red-600 font-semibold">Drag the second **=** to create the Balance Scale!</p>
             </div>
 
             <div id="equal-fixed-code" class="bg-green-50 p-4 rounded-xl border-4 border-green-400 text-center relative min-h-[120px]">
-                <p id="equal-code-display" class="font-mono text-lg font-bold">if score $\text{=}$ 70:</p>
+                <p id="equal-code-display" class="font-mono text-lg font-bold">if score = 70:</p>
                 <div id="equal-feedback" class="absolute inset-0 hidden items-center justify-center text-green-700 text-2xl font-black bg-green-900/10 rounded-xl">RULE CHECK ACTIVE!</div>
                 <div id="balance-scale-viz" class="w-20 h-10 bg-yellow-200 border-b-4 border-yellow-600 mx-auto mt-2 hidden items-center justify-center text-sm font-bold">Balance Scale</div>
             </div>
         </div>
 
-        <hr class="my-6 border-gray-300">
+        <hr class="my-6 border-purple-300">
 
         <h3 class="text-xl font-bold mb-4 text-blue-600">🎮 The Playground: Rule Designer Challenge</h3>
 
         <div class="grid grid-cols-2 gap-8">
             <div>
-                <p class="font-bold text-lg mb-2 text-blue-800">🎯 Rule Goal: Allow traffic ONLY if the speed is less than or equal to 60.</p>
+                <p class="font-bold text-lg mb-2 text-blue-800">🎯 Rule Goal: Allow traffic ONLY if the speed is **less than or equal to 60**.</p>
                 
                 <div class="p-4 bg-gray-100 rounded-lg mb-4">
                     <p class="font-bold mb-2">Select the Correct Operator:</p>
@@ -263,7 +376,7 @@
                 </button>
                 
                 <div class="bg-gray-800 p-4 rounded-lg text-green-400 font-mono text-lg text-center">
-                    <p>if current\_speed <span id="op-display">?</span> limit:</p>
+                    <p>if current_speed <span id="op-display">?</span> limit:</p>
                     <p>Result: <span id="check-result-display" class="text-xl">?</span></p>
                 </div>
                 
@@ -276,16 +389,142 @@
     </section>
 
     <script>
+        // --- 4. Section 3: Division Fix Logic ---
+        const missingSlash = document.getElementById('missing-slash');
+        const fixCodeDisplay = document.getElementById('fix-code-display');
+        const intResult = document.getElementById('int-result');
+        const qualityBadge = document.getElementById('quality-badge');
+        const fixedCodeContainer = document.getElementById('fixed-code-container');
+        let fixApplied = false;
+
+        missingSlash.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData("text/fix", e.target.getAttribute('data-fix'));
+            e.dataTransfer.effectAllowed = "move";
+        });
+
+        fixedCodeContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fixedCodeContainer.style.backgroundColor = '#bbf7d0'; // green-200
+        });
+
+        fixedCodeContainer.addEventListener('dragleave', (e) => {
+            fixedCodeContainer.style.backgroundColor = ''; 
+        });
+
+        fixedCodeContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fixedCodeContainer.style.backgroundColor = '';
+
+            if (fixApplied) return;
+
+            const fix = e.dataTransfer.getData("text/fix");
+            if (fix === 'slash') {
+                fixCodeDisplay.innerHTML = 'clean_result = 10 <span class="text-green-600">//</span> 3';
+                intResult.textContent = '3';
+                intResult.classList.remove('is-float');
+                intResult.classList.add('is-int');
+                qualityBadge.classList.remove('hidden');
+                qualityBadge.classList.add('flex');
+                missingSlash.style.opacity = 0.3;
+                fixApplied = true;
+            }
+        });
+
+        // --- 5. Section 4: Power Stack Challenge Logic ---
+        function runPowerStackChallenge() {
+            const input = document.getElementById('power-input').value.trim();
+            const resultBlock = document.getElementById('result-block');
+            const powerMessage = document.getElementById('power-message');
+            
+            // Regex to find Base ** Exp
+            const match = input.match(/(\d+)\s*\*\*\s*(\d+)/); 
+            
+            resultBlock.className = 'w-24 h-24 border-4 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl speaking';
+
+            if (!match) {
+                powerMessage.textContent = "Error! Use the format: BASE ** EXP (e.g., 5 ** 3)";
+                resultBlock.className = 'w-24 h-24 bg-red-400 border-4 border-red-600 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl';
+                resultBlock.textContent = 'Err';
+                return;
+            }
+
+            const base = parseInt(match[1]);
+            const exp = parseInt(match[2]);
+            let result = Math.pow(base, exp);
+
+            if (base === 5 && exp === 3) {
+                // Correct logic
+                resultBlock.className = 'w-24 h-24 bg-yellow-400 border-4 border-yellow-600 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl';
+                resultBlock.textContent = result;
+                powerMessage.textContent = "**PRODUCTION GOAL ACHIEVED!** Block 125 created successfully!";
+            } else if (input.includes('*') && !input.includes('**')) {
+                 // Wrong operator * instead of **
+                resultBlock.className = 'w-24 h-24 bg-red-400 border-4 border-red-600 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl';
+                resultBlock.textContent = base * exp;
+                powerMessage.textContent = "Wrong Operator! That's the Replication Stamper (*), not the Power Stack (**)!";
+            } else {
+                // Wrong numbers
+                resultBlock.className = 'w-24 h-24 bg-red-400 border-4 border-red-600 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl';
+                resultBlock.textContent = result;
+                powerMessage.textContent = `Incorrect result block (${result}). Use 5 and 3!`;
+            }
+
+            setTimeout(() => resultBlock.classList.remove('speaking'), 300);
+        }
+
+        // --- 5. Section 3: int() Fix Logic ---
+        const dropTargets = document.querySelectorAll('.drop-target');
+        const intFilters = document.querySelectorAll('.draggable-fix[data-fix="int"]');
+        const fixStatus = document.getElementById('fix-status');
+        let filtersPlaced = 0;
+
+        intFilters.forEach(filter => {
+            filter.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData("text/filter", e.target.textContent);
+            });
+        });
+
+        dropTargets.forEach(target => {
+            target.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                target.classList.add('bg-blue-800/50');
+            });
+
+            target.addEventListener('dragleave', (e) => {
+                target.classList.remove('bg-blue-800/50');
+            });
+
+            target.addEventListener('drop', (e) => {
+                e.preventDefault();
+                target.classList.remove('bg-blue-800/50');
+
+                const filterText = e.dataTransfer.getData("text/filter");
+                if (filterText === 'int()' && !target.classList.contains('fixed')) {
+                    // Visually wrap the variable name
+                    target.innerHTML = `<span class="text-green-400">int(</span>${target.getAttribute('data-variable')}<span class="text-green-400">)</span>`;
+                    target.classList.remove('bg-red-800/50', 'text-white');
+                    target.classList.add('fixed');
+                    filtersPlaced++;
+
+                    if (filtersPlaced === 2) {
+                        fixStatus.textContent = "**DATA FLOW OPTIMAL!** Conversion fixed. Math Processor is ready.";
+                        fixStatus.classList.remove('text-red-600');
+                        fixStatus.classList.add('text-green-600');
+                    } else {
+                        fixStatus.textContent = `One filter placed. Place the remaining filter!`;
+                    }
+                }
+            });
+        });
+
+
         // --- 6. If-Else Simulation Logic ---
-        const scoreElement = document.getElementById('sim-score');
-        const statusElement = document.getElementById('sim-status');
         const trafficLight = document.getElementById('traffic-light');
         const roadDiverter = document.getElementById('road-diverter');
-        const passRoad = document.getElementById('pass-road');
         const failRoad = document.getElementById('fail-road');
         const passToken = document.getElementById('pass-token');
-        const failToken = document.getElementById('fail-token');
         const simLog = document.getElementById('sim-log');
+        const statusElement = document.getElementById('sim-status');
 
         const simLines = [
             document.getElementById('sim-line-1'),
@@ -304,26 +543,21 @@
             statusElement.className = 'text-xl text-red-600';
             trafficLight.className = 'traffic-light w-10 h-20 rounded-full light-yellow border-4 border-gray-600 flex items-center justify-center text-xl font-bold text-white shadow-inner';
             roadDiverter.style.transform = 'translateY(-50%) rotate(0deg)'; // Neutral position
-            passRoad.classList.remove('road-blocked');
             failRoad.classList.remove('road-blocked');
             passToken.classList.add('hidden');
-            failToken.classList.add('hidden');
             passToken.style.transform = 'translateX(0)';
-            failToken.style.transform = 'translateX(0)';
             simLog.textContent = 'Simulation started...';
             simLines.forEach(line => line.classList.remove('bg-yellow-200', 'bg-opacity-20'));
 
-            const score = 85;
-
             // Step 1: score = 85
             simLines[0].classList.add('bg-yellow-200', 'bg-opacity-20');
-            simLog.textContent = 'Step 1: Variable score is set to 85.';
+            simLog.textContent = 'Step 1: Variable **score** is set to 85.';
             await delay(1000);
             simLines[0].classList.remove('bg-yellow-200', 'bg-opacity-20');
 
             // Step 2: if score >= 70:
             simLines[1].classList.add('bg-yellow-200', 'bg-opacity-20');
-            simLog.textContent = 'Step 2: Checking condition (85 >= 70) -> True!';
+            simLog.textContent = 'Step 2: Checking condition (85 ≥ 70) -> **True**!';
             await delay(500);
             
             // Animation: Light turns Green, Diverter moves
@@ -337,7 +571,7 @@
 
             // Step 3: status = "Pass"
             simLines[2].classList.add('bg-yellow-200', 'bg-opacity-20');
-            simLog.textContent = 'Step 3: Execution flows down the IF road. status = "Pass".';
+            simLog.textContent = 'Step 3: Execution flows down the **IF road**. status = "Pass".';
             
             // Animation: Token drives down Pass Road
             passToken.classList.remove('hidden');
@@ -353,14 +587,9 @@
 
             // Step 4: else: (Skip)
             simLines[3].classList.add('bg-yellow-200', 'bg-opacity-20');
-            simLog.textContent = 'Step 4: Skipping ELSE road. Only one path can execute.';
+            simLog.textContent = 'Step 4: Skipping **ELSE** road. Only one path can execute.';
             await delay(1000);
             simLines[3].classList.remove('bg-yellow-200', 'bg-opacity-20');
-
-            // Step 5: status = "Fail" (Skip)
-            simLines[4].classList.add('bg-yellow-200', 'bg-opacity-20');
-            await delay(500);
-            simLines[4].classList.remove('bg-yellow-200', 'bg-opacity-20');
 
             // Step 6: print(status)
             simLines[5].classList.add('bg-yellow-200', 'bg-opacity-20');
@@ -392,7 +621,7 @@
 
             const fix = e.dataTransfer.getData("text/fix");
             if (fix === 'colon') {
-                document.getElementById('colon-code-display').innerHTML = 'if score $\ge$ 70<strong class="text-green-600">:</strong>';
+                document.getElementById('colon-code-display').innerHTML = 'if score <span class="font-extrabold">≥</span> 70<strong class="text-green-600">:</strong>';
                 document.getElementById('trap-display').classList.remove('shake');
                 document.getElementById('trap-display').querySelector('.text-2xl').textContent = 'Fixed!';
 
@@ -407,134 +636,6 @@
                 colonFixed = true;
             }
         });
-
-        // --- 6. Section 4: Gatekeeper Challenge Logic ---
-        const ageSlider = document.getElementById('age-slider');
-        const ageValueSpan = document.getElementById('age-value');
-        const blocksSource = document.getElementById('code-blocks-source');
-        const codeAssemblyIf = document.getElementById('code-assembly-if');
-        const gateViz = document.getElementById('gate-viz');
-        const accessStatus = document.getElementById('access-status');
-        const gateMessage = document.getElementById('gate-message');
-
-        ageSlider.addEventListener('input', () => {
-            ageValueSpan.textContent = ageSlider.value;
-        });
-
-        const gateBlocks = [
-            { value: 'if', text: 'if', color: 'bg-yellow-400' },
-            { value: 'age', text: 'age', color: 'bg-blue-400' },
-            { value: '>=', text: '>=', color: 'bg-pink-400' },
-            { value: '18', text: '18', color: 'bg-green-400' },
-            { value: ':', text: ':', color: 'bg-yellow-400' },
-            { value: 'else', text: 'else', color: 'bg-yellow-400' },
-            { value: '"Access Granted"', text: '"Access Granted"', color: 'bg-red-400' },
-            { value: '"Denied"', text: '"Denied"', color: 'bg-red-400' },
-            { value: 'access =', text: 'access =', color: 'bg-blue-400' }
-        ];
-
-        gateBlocks.forEach((blockData, index) => {
-            const block = document.createElement('div');
-            block.classList.add('code-block', blockData.color, 'text-white', 'px-3', 'py-1', 'rounded', 'font-mono');
-            block.setAttribute('draggable', 'true');
-            block.setAttribute('data-value', blockData.value);
-            block.setAttribute('data-index', index);
-            block.textContent = blockData.text;
-            
-            block.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData("text/html", e.target.outerHTML);
-                e.dataTransfer.effectAllowed = "copy";
-            });
-            blocksSource.appendChild(block);
-        });
-
-        function allowDrop(e) {
-            e.preventDefault();
-            if (e.currentTarget.id === 'code-assembly-if') {
-                e.currentTarget.classList.add('drag-over');
-            }
-        }
-        document.getElementById('code-assembly-if').addEventListener('dragleave', (e) => {
-            e.currentTarget.classList.remove('drag-over');
-        });
-
-        function dropCodeBlock(e) {
-            e.preventDefault();
-            e.currentTarget.classList.remove('drag-over');
-            
-            const data = e.dataTransfer.getData("text/html");
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = data;
-            const block = tempDiv.firstChild;
-            
-            block.classList.remove('px-3', 'py-1', 'rounded', 'font-mono', 'code-block', 'text-white', block.classList[0]);
-            block.classList.add('w-full', 'p-1', 'rounded', 'font-mono', 'mb-1', 'text-sm');
-            block.style.backgroundColor = block.getAttribute('data-value').includes('access =') ? '#93c5fd' : (block.getAttribute('data-value').includes('if') || block.getAttribute('data-value').includes('else') ? '#fcd34d' : (block.getAttribute('data-value').includes('>=') ? '#f472b6' : (block.getAttribute('data-value').includes('"') ? '#f87171' : '#60a5fa')));
-            block.style.color = 'black';
-            block.draggable = false;
-            block.onclick = (event) => { event.target.remove(); }; // Click to remove
-
-            // Simple placement logic: Append to the container
-            if (block.getAttribute('data-value') === 'if' || block.getAttribute('data-value') === 'else') {
-                 block.style.marginLeft = '0';
-            } else {
-                 block.style.marginLeft = '20px'; // Indent for code block
-            }
-            codeAssemblyIf.appendChild(block);
-        }
-
-        async function runGatekeeperChallenge() {
-            const blocks = Array.from(codeAssemblyIf.children).filter(b => b.hasAttribute('data-value'));
-            const codeSequence = blocks.map(b => b.getAttribute('data-value')).join(' ');
-            const age = parseInt(ageSlider.value);
-            let access = 'ERROR';
-            
-            // Expected sequence (simplified check):
-            // if age >= 18 : access = "Access Granted" else : access = "Denied"
-            const correctIf = 'if age >= 18 : access = "Access Granted"';
-            const correctElse = 'else : access = "Denied"';
-
-            if (!codeSequence.includes(correctIf) || !codeSequence.includes(correctElse)) {
-                 gateMessage.textContent = '❌ Fail! Incorrect code structure or missing parts. Ensure the full if/else structure is built.';
-                 gateViz.style.backgroundColor = '#ef4444'; // Red
-                 accessStatus.textContent = 'SYNTAX ERROR';
-                 return;
-            }
-
-            // Execution logic
-            if (age >= 18) {
-                access = "Granted";
-                gateMessage.textContent = `✅ Correctly Granted! Rule ${age} >= 18 is True.`;
-                gateViz.style.backgroundColor = '#10b981'; // Green
-                accessStatus.textContent = access;
-            } else {
-                access = "Denied";
-                gateMessage.textContent = `✅ Correctly Denied! Rule ${age} >= 18 is False.`;
-                gateViz.style.backgroundColor = '#ef4444'; // Red
-                accessStatus.textContent = access;
-            }
-            
-            // Gate animation
-            gateViz.textContent = access;
-            
-            const carToken = document.getElementById('token-car');
-            carToken.classList.remove('hidden');
-            carToken.style.left = '50%';
-            
-            await delay(100);
-            if (access === 'Granted') {
-                carToken.style.transition = 'transform 1.5s';
-                carToken.style.transform = 'translateX(100px)'; // Car drives forward
-            } else {
-                carToken.style.transition = 'transform 0.5s';
-                carToken.style.transform = 'translateX(-100px)'; // Car turns away
-            }
-            
-            await delay(1500);
-            carToken.classList.add('hidden');
-            carToken.style.transition = 'none';
-        }
-
 
         // --- 7. Section 3: Assignment Fix Logic ---
         const missingEqual = document.getElementById('missing-equal');
@@ -567,7 +668,6 @@
                 equalFixed = true;
             }
         });
-
 
         // --- 7. Section 4: Rule Designer Challenge Logic ---
         const opSelect = document.getElementById('operator-select');
@@ -615,18 +715,18 @@
             if (isCorrectRule && result === true) {
                 // Correct operator and result (Speed 55 <= 60 is True)
                 ruleTrafficLight.classList.add('light-green');
-                ruleCarMessage.textContent = `Rule ${speed} ${selectedOp} ${limit} is True! Car drives past.`;
+                ruleCarMessage.textContent = `Rule ${speed} ${selectedOp} ${limit} is **True!** Car drives past. (Correct Operator)`;
             } else if (isCorrectRule && result === false) {
                  // Correct operator, but speed is too high (Speed 65 <= 60 is False)
                 ruleTrafficLight.classList.add('light-red');
-                ruleCarMessage.textContent = `Rule ${speed} ${selectedOp} ${limit} is False! Car stops.`;
+                ruleCarMessage.textContent = `Rule ${speed} ${selectedOp} ${limit} is **False!** Car stops.`;
             } else if (!isCorrectRule && result === true) {
-                // Wrong operator, but result is True (e.g., Speed 55 > 60 is False, but Speed 65 > 60 is True - we want to fail the user on the operator selection)
+                // Wrong operator, but result is True (e.g., Speed 65 > 60 is True - we want to fail the user on the operator selection)
                 ruleTrafficLight.classList.add('light-red');
-                ruleCarMessage.textContent = `❌ Wrong Operator! You chose ${selectedOp}. The rule should use <=`;
+                ruleCarMessage.textContent = `❌ **Wrong Operator!** You chose ${selectedOp}. The rule should use **<=**`;
             } else {
                 ruleTrafficLight.classList.add('light-red');
-                ruleCarMessage.textContent = `❌ Wrong Operator or Result! The rule is "less than or equal to".`;
+                ruleCarMessage.textContent = `❌ **Wrong Operator** or Result! The rule is "less than or equal to".`;
             }
         }
     </script>
