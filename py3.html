@@ -1,0 +1,1167 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python 迴圈教學</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f5f0e8;
+            color: #333;
+            scroll-behavior: smooth;
+        }
+        
+        .card {
+            width: 80px;
+            height: 120px;
+            perspective: 1000px;
+            margin: 5px;
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .card-front {
+            background-color: #8b5a2b;
+            color: white;
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='120' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='80' height='120' fill='%238b5a2b'/%3E%3Cpath d='M10,10 L70,10 L70,110 L10,110 Z' stroke='%23d4af37' stroke-width='2' fill='none' stroke-dasharray='5,5'/%3E%3Ctext x='40' y='65' font-family='Arial' font-size='20' text-anchor='middle' fill='%23d4af37'%3E卡%3C/text%3E%3C/svg%3E");
+        }
+        
+        .card-back {
+            background-color: white;
+            color: #333;
+            transform: rotateY(180deg);
+        }
+        
+        .highlight {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .code-block {
+            font-family: monospace;
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .code-line {
+            display: block;
+            padding: 0.25rem 0;
+            white-space: pre;
+        }
+        
+        .keyword {
+            color: #ff79c6;
+        }
+        
+        .function {
+            color: #50fa7b;
+        }
+        
+        .string {
+            color: #f1fa8c;
+        }
+        
+        .number {
+            color: #bd93f9;
+        }
+        
+        .comment {
+            color: #6272a4;
+        }
+        
+        .active-line {
+            background-color: rgba(255,255,255,0.1);
+            border-left: 3px solid #ff79c6;
+            margin-left: -1rem;
+            padding-left: calc(1rem - 3px);
+        }
+        
+        .scroll-animation {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s, transform 0.8s;
+        }
+        
+        .scroll-animation.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .paper-bg {
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h100v100H0z' fill='%23f5f0e8'/%3E%3Cpath d='M0 25h100M0 50h100M0 75h100M25 0v100M50 0v100M75 0v100' stroke='%23d9d0c3' stroke-width='0.5' stroke-dasharray='2,4' fill='none'/%3E%3C/svg%3E");
+        }
+        
+        .brush-stroke {
+            position: relative;
+        }
+        
+        .brush-stroke::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background-image: url("data:image/svg+xml,%3Csvg width='200' height='10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,5 C50,0 150,10 200,5' stroke='%23c8553d' stroke-width='3' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+        }
+        
+        .ink-splash {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30,50 C30,20 70,20 70,50 C70,80 30,80 30,50 Z' fill='%23c8553d' transform='rotate(45 50 50)'/%3E%3C/svg%3E");
+            opacity: 0.1;
+            z-index: -1;
+        }
+        
+        .game-card {
+            width: 60px;
+            height: 90px;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            user-select: none;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 1s infinite;
+        }
+        
+        .explanation-box {
+            background-color: rgba(255, 248, 225, 0.95);
+            border-left: 4px solid #c8553d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .indented {
+            padding-left: 2rem;
+        }
+        
+        .arrow {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c8553d'%3E%3Cpath d='M7.41,15.41L12,10.83l4.59,4.58L18,14l-6-6l-6,6L7.41,15.41z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: contain;
+            transition: all 0.3s ease;
+        }
+        
+        .arrow.down {
+            transform: rotate(180deg);
+        }
+        
+        .code-explanation {
+            display: none;
+            padding: 0.5rem 0 0.5rem 1.5rem;
+            border-left: 2px dashed #6272a4;
+            margin-left: 1rem;
+            font-size: 0.9rem;
+            color: #f8f8f2;
+            opacity: 0.9;
+        }
+        
+        .code-explanation.show {
+            display: block;
+            animation: fadeIn 0.5s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <!-- 頂部導航 -->
+    <nav class="bg-amber-800 text-white p-4 sticky top-0 z-50 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Python 迴圈與陣列遍歷</h1>
+            <div class="space-x-4">
+                <a href="#while-loop" class="hover:text-amber-200 transition">While 迴圈</a>
+                <a href="#for-loop" class="hover:text-amber-200 transition">For 迴圈</a>
+                <a href="#in-keyword" class="hover:text-amber-200 transition">in 關鍵字</a>
+                <a href="#comparison" class="hover:text-amber-200 transition">比較</a>
+                <a href="#game" class="hover:text-amber-200 transition">互動遊戲</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容 -->
+    <div class="container mx-auto p-6 relative">
+        <!-- 墨水裝飾 -->
+        <div class="ink-splash" style="top: 120px; right: 50px;"></div>
+        <div class="ink-splash" style="top: 400px; left: 80px;"></div>
+        <div class="ink-splash" style="bottom: 200px; right: 150px;"></div>
+        
+        <!-- 介紹 -->
+        <section class="mb-16 bg-white bg-opacity-80 p-8 rounded-lg shadow-lg relative">
+            <h2 class="text-3xl font-bold mb-6 inline-block brush-stroke">迴圈與陣列遍歷</h2>
+            <p class="text-lg mb-4">在 Python 程式設計中，迴圈是一種重要的控制結構，用於重複執行一段程式碼。當我們需要處理陣列（列表）中的元素時，迴圈就顯得尤為重要。</p>
+            <p class="text-lg mb-4">本教學將介紹兩種主要的迴圈類型：<span class="font-bold text-amber-800">while 迴圈</span>和<span class="font-bold text-amber-800">for 迴圈</span>，並說明如何使用它們來遍歷陣列，查找或修改其中的值。</p>
+            
+            <div class="mt-8 flex justify-center">
+                <div class="card-container flex">
+                    <div class="card">
+                        <div class="card-inner">
+                            <div class="card-front"></div>
+                            <div class="card-back">1</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-inner">
+                            <div class="card-front"></div>
+                            <div class="card-back">2</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-inner">
+                            <div class="card-front"></div>
+                            <div class="card-back">3</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-inner">
+                            <div class="card-front"></div>
+                            <div class="card-back">4</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-inner">
+                            <div class="card-front"></div>
+                            <div class="card-back">5</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="text-center mt-4 text-gray-600">點擊卡片來翻轉它們！</p>
+        </section>
+
+        <!-- While 迴圈 -->
+        <section id="while-loop" class="mb-16 scroll-animation">
+            <div class="bg-white bg-opacity-80 p-8 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-bold mb-6 inline-block brush-stroke">While 迴圈</h2>
+                <p class="text-lg mb-4"><span class="font-bold text-amber-800">While 迴圈</span>會在條件為真時重複執行程式碼區塊。它適合用於不確定需要重複多少次的情況。</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">基本語法</h3>
+                        <div class="code-block">
+                            <span class="code-line"><span class="keyword">while</span> 條件:</span>
+                            <span class="code-line">    <span class="comment"># 當條件為真時執行的程式碼</span></span>
+                            <span class="code-line">    程式碼區塊</span>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold mt-6 mb-4">使用 while 迴圈遍歷陣列</h3>
+                        <div class="code-block">
+                            <span class="code-line">numbers = [1, 2, 3, 4, 5]</span>
+                            <span class="code-line">i = 0</span>
+                            <span class="code-line"><span class="keyword">while</span> i < <span class="function">len</span>(numbers):</span>
+                            <span class="code-line">    <span class="function">print</span>(numbers[i])</span>
+                            <span class="code-line">    i += 1</span>
+                            <div class="code-explanation" id="while-indent-explanation">
+                                注意：Python 使用縮排（通常是 4 個空格）來表示程式碼區塊。
+                                在 while 迴圈中，所有縮排的程式碼都會在條件為真時重複執行。
+                            </div>
+                        </div>
+                        <button id="toggle-while-indent" class="mt-2 text-amber-700 hover:text-amber-900 text-sm flex items-center">
+                            <span>查看縮排說明</span>
+                            <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="while-loop-demo">
+                        <h3 class="text-xl font-bold mb-4">視覺化演示</h3>
+                        <div class="bg-amber-50 p-4 rounded-lg shadow-inner">
+                            <div class="flex justify-center mb-4">
+                                <div id="while-cards" class="flex"></div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="code-block" id="while-code-block">
+                                    <span class="code-line">numbers = [1, 2, 3, 4, 5]</span>
+                                    <span class="code-line">i = 0</span>
+                                    <span class="code-line"><span class="keyword">while</span> i < <span class="function">len</span>(numbers):</span>
+                                    <span class="code-line">    <span class="function">print</span>(numbers[i])</span>
+                                    <span class="code-line">    i += 1</span>
+                                </div>
+                            </div>
+                            <div id="while-explanation" class="explanation-box mt-4 hidden">
+                                <p id="while-explanation-text"></p>
+                            </div>
+                            <div class="mt-4 flex justify-center">
+                                <button id="while-step" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded">
+                                    執行下一步
+                                </button>
+                                <button id="while-reset" class="ml-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                                    重置
+                                </button>
+                            </div>
+                            <div class="mt-4">
+                                <p class="font-mono" id="while-output"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 scroll-animation">
+                    <h3 class="text-xl font-bold mb-4">While 迴圈的特點</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li>適合用於不確定迭代次數的情況</li>
+                        <li>必須手動更新計數器或條件，否則可能導致無限迴圈</li>
+                        <li>可以使用 <code class="bg-gray-200 px-1 rounded">break</code> 提前退出迴圈</li>
+                        <li>可以使用 <code class="bg-gray-200 px-1 rounded">continue</code> 跳過當前迭代</li>
+                    </ul>
+                </div>
+                
+                <div class="mt-8 scroll-animation">
+                    <h3 class="text-xl font-bold mb-4">實際應用：在陣列中查找特定值</h3>
+                    <div class="code-block">
+                        <span class="code-line">numbers = [12, 45, 7, 23, 56]</span>
+                        <span class="code-line">target = 23</span>
+                        <span class="code-line">i = 0</span>
+                        <span class="code-line">found = <span class="keyword">False</span></span>
+                        <span class="code-line"></span>
+                        <span class="code-line"><span class="keyword">while</span> i < <span class="function">len</span>(numbers):</span>
+                        <span class="code-line">    <span class="keyword">if</span> numbers[i] == target:</span>
+                        <span class="code-line">        <span class="function">print</span>(<span class="string">f"找到目標值 {target} 在索引 {i}"</span>)</span>
+                        <span class="code-line">        found = <span class="keyword">True</span></span>
+                        <span class="code-line">        <span class="keyword">break</span></span>
+                        <span class="code-line">    i += 1</span>
+                        <span class="code-line"></span>
+                        <span class="code-line"><span class="keyword">if not</span> found:</span>
+                        <span class="code-line">    <span class="function">print</span>(<span class="string">f"未找到目標值 {target}"</span>)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- For 迴圈 -->
+        <section id="for-loop" class="mb-16 scroll-animation">
+            <div class="bg-white bg-opacity-80 p-8 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-bold mb-6 inline-block brush-stroke">For 迴圈</h2>
+                <p class="text-lg mb-4"><span class="font-bold text-amber-800">For 迴圈</span>用於遍歷可迭代對象（如列表、元組、字典等）中的每個元素。它是遍歷陣列最常用的方式。</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">基本語法</h3>
+                        <div class="code-block">
+                            <span class="code-line"><span class="keyword">for</span> 變數 <span class="keyword">in</span> 可迭代對象:</span>
+                            <span class="code-line">    <span class="comment"># 對每個元素執行的程式碼</span></span>
+                            <span class="code-line">    程式碼區塊</span>
+                            <div class="code-explanation" id="for-indent-explanation">
+                                注意：Python 使用縮排（通常是 4 個空格）來表示程式碼區塊。
+                                在 for 迴圈中，所有縮排的程式碼都會對每個元素執行一次。
+                            </div>
+                        </div>
+                        <button id="toggle-for-indent" class="mt-2 text-amber-700 hover:text-amber-900 text-sm flex items-center">
+                            <span>查看縮排說明</span>
+                            <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        
+                        <h3 class="text-xl font-bold mt-6 mb-4">使用 for 迴圈遍歷陣列</h3>
+                        <div class="code-block">
+                            <span class="code-line">numbers = [1, 2, 3, 4, 5]</span>
+                            <span class="code-line"><span class="keyword">for</span> num <span class="keyword">in</span> numbers:</span>
+                            <span class="code-line">    <span class="function">print</span>(num)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="for-loop-demo">
+                        <h3 class="text-xl font-bold mb-4">視覺化演示</h3>
+                        <div class="bg-amber-50 p-4 rounded-lg shadow-inner">
+                            <div class="flex justify-center mb-4">
+                                <div id="for-cards" class="flex"></div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="code-block" id="for-code-block">
+                                    <span class="code-line">numbers = [1, 2, 3, 4, 5]</span>
+                                    <span class="code-line"><span class="keyword">for</span> num <span class="keyword">in</span> numbers:</span>
+                                    <span class="code-line">    <span class="function">print</span>(num)</span>
+                                </div>
+                            </div>
+                            <div id="for-explanation" class="explanation-box mt-4 hidden">
+                                <p id="for-explanation-text"></p>
+                            </div>
+                            <div class="mt-4 flex justify-center">
+                                <button id="for-step" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded">
+                                    執行下一步
+                                </button>
+                                <button id="for-reset" class="ml-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                                    重置
+                                </button>
+                            </div>
+                            <div class="mt-4">
+                                <p class="font-mono" id="for-output"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 scroll-animation">
+                    <h3 class="text-xl font-bold mb-4">For 迴圈的特點</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li>簡潔易讀，特別適合遍歷已知序列</li>
+                        <li>自動處理迭代，不需要手動更新計數器</li>
+                        <li>可以使用 <code class="bg-gray-200 px-1 rounded">range()</code> 函數生成數字序列</li>
+                        <li>同樣支持 <code class="bg-gray-200 px-1 rounded">break</code> 和 <code class="bg-gray-200 px-1 rounded">continue</code> 語句</li>
+                    </ul>
+                </div>
+                
+                <div class="mt-8 scroll-animation">
+                    <h3 class="text-xl font-bold mb-4">使用 for 迴圈和 enumerate() 獲取索引</h3>
+                    <div class="code-block">
+                        <span class="code-line">fruits = ['蘋果', '香蕉', '橘子', '葡萄', '芒果']</span>
+                        <span class="code-line"><span class="keyword">for</span> index, fruit <span class="keyword">in</span> <span class="function">enumerate</span>(fruits):</span>
+                        <span class="code-line">    <span class="function">print</span>(<span class="string">f"索引 {index}: {fruit}"</span>)</span>
+                    </div>
+                </div>
+                
+                <div class="mt-8 scroll-animation">
+                    <h3 class="text-xl font-bold mb-4">實際應用：修改陣列中的值</h3>
+                    <div class="code-block">
+                        <span class="code-line">numbers = [1, 2, 3, 4, 5]</span>
+                        <span class="code-line"><span class="comment"># 將每個元素乘以 2</span></span>
+                        <span class="code-line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="function">range</span>(<span class="function">len</span>(numbers)):</span>
+                        <span class="code-line">    numbers[i] = numbers[i] * 2</span>
+                        <span class="code-line"></span>
+                        <span class="code-line"><span class="function">print</span>(numbers)  <span class="comment"># 輸出: [2, 4, 6, 8, 10]</span></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- in 關鍵字 -->
+        <section id="in-keyword" class="mb-16 scroll-animation">
+            <div class="bg-white bg-opacity-80 p-8 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-bold mb-6 inline-block brush-stroke">in 關鍵字</h2>
+                <p class="text-lg mb-4"><span class="font-bold text-amber-800">in</span> 是 Python 中一個非常重要的關鍵字，它在迴圈和條件判斷中都有重要作用。</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">在 for 迴圈中的 in</h3>
+                        <p class="mb-4">在 for 迴圈中，<code class="bg-gray-200 px-1 rounded">in</code> 用於指定要遍歷的序列：</p>
+                        <div class="code-block">
+                            <span class="code-line"><span class="keyword">for</span> 元素 <span class="keyword">in</span> 序列:</span>
+                            <span class="code-line">    <span class="comment"># 對每個元素執行的操作</span></span>
+                        </div>
+                        
+                        <p class="mt-4 mb-2">例如：</p>
+                        <div class="code-block">
+                            <span class="code-line">fruits = ['蘋果', '香蕉', '橘子']</span>
+                            <span class="code-line"><span class="keyword">for</span> fruit <span class="keyword">in</span> fruits:</span>
+                            <span class="code-line">    <span class="function">print</span>(fruit)</span>
+                        </div>
+                        
+                        <p class="mt-4">這段程式碼會依次輸出 "蘋果"、"香蕉" 和 "橘子"。</p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">在條件判斷中的 in</h3>
+                        <p class="mb-4"><code class="bg-gray-200 px-1 rounded">in</code> 也可以用於檢查一個元素是否存在於序列中：</p>
+                        <div class="code-block">
+                            <span class="code-line"><span class="keyword">if</span> 元素 <span class="keyword">in</span> 序列:</span>
+                            <span class="code-line">    <span class="comment"># 如果元素在序列中，執行這裡的程式碼</span></span>
+                        </div>
+                        
+                        <p class="mt-4 mb-2">例如：</p>
+                        <div class="code-block">
+                            <span class="code-line">fruits = ['蘋果', '香蕉', '橘子']</span>
+                            <span class="code-line"><span class="keyword">if</span> '香蕉' <span class="keyword">in</span> fruits:</span>
+                            <span class="code-line">    <span class="function">print</span>('香蕉在水果列表中！')</span>
+                        </div>
+                        
+                        <p class="mt-4">這段程式碼會輸出 "香蕉在水果列表中！"，因為 '香蕉' 確實存在於 fruits 列表中。</p>
+                    </div>
+                </div>
+                
+                <div class="mt-8 scroll-animation">
+                    <h3 class="text-xl font-bold mb-4">in 關鍵字的其他用途</h3>
+                    
+                    <h4 class="text-lg font-semibold mt-4 mb-2">1. 遍歷字典</h4>
+                    <div class="code-block">
+                        <span class="code-line">person = {'name': '張三', 'age': 30, 'city': '台北'}</span>
+                        <span class="code-line"></span>
+                        <span class="code-line"><span class="comment"># 遍歷字典的鍵</span></span>
+                        <span class="code-line"><span class="keyword">for</span> key <span class="keyword">in</span> person:</span>
+                        <span class="code-line">    <span class="function">print</span>(key)</span>
+                        <span class="code-line"></span>
+                        <span class="code-line"><span class="comment"># 遍歷字典的值</span></span>
+                        <span class="code-line"><span class="keyword">for</span> value <span class="keyword">in</span> person.values():</span>
+                        <span class="code-line">    <span class="function">print</span>(value)</span>
+                        <span class="code-line"></span>
+                        <span class="code-line"><span class="comment"># 遍歷字典的鍵值對</span></span>
+                        <span class="code-line"><span class="keyword">for</span> key, value <span class="keyword">in</span> person.items():</span>
+                        <span class="code-line">    <span class="function">print</span>(f"{key}: {value}")</span>
+                    </div>
+                    
+                    <h4 class="text-lg font-semibold mt-4 mb-2">2. 遍歷字符串</h4>
+                    <div class="code-block">
+                        <span class="code-line">message = "Python"</span>
+                        <span class="code-line"><span class="keyword">for</span> char <span class="keyword">in</span> message:</span>
+                        <span class="code-line">    <span class="function">print</span>(char)</span>
+                    </div>
+                    
+                    <h4 class="text-lg font-semibold mt-4 mb-2">3. 與 range() 函數結合</h4>
+                    <div class="code-block">
+                        <span class="code-line"><span class="comment"># 產生 0 到 4 的數字序列</span></span>
+                        <span class="code-line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="function">range</span>(5):</span>
+                        <span class="code-line">    <span class="function">print</span>(i)  <span class="comment"># 輸出: 0, 1, 2, 3, 4</span></span>
+                        <span class="code-line"></span>
+                        <span class="code-line"><span class="comment"># 產生 1 到 10 的數字序列</span></span>
+                        <span class="code-line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="function">range</span>(1, 11):</span>
+                        <span class="code-line">    <span class="function">print</span>(i)  <span class="comment"># 輸出: 1, 2, 3, ..., 10</span></span>
+                        <span class="code-line"></span>
+                        <span class="code-line"><span class="comment"># 產生 0 到 10 的偶數序列</span></span>
+                        <span class="code-line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="function">range</span>(0, 11, 2):</span>
+                        <span class="code-line">    <span class="function">print</span>(i)  <span class="comment"># 輸出: 0, 2, 4, 6, 8, 10</span></span>
+                    </div>
+                </div>
+                
+                <div class="mt-8 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                    <h3 class="text-xl font-bold mb-2">小結</h3>
+                    <p><code class="bg-gray-200 px-1 rounded">in</code> 關鍵字是 Python 中非常靈活的工具，它可以：</p>
+                    <ul class="list-disc pl-6 mt-2 space-y-1">
+                        <li>在 for 迴圈中用於遍歷序列中的每個元素</li>
+                        <li>在條件判斷中用於檢查元素是否存在於序列中</li>
+                        <li>適用於多種數據類型，包括列表、元組、字典、字符串等</li>
+                        <li>與 range() 函數結合使用，產生數字序列進行迭代</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 比較 -->
+        <section id="comparison" class="mb-16 scroll-animation">
+            <div class="bg-white bg-opacity-80 p-8 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-bold mb-6 inline-block brush-stroke">While 與 For 迴圈比較</h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-amber-100">
+                                <th class="border border-amber-300 p-3 text-left">特點</th>
+                                <th class="border border-amber-300 p-3 text-left">While 迴圈</th>
+                                <th class="border border-amber-300 p-3 text-left">For 迴圈</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-amber-300 p-3 font-medium">基本用途</td>
+                                <td class="border border-amber-300 p-3">當不確定迭代次數時使用</td>
+                                <td class="border border-amber-300 p-3">遍歷已知序列或集合</td>
+                            </tr>
+                            <tr class="bg-amber-50">
+                                <td class="border border-amber-300 p-3 font-medium">控制方式</td>
+                                <td class="border border-amber-300 p-3">需要手動更新條件</td>
+                                <td class="border border-amber-300 p-3">自動迭代</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-amber-300 p-3 font-medium">適用場景</td>
+                                <td class="border border-amber-300 p-3">基於條件的迭代</td>
+                                <td class="border border-amber-300 p-3">遍歷集合中的所有元素</td>
+                            </tr>
+                            <tr class="bg-amber-50">
+                                <td class="border border-amber-300 p-3 font-medium">風險</td>
+                                <td class="border border-amber-300 p-3">可能導致無限迴圈</td>
+                                <td class="border border-amber-300 p-3">通常不會有無限迴圈問題</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-amber-300 p-3 font-medium">代碼簡潔性</td>
+                                <td class="border border-amber-300 p-3">相對較長</td>
+                                <td class="border border-amber-300 p-3">通常更簡潔</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-8 scroll-animation">
+                    <h3 class="text-xl font-bold mb-4">何時使用 While 迴圈？</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li>當你不知道需要迭代多少次時</li>
+                        <li>當迭代需要基於某個條件而不是集合大小時</li>
+                        <li>需要在未知條件滿足前持續執行某個操作</li>
+                        <li>例如：等待用戶輸入特定值、直到找到特定元素為止</li>
+                    </ul>
+                </div>
+                
+                <div class="mt-8 scroll-animation">
+                    <h3 class="text-xl font-bold mb-4">何時使用 For 迴圈？</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li>當你需要遍歷一個已知序列中的所有元素</li>
+                        <li>當你需要執行固定次數的操作</li>
+                        <li>當你需要同時獲取元素及其索引</li>
+                        <li>例如：處理列表中的每個元素、遍歷字典的鍵值對</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 互動遊戲 -->
+        <section id="game" class="mb-16 scroll-animation">
+            <div class="bg-white bg-opacity-80 p-8 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-bold mb-6 inline-block brush-stroke">互動遊戲：尋寶遊戲</h2>
+                <p class="text-lg mb-4">在這個遊戲中，你將使用迴圈概念來尋找隱藏的寶藏。你可以選擇使用 while 迴圈或 for 迴圈來搜索。</p>
+                
+                <div class="mt-8">
+                    <div class="bg-amber-50 p-6 rounded-lg shadow-inner">
+                        <h3 class="text-xl font-bold mb-4 text-center">尋寶遊戲</h3>
+                        
+                        <div class="mb-6">
+                            <p class="mb-2">選擇搜索方式：</p>
+                            <div class="flex space-x-4">
+                                <button id="use-while" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded">
+                                    使用 While 迴圈
+                                </button>
+                                <button id="use-for" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded">
+                                    使用 For 迴圈
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div id="game-code-display" class="code-block mb-4">
+                                <span class="code-line"><span class="comment"># 選擇一種迴圈方式開始遊戲</span></span>
+                            </div>
+                        </div>
+                        
+                        <div id="game-explanation" class="explanation-box mb-6 hidden">
+                            <p id="game-explanation-text"></p>
+                        </div>
+                        
+                        <div class="flex justify-center mb-6">
+                            <div id="treasure-map" class="grid grid-cols-5 gap-2"></div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <p id="game-message" class="text-center font-bold"></p>
+                            <p id="game-stats" class="text-center mt-2"></p>
+                        </div>
+                        
+                        <div class="mt-6 flex justify-center">
+                            <button id="reset-game" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                                重置遊戲
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 scroll-animation">
+                    <h3 class="text-xl font-bold mb-4">遊戲說明</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li>地圖上隱藏了一個寶藏</li>
+                        <li>選擇使用 while 迴圈或 for 迴圈來搜索</li>
+                        <li>點擊卡片來翻開它們</li>
+                        <li>找到寶藏即獲勝</li>
+                        <li>觀察不同迴圈方式的搜索過程</li>
+                        <li>每次翻開卡片後，會顯示相應的程式碼執行說明</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 頁腳 -->
+    <footer class="bg-amber-800 text-white p-6">
+        <div class="container mx-auto text-center">
+            <p>© 2023 Python 迴圈教學</p>
+            <p class="mt-2">使用迴圈遍歷陣列，探索程式的奧秘</p>
+        </div>
+    </footer>
+
+    <script>
+        // 卡片翻轉功能
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', () => {
+                card.classList.toggle('flipped');
+            });
+        });
+        
+        // 滾動動畫
+        function checkScroll() {
+            const elements = document.querySelectorAll('.scroll-animation');
+            elements.forEach(element => {
+                const position = element.getBoundingClientRect();
+                // 當元素進入視窗時
+                if(position.top < window.innerHeight - 100) {
+                    element.classList.add('visible');
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', checkScroll);
+        window.addEventListener('load', checkScroll);
+        
+        // 縮排說明切換
+        document.getElementById('toggle-while-indent').addEventListener('click', function() {
+            const explanation = document.getElementById('while-indent-explanation');
+            const isShowing = explanation.classList.contains('show');
+            explanation.classList.toggle('show');
+            this.querySelector('svg').style.transform = isShowing ? '' : 'rotate(180deg)';
+            this.querySelector('span').textContent = isShowing ? '查看縮排說明' : '隱藏縮排說明';
+        });
+        
+        document.getElementById('toggle-for-indent').addEventListener('click', function() {
+            const explanation = document.getElementById('for-indent-explanation');
+            const isShowing = explanation.classList.contains('show');
+            explanation.classList.toggle('show');
+            this.querySelector('svg').style.transform = isShowing ? '' : 'rotate(180deg)';
+            this.querySelector('span').textContent = isShowing ? '查看縮排說明' : '隱藏縮排說明';
+        });
+        
+        // While 迴圈演示
+        const whileCards = document.getElementById('while-cards');
+        const whileCodeBlock = document.getElementById('while-code-block');
+        const whileStepBtn = document.getElementById('while-step');
+        const whileResetBtn = document.getElementById('while-reset');
+        const whileOutput = document.getElementById('while-output');
+        const whileExplanation = document.getElementById('while-explanation');
+        const whileExplanationText = document.getElementById('while-explanation-text');
+        
+        let whileNumbers = [1, 2, 3, 4, 5];
+        let whileIndex = 0;
+        let whileState = 'init'; // 'init', 'condition', 'body', 'increment'
+        
+        function setupWhileDemo() {
+            whileCards.innerHTML = '';
+            whileNumbers.forEach(num => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front"></div>
+                        <div class="card-back">${num}</div>
+                    </div>
+                `;
+                whileCards.appendChild(card);
+            });
+            
+            whileIndex = 0;
+            whileState = 'init';
+            whileOutput.textContent = '';
+            whileExplanation.classList.add('hidden');
+            updateWhileCodeHighlight();
+        }
+        
+        function updateWhileCodeHighlight() {
+            const lines = whileCodeBlock.querySelectorAll('.code-line');
+            lines.forEach(line => line.classList.remove('active-line'));
+            
+            switch(whileState) {
+                case 'init':
+                    lines[0].classList.add('active-line');
+                    lines[1].classList.add('active-line');
+                    whileExplanationText.textContent = '初始化：創建一個包含數字 1 到 5 的列表，並將索引 i 設為 0。';
+                    break;
+                case 'condition':
+                    lines[2].classList.add('active-line');
+                    whileExplanationText.textContent = `檢查條件：i (${whileIndex}) < len(numbers) (${whileNumbers.length})？${whileIndex < whileNumbers.length ? '是，繼續執行迴圈' : '否，迴圈結束'}`;
+                    break;
+                case 'body':
+                    lines[3].classList.add('active-line');
+                    whileExplanationText.textContent = `執行迴圈體：打印 numbers[${whileIndex}] 的值，即 ${whileNumbers[whileIndex]}`;
+                    break;
+                case 'increment':
+                    lines[4].classList.add('active-line');
+                    whileExplanationText.textContent = `更新索引：i = ${whileIndex} + 1 = ${whileIndex + 1}`;
+                    break;
+            }
+            
+            whileExplanation.classList.remove('hidden');
+        }
+        
+        function whileStep() {
+            const cards = whileCards.querySelectorAll('.card');
+            
+            switch(whileState) {
+                case 'init':
+                    whileState = 'condition';
+                    break;
+                case 'condition':
+                    if (whileIndex < whileNumbers.length) {
+                        whileState = 'body';
+                    } else {
+                        whileOutput.textContent += '\n迴圈結束';
+                        whileExplanationText.textContent = '迴圈結束：i 不再小於 numbers 的長度，所以迴圈終止。';
+                        return;
+                    }
+                    break;
+                case 'body':
+                    cards.forEach(card => card.classList.remove('highlight'));
+                    cards[whileIndex].classList.add('highlight');
+                    cards[whileIndex].classList.add('flipped');
+                    whileOutput.textContent += `${whileNumbers[whileIndex]}\n`;
+                    whileState = 'increment';
+                    break;
+                case 'increment':
+                    whileIndex++;
+                    whileState = 'condition';
+                    break;
+            }
+            
+            updateWhileCodeHighlight();
+        }
+        
+        whileStepBtn.addEventListener('click', whileStep);
+        whileResetBtn.addEventListener('click', setupWhileDemo);
+        
+        // For 迴圈演示
+        const forCards = document.getElementById('for-cards');
+        const forCodeBlock = document.getElementById('for-code-block');
+        const forStepBtn = document.getElementById('for-step');
+        const forResetBtn = document.getElementById('for-reset');
+        const forOutput = document.getElementById('for-output');
+        const forExplanation = document.getElementById('for-explanation');
+        const forExplanationText = document.getElementById('for-explanation-text');
+        
+        let forNumbers = [1, 2, 3, 4, 5];
+        let forIndex = 0;
+        let forState = 'init'; // 'init', 'iteration', 'body'
+        
+        function setupForDemo() {
+            forCards.innerHTML = '';
+            forNumbers.forEach(num => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front"></div>
+                        <div class="card-back">${num}</div>
+                    </div>
+                `;
+                forCards.appendChild(card);
+            });
+            
+            forIndex = 0;
+            forState = 'init';
+            forOutput.textContent = '';
+            forExplanation.classList.add('hidden');
+            updateForCodeHighlight();
+        }
+        
+        function updateForCodeHighlight() {
+            const lines = forCodeBlock.querySelectorAll('.code-line');
+            lines.forEach(line => line.classList.remove('active-line'));
+            
+            switch(forState) {
+                case 'init':
+                    lines[0].classList.add('active-line');
+                    forExplanationText.textContent = '初始化：創建一個包含數字 1 到 5 的列表。';
+                    break;
+                case 'iteration':
+                    lines[1].classList.add('active-line');
+                    if (forIndex < forNumbers.length) {
+                        forExplanationText.textContent = `迭代：從列表中取出下一個元素 ${forNumbers[forIndex]}，並將其賦值給變數 num。`;
+                    } else {
+                        forExplanationText.textContent = '迭代結束：已經遍歷完所有元素，迴圈終止。';
+                    }
+                    break;
+                case 'body':
+                    lines[2].classList.add('active-line');
+                    forExplanationText.textContent = `執行迴圈體：打印當前元素 num 的值，即 ${forNumbers[forIndex]}`;
+                    break;
+            }
+            
+            forExplanation.classList.remove('hidden');
+        }
+        
+        function forStep() {
+            const cards = forCards.querySelectorAll('.card');
+            
+            switch(forState) {
+                case 'init':
+                    forState = 'iteration';
+                    break;
+                case 'iteration':
+                    if (forIndex < forNumbers.length) {
+                        forState = 'body';
+                    } else {
+                        forOutput.textContent += '\n迴圈結束';
+                        forExplanationText.textContent = '迴圈結束：已經遍歷完所有元素，迴圈終止。';
+                        return;
+                    }
+                    break;
+                case 'body':
+                    cards.forEach(card => card.classList.remove('highlight'));
+                    cards[forIndex].classList.add('highlight');
+                    cards[forIndex].classList.add('flipped');
+                    forOutput.textContent += `${forNumbers[forIndex]}\n`;
+                    forIndex++;
+                    forState = 'iteration';
+                    break;
+            }
+            
+            updateForCodeHighlight();
+        }
+        
+        forStepBtn.addEventListener('click', forStep);
+        forResetBtn.addEventListener('click', setupForDemo);
+        
+        // 尋寶遊戲
+        const treasureMap = document.getElementById('treasure-map');
+        const gameCodeDisplay = document.getElementById('game-code-display');
+        const gameMessage = document.getElementById('game-message');
+        const gameStats = document.getElementById('game-stats');
+        const useWhileBtn = document.getElementById('use-while');
+        const useForBtn = document.getElementById('use-for');
+        const resetGameBtn = document.getElementById('reset-game');
+        const gameExplanation = document.getElementById('game-explanation');
+        const gameExplanationText = document.getElementById('game-explanation-text');
+        
+        let gameMode = null; // 'while' or 'for'
+        let treasurePosition = null;
+        let searchedPositions = [];
+        let gameStarted = false;
+        let steps = 0;
+        let currentPosition = 0;
+        
+        function setupGame() {
+            treasureMap.innerHTML = '';
+            gameMessage.textContent = '';
+            gameStats.textContent = '';
+            searchedPositions = [];
+            steps = 0;
+            gameStarted = false;
+            currentPosition = 0;
+            gameExplanation.classList.add('hidden');
+            
+            // 創建 5x5 的地圖
+            for (let i = 0; i < 25; i++) {
+                const card = document.createElement('div');
+                card.className = 'game-card bg-amber-700 text-white';
+                card.dataset.position = i;
+                card.textContent = '?';
+                card.addEventListener('click', () => searchPosition(i));
+                treasureMap.appendChild(card);
+            }
+            
+            // 隨機放置寶藏
+            treasurePosition = Math.floor(Math.random() * 25);
+            
+            updateGameCode();
+        }
+        
+        function updateGameCode() {
+            if (gameMode === 'while') {
+                gameCodeDisplay.innerHTML = `
+                    <span class="code-line">positions = list(range(25))</span>
+                    <span class="code-line">i = 0</span>
+                    <span class="code-line">found = <span class="keyword">False</span></span>
+                    <span class="code-line"></span>
+                    <span class="code-line"><span class="keyword">while</span> i < <span class="function">len</span>(positions) <span class="keyword">and not</span> found:</span>
+                    <span class="code-line">    position = positions[i]</span>
+                    <span class="code-line">    <span class="function">print</span>(<span class="string">f"檢查位置 {position}"</span>)</span>
+                    <span class="code-line">    <span class="keyword">if</span> is_treasure(position):</span>
+                    <span class="code-line">        <span class="function">print</span>(<span class="string">"找到寶藏了！"</span>)</span>
+                    <span class="code-line">        found = <span class="keyword">True</span></span>
+                    <span class="code-line">    i += 1</span>
+                `;
+            } else if (gameMode === 'for') {
+                gameCodeDisplay.innerHTML = `
+                    <span class="code-line">positions = list(range(25))</span>
+                    <span class="code-line">found = <span class="keyword">False</span></span>
+                    <span class="code-line"></span>
+                    <span class="code-line"><span class="keyword">for</span> position <span class="keyword">in</span> positions:</span>
+                    <span class="code-line">    <span class="function">print</span>(<span class="string">f"檢查位置 {position}"</span>)</span>
+                    <span class="code-line">    <span class="keyword">if</span> is_treasure(position):</span>
+                    <span class="code-line">        <span class="function">print</span>(<span class="string">"找到寶藏了！"</span>)</span>
+                    <span class="code-line">        found = <span class="keyword">True</span></span>
+                    <span class="code-line">        <span class="keyword">break</span></span>
+                `;
+            } else {
+                gameCodeDisplay.innerHTML = `
+                    <span class="code-line"><span class="comment"># 選擇一種迴圈方式開始遊戲</span></span>
+                `;
+            }
+        }
+        
+        function highlightGameCode(position) {
+            const lines = gameCodeDisplay.querySelectorAll('.code-line');
+            lines.forEach(line => line.classList.remove('active-line'));
+            
+            if (gameMode === 'while') {
+                if (position === treasurePosition) {
+                    // 找到寶藏
+                    lines[7].classList.add('active-line');
+                    lines[8].classList.add('active-line');
+                    lines[9].classList.add('active-line');
+                    gameExplanationText.innerHTML = `
+                        <p><strong>找到寶藏！</strong></p>
+                        <p>1. 檢查位置 ${position} 是否有寶藏</p>
+                        <p>2. 發現寶藏！</p>
+                        <p>3. 將 found 設為 True</p>
+                        <p>4. 迴圈結束</p>
+                    `;
+                } else {
+                    // 未找到寶藏
+                    lines[5].classList.add('active-line');
+                    lines[6].classList.add('active-line');
+                    lines[7].classList.add('active-line');
+                    lines[10].classList.add('active-line');
+                    gameExplanationText.innerHTML = `
+                        <p><strong>繼續搜索...</strong></p>
+                        <p>1. 獲取位置 ${position}</p>
+                        <p>2. 檢查該位置</p>
+                        <p>3. 該位置沒有寶藏</p>
+                        <p>4. 索引 i 增加 1，繼續下一次迭代</p>
+                    `;
+                }
+            } else if (gameMode === 'for') {
+                if (position === treasurePosition) {
+                    // 找到寶藏
+                    lines[5].classList.add('active-line');
+                    lines[6].classList.add('active-line');
+                    lines[7].classList.add('active-line');
+                    lines[8].classList.add('active-line');
+                    gameExplanationText.innerHTML = `
+                        <p><strong>找到寶藏！</strong></p>
+                        <p>1. 檢查位置 ${position} 是否有寶藏</p>
+                        <p>2. 發現寶藏！</p>
+                        <p>3. 將 found 設為 True</p>
+                        <p>4. 使用 break 跳出迴圈</p>
+                    `;
+                } else {
+                    // 未找到寶藏
+                    lines[4].classList.add('active-line');
+                    lines[5].classList.add('active-line');
+                    gameExplanationText.innerHTML = `
+                        <p><strong>繼續搜索...</strong></p>
+                        <p>1. 檢查位置 ${position}</p>
+                        <p>2. 該位置沒有寶藏</p>
+                        <p>3. 繼續下一次迭代</p>
+                    `;
+                }
+            }
+            
+            gameExplanation.classList.remove('hidden');
+        }
+        
+        function searchPosition(position) {
+            if (!gameStarted) {
+                gameMessage.textContent = '請先選擇搜索方式！';
+                return;
+            }
+            
+            if (searchedPositions.includes(position)) {
+                return; // 已經搜索過的位置
+            }
+            
+            steps++;
+            searchedPositions.push(position);
+            
+            const cards = treasureMap.querySelectorAll('.game-card');
+            
+            // 高亮顯示代碼
+            highlightGameCode(position);
+            
+            if (position === treasurePosition) {
+                cards[position].textContent = '💎';
+                cards[position].classList.remove('bg-amber-700');
+                cards[position].classList.add('bg-green-500');
+                cards[position].classList.add('pulse');
+                gameMessage.textContent = '恭喜！你找到寶藏了！';
+                gameStats.textContent = `總共搜索了 ${steps} 次`;
+                gameStarted = false;
+            } else {
+                cards[position].textContent = '❌';
+                cards[position].classList.remove('bg-amber-700');
+                cards[position].classList.add('bg-gray-400');
+            }
+        }
+        
+        useWhileBtn.addEventListener('click', () => {
+            gameMode = 'while';
+            gameStarted = true;
+            updateGameCode();
+            gameMessage.textContent = '使用 While 迴圈搜索。點擊卡片開始尋寶！';
+            gameExplanation.classList.add('hidden');
+        });
+        
+        useForBtn.addEventListener('click', () => {
+            gameMode = 'for';
+            gameStarted = true;
+            updateGameCode();
+            gameMessage.textContent = '使用 For 迴圈搜索。點擊卡片開始尋寶！';
+            gameExplanation.classList.add('hidden');
+        });
+        
+        resetGameBtn.addEventListener('click', setupGame);
+        
+        // 初始化所有演示
+        window.addEventListener('load', () => {
+            setupWhileDemo();
+            setupForDemo();
+            setupGame();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a476f6ba040045b',t:'MTc2NDEzOTY1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
