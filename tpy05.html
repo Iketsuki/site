@@ -3,440 +3,758 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python Math Factory: Operators & Calculator</title>
+    <title>Python Math and I/O: Operators & Calculator</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Google Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        .bubble-tail:after { content: ''; position: absolute; width: 0; height: 0; border-top: 20px solid transparent; border-bottom: 20px solid transparent; border-right: 20px solid white; left: -20px; top: 20px; }
-        @keyframes speak { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
-        .speaking { animation: speak 0.3s ease-in-out; }
-        @keyframes spark { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(2); } }
-        .sparking { animation: spark 0.5s ease-out; }
-        @keyframes vibrate { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
-        .vibrating { animation: vibrate 0.1s infinite; }
-        
-        .machine { transition: all 0.3s; cursor: pointer; }
-        .machine:hover { transform: scale(1.05); }
-        .console-output { font-family: monospace; }
-        .draggable-fix { cursor: grab; user-select: none; }
-        .is-float { background-color: #3b82f6; /* blue-500 */ }
-        .is-int { background-color: #10b981; /* emerald-500 */ }
+        /* General Setup */
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .card {
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 3px solid #10b981; /* Emerald-500 */
+            transition: all 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* --- VISUAL METAPHORS --- */
+        .block-box {
+            width: 80px;
+            height: 80px;
+            background-color: #fca5a5; /* Red-300 */
+            border: 2px solid #ef4444;
+            border-radius: 6px;
+            box-shadow: 3px 3px 0 #b91c1c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #7f1d1d;
+            position: relative;
+        }
+        .var-name-tag {
+            position: absolute;
+            top: -10px;
+            background: #fefefe;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.7rem;
+            border: 1px solid #ccc;
+        }
+
+        .operator-icon {
+            font-size: 3rem;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: #fcd34d;
+            border: 4px solid #f59e0b;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        .operator-icon:hover {
+            transform: scale(1.05);
+        }
+
+        .console-screen {
+            background-color: #1f2937; /* Dark gray */
+            min-height: 120px;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            color: #34d399; /* Emerald text */
+            white-space: pre-wrap;
+            box-shadow: inset 0 0 10px #000;
+            border: 2px solid #374151;
+        }
+
+        /* Drag & Drop */
+        .drop-target {
+            border: 3px dashed transparent;
+            transition: border-color 0.3s;
+        }
+        .drop-target.drag-over {
+            border-color: #f59e0b; /* Amber */
+            background-color: #fffbeb; /* Amber-50 */
+        }
     </style>
 </head>
-<body class="bg-slate-50 font-[Inter] text-slate-700 p-8">
+<body class="bg-gray-100 font-inter p-4 md:p-8">
 
-    <header class="mb-12">
-        <div class="max-w-6xl mx-auto p-4 bg-blue-600 text-white rounded-xl shadow-lg">
-            <h1 class="text-3xl font-extrabold">⚙️ The Math Processor Factory 🏭</h1>
-            <p class="text-blue-200">Blueprint 4 & 5: Arithmetic Operators and Basic Calculator</p>
-        </div>
-
-        <div class="max-w-6xl mx-auto mt-6 relative">
-            <div class="ml-24 p-4 bg-white rounded-2xl shadow-md bubble-tail border-2 border-blue-200 transition-all duration-300">
-                <p class="font-semibold text-blue-700">
-                    Welcome to the Math Factory! We use powerful machines, called $\text{Operators}$, to transform raw number blocks into calculated results. Watch how each machine performs a unique mathematical job!
-                </p>
+    <div class="max-w-6xl mx-auto">
+        <!-- HEADER & MASCOT -->
+        <header class="mb-12 p-6 bg-emerald-600 rounded-xl shadow-lg">
+            <h1 class="text-3xl md:text-5xl font-extrabold text-white mb-4">
+                Python Math Factory: Robot Operators 🤖🏗️
+            </h1>
+            <div class="relative flex items-start mt-6">
+                <div class="ml-[90px] p-4 bg-white rounded-2xl shadow-md border border-emerald-200 text-slate-700 relative speech-bubble">
+                    <p class="text-lg">
+                        Welcome to the Math Factory! We don't just use numbers; we **build** with them! These Robot Arms, our Operators, are here to show you exactly how Python performs calculations, including the new super-powerful **Stacking Crane** for exponentiation!
+                    </p>
+                </div>
+                <div class="w-20 h-20 absolute z-10 text-5xl flex items-center justify-center bg-white rounded-full border-4 border-white shadow-xl">
+                    ⚙️
+                </div>
             </div>
-            <div class="absolute w-20 h-20 -top-4 rounded-full border-4 border-white shadow-xl bg-blue-100 p-1 z-10 flex items-center justify-center text-4xl">
-                 🤖
-            </div>
-        </div>
-    </header>
+        </header>
 
-    ---
+        <!-- ---------------------------------------------------- -->
+        <!-- PART 1: ARITHMETIC OPERATORS (ROBOT CONSTRUCTION SITE) -->
+        <!-- ---------------------------------------------------- -->
+        <section class="mb-12 card p-6 border-emerald-500" id="arithmetic-section">
+            <h2 class="text-3xl font-bold text-emerald-600 mb-6">1. Arithmetic Operators: The Robot Arms</h2>
 
-    <section class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-yellow-400 p-6">
-        <h2 class="text-2xl font-bold mb-6 text-yellow-600">4. The Arithmetic Operator Machines 🛠️</h2>
-
-        <div class="grid grid-cols-2 gap-8">
-            <div>
-                <h3 class="text-xl font-bold mb-3 text-blue-600">The Atomic Machines ($A=10, B=3$)</h3>
-                <div class="space-y-3">
-                    <div class="p-3 bg-gray-100 rounded-lg shadow-inner flex items-center">
-                        <span class="text-3xl font-bold text-yellow-500 w-16"> $+$ </span>
-                        <div>
-                            <p class="font-semibold">The Fusion Press</p>
-                            <p class="text-sm">Combines blocks. $\text{Result: } 10 + 3 = 13$</p>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-gray-100 rounded-lg shadow-inner flex items-center">
-                        <span class="text-3xl font-bold text-yellow-500 w-16"> $\text{-}$ </span>
-                        <div>
-                            <p class="font-semibold">The Abrasive Cutter</p>
-                            <p class="text-sm">Removes a specified amount. $\text{Result: } 10 - 3 = 7$</p>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-gray-100 rounded-lg shadow-inner flex items-center">
-                        <span class="text-3xl font-bold text-yellow-500 w-16"> $*$ </span>
-                        <div>
-                            <p class="font-semibold">The Replication Stamper</p>
-                            <p class="text-sm">Stamps out duplicates. $\text{Result: } 10 * 3 = 30$</p>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-red-100 rounded-lg shadow-inner flex items-center">
-                        <span class="text-3xl font-bold text-red-500 w-16"> $\text{/}$ </span>
-                        <div>
-                            <p class="font-semibold">The Fluid Dispenser (Float)</p>
-                            <p class="text-sm">Splits blocks into equal parts, includes decimal liquid. $\text{Result: } 10 / 3 = 3.33...$</p>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-green-100 rounded-lg shadow-inner flex items-center">
-                        <span class="text-3xl font-bold text-green-500 w-16"> $\text{//}$ </span>
-                        <div>
-                            <p class="font-semibold">The Whole Number Splitter</p>
-                            <p class="text-sm">Splits into whole pieces, discards decimals. $\text{Result: } 10 // 3 = 3$</p>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-purple-100 rounded-lg shadow-inner flex items-center">
-                        <span class="text-3xl font-bold text-purple-500 w-16"> $\text{%}$ </span>
-                        <div>
-                            <p class="font-semibold">The Remainder Isolator</p>
-                            <p class="text-sm">Captures the small leftover piece. $\text{Result: } 10 \% 3 = 1$</p>
-                        </div>
-                    </div>
-                    <div class="p-3 bg-blue-100 rounded-lg shadow-inner flex items-center">
-                        <span class="text-3xl font-bold text-blue-500 w-16"> $\text{**}$ </span>
-                        <div>
-                            <p class="font-semibold">The Power Stack Machine</p>
-                            <p class="text-sm">Multiplies the base by itself ($\text{exponent}$) times. $\text{Result: } 2 ** 3 = 8$</p>
-                        </div>
-                    </div>
+            <!-- ATOMIC VISUAL METAPHORS -->
+            <h3 class="text-xl font-bold text-slate-700 mb-4">The Robot Arms (Operators)</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 text-center mb-8">
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <div class="operator-icon mx-auto bg-red-200 border-red-400">➕</div>
+                    <p class="font-mono font-bold mt-2 text-sm text-red-700">A + B</p>
+                    <p class="text-xs text-gray-600">Joining Clamp</p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <div class="operator-icon mx-auto bg-blue-200 border-blue-400">✂️</div>
+                    <p class="font-mono font-bold mt-2 text-sm text-blue-700">A - B</p>
+                    <p class="text-xs text-gray-600">Chisel</p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <div class="operator-icon mx-auto bg-yellow-200 border-yellow-400">👯</div>
+                    <p class="font-mono font-bold mt-2 text-sm text-yellow-700">A * B</p>
+                    <p class="text-xs text-gray-600">Cloning Machine</p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <div class="operator-icon mx-auto bg-purple-200 border-purple-400">🔪</div>
+                    <p class="font-mono font-bold mt-2 text-sm text-purple-700">A / B</p>
+                    <p class="text-xs text-gray-600">Laser Cutter (Decimals)</p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <div class="operator-icon mx-auto bg-pink-200 border-pink-400">📐</div>
+                    <p class="font-mono font-bold mt-2 text-sm text-pink-700">A // B</p>
+                    <p class="text-xs text-gray-600">Slicer (No Decimals)</p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <div class="operator-icon mx-auto bg-teal-200 border-teal-400">🗑️</div>
+                    <p class="font-mono font-bold mt-2 text-sm text-teal-700">A % B</p>
+                    <p class="text-xs text-gray-600">Scrap Collector (Remainder)</p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <div class="operator-icon mx-auto bg-indigo-200 border-indigo-400">🏗️</div>
+                    <p class="font-mono font-bold mt-2 text-sm text-indigo-700">A ** B</p>
+                    <p class="text-xs text-gray-600">Stacking Crane (Power)</p>
                 </div>
             </div>
 
-            <div>
-                <h3 class="text-xl font-bold mb-3 text-blue-600">The Factory Trace ⚙️</h3>
-                <div class="bg-gray-800 p-4 rounded-lg mb-4 shadow-xl">
-                    <p class="text-green-400 font-mono mb-2">FACTORY INPUTS:</p>
-                    <div id="factory-memory" class="flex justify-around text-white font-mono text-lg">
-                        <div class="text-center">A: <span id="val-a" class="is-int px-2 rounded">2</span></div>
-                        <div class="text-center">B: <span id="val-b" class="is-int px-2 rounded">3</span></div>
+            <!-- SIMULATION & TRACE TABLE (A ** B, A + B, A % B) -->
+            <h3 class="text-xl font-bold text-slate-700 mb-4">Simulation: Stacking, Joining, and Scrap</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8 bg-gray-50 p-6 rounded-xl border border-gray-200">
+                <!-- Code (Col 1-2) -->
+                <div class="lg:col-span-2">
+                    <div class="bg-gray-800 rounded-lg p-4 font-mono text-sm shadow-xl h-full">
+                        <div class="text-gray-400 mb-2"># Math Factory Script</div>
+                        <div id="a-sim-line-1" class="py-1 text-white">A = 2</div>
+                        <div id="a-sim-line-2" class="py-1 text-white">B = 3</div>
+                        <div id="a-sim-line-3" class="py-1 text-yellow-300">Power = A ** B</div>
+                        <div id="a-sim-line-4" class="py-1 text-yellow-300">Sum = A + B</div>
+                        <div id="a-sim-line-5" class="py-1 text-yellow-300">Remainder = A % B</div>
                     </div>
                 </div>
-                
-                <table class="w-full text-sm border-collapse bg-slate-100 shadow-md">
-                    <thead>
-                        <tr class="bg-blue-600 text-white">
-                            <th class="p-2 border border-blue-700">Step</th>
-                            <th class="p-2 border border-blue-700">Code</th>
-                            <th class="p-2 border border-blue-700">Result Block</th>
+
+                <!-- Visuals (Col 3-5) -->
+                <div class="lg:col-span-3 space-y-4">
+                    <div class="text-lg font-bold text-gray-700">Output/Variable Storage:</div>
+                    <div class="flex flex-wrap gap-3 justify-center bg-white p-4 rounded-xl shadow-inner border border-gray-200">
+                        <div class="block-box bg-red-100" id="a-var-A"><span class="var-name-tag bg-red-200">A</span><span class="value">?</span></div>
+                        <div class="block-box bg-blue-100" id="a-var-B"><span class="var-name-tag bg-blue-200">B</span><span class="value">?</span></div>
+                        <div class="block-box bg-indigo-100" id="a-var-Power"><span class="var-name-tag bg-indigo-200">Power</span><span class="value">?</span></div>
+                        <div class="block-box bg-red-100" id="a-var-Sum"><span class="var-name-tag bg-red-200">Sum</span><span class="value">?</span></div>
+                        <div class="block-box bg-teal-100" id="a-var-Remainder"><span class="var-name-tag bg-teal-200">Remainder</span><span class="value">?</span></div>
+                    </div>
+
+                    <div id="a-trace-status" class="bg-yellow-100 p-3 rounded-lg text-yellow-800 font-semibold text-center">Ready to run the trace.</div>
+                    <button id="a-run-btn" onclick="runArithmeticSimulation()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg transition shadow-md transform active:scale-95">
+                        ▶ Run Arithmetic Trace
+                    </button>
+                </div>
+            </div>
+
+            <h4 class="text-lg font-bold text-emerald-800 mt-6 mb-2">Trace Table</h4>
+            <div id="a-trace-table-body" class="bg-white rounded-lg p-3 overflow-x-auto text-sm border border-emerald-200">
+                <table class="min-w-full">
+                    <thead class="bg-emerald-50">
+                        <tr>
+                            <th class="px-2 py-1 text-left text-xs font-bold text-emerald-600">Step</th>
+                            <th class="px-2 py-1 text-left text-xs font-bold text-emerald-600">Line</th>
+                            <th class="px-2 py-1 text-left text-xs font-bold text-emerald-600">A/B Value</th>
+                            <th class="px-2 py-1 text-left text-xs font-bold text-emerald-600">Result</th>
+                            <th class="px-2 py-1 text-left text-xs font-bold text-emerald-600">Visual Output (Action)</th>
                         </tr>
                     </thead>
-                    <tbody id="trace-table-factory">
-                        <tr id="step-3" class="hover:bg-blue-50">
-                            <td class="p-2 border">3</td>
-                            <td class="p-2 border font-mono">Power = A ** B</td>
-                            <td class="p-2 border console-output"><span id="res-power" class="is-int px-2 rounded-full">8</span></td>
-                        </tr>
-                        <tr id="step-4" class="hover:bg-blue-50">
-                            <td class="p-2 border">4</td>
-                            <td class="p-2 border font-mono">Remainder = 8 % 3</td>
-                            <td class="p-2 border console-output"><span id="res-remainder" class="is-int px-2 rounded-full">2</span></td>
-                        </tr>
-                        <tr id="step-5" class="hover:bg-blue-50">
-                            <td class="p-2 border">5</td>
-                            <td class="p-2 border font-mono">Clean\_Cut = 7 // 2</td>
-                            <td class="p-2 border console-output"><span id="res-cleancut" class="is-int px-2 rounded-full">3</span></td>
-                        </tr>
-                    </tbody>
+                    <tbody id="a-trace-body"></tbody>
                 </table>
-                <p id="factory-message" class="mt-4 p-3 bg-blue-100 rounded font-semibold text-blue-700 text-center">Power Stack machine activated! $\text{Result: 8}$</p>
-            </div>
-        </div>
-
-        <hr class="my-6 border-yellow-300">
-
-        <h3 class="text-xl font-bold mb-4 text-red-600">🚩 The Trap: Messy vs. Clean Division (/) vs. (//)</h3>
-        
-        <div class="grid grid-cols-3 gap-6 items-center">
-            <div class="bg-red-50 p-4 rounded-xl border-4 border-red-400 text-center">
-                <p class="font-mono text-lg font-bold">clean\_result = 10 / 3</p>
-                <div id="bad-result" class="mt-3 p-2 bg-slate-800 text-white rounded console-output">
-                    <span id="float-result" class="is-float px-3 py-1 rounded-lg">3.3333333333333335</span>
-                </div>
-                <p class="text-red-700 mt-2">Factory Alert! Float data detected! We only want whole pieces for this order!</p>
-            </div>
-            
-            <div id="drag-drop-area" class="text-center p-4 border-dashed border-2 border-red-500 rounded-lg bg-white relative">
-                <span id="missing-slash" class="text-5xl text-red-600 font-bold p-2 draggable-fix" draggable="true" data-fix="slash">/</span>
-                <p class="mt-2 text-sm text-red-600 font-semibold">Drag the missing slash $\text{/}$ to the code above to fix it!</p>
             </div>
 
-            <div id="fixed-code-container" class="bg-green-50 p-4 rounded-xl border-4 border-green-400 text-center relative">
-                <p id="fix-code-display" class="font-mono text-lg font-bold">clean\_result = 10 / 3</p>
-                <div id="fix-result" class="mt-3 p-2 bg-slate-800 text-white rounded console-output">
-                    <span id="int-result" class="is-float px-3 py-1 rounded-lg">3.3333333333333335</span>
-                </div>
-                <div id="quality-badge" class="absolute inset-0 hidden items-center justify-center text-green-700 text-2xl font-black bg-green-900/10 rounded-xl">QUALITY CONTROL PASS!</div>
-                <p class="text-green-700 mt-2">The Whole Number Splitter is now active!</p>
-            </div>
-        </div>
-
-        <hr class="my-6 border-yellow-300">
-
-        <h3 class="text-xl font-bold mb-4 text-green-600">🎮 The Playground: Power Stack Mission (**)</h3>
-        <p class="mb-4 text-center font-semibold p-2 bg-green-100 rounded">
-            Mission Briefing: The warehouse needs a **Block $\text{125}$**! You only have a $\text{5}$ base block and a $\text{3}$ exponent block. Use the Power Stack machine ($\text{**}$) to reach the target!
-        </p>
-
-        <div class="flex justify-around items-center bg-gray-100 p-6 rounded-lg">
-            <div class="text-center">
-                <p class="font-bold text-lg">Target Block:</p>
-                <div id="target-block" class="w-24 h-24 bg-yellow-400 border-4 border-yellow-600 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl">125</div>
-            </div>
-            
-            <div class="text-center">
-                <p class="font-bold text-lg mb-2">Enter Code (e.g., 5 ** 3):</p>
-                <input type="text" id="power-input" class="p-2 border-2 border-blue-400 rounded-lg font-mono text-lg w-48 text-center" value="5 ** 3">
-                <button onclick="runPowerStackChallenge()" class="block w-full mt-3 bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-700">Run Power Stack! 🚀</button>
-            </div>
-
-            <div class="text-center">
-                <p class="font-bold text-lg">Result Block:</p>
-                <div id="result-block" class="w-24 h-24 bg-gray-400 border-4 border-gray-600 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl">?</div>
-            </div>
-        </div>
-        <p id="power-message" class="mt-4 text-center font-bold text-slate-700"></p>
-    </section>
-
-    ---
-
-    <section class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-purple-400 p-6">
-        <h2 class="text-2xl font-bold mb-6 text-purple-600">5. The Data Control Panel 🎛️</h2>
-
-        <div class="grid grid-cols-2 gap-8 items-start">
-            <div>
-                <h3 class="text-xl font-bold mb-3 text-blue-600">Input & Conversion Logic</h3>
-                <div class="p-4 bg-gray-100 rounded-lg shadow-inner">
-                    <p class="font-mono text-sm mb-2">1. base\_str = input('Base:')</p>
-                    <p class="font-mono text-sm mb-2">2. exp\_str = input('Exp:')</p>
-                    <p class="font-mono text-sm mb-2">3. result = int(base\_str) ** int(exp\_str)</p>
-                    <p class="font-mono text-sm">4. print('The power is:', result)</p>
-                    
-                    <div class="mt-4 p-3 bg-white rounded-lg border-2 border-blue-400">
-                        <p class="font-bold text-sm text-blue-700 mb-1">DATA FLOW:</p>
-                        <ul class="list-disc list-inside text-sm">
-                            <li><span class="text-orange-500 font-semibold">input()</span>: Raw text data (scrolls).</li>
-                            <li><span class="text-green-500 font-semibold">int()</span>: The Type Filter (converts text to solid number blocks).</li>
-                            <li><span class="text-purple-500 font-semibold">Operators</span>: The Math Processor.</li>
-                        </ul>
+            <!-- TRAP: FLOOR DIVISION FIX (The Missing Slash) -->
+            <h3 class="text-xl font-bold text-slate-700 mt-8 mb-4">The Trap: Decimal Dust (Laser Cutter vs. Slicer)</h3>
+            <div class="p-6 rounded-xl border-4 border-red-500 bg-red-50 text-red-800">
+                <p class="font-semibold mb-3">
+                    ❌ The Bug: <span class="font-mono">result = 10 / 3</span> gives you <span class="font-bold">3.333</span> (decimal dust). Goal: Get the clean whole number <span class="font-bold">3</span>. Drag the extra slash to use the Slicer (//).
+                </p>
+                <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 justify-center">
+                    <div class="text-4xl">🔪</div>
+                    <div id="division-code" class="bg-gray-800 rounded-lg p-3 font-mono text-sm shadow-inner flex space-x-1 items-center drop-target p-2">
+                        <span class="text-white">result = 10 </span>
+                        <span id="division-operator" class="text-yellow-400 font-bold" data-fixed="false">/</span>
+                        <span class="text-white"> 3</span>
+                    </div>
+                    <div class="text-4xl text-red-500 hidden md:block">→</div>
+                    <div id="slash-source-area" class="flex space-x-2 bg-white p-3 rounded-lg border border-red-300">
+                        <div id="slash-drag" class="drag-block cursor-grab bg-gray-200 p-2 rounded-md hover:bg-yellow-300 transition" draggable="true" data-type="slash">/</div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="bg-slate-800 p-4 rounded-lg shadow-xl border-4 border-purple-600">
-                <h3 class="text-xl font-bold text-green-400 mb-3">Control Panel Console Output:</h3>
-                <div class="flex gap-4 mb-4">
-                    <div class="w-1/2">
-                        <label for="base-input" class="text-white text-sm">Base Dial (Text $\to$ Num)</label>
-                        <input type="text" id="base-input" placeholder="Base" class="w-full p-2 rounded font-mono text-lg" value="5">
-                    </div>
-                    <div class="w-1/2">
-                        <label for="exp-input" class="text-white text-sm">Exp Dial (Text $\to$ Num)</label>
-                        <input type="text" id="exp-input" placeholder="Exp" class="w-full p-2 rounded font-mono text-lg" value="2">
-                    </div>
-                </div>
-                <div id="calc-output" class="bg-slate-900 p-3 rounded text-green-400 console-output min-h-[50px]">
-                    <p>Ready...</p>
-                </div>
-                <div id="processor-feedback" class="mt-3 text-white text-center font-bold"></div>
-                <button onclick="runCalculatorSimulation()" class="w-full mt-4 bg-purple-600 text-white font-bold py-2 rounded-lg hover:bg-purple-700">Run Simulation</button>
-            </div>
-        </div>
-
-        <hr class="my-6 border-purple-300">
-
-        <h3 class="text-xl font-bold mb-4 text-red-600">🚩 The Trap: Missing Type Filter ($\text{int()}$)</h3>
-        
-        <div class="grid grid-cols-3 gap-6 items-center">
-            <div class="bg-red-50 p-4 rounded-xl border-4 border-red-400 text-center">
-                <p class="font-mono text-lg font-bold">result = num1 ** num2</p>
-                <div class="mt-3 p-2 bg-slate-800 text-white rounded console-output">
-                    <div class="text-red-400 text-lg font-bold vibrating">TYPE MISMATCH ERROR!</div>
-                </div>
-                <p class="text-red-700 mt-2">The Math Processor only accepts solid number blocks.</p>
+                <div id="division-status" class="mt-3 text-center font-bold"></div>
+                <button onclick="resetDivisionFix()" class="mt-4 bg-gray-500 hover:bg-gray-600 text-white text-sm py-1 px-3 rounded transition">
+                    Reset Division Fix
+                </button>
             </div>
 
-            <div class="col-span-2 p-4 bg-white rounded-xl border-4 border-green-400 relative">
-                <h4 class="text-lg font-bold text-green-700 mb-2">Drag the Type Filters into the code:</h4>
-                <div class="bg-slate-800 text-blue-300 font-mono rounded-lg p-3 flex justify-center items-center gap-1">
-                    <span class="text-white">result = </span>
-                    <span id="target-1" class="text-white font-bold inline-block p-1 bg-red-800/50 rounded-sm drop-target" data-variable="num1">num1</span>
-                    <span class="text-white"> ** </span>
-                    <span id="target-2" class="text-white font-bold inline-block p-1 bg-red-800/50 rounded-sm drop-target" data-variable="num2">num2</span>
-                </div>
+            <!-- PLAYGROUND: EXPONENTIATION CHALLENGE (Stacking Crane) -->
+            <h3 class="text-xl font-bold text-slate-700 mt-8 mb-4">Playground: Stacking Crane (A ** B)</h3>
+            <div class="p-6 bg-indigo-50 rounded-xl border border-indigo-300">
+                <p class="font-bold text-indigo-800 mb-2">Instructions: Use the <span class="font-mono font-bold">**</span> operator in the code input.</p>
                 
-                <div id="filter-drag-area" class="mt-4 flex justify-center gap-4 bg-gray-200 p-3 rounded-lg">
-                    <span class="text-2xl text-green-600 font-bold p-2 bg-white rounded-lg shadow draggable-fix" draggable="true" data-fix="int">int()</span>
-                    <span class="text-2xl text-green-600 font-bold p-2 bg-white rounded-lg shadow draggable-fix" draggable="true" data-fix="int">int()</span>
+                <div class="grid grid-cols-3 gap-6 items-center mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Base Number (A): <span id="base-value" class="font-bold">3</span></label>
+                        <input type="range" id="base-slider" min="1" max="5" value="3" class="w-full h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Exponent (B): <span id="exp-value" class="font-bold">2</span></label>
+                        <input type="range" id="exp-slider" min="1" max="5" value="2" class="w-full h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div class="text-center">
+                        <div class="text-sm font-medium text-gray-700 mb-1">Final Power</div>
+                        <div id="power-result" class="text-4xl font-extrabold text-indigo-700 bg-white p-3 rounded-lg border-2 border-indigo-500">?</div>
+                    </div>
                 </div>
-                <div id="fix-status" class="mt-3 text-center font-bold text-red-600">Missing filters! Drag both int() filters over the variable names.</div>
+
+                <div class="bg-gray-800 rounded-lg p-4 font-mono text-sm shadow-inner min-h-[50px] mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-cyan-400">result</span>
+                        <span class="text-white">=</span>
+                        <input type="text" id="power-code-input" placeholder="A ** B" class="bg-transparent border-b border-gray-500 text-yellow-300 w-1/3 focus:outline-none focus:border-yellow-400" />
+                    </div>
+                </div>
+
+                <button id="power-run-btn" onclick="runPowerChallenge()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition shadow-md transform active:scale-95">
+                    Run Stacking Crane (Check Code)
+                </button>
+                <div id="power-status" class="mt-3 p-3 text-center font-bold rounded-lg hidden"></div>
             </div>
-        </div>
-    </section>
+
+        </section>
+
+        <!-- ---------------------------------------------------- -->
+        <!-- PART 2: PRACTICAL MATH (CALCULATOR BASICS) -->
+        <!-- ---------------------------------------------------- -->
+        <section class="mb-12 card p-6 border-indigo-500" id="calculator-section">
+            <h2 class="text-3xl font-bold text-indigo-600 mb-6">2. Practical Math: The Handheld Calculator</h2>
+
+            <!-- SIMULATION: INPUT & EXPONENTIATION -->
+            <h3 class="text-xl font-bold text-slate-700 mb-4">Simulation: Input, Convert, and Power Up</h3>
+             <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8 bg-gray-50 p-6 rounded-xl border border-gray-200">
+                <!-- Code (Col 1-2) -->
+                <div class="lg:col-span-2">
+                    <div class="bg-gray-800 rounded-lg p-4 font-mono text-sm shadow-xl h-full">
+                        <div class="text-gray-400 mb-2"># Calculator Script (User inputs 5 and 2)</div>
+                        <div id="c-sim-line-1" class="py-1 text-white">base_str = input("Enter base number: ")</div>
+                        <div id="c-sim-line-2" class="py-1 text-white">exp_str = input("Enter exponent: ")</div>
+                        <div id="c-sim-line-3" class="py-1 text-yellow-300">result = int(base_str) ** int(exp_str)</div>
+                        <div id="c-sim-line-4" class="py-1 text-white">print("The power is:", result)</div>
+                    </div>
+                </div>
+
+                <!-- Visuals (Col 3-5) -->
+                <div class="lg:col-span-3 space-y-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="text-4xl text-indigo-500">📫</div>
+                        <div class="text-lg font-bold text-gray-700">Console/Output:</div>
+                    </div>
+
+                    <div id="calculator-console" class="console-screen">
+                        <span id="calc-console-text"></span>
+                    </div>
+
+                    <div class="text-lg font-bold text-gray-700 mt-4">Memory State:</div>
+                    <div class="flex flex-wrap gap-3 justify-center bg-white p-4 rounded-xl shadow-inner border border-gray-200">
+                        <div class="block-box bg-green-100 text-xs" id="c-var-base"><span class="var-name-tag bg-green-200">base_str (str)</span><span class="value">?</span></div>
+                        <div class="block-box bg-yellow-100 text-xs" id="c-var-exp"><span class="var-name-tag bg-yellow-200">exp_str (str)</span><span class="value">?</span></div>
+                        <div class="block-box bg-indigo-100" id="c-var-result"><span class="var-name-tag bg-indigo-200">result (int)</span><span class="value">?</span></div>
+                    </div>
+
+                    <button id="c-run-btn" onclick="runCalculatorSimulation()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition shadow-md transform active:scale-95">
+                        ▶ Run Calculator Trace (5 ** 2)
+                    </button>
+                </div>
+            </div>
+
+            <!-- TRAP: CONVERSION FIX (The Missing int() Funnel) -->
+            <h3 class="text-xl font-bold text-slate-700 mt-8 mb-4">The Trap: No Conversion (The Crane Needs Solid Blocks)</h3>
+            <div class="p-6 rounded-xl border-4 border-red-500 bg-red-50 text-red-800">
+                <p class="font-semibold mb-3">
+                    ❌ The Bug: <span class="font-mono">num1 ** num2</span> results in a <span class="font-bold">TypeError</span> because the Stacking Crane (**) can't handle text messages (strings)! Drag the <span class="font-mono">int()</span> wrappers onto <span class="font-bold">num1</span> and <span class="font-bold">num2</span>.
+                </p>
+                <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 justify-center">
+                    <div id="conversion-code" class="bg-gray-800 rounded-lg p-3 font-mono text-sm shadow-inner flex space-x-1 items-center drop-target p-2 w-3/4" data-fixed="false">
+                        <span class="text-cyan-400">result</span>
+                        <span class="text-white">=</span>
+                        <span class="text-blue-400" id="c-num1-spot">num1</span>
+                        <span class="text-red-400"> ** </span>
+                        <span class="text-blue-400" id="c-num2-spot">num2</span>
+                    </div>
+                    <div class="text-4xl text-red-500 hidden md:block">→</div>
+                    <div id="int-source-area" class="flex space-x-2 bg-white p-3 rounded-lg border border-red-300">
+                        <div id="int-drag-1" class="drag-block cursor-grab bg-orange-300 p-2 rounded-md hover:bg-orange-400 transition" draggable="true" data-type="int-wrap">int()</div>
+                        <div id="int-drag-2" class="drag-block cursor-grab bg-orange-300 p-2 rounded-md hover:bg-orange-400 transition" draggable="true" data-type="int-wrap">int()</div>
+                    </div>
+                </div>
+                <div id="conversion-status" class="mt-3 text-center font-bold"></div>
+                 <button onclick="resetConversionTrap()" class="mt-4 bg-gray-500 hover:bg-gray-600 text-white text-sm py-1 px-3 rounded transition">
+                    Reset Conversion Fix
+                </button>
+            </div>
+
+            <!-- PLAYGROUND: FULL OPERATOR CHALLENGE -->
+            <h3 class="text-xl font-bold text-slate-700 mt-8 mb-4">Playground: Build Your Own Calculator</h3>
+            <div class="p-6 bg-emerald-50 rounded-xl border border-emerald-300">
+                <p class="font-bold text-emerald-800 mb-4">Challenge: Select an operator and two numbers, then run the calculation.</p>
+
+                <div class="flex flex-wrap gap-4 items-center justify-center mb-6">
+                    <div class="w-full md:w-auto">
+                        <label class="block text-sm font-medium text-gray-700">Choose Operator:</label>
+                        <select id="operator-select" class="p-2 border border-gray-300 rounded-lg w-full bg-white">
+                            <option value="+">Joining Clamp (+)</option>
+                            <option value="-">Chisel (-)</option>
+                            <option value="*">Cloning Machine (*)</option>
+                            <option value="/">Laser Cutter (/)</option>
+                            <option value="//">Slicer (//)</option>
+                            <option value="%">Scrap Collector (%)</option>
+                            <option value="**">Stacking Crane (**)</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-auto">
+                        <label class="block text-sm font-medium text-gray-700">First Number (Num1):</label>
+                        <input type="number" id="num1-input" value="10" min="1" class="p-2 border border-gray-300 rounded-lg w-full bg-white">
+                    </div>
+                    <div class="w-full md:w-auto">
+                        <label class="block text-sm font-medium text-gray-700">Second Number (Num2):</label>
+                        <input type="number" id="num2-input" value="3" min="1" class="p-2 border border-gray-300 rounded-lg w-full bg-white">
+                    </div>
+                </div>
+
+                <div id="calculator-result-container" class="mt-4 p-4 bg-white rounded-lg border-2 border-gray-300 text-center">
+                    <div class="text-sm font-medium text-gray-700">Result (Output)</div>
+                    <div id="calculator-result" class="text-5xl font-extrabold text-gray-800">?</div>
+                    <div id="calculator-operator-visual" class="text-3xl mt-2 text-emerald-500">?</div>
+                </div>
+
+                <button id="c-challenge-run-btn" onclick="runFullCalculatorChallenge()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg transition shadow-md transform active:scale-95 mt-6">
+                    Calculate
+                </button>
+            </div>
+            
+        </section>
+
+    </div>
 
     <script>
-        const factoryMessage = document.getElementById('factory-message');
-        const fixCodeDisplay = document.getElementById('fix-code-display');
-        const intResult = document.getElementById('int-result');
-        const qualityBadge = document.getElementById('quality-badge');
-        const missingSlash = document.getElementById('missing-slash');
-        const fixedCodeContainer = document.getElementById('fixed-code-container');
-        let fixApplied = false;
+        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-        // --- 4. Section 3: Division Fix Logic ---
-        missingSlash.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData("text/fix", e.target.getAttribute('data-fix'));
-            e.dataTransfer.effectAllowed = "move";
-        });
+        function highlightLine(lineId, remove = false, color = '#fcd34d') {
+            const line = document.getElementById(lineId);
+            if (line) {
+                line.style.backgroundColor = remove ? 'transparent' : '#374151'; 
+                line.style.color = remove ? (lineId.includes('p-sim') || lineId.includes('i-sim') ? '#fff' : color) : '#fff'; 
+                line.style.borderRadius = '4px';
+                line.style.padding = '2px';
+            }
+        }
 
-        fixedCodeContainer.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            fixedCodeContainer.style.backgroundColor = '#bbf7d0'; // green-200
-        });
+        function createTraceRow(step, line, a_b_value, result, action, tableId) {
+            const row = document.createElement('tr');
+            row.id = `${tableId}-row-${step}`;
+            row.classList.add('hover:bg-gray-50', 'transition-colors', 'duration-200');
+            row.innerHTML = `
+                <td class="px-2 py-1 whitespace-nowrap font-medium text-gray-900">${step}</td>
+                <td class="px-2 py-1 whitespace-nowrap text-gray-700 font-mono text-xs">${line}</td>
+                <td class="px-2 py-1 whitespace-nowrap text-gray-700">${a_b_value}</td>
+                <td class="px-2 py-1 whitespace-nowrap text-gray-700 font-bold">${result}</td>
+                <td class="px-2 py-1 whitespace-nowrap font-bold text-gray-800">${action}</td>
+            `;
+            return row;
+        }
 
-        fixedCodeContainer.addEventListener('dragleave', (e) => {
-            fixedCodeContainer.style.backgroundColor = ''; 
-        });
+        // --- DRAG/DROP UTILITIES ---
+        let dragSrcEl = null;
 
-        fixedCodeContainer.addEventListener('drop', (e) => {
-            e.preventDefault();
-            fixedCodeContainer.style.backgroundColor = '';
-
-            if (fixApplied) return;
-
-            const fix = e.dataTransfer.getData("text/fix");
-            if (fix === 'slash') {
-                fixCodeDisplay.innerHTML = 'clean\_result = 10 // 3';
-                intResult.textContent = '3';
-                intResult.classList.remove('is-float');
-                intResult.classList.add('is-int', 'vibrating');
-                qualityBadge.classList.remove('hidden');
-                qualityBadge.classList.add('flex');
-                missingSlash.style.opacity = 0.3;
-                fixApplied = true;
+        document.addEventListener('dragstart', (e) => {
+            if (e.target.classList.contains('drag-block')) {
+                dragSrcEl = e.target;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData("text/plain", e.target.id);
+                e.dataTransfer.setData("data-type", e.target.dataset.type);
             }
         });
 
-        // --- 4. Section 4: Power Stack Challenge Logic ---
-        function runPowerStackChallenge() {
-            const input = document.getElementById('power-input').value.trim();
-            const resultBlock = document.getElementById('result-block');
-            const powerMessage = document.getElementById('power-message');
-            
-            // Regex to find Base ** Exp
-            const match = input.match(/(\d+)\s*\*\*\s*(\d+)/); 
-            
-            resultBlock.className = 'w-24 h-24 border-4 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl speaking';
-
-            if (!match) {
-                powerMessage.textContent = "Error! Use the format: BASE ** EXP (e.g., 5 ** 3)";
-                resultBlock.className = 'w-24 h-24 bg-red-400 border-4 border-red-600 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl';
-                resultBlock.textContent = 'Err';
-                return;
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (e.target.classList.contains('drop-target')) {
+                e.dataTransfer.dropEffect = 'move';
+                e.target.classList.add('drag-over');
             }
+        });
 
-            const base = parseInt(match[1]);
-            const exp = parseInt(match[2]);
-            let result = Math.pow(base, exp);
+        document.addEventListener('dragleave', (e) => {
+            if (e.target.classList.contains('drop-target')) {
+                e.target.classList.remove('drag-over');
+            }
+        });
 
-            if (base === 5 && exp === 3) {
-                // Correct logic
-                resultBlock.className = 'w-24 h-24 bg-gold-400 border-4 border-gold-600 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl';
-                resultBlock.style.backgroundColor = '#facc15'; /* yellow-400 */
-                resultBlock.style.borderColor = '#d97706'; /* amber-700 */
-                resultBlock.textContent = result;
-                powerMessage.textContent = "PRODUCTION GOAL ACHIEVED! Block 125 created successfully!";
-            } else if (input.includes('*') && !input.includes('**')) {
-                 // Wrong operator * instead of **
-                resultBlock.className = 'w-24 h-24 bg-red-400 border-4 border-red-600 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl';
-                resultBlock.textContent = base * exp;
-                powerMessage.textContent = "Wrong Operator! That's the Replication Stamper (*), not the Power Stack (**)!";
+        // --- PART 1: ARITHMETIC SIMULATION ---
+        const arithmeticTraceData = [
+            { step: 1, lineId: 'a-sim-line-1', line: 'A = 2', aValue: '2', bValue: '3', power: 'Empty', sum: 'Empty', remainder: 'Empty', action: 'Two number blocks, 2 and 3, slide onto the workspace.' },
+            { step: 2, lineId: 'a-sim-line-2', line: 'B = 3', aValue: '2', bValue: '3', power: 'Empty', sum: 'Empty', remainder: 'Empty', action: 'A and B variables are initialized.' },
+            { step: 3, lineId: 'a-sim-line-3', line: 'Power = A ** B', aValue: '2', bValue: '3', power: '8', sum: 'Empty', remainder: 'Empty', action: 'Stacking Crane (**) lifts 2 and stacks 3 times: 8 block moves to Power.' },
+            { step: 4, lineId: 'a-sim-line-4', line: 'Sum = A + B', aValue: '2', bValue: '3', power: '8', sum: '5', remainder: 'Empty', action: 'Joining Clamp (+) merges 2 and 3 into one 5 block, moves to Sum.' },
+            { step: 5, lineId: 'a-sim-line-5', line: 'Remainder = A % B', aValue: '2', bValue: '3', power: '8', sum: '5', remainder: '2', action: 'Scrap Collector (%) divides 2 by 3, isolating the leftover piece: 2.' },
+        ];
+
+        async function runArithmeticSimulation() {
+            const traceBody = document.getElementById('a-trace-body');
+            const runBtn = document.getElementById('a-run-btn');
+            const vars = ['a-var-A', 'a-var-B', 'a-var-Power', 'a-var-Sum', 'a-var-Remainder'];
+            const varElements = {};
+            vars.forEach(id => { varElements[id] = document.getElementById(id).querySelector('.value'); });
+
+            runBtn.disabled = true;
+            traceBody.innerHTML = '';
+            
+            // Reset state
+            vars.forEach(id => varElements[id].textContent = '?');
+            document.getElementById('a-trace-status').textContent = 'Trace running...';
+            ['a-sim-line-1', 'a-sim-line-2'].forEach(id => highlightLine(id, false, '#fff'));
+
+            await delay(1000);
+
+            for (const item of arithmeticTraceData) {
+                highlightLine(item.lineId, false);
+                
+                // Update variables visually
+                if (item.aValue !== 'Empty') varElements['a-var-A'].textContent = item.aValue;
+                if (item.bValue !== 'Empty') varElements['a-var-B'].textContent = item.bValue;
+                if (item.power !== 'Empty') varElements['a-var-Power'].textContent = item.power;
+                if (item.sum !== 'Empty') varElements['a-var-Sum'].textContent = item.sum;
+                if (item.remainder !== 'Empty') varElements['a-var-Remainder'].textContent = item.remainder;
+
+                const row = createTraceRow(item.step, item.line, `A=${item.aValue}, B=${item.bValue}`, `${item.power} | ${item.sum} | ${item.remainder}`, item.action, 'a-trace');
+                traceBody.appendChild(row);
+
+                await delay(2000); 
+                highlightLine(item.lineId, true, '#fcd34d');
+            }
+            
+            document.getElementById('a-trace-status').textContent = 'Trace complete!';
+            runBtn.disabled = false;
+        }
+
+
+        // --- PART 1: DIVISION TRAP FIX ---
+        const divisionOperator = document.getElementById('division-operator');
+        const divisionCodeContainer = document.getElementById('division-code');
+        const divisionStatus = document.getElementById('division-status');
+        
+        function resetDivisionFix() {
+            divisionOperator.textContent = '/';
+            divisionOperator.dataset.fixed = 'false';
+            divisionOperator.classList.remove('text-emerald-400', 'text-2xl');
+            divisionOperator.classList.add('text-yellow-400');
+            divisionStatus.textContent = '';
+
+            document.getElementById('slash-source-area').innerHTML = `
+                <div id="slash-drag" class="drag-block cursor-grab bg-gray-200 p-2 rounded-md hover:bg-yellow-300 transition" draggable="true" data-type="slash">/</div>
+            `;
+        }
+        
+        divisionOperator.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.target.classList.remove('drag-over');
+
+            const dataType = e.dataTransfer.getData("data-type");
+            const draggedId = e.dataTransfer.getData("text/plain");
+
+            if (dataType === 'slash' && divisionOperator.dataset.fixed === 'false') {
+                divisionOperator.textContent = '//';
+                divisionOperator.classList.remove('text-yellow-400');
+                divisionOperator.classList.add('text-emerald-400', 'text-2xl');
+                divisionStatus.textContent = '✅ SUCCESS: Laser Cutter (/) transforms into the Slicer (//)! Result is now 3.';
+                divisionStatus.classList.add('text-green-700');
+                divisionOperator.dataset.fixed = 'true';
+                document.getElementById(draggedId).style.display = 'none';
             } else {
-                // Wrong numbers
-                resultBlock.className = 'w-24 h-24 bg-red-400 border-4 border-red-600 flex items-center justify-center text-3xl font-black rounded-lg shadow-2xl';
-                resultBlock.textContent = result;
-                powerMessage.textContent = `Incorrect result block (${result}). Use 5 and 3!`;
+                 divisionStatus.textContent = 'Incorrect item dropped! Only a single slash (/) will convert the operator.';
+                 divisionStatus.classList.add('text-red-700');
             }
-
-            setTimeout(() => resultBlock.classList.remove('speaking'), 300);
-        }
-
-        // --- 5. Section 2: Calculator Simulation Logic ---
-        function runCalculatorSimulation() {
-            const baseStr = document.getElementById('base-input').value;
-            const expStr = document.getElementById('exp-input').value;
-            const calcOutput = document.getElementById('calc-output');
-            const processorFeedback = document.getElementById('processor-feedback');
-
-            // Attempt to convert and calculate
-            try {
-                const base = parseInt(baseStr);
-                const exp = parseInt(expStr);
-                const result = Math.pow(base, exp);
-
-                if (isNaN(base) || isNaN(exp)) {
-                    throw new Error("Conversion Failed");
-                }
-
-                calcOutput.innerHTML = `<p>Prompt: Enter base...</p><p>Prompt: Enter exp...</p><p>The power is: ${result}</p>`;
-                processorFeedback.textContent = "Type Filter ($\text{int()}$) and Power Stack ($\text{**}$) ran successfully! Result: " + result;
-                processorFeedback.className = 'mt-3 text-white text-center font-bold bg-green-600 p-2 rounded speaking';
-
-            } catch (e) {
-                calcOutput.innerHTML = `<p class="text-red-400 font-bold">TYPE MISMATCH ERROR!</p>`;
-                processorFeedback.textContent = "Error: Input must be valid numbers for the Type Filter to work!";
-                processorFeedback.className = 'mt-3 text-white text-center font-bold bg-red-600 p-2 rounded speaking vibrating';
-            }
-            setTimeout(() => processorFeedback.classList.remove('speaking', 'vibrating'), 1500);
-        }
-
-        // --- 5. Section 3: int() Fix Logic ---
-        const dropTargets = document.querySelectorAll('.drop-target');
-        const intFilters = document.querySelectorAll('.draggable-fix[data-fix="int"]');
-        const fixStatus = document.getElementById('fix-status');
-        let filtersPlaced = 0;
-
-        intFilters.forEach(filter => {
-            filter.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData("text/filter", e.target.textContent);
-            });
         });
 
-        dropTargets.forEach(target => {
-            target.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                target.classList.add('bg-blue-800/50');
-            });
+        // --- PART 1: EXPONENTIATION CHALLENGE ---
+        const baseSlider = document.getElementById('base-slider');
+        const expSlider = document.getElementById('exp-slider');
+        const baseValueSpan = document.getElementById('base-value');
+        const expValueSpan = document.getElementById('exp-value');
+        const powerResult = document.getElementById('power-result');
+        const powerStatus = document.getElementById('power-status');
+        const powerCodeInput = document.getElementById('power-code-input');
 
-            target.addEventListener('dragleave', (e) => {
-                target.classList.remove('bg-blue-800/50');
-            });
+        function updatePowerDisplay() {
+            baseValueSpan.textContent = baseSlider.value;
+            expValueSpan.textContent = expSlider.value;
+            powerResult.textContent = '?';
+            powerStatus.classList.add('hidden');
+        }
 
-            target.addEventListener('drop', (e) => {
-                e.preventDefault();
-                target.classList.remove('bg-blue-800/50');
+        baseSlider.addEventListener('input', updatePowerDisplay);
+        expSlider.addEventListener('input', updatePowerDisplay);
 
-                const filterText = e.dataTransfer.getData("text/filter");
-                if (filterText === 'int()' && !target.classList.contains('fixed')) {
-                    // Visually wrap the variable name
-                    target.innerHTML = `<span class="text-green-400">int(</span>${target.getAttribute('data-variable')}<span class="text-green-400">)</span>`;
-                    target.classList.remove('bg-red-800/50', 'text-white');
-                    target.classList.add('fixed');
-                    filtersPlaced++;
+        function runPowerChallenge() {
+            const base = parseInt(baseSlider.value);
+            const exp = parseInt(expSlider.value);
+            const code = powerCodeInput.value.trim();
+            const correctResult = Math.pow(base, exp);
+            
+            powerStatus.classList.remove('hidden', 'bg-red-100', 'bg-green-100', 'text-red-700', 'text-green-700');
 
-                    if (filtersPlaced === 2) {
-                        fixStatus.textContent = "DATA FLOW OPTIMAL! Conversion fixed. Math Processor is ready.";
-                        fixStatus.classList.remove('text-red-600');
-                        fixStatus.classList.add('text-green-600', 'speaking');
-                        document.querySelector('.vibrating').classList.remove('vibrating');
-                        document.querySelector('.vibrating').textContent = 'Fixed!';
-                        setTimeout(() => fixStatus.classList.remove('speaking'), 500);
-                    } else {
-                        fixStatus.textContent = `One filter placed. Place the remaining filter!`;
-                    }
+            try {
+                // Simple evaluation to check the structure, replacing A and B with values.
+                let evaluatedResult;
+                const safeCode = code.replace(/A/g, base).replace(/B/g, exp);
+                
+                // Attempt to execute the math logic safely
+                if (safeCode.includes('**')) {
+                    evaluatedResult = eval(safeCode);
+                } else if (safeCode.includes('*')) {
+                    evaluatedResult = base * exp; // Incorrect operator for the challenge
+                } else {
+                    throw new Error('Missing operator');
                 }
-            });
+                
+                if (code.includes('**')) {
+                    if (evaluatedResult === correctResult) {
+                        powerResult.textContent = correctResult;
+                        powerStatus.classList.add('bg-green-100', 'text-green-700');
+                        powerStatus.textContent = `✅ SUCCESS! Stacking Crane (**) calculated ${base} to the power of ${exp} is ${correctResult}.`;
+                    } else {
+                        powerResult.textContent = evaluatedResult;
+                        powerStatus.classList.add('bg-red-100', 'text-red-700');
+                        powerStatus.textContent = `INCORRECT RESULT. Your code produced ${evaluatedResult}. Remember the Stacking Crane needs the ** operator.`;
+                    }
+                } else {
+                    powerResult.textContent = evaluatedResult;
+                    powerStatus.classList.add('bg-red-100', 'text-red-700');
+                    powerStatus.textContent = `INCORRECT OPERATOR. Your code used the Cloning Machine (*)! We need the Stacking Crane (**) for power. Result: ${evaluatedResult}`;
+                }
+
+            } catch (error) {
+                powerResult.textContent = 'ERROR';
+                powerStatus.classList.add('bg-red-100', 'text-red-700');
+                powerStatus.textContent = 'SYNTAX ERROR. Check your expression! Example: A ** B';
+            }
+        }
+
+        // --- PART 2: CALCULATOR SIMULATION ---
+        async function runCalculatorSimulation() {
+            const runBtn = document.getElementById('c-run-btn');
+            const consoleText = document.getElementById('calc-console-text');
+            const varBase = document.getElementById('c-var-base').querySelector('.value');
+            const varExp = document.getElementById('c-var-exp').querySelector('.value');
+            const varResult = document.getElementById('c-var-result').querySelector('.value');
+            
+            runBtn.disabled = true;
+            consoleText.textContent = '';
+            varBase.textContent = '?';
+            varExp.textContent = '?';
+            varResult.textContent = '?';
+            
+            ['c-sim-line-1', 'c-sim-line-2', 'c-sim-line-3', 'c-sim-line-4'].forEach(id => highlightLine(id, true));
+
+            await delay(500);
+
+            // Step 1 & 2: Input
+            highlightLine('c-sim-line-1');
+            consoleText.textContent = 'Enter base number: ';
+            await delay(1000);
+            consoleText.textContent += '5\n';
+            varBase.textContent = '"5"';
+            highlightLine('c-sim-line-1', true);
+            await delay(500);
+            
+            highlightLine('c-sim-line-2');
+            consoleText.textContent += 'Enter exponent: ';
+            await delay(1000);
+            consoleText.textContent += '2\n';
+            varExp.textContent = '"2"';
+            highlightLine('c-sim-line-2', true);
+            await delay(500);
+
+            // Step 3: Conversion and Calculation
+            highlightLine('c-sim-line-3');
+            // Visual feedback of conversion and calculation
+            varBase.textContent = '5';
+            varExp.textContent = '2';
+            varBase.parentElement.style.backgroundColor = '#fca5a5'; // Change to number block color
+            varExp.parentElement.style.backgroundColor = '#fca5a5';
+            varBase.parentElement.querySelector('.var-name-tag').textContent = 'base (int)';
+            varExp.parentElement.querySelector('.var-name-tag').textContent = 'exp (int)';
+
+            await delay(1500); 
+            varResult.textContent = '25';
+            highlightLine('c-sim-line-3', true);
+            await delay(500);
+
+            // Step 4: Output
+            highlightLine('c-sim-line-4');
+            consoleText.textContent += 'The power is: 25\n';
+            await delay(1500);
+            highlightLine('c-sim-line-4', true);
+            
+            // Reset colors
+            varBase.parentElement.style.backgroundColor = '#90ee90'; 
+            varExp.parentElement.style.backgroundColor = '#90ee90';
+            varBase.parentElement.querySelector('.var-name-tag').textContent = 'base_str (str)';
+            varExp.parentElement.querySelector('.var-name-tag').textContent = 'exp_str (str)';
+            
+            runBtn.disabled = false;
+        }
+
+        // --- PART 2: CONVERSION TRAP FIX ---
+        const num1Spot = document.getElementById('c-num1-spot');
+        const num2Spot = document.getElementById('c-num2-spot');
+        const conversionStatus = document.getElementById('conversion-status');
+        let fixedSpots = 0;
+
+        function checkConversionFix() {
+            if (num1Spot.dataset.fixed === 'true' && num2Spot.dataset.fixed === 'true') {
+                conversionStatus.textContent = '✅ SUCCESS: You fixed the TypeError! The Stacking Crane now receives solid number blocks.';
+                conversionStatus.classList.add('text-green-700');
+                fixedSpots = 2;
+            } else if (fixedSpots > 0) {
+                conversionStatus.textContent = `One conversion fixed. Need ${2 - fixedSpots} more.`;
+                conversionStatus.classList.add('text-yellow-700');
+            }
+        }
+
+        function resetConversionTrap() {
+            fixedSpots = 0;
+            num1Spot.innerHTML = 'num1';
+            num2Spot.innerHTML = 'num2';
+            num1Spot.dataset.fixed = 'false';
+            num2Spot.dataset.fixed = 'false';
+            conversionStatus.textContent = '';
+            
+            document.getElementById('int-source-area').innerHTML = `
+                <div id="int-drag-1" class="drag-block cursor-grab bg-orange-300 p-2 rounded-md hover:bg-orange-400 transition" draggable="true" data-type="int-wrap">int()</div>
+                <div id="int-drag-2" class="drag-block cursor-grab bg-orange-300 p-2 rounded-md hover:bg-orange-400 transition" draggable="true" data-type="int-wrap">int()</div>
+            `;
+        }
+
+        document.addEventListener('drop', (e) => {
+            e.target.classList.remove('drag-over');
+
+            if (e.dataTransfer.getData("data-type") === 'int-wrap') {
+                const draggedId = e.dataTransfer.getData("text/plain");
+                
+                if (e.target.id === 'c-num1-spot' && e.target.dataset.fixed !== 'true') {
+                    e.target.innerHTML = 'int(num1)';
+                    e.target.dataset.fixed = 'true';
+                    document.getElementById(draggedId).style.display = 'none';
+                    fixedSpots++;
+                    checkConversionFix();
+                } else if (e.target.id === 'c-num2-spot' && e.target.dataset.fixed !== 'true') {
+                    e.target.innerHTML = 'int(num2)';
+                    e.target.dataset.fixed = 'true';
+                    document.getElementById(draggedId).style.display = 'none';
+                    fixedSpots++;
+                    checkConversionFix();
+                } else if (e.target.id === 'conversion-code') {
+                    conversionStatus.textContent = 'Drop the int() onto the variable names (num1 or num2).';
+                    conversionStatus.classList.add('text-red-700');
+                }
+            } else if (e.target.id === 'division-operator' && e.dataTransfer.getData("data-type") === 'slash') {
+                // Division trap logic handled above.
+            }
+        });
+
+
+        // --- PART 2: FULL CALCULATOR CHALLENGE ---
+        const operatorVisuals = {
+            '+': { text: 'Joining Clamp', icon: '➕' },
+            '-': { text: 'Chisel', icon: '✂️' },
+            '*': { text: 'Cloning Machine', icon: '👯' },
+            '/': { text: 'Laser Cutter', icon: '🔪' },
+            '//': { text: 'Slicer', icon: '📐' },
+            '%': { text: 'Scrap Collector', icon: '🗑️' },
+            '**': { text: 'Stacking Crane', icon: '🏗️' }
+        };
+
+        function runFullCalculatorChallenge() {
+            const operator = document.getElementById('operator-select').value;
+            const num1 = parseFloat(document.getElementById('num1-input').value);
+            const num2 = parseFloat(document.getElementById('num2-input').value);
+            const resultElement = document.getElementById('calculator-result');
+            const visualElement = document.getElementById('calculator-operator-visual');
+
+            let result;
+            let visual = operatorVisuals[operator];
+
+            // Perform the calculation safely
+            if (num2 === 0 && (operator === '/' || operator === '//' || operator === '%')) {
+                result = 'Zero Division Error';
+            } else {
+                try {
+                    // Using eval for dynamic operator handling
+                    const expression = `${num1} ${operator} ${num2}`;
+                    result = eval(expression);
+                    
+                    if (operator === '//') {
+                        result = Math.floor(result); // Ensure correct floor division behavior
+                    }
+                    if (operator === '%') {
+                        result = num1 % num2;
+                    }
+                } catch (e) {
+                    result = 'Error';
+                }
+            }
+            
+            resultElement.textContent = result;
+            visualElement.innerHTML = `${visual.icon} ${visual.text} Used`;
+            visualElement.classList.remove('text-emerald-500', 'text-red-500');
+            visualElement.classList.add(result === 'Zero Division Error' || result === 'Error' ? 'text-red-500' : 'text-emerald-500');
+        }
+        
+        // Initial setup for the power challenge
+        document.addEventListener('DOMContentLoaded', () => {
+            updatePowerDisplay();
         });
 
     </script>
