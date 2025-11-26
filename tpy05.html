@@ -3,463 +3,520 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python Math: The Robot Chef's Kitchen 🧑‍🍳</title>
+    <title>Python Math: Arithmetic Operators 📐</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* Base Styles */
+        /* Custom Font */
         body { font-family: 'Inter', sans-serif; }
-        .keyword { color: #f472b6; /* Pink-400 */ }
-        .string { color: #facc15; /* Yellow-400 */ }
-        .number { color: #34d399; /* Emerald-400 */ }
 
-        /* General Animation */
-        @keyframes fade-in { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
-        
-        /* Simulation Visual Styles */
-        .ingredient-block {
-            width: 50px;
-            height: 50px;
-            border-radius: 6px;
+        /* Factory Machine Styling */
+        .machine {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            height: 120px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .machine:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        .machine-icon {
+            font-size: 2rem;
+            line-height: 1;
+        }
+        .operator {
+            font-family: monospace;
             font-weight: bold;
-            color: #1f2937;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-            transition: all 0.5s ease-in-out;
+            font-size: 1.25rem;
         }
 
-        /* Oven Animation (** - Step 3) */
-        @keyframes oven-flash {
-            0%, 100% { background-color: #fca5a5; } /* Red-300 */
-            50% { background-color: #f87171; } /* Red-400 */
-        }
-        .oven-flash { animation: oven-flash 0.5s infinite alternate; }
-        .power-block { background-color: #ef4444; color: white; } /* Red-500 */
-
-        /* Picky Eater Animation (% - Step 4) */
-        @keyframes scrap-glow {
-            0%, 100% { border-color: #f59e0b; } /* Amber-500 */
-            50% { border-color: #fcd34d; } /* Amber-300 */
-        }
-        .remainder-bowl { border: 4px solid #f59e0b; animation: scrap-glow 1s infinite; } /* Amber-500 */
-        
-        /* Clean Slicer Animation (// - Trap Fix) */
-        .clean-slicer { background-color: #3b82f6; } /* Blue-500 */
-        .messy-squeezer { background-color: #10b981; } /* Emerald-500 */
-        .slime { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 6px; background: rgba(16, 185, 129, 0.5); /* Semi-transparent Emerald */ pointer-events: none; }
-        
-        /* Drag and Drop */
-        .draggable-slash {
-            cursor: grab;
+        /* Block Styles (Input/Output) */
+        .number-block {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
+            min-width: 40px;
             height: 40px;
-            background-color: #3b82f6; /* Blue-500 */
-            color: white;
-            font-size: 24px;
+            background-color: #34d399; /* Emerald */
+            color: #1f2937; /* Gray-800 */
+            border: 2px solid #059669;
+            border-radius: 6px;
             font-weight: bold;
-            border-radius: 50%;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.1s;
+            font-size: 1rem;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+            transition: all 0.5s;
         }
-        .draggable-slash:active { cursor: grabbing; transform: scale(1.1); }
+        .float-residue {
+            box-shadow: 0 0 15px 5px rgba(59, 130, 246, 0.7); /* Blue Glow */
+            border-color: #3b82f6;
+            background-color: #93c5fd;
+        }
+        .remainder-piece {
+            background-color: #fca5a5; /* Red-300 */
+            border-color: #ef4444;
+        }
 
-        #slash-target {
-            border: 2px dashed #f87171;
-            padding: 2px;
-            margin: 0 4px;
+        /* Simulation Tracing */
+        .trace-line {
+            transition: background-color 0.3s;
+        }
+        .active-trace {
+            background-color: #fffbeb !important;
+        }
+        .sound-effect {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -100%);
+            padding: 0.25rem 0.5rem;
+            background-color: #fcd34d;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            opacity: 0;
+            animation: popUpFade 1.5s ease-out forwards;
+        }
+        @keyframes popUpFade {
+            0% { opacity: 1; transform: translate(-50%, -100%); }
+            100% { opacity: 0; transform: translate(-50%, -150%); }
+        }
+
+        /* Trap Fix Drag and Drop */
+        .slash-icon {
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: grab;
+            background-color: #fef08a;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            border: 1px solid #fde047;
+            display: inline-block;
+            transition: all 0.1s;
+        }
+        .drop-target {
+            padding: 0 0.25rem;
+            border: 2px dashed #f472b6;
             min-width: 10px;
+            display: inline-block;
+            border-radius: 3px;
         }
-
-        /* Confetti */
-        @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
-        .confetti { position: fixed; width: 10px; height: 10px; background-color: #60a5fa; z-index: 100; animation: confetti-fall 3s ease-out forwards; pointer-events: none; }
-
+        .shake {
+            animation: shake 0.5s;
+        }
     </style>
 </head>
-<body class="bg-slate-50 p-8">
-
-    <div id="confetti-container"></div>
+<body class="bg-slate-50 text-slate-700 p-8">
 
     <header class="max-w-6xl mx-auto mb-12">
-        <div class="p-6 bg-red-600 text-white rounded-xl shadow-lg flex items-center">
-            <span class="text-5xl mr-4">🧑‍🍳🪝</span>
-            <div>
-                <h1 class="text-3xl font-extrabold">The Robot Chef's Kitchen: Arithmetic Operators</h1>
-                <p class="text-red-200">Our math tools for slicing, mixing, and stacking numbers!</p>
+        <div class="p-6 bg-purple-700 text-white rounded-xl shadow-lg">
+            <h1 class="text-3xl font-extrabold">📐 Python Math: Arithmetic Operators</h1>
+            <p class="text-purple-200">Blueprint 4: The Math Processor Factory ⚙️</p>
+        </div>
+        
+        <div class="mt-4 relative">
+            <div class="absolute w-20 h-20 -top-4 rounded-full border-4 border-white shadow-xl bg-purple-100 p-1 z-10 flex items-center justify-center text-4xl">
+                 🤖
+            </div>
+            <div class="ml-24 p-4 bg-white rounded-2xl shadow-md border-2 border-purple-300 transition-all duration-300">
+                <p class="font-semibold text-purple-800">
+                    "Welcome to the Math Factory! We use powerful machines, called Operators ($+, -, *, /, //, \%, **$), to transform raw number blocks into calculated results. Watch how each machine performs a unique mathematical job!"
+                </p>
             </div>
         </div>
     </header>
 
-    <section id="hook" class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg p-6 border-t-4 border-red-500 animate-fade-in">
-        <h2 class="text-2xl font-bold mb-4 text-red-600">1. 🧰 The Kitchen Tools: Arithmetic Operators</h2>
-        <p class="mb-4">Arithmetic Operators are the **Robot Chef's specialized cooking tools** ($+, -, *, /, //, \%, **$) that process ingredient blocks (numbers) to create a final dish.</p>
+    ---
+
+    <section id="hook" class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-purple-300 p-6">
+        <h2 class="text-2xl font-bold mb-6 text-purple-700">1. 🪝 The Hook: Specialized Factory Machines</h2>
+        <p class="mb-6">Arithmetic Operators are specialized machines in the Math Processor Factory. They take number blocks as input and transform them into a new result block.</p>
         
-        <div class="grid grid-cols-4 gap-4 text-sm text-slate-800">
-            <div class="p-3 bg-red-100 rounded-lg shadow-md border-l-4 border-red-400">
-                <p class="font-bold text-lg text-red-700">** (Stacking Oven)</p>
-                <p>Bakes the base number repeatedly, multiplying it by itself (Exponentiation).</p>
+        <div class="grid grid-cols-3 gap-6">
+            <div class="machine bg-green-100 border-2 border-green-300">
+                <span class="machine-icon">➕</span>
+                <p class="operator text-green-700 font-bold">+ (Addition)</p>
+                <p class="text-xs text-center text-green-800">The Fusion Press: Combines blocks.</p>
             </div>
-            <div class="p-3 bg-blue-100 rounded-lg shadow-md border-l-4 border-blue-400">
-                <p class="font-bold text-lg text-blue-700">// (Clean Slicer)</p>
-                <p>Splits the block and **throws away the decimal remainder** (Floor Division).</p>
+            <div class="machine bg-red-100 border-2 border-red-300">
+                <span class="machine-icon">➖</span>
+                <p class="operator text-red-700 font-bold">- (Subtraction)</p>
+                <p class="text-xs text-center text-red-800">The Abrasive Cutter: Removes an amount.</p>
             </div>
-            <div class="p-3 bg-yellow-100 rounded-lg shadow-md border-l-4 border-yellow-400">
-                <p class="font-bold text-lg text-yellow-700">% (Picky Eater)</p>
-                <p>Splits the block but **ONLY keeps the tiny leftover scrap** (Modulo/Remainder).</p>
+            <div class="machine bg-yellow-100 border-2 border-yellow-300">
+                <span class="machine-icon">✖️</span>
+                <p class="operator text-yellow-700 font-bold">* (Multiplication)</p>
+                <p class="text-xs text-center text-yellow-800">The Replication Stamper: Stamps out duplicates.</p>
             </div>
-            <div class="p-3 bg-green-100 rounded-lg shadow-md border-l-4 border-green-400">
-                <p class="font-bold text-lg text-green-700">/ (Messy Squeezer)</p>
-                <p>Creates equal parts but leaves a **juicy decimal mess** (Standard Division/Float).</p>
+            <div class="machine bg-blue-100 border-2 border-blue-300">
+                <span class="machine-icon">➗</span>
+                <p class="operator text-blue-700 font-bold">/ (Division)</p>
+                <p class="text-xs text-center text-blue-800">The Fluid Dispenser: Splits blocks into decimal parts (float).</p>
             </div>
-        </div>
-
-        <blockquote class="mt-6 p-3 bg-red-50 border-l-4 border-red-500 text-red-700">
-            <p class="font-semibold">Mascot Speech: "Chef Bot needs your help! He can't cook without these math tools. Every single ingredient block must be processed perfectly. Grab your apron—it's time to cook with code!"</p>
-        </blockquote>
-    </section>
-
-    <hr class="max-w-6xl mx-auto my-8">
-
-    <section id="simulation-card" class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg p-6 border-t-4 border-red-500">
-        <h2 class="text-2xl font-bold mb-4 text-red-600">2. ⚙️ The Simulation: Stacking and Scrapping!</h2>
-        <p class="mb-4">Watch as Chef Bot uses the trickiest operators: **Exponentiation and % Modulo.</p>
-
-        <div class="flex gap-6">
-            <div class="w-1/3">
-                <div class="bg-slate-800 text-blue-300 font-mono rounded-lg p-4 shadow-xl mb-4 text-sm">
-                    <div id="sim-line-1" class="py-1">
-                        <span class="number">1</span> <span class="keyword">A</span> = 2
-                    </div>
-                    <div id="sim-line-2" class="py-1">
-                        <span class="number">2</span> <span class="keyword">B</span> = 3
-                    </div>
-                    <div id="sim-line-3" class="py-1">
-                        <span class="number">3</span> <span class="keyword">Power</span> = <span class="keyword">A</span> <span class="keyword">**</span> <span class="keyword">B</span>
-                    </div>
-                    <div id="sim-line-4" class="py-1">
-                        <span class="number">4</span> <span class="keyword">Remainder</span> = <span class="keyword">A</span> <span class="keyword">%</span> <span class="keyword">B</span>
-                    </div>
-                    <div id="sim-line-5" class="py-1">
-                        <span class="number">5</span> <span class="keyword">Clean_Cut</span> = 7 <span class="keyword">//</span> 2
-                    </div>
-                </div>
-                <button id="start-sim" onclick="runSimulation()" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150 w-full">
-                    🎬 Start Kitchen Process
-                </button>
+            <div class="machine bg-orange-100 border-2 border-orange-300">
+                <span class="machine-icon">✂️</span>
+                <p class="operator text-orange-700 font-bold">// (Floor Division)</p>
+                <p class="text-xs text-center text-orange-800">The Whole Number Splitter: Splits into whole pieces (discards remainder).</p>
             </div>
-
-            <div class="w-2/3 bg-red-50 p-4 rounded-lg border-2 border-red-300 relative overflow-hidden">
-                <h3 class="font-bold text-red-700 mb-2">Live Kitchen Counter:</h3>
-                <div id="visual-counter" class="flex items-center justify-between h-24">
-                    <div id="ingred-A" class="ingredient-block bg-yellow-400 text-xl">A=2</div>
-                    <div id="ingred-B" class="ingredient-block bg-yellow-400 text-xl">B=3</div>
-                    <div id="ingred-Power" class="ingredient-block power-block bg-gray-200 text-xl text-slate-800">Power</div>
-                    <div id="ingred-Remainder" class="ingredient-block remainder-bowl bg-gray-200 text-xl text-slate-800">Rem</div>
-                    <div id="ingred-Clean" class="ingredient-block clean-slicer bg-gray-200 text-xl text-slate-800">Cut</div>
-                </div>
-                <div id="action-message" class="text-center font-bold text-xl mt-4 min-h-[30px]"></div>
+            <div class="machine bg-pink-100 border-2 border-pink-300">
+                <span class="machine-icon">📦</span>
+                <p class="operator text-pink-700 font-bold">% (Modulo)</p>
+                <p class="text-xs text-center text-pink-800">The Remainder Isolator: Captures the small leftover piece.</p>
+            </div>
+            <div class="machine bg-purple-100 border-2 border-purple-300 col-span-3 w-1/3 mx-auto">
+                <span class="machine-icon">🚀</span>
+                <p class="operator text-purple-700 font-bold">** (Exponentiation)</p>
+                <p class="text-xs text-center text-purple-800">The Power Stack: Rapidly stacks the base, multiplying it by itself.</p>
             </div>
         </div>
     </section>
 
-    <hr class="max-w-6xl mx-auto my-8">
+    ---
 
-    <section id="trap-card" class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg p-6 border-t-4 border-red-500">
-        <h2 class="text-2xl font-bold mb-4 text-red-600">3. 🚩 The Trap: Messy vs. Clean Division</h2>
-        <p class="mb-4">Standard Division (`/`) creates a **float** (a number with a decimal mess). To get a clean integer result, you need **Floor Division** (`//`).</p>
-
-        <div class="grid grid-cols-2 gap-6">
-            <div class="bg-green-50 p-4 rounded-xl border-4 border-green-400 shadow-md relative overflow-hidden">
-                <h3 class="text-xl font-bold text-green-700 mb-3">❌ The Trap (Messy Squeezer)</h3>
-                <div class="bg-slate-800 text-blue-300 font-mono rounded-lg p-3 mb-4">
-                    <span class="keyword">clean_result</span> = 10 <span id="trap-slash">/</span> 3
-                </div>
-                <div id="trap-visual" class="flex items-center justify-center p-4">
-                    <div class="ingredient-block messy-squeezer w-32 h-16 relative">
-                        <div class="text-xl text-white font-bold z-10">3.333...</div>
-                        <div class="slime absolute inset-0 rounded-lg"></div>
-                    </div>
-                </div>
-                <p id="trap-message" class="text-green-700 text-center font-semibold mt-3">Ugh, a float mess! Mascot groans, "This kitchen is dirty!"</p>
-            </div>
-
-            <div id="fix-container" class="bg-blue-50 p-4 rounded-xl border-4 border-blue-400 shadow-md">
-                <h3 class="text-xl font-bold text-blue-700 mb-3">✅ The Fix (Interactive: Clean Slicer)</h3>
-                <div class="bg-slate-800 text-blue-300 font-mono rounded-lg p-3 mb-4 relative flex items-center">
-                    <span class="keyword">clean_result</span> = 10 <span id="slash-target" class="mx-1.5 p-1 rounded-sm">/</span> 3
-                </div>
-                
-                <p class="text-center font-semibold mb-3">Drag the missing slash icon into the highlighted area to perform **Clean Slicer** (Floor) Division!</p>
-                <div id="drag-source" class="flex justify-center p-3 bg-white rounded-lg border-2 border-gray-300">
-                    <div id="extra-slash" class="draggable-slash" draggable="true" data-value="/">/</div>
-                </div>
-
-                <div id="fix-visual" class="flex items-center justify-center p-4 mt-3">
-                    <div id="fix-result-block" class="ingredient-block bg-gray-200 w-32 h-16">
-                        <div class="text-xl text-slate-800 font-bold"></div>
-                    </div>
-                </div>
-                <div id="fix-message" class="text-blue-700 text-center font-semibold mt-3">Waiting for a clean cut...</div>
-            </div>
-        </div>
-    </section>
-
-    <hr class="max-w-6xl mx-auto my-8">
-
-    <section id="playground-card" class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg p-6 border-t-4 border-red-500">
-        <h2 class="text-2xl font-bold mb-4 text-red-600">4. 🎮 The Playground: Stacking Oven Mission!</h2>
-        <p class="mb-4">Chef Bot needs to create a huge stack of ingredients using the **Stacking Oven** (`**`). Write the code to reach the <span class="font-bold text-red-600">TARGET BLOCK SIZE</span>.</p>
+    <section id="simulation" class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-purple-300 p-6">
+        <h2 class="text-2xl font-bold mb-4 text-purple-700">2. 🧠 The Simulation: Tracing Factory Production ($A=2, B=3$)</h2>
+        <p class="mb-4">Watch the raw number blocks $A=2$ and $B=3$ get processed by the Power Stack (**) and the Remainder Isolator (%).</p>
 
         <div class="flex gap-6">
             <div class="w-1/2">
-                <div class="p-4 bg-yellow-100 rounded-lg border-2 border-yellow-400 mb-4">
-                    <p class="font-bold text-yellow-800 mb-2">MISSION TARGET:</p>
-                    <div id="target-display" class="ingredient-block bg-red-600 text-white w-20 h-20 text-3xl mx-auto">125</div>
-                    <p class="text-center mt-2 font-semibold text-sm">Ingredients available: **5** block and **3** block.</p>
-                </div>
-
-                <p class="font-bold mb-2">Write Your Code Here (Use `**` to stack):</p>
-                <div class="bg-slate-800 text-white font-mono rounded-lg p-3">
-                    <input type="text" id="code-input" value="5 ** 3" class="w-full bg-slate-700 p-1 border border-slate-600 rounded" placeholder="e.g., base ** exponent">
-                </div>
-                
-                <button id="run-playground" onclick="runPlaygroundChallenge()" class="mt-4 bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition duration-150 w-full">
-                    🔥 Fire Up the Stacking Oven!
+                <p class="font-bold mb-2">Production Trace Log:</p>
+                <table class="w-full text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-purple-600 text-white">
+                            <th class="p-2 border border-purple-700">#</th>
+                            <th class="p-2 border border-purple-700">Line of Code</th>
+                            <th class="p-2 border border-purple-700">A</th>
+                            <th class="p-2 border border-purple-700">B</th>
+                            <th class="p-2 border border-purple-700">Power</th>
+                            <th class="p-2 border border-purple-700">Remainder</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trace-table-2">
+                        </tbody>
+                </table>
+                <button id="start-trace" onclick="runTraceSimulation()" class="mt-4 bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-150 w-full">
+                    ▶️ Start Trace
                 </button>
             </div>
 
-            <div class="w-1/2 bg-red-50 p-4 rounded-lg border-2 border-red-300 flex flex-col justify-between">
-                <div>
-                    <h3 class="font-bold text-red-700 mb-2">Stacking Oven Result:</h3>
-                    <div id="oven-visual" class="flex items-center justify-center h-40 relative">
-                        <div id="oven-graphic" class="text-9xl text-slate-400">🔥</div>
-                        <div id="result-block" class="ingredient-block bg-gray-300 text-xl absolute opacity-0">...</div>
+            <div class="w-1/2">
+                <p class="font-bold mb-2">Factory Process Visualization:</p>
+                <div id="factory-visual" class="relative bg-slate-100 border-4 border-slate-300 rounded-lg p-4 min-h-[250px] flex flex-col justify-around">
+                    <div id="trace-output-area" class="flex justify-around items-center h-full">
+                        <div id="block-a" class="number-block bg-purple-300">A=2</div>
+                        <div id="block-b" class="number-block bg-purple-300">B=3</div>
+                    </div>
+                    
+                    <div id="power-machine" class="absolute top-1/2 left-1/4 transform -translate-y-1/2 machine bg-purple-100 opacity-0 transition-opacity duration-500">
+                        <span class="machine-icon">🚀</span>
+                        <p class="operator text-purple-700">**</p>
+                    </div>
+                    
+                    <div id="remainder-machine" class="absolute top-1/2 right-1/4 transform -translate-y-1/2 machine bg-pink-100 opacity-0 transition-opacity duration-500">
+                        <span class="machine-icon">📦</span>
+                        <p class="operator text-pink-700">%</p>
+                    </div>
+                    
+                    <div id="result-power" class="absolute top-1/4 left-1/4 opacity-0"></div>
+                    <div id="result-remainder" class="absolute top-1/4 right-1/4 opacity-0"></div>
+                    <div id="sound-log" class="absolute top-0 left-0 right-0 h-10"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    ---
+
+    <section id="trap" class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-purple-300 p-6">
+        <h2 class="text-2xl font-bold mb-4 text-purple-700">3. 🚩 The Trap: Fluid vs. Whole ( / vs. // )</h2>
+        <p class="mb-4">The common trap is confusing standard division (/) with floor division (//). Drag the missing slash ($/$) to the correct position to fix the code and use the Whole Number Splitter!</p>
+
+        <div class="grid grid-cols-2 gap-8">
+            <div>
+                <h3 class="text-xl font-bold text-red-700 mb-3">❌ The Trap (Messy Division)</h3>
+                <div class="bg-red-50 p-4 rounded-lg border-4 border-red-400">
+                    <p class="font-mono mb-3">clean_result = 10 / 3</p>
+                    <div class="flex items-center justify-center gap-4 relative">
+                        <div class="machine bg-blue-100 border-2 border-blue-300 w-24">
+                            <span class="machine-icon">➗</span>
+                            <p class="operator text-blue-700">/</p>
+                        </div>
+                        <div id="trap-result-block" class="number-block float-residue bg-blue-300 w-32 h-12 text-lg">3.33...</div>
+                        <p class="absolute -bottom-6 text-sm text-red-700 font-semibold">Factory Alert! Float data detected!</p>
                     </div>
                 </div>
-                <div id="playground-feedback" class="text-center font-bold mt-4 min-h-[30px]"></div>
+            </div>
+            
+            <div id="fix-container" class="bg-green-50 p-4 rounded-lg border-4 border-green-400">
+                <h3 class="text-xl font-bold text-green-700 mb-3">✅ Fix the Splitter! (10 /<span id="drop-target" class="drop-target"></span> 3)</h3>
+                <div class="font-mono mb-3 text-lg">clean_result = 10 /<span id="slash-drop-area" class="drop-target"></span> 3</div>
+                
+                <div class="flex items-center justify-center gap-4 mt-6">
+                    <div id="fix-machine" class="machine bg-blue-100 border-2 border-blue-300 w-24 transition-colors duration-500">
+                        <span class="machine-icon" id="fix-machine-icon">➗</span>
+                        <p class="operator text-blue-700" id="fix-machine-operator">/</p>
+                    </div>
+                    <div id="fix-result-block" class="number-block bg-blue-300 w-32 h-12 text-lg">3.33...</div>
+                </div>
+
+                <div class="flex justify-center mt-6">
+                    <span id="slash-drag-icon" class="slash-icon text-yellow-800" draggable="true" ondragstart="dragSlash(event)">/</span>
+                </div>
+                
+                <div id="fix-message" class="text-green-700 text-center font-semibold mt-3">Drag the slash into the dashed box to complete the operator!</div>
+            </div>
+        </div>
+    </section>
+
+    ---
+
+    <section id="playground" class="max-w-6xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-purple-300 p-6">
+        <h2 class="text-2xl font-bold mb-4 text-purple-700">4. 🎮 The Playground: Power Stack Mission!</h2>
+        <p class="mb-4 font-bold text-purple-800">MISSION: The warehouse needs a Block <span id="target-number-display" class="text-3xl font-extrabold text-red-600">125</span>! Use the Power Stack machine (**) to reach the target!</p>
+        
+        <div class="grid grid-cols-3 gap-6 items-start">
+            <div class="bg-slate-100 p-4 rounded-lg">
+                <p class="font-bold mb-2">Available Blocks:</p>
+                <div class="flex flex-wrap gap-2">
+                    <div class="number-block">5 (Base)</div>
+                    <div class="number-block">3 (Exponent)</div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 text-green-400 p-4 rounded-lg font-mono">
+                <p class="text-white font-bold mb-2">Code Input (Enter $A**B$):</p>
+                <input type="text" id="code-input" class="bg-slate-900 border border-slate-700 text-green-400 p-2 rounded w-full" placeholder="e.g., 5 ** 3">
+                <button id="run-mission" onclick="runMission()" class="mt-3 bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-150 w-full">
+                    🚀 Run Power Stack!
+                </button>
+            </div>
+
+            <div class="bg-purple-50 p-4 rounded-lg border-2 border-purple-300 relative min-h-[150px]">
+                <p class="font-bold text-purple-700 mb-2">Factory Output:</p>
+                <div id="mission-machine-anim" class="flex justify-center items-center h-full">
+                    <div id="mission-result" class="number-block opacity-0">...</div>
+                </div>
+                <div id="mission-message" class="text-center font-bold mt-2">Awaiting Code...</div>
             </div>
         </div>
     </section>
 
     <script>
-        // --- Global Helpers ---
         const delay = ms => new Promise(r => setTimeout(r, ms));
-        const colorPrimary = 'red-600';
 
-        function createConfetti() {
-            const container = document.getElementById('confetti-container');
-            for (let i = 0; i < 50; i++) {
-                const confetti = document.createElement('div');
-                confetti.classList.add('confetti');
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.backgroundColor = ['#f472b6', '#3b82f6', '#facc15', '#ef4444'][Math.floor(Math.random() * 4)];
-                confetti.style.animationDelay = Math.random() * 0.8 + 's';
-                confetti.style.transform = `translateY(-100vh) rotate(${Math.random() * 360}deg)`;
-                container.appendChild(confetti);
+        // --- Section 2: Trace Simulation Logic ---
+        const traceData = [
+            { step: 1, line: 'A=2, B=3', A: 2, B: 3, Power: '', Remainder: '', action: 'Initialize blocks' },
+            { step: 2, line: 'Power = A ** B', A: 2, B: 3, Power: 8, Remainder: '', action: 'Power Stack machine activates! SOUND: WHRRR-TZZZ! The 2 block is stacked 3 times into a finalized 8 block.' },
+            { step: 3, line: 'Remainder = A % B', A: 2, B: 3, Power: 8, Remainder: 2, action: 'Remainder Isolator processes 2 / 3. The 2 block is returned as the final leftover piece. TINK.' },
+            { step: 4, line: 'Clean_Cut = 7 // 2', A: 2, B: 3, Power: 8, Remainder: 2, action: 'Block 7 enters the Whole Number Splitter (//). Result 3 appears. Scrap flies out.' }
+        ];
+
+        const traceTableBody = document.getElementById('trace-table-2');
+        const factoryVisual = document.getElementById('factory-visual');
+        const blockA = document.getElementById('block-a');
+        const blockB = document.getElementById('block-b');
+        const powerMachine = document.getElementById('power-machine');
+        const remainderMachine = document.getElementById('remainder-machine');
+        const resultPower = document.getElementById('result-power');
+        const resultRemainder = document.getElementById('result-remainder');
+        const soundLog = document.getElementById('sound-log');
+        let currentTraceStep = 0;
+
+        function updateTraceTable(data) {
+            traceTableBody.innerHTML = '';
+            data.forEach((row, index) => {
+                const tr = traceTableBody.insertRow();
+                tr.classList.add('bg-white', 'hover:bg-purple-50', 'trace-line');
+                tr.id = `trace-row-${index}`;
+                tr.innerHTML = `
+                    <td class="p-2 border">${row.step}</td>
+                    <td class="p-2 border font-mono">${row.line}</td>
+                    <td class="p-2 border">${row.A}</td>
+                    <td class="p-2 border">${row.B}</td>
+                    <td class="p-2 border">${row.Power}</td>
+                    <td class="p-2 border">${row.Remainder}</td>
+                `;
+            });
+        }
+
+        async function runTraceSimulation() {
+            document.getElementById('start-trace').disabled = true;
+            updateTraceTable(traceData.map(d => ({...d, Power: '', Remainder: ''})));
+            
+            // Reset visual elements
+            powerMachine.style.opacity = '0';
+            remainderMachine.style.opacity = '0';
+            blockA.textContent = 'A=2';
+            blockB.textContent = 'B=3';
+            blockA.classList.remove('remainder-piece');
+            resultPower.style.opacity = '0';
+            resultRemainder.style.opacity = '0';
+            resultPower.innerHTML = '';
+            resultRemainder.innerHTML = '';
+
+            await delay(500);
+
+            for (let i = 0; i < traceData.length; i++) {
+                const row = traceData[i];
+                const traceRow = document.getElementById(`trace-row-${i}`);
+                if (traceRow) {
+                    document.querySelectorAll('.trace-line').forEach(r => r.classList.remove('active-trace'));
+                    traceRow.classList.add('active-trace');
+                }
                 
-                setTimeout(() => { confetti.remove(); }, 3000);
+                // Show action
+                soundLog.innerHTML = `<span class="sound-effect">${row.action.split(':')[0]}</span>`;
+                
+                if (i === 1) { // Power Stack
+                    powerMachine.style.opacity = '1';
+                    await delay(1000);
+                    resultPower.innerHTML = `<div class="number-block bg-purple-400">8</div>`;
+                    resultPower.style.opacity = '1';
+                    soundLog.innerHTML = `<span class="sound-effect">WHHH-TZZZ! PROCESS COMPLETE!</span>`;
+                    updateTraceTable(traceData.slice(0, 2));
+                    document.getElementById(`trace-row-1`).classList.add('active-trace');
+                } else if (i === 2) { // Remainder Isolator
+                    powerMachine.style.opacity = '0';
+                    remainderMachine.style.opacity = '1';
+                    await delay(1000);
+                    blockA.classList.add('remainder-piece');
+                    blockA.textContent = '2'; // Block A is the remainder
+                    resultRemainder.innerHTML = `<div class="number-block remainder-piece">2</div>`;
+                    resultRemainder.style.opacity = '1';
+                    soundLog.innerHTML = `<span class="sound-effect">Remainder Ejected. TINK.</span>`;
+                    updateTraceTable(traceData.slice(0, 3));
+                    document.getElementById(`trace-row-2`).classList.add('active-trace');
+                } else if (i === 3) { // Floor Division (Visual only for analogy)
+                    remainderMachine.style.opacity = '0';
+                    soundLog.innerHTML = `<span class="sound-effect">Whole Number Splitter: Result 3, Scrap Flies Out.</span>`;
+                    // Update trace table to final state
+                    updateTraceTable(traceData);
+                    document.getElementById(`trace-row-3`).classList.add('active-trace');
+                }
+
+                await delay(1500);
             }
+            
+            soundLog.innerHTML = '';
+            document.getElementById('start-trace').disabled = false;
         }
         
-        function clearHighlights() {
-            document.querySelectorAll('#simulation-card .py-1').forEach(line => line.classList.remove('bg-yellow-200', 'bg-opacity-20'));
-        }
-
-        // --- Section 2: Simulation Logic ---
-        const simLines = [
-            document.getElementById('sim-line-1'),
-            document.getElementById('sim-line-2'),
-            document.getElementById('sim-line-3'),
-            document.getElementById('sim-line-4'),
-            document.getElementById('sim-line-5')
-        ];
-        const ingredA = document.getElementById('ingred-A');
-        const ingredB = document.getElementById('ingred-B');
-        const ingredPower = document.getElementById('ingred-Power');
-        const ingredRemainder = document.getElementById('ingred-Remainder');
-        const ingredClean = document.getElementById('ingred-Clean');
-        const actionMessage = document.getElementById('action-message');
-
-        async function runSimulation() {
-            document.getElementById('start-sim').disabled = true;
-            
-            // Reset state
-            clearHighlights();
-            ingredPower.textContent = "Power";
-            ingredRemainder.textContent = "Rem";
-            ingredClean.textContent = "Cut";
-            ingredPower.classList.remove('power-block', 'animate-fade-in');
-            ingredRemainder.classList.remove('remainder-bowl', 'animate-fade-in');
-            ingredClean.classList.remove('clean-slicer', 'animate-fade-in');
-            actionMessage.textContent = "";
-
-            // Step 1 & 2: A=2, B=3 (Prep)
-            simLines[0].classList.add('bg-yellow-200', 'bg-opacity-20');
-            simLines[1].classList.add('bg-yellow-200', 'bg-opacity-20');
-            actionMessage.textContent = "Two ingredient blocks (2 and 3) slide onto the counter.";
-            await delay(1500);
-            clearHighlights();
-
-            // Step 3: Power = A ** B
-            simLines[2].classList.add('bg-yellow-200', 'bg-opacity-20');
-            actionMessage.innerHTML = 'Stacking Oven heats up! 🔊 SOUND: "TADAAA!"';
-            ingredPower.classList.add('oven-flash');
-            await delay(1000);
-            
-            ingredPower.classList.remove('oven-flash');
-            ingredPower.textContent = "8";
-            ingredPower.classList.add('power-block', 'animate-fade-in');
-            actionMessage.textContent = 'Result: 2 ** 3 = 8. A large, hot 8 block slides out.';
-            await delay(2000);
-            clearHighlights();
-
-            // Step 4: Remainder = A % B
-            simLines[3].classList.add('bg-yellow-200', 'bg-opacity-20');
-            actionMessage.textContent = 'Picky Eater tries to divide 2 by 3. The scrap is the whole 2 block.';
-            ingredRemainder.classList.add('remainder-bowl');
-            await delay(1000);
-            
-            ingredRemainder.textContent = "2";
-            ingredRemainder.classList.add('animate-fade-in');
-            actionMessage.textContent = 'Result: 2 % 3 = 2. The tiny leftover scrap (2) is saved.';
-            await delay(2000);
-            clearHighlights();
-            ingredRemainder.classList.remove('remainder-bowl'); // Stop glow after step
-
-            // Step 5: Clean_Cut = 7 // 2
-            simLines[4].classList.add('bg-yellow-200', 'bg-opacity-20');
-            actionMessage.textContent = 'Clean Slicer cuts 7 by 2. The remainder scrap flies into the trash... WHOOSH!';
-            ingredClean.classList.add('clean-slicer');
-            await delay(1000);
-
-            ingredClean.textContent = "3";
-            ingredClean.classList.add('animate-fade-in');
-            actionMessage.textContent = 'Result: 7 // 2 = 3. Only the clean integer cut remains.';
-            await delay(2000);
-            clearHighlights();
-            
-            actionMessage.textContent = 'Simulation Complete!';
-            document.getElementById('start-sim').disabled = false;
-        }
+        updateTraceTable(traceData.map(d => ({...d, Power: '', Remainder: ''})));
 
 
         // --- Section 3: Trap Fix Logic ---
-        const slashTarget = document.getElementById('slash-target');
-        const extraSlash = document.getElementById('extra-slash');
+        const slashDropArea = document.getElementById('slash-drop-area');
+        const slashDragIcon = document.getElementById('slash-drag-icon');
+        const fixMachine = document.getElementById('fix-machine');
+        const fixMachineIcon = document.getElementById('fix-machine-icon');
+        const fixMachineOperator = document.getElementById('fix-machine-operator');
         const fixResultBlock = document.getElementById('fix-result-block');
         const fixMessage = document.getElementById('fix-message');
-        const trapVisual = document.getElementById('trap-visual');
-        
-        extraSlash.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData("text/plain", e.target.getAttribute('data-value'));
+        let slashDropped = false;
+
+        function dragSlash(e) {
+            e.dataTransfer.setData("text/plain", "/");
             e.dataTransfer.effectAllowed = "move";
-        });
+        }
 
-        slashTarget.addEventListener('dragover', (e) => {
+        slashDropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            slashTarget.style.backgroundColor = '#bfdbfe'; // blue-200
+            slashDropArea.style.backgroundColor = '#fef3c7'; // Yellow-100 highlight
         });
 
-        slashTarget.addEventListener('dragleave', (e) => {
-            slashTarget.style.backgroundColor = 'transparent';
+        slashDropArea.addEventListener('dragleave', (e) => {
+            slashDropArea.style.backgroundColor = 'transparent';
         });
 
-        slashTarget.addEventListener('drop', (e) => {
+        slashDropArea.addEventListener('drop', (e) => {
             e.preventDefault();
-            slashTarget.style.backgroundColor = 'transparent';
-            const value = e.dataTransfer.getData("text/plain");
-
-            if (value === '/') {
-                // User dropped the second slash
-                slashTarget.textContent = '//';
-                slashTarget.style.border = '2px solid #3b82f6';
-                slashTarget.style.color = 'white';
-
-                // Update trap code view
-                document.getElementById('trap-slash').textContent = '//';
-
-                // Visual Feedback: Clean Slicer!
-                trapVisual.innerHTML = '';
-                fixResultBlock.classList.remove('bg-gray-200');
-                fixResultBlock.classList.add('clean-slicer');
-                fixResultBlock.querySelector('div').textContent = '3';
+            slashDropArea.style.backgroundColor = 'transparent';
+            if (e.dataTransfer.getData("text/plain") === "/" && !slashDropped) {
+                slashDropped = true;
+                slashDropArea.textContent = '/';
+                slashDragIcon.style.opacity = '0.5';
+                slashDragIcon.draggable = false;
                 
-                // Success Badge
-                fixMessage.innerHTML = '🎉 CLEAN CODE! The Clean Slicer got the crisp **3** block.';
+                // Transition to Floor Division
+                fixMachine.classList.remove('bg-blue-100', 'border-blue-300');
+                fixMachine.classList.add('bg-orange-100', 'border-orange-300');
+                fixMachineOperator.textContent = '//';
+                fixMachineOperator.classList.remove('text-blue-700');
+                fixMachineOperator.classList.add('text-orange-700');
+                fixMachineIcon.textContent = '✂️';
                 
-                extraSlash.style.opacity = '0.3';
-                extraSlash.draggable = false;
+                fixResultBlock.textContent = '3';
+                fixResultBlock.classList.remove('float-residue', 'bg-blue-300');
+                fixResultBlock.classList.add('bg-green-400');
+                
+                fixMessage.innerHTML = "🎉 QUALITY CONTROL PASS! Crisp result block <span class='font-bold'>3</span>!";
+            } else {
+                fixMessage.innerHTML = "Oops! Already fixed or wrong element dropped.";
             }
         });
 
-
         // --- Section 4: Playground Logic ---
-        const targetDisplay = document.getElementById('target-display');
+        const targetNumberDisplay = document.getElementById('target-number-display');
         const codeInput = document.getElementById('code-input');
-        const ovenGraphic = document.getElementById('oven-graphic');
-        const resultBlock = document.getElementById('result-block');
-        const playgroundFeedback = document.getElementById('playground-feedback');
+        const missionResult = document.getElementById('mission-result');
+        const missionMessage = document.getElementById('mission-message');
 
-        function runPlaygroundChallenge() {
-            const code = codeInput.value.trim().replace(/\s/g, ''); // Remove all whitespace
-            const target = 125;
-            let result = null;
+        const target = 125;
+        targetNumberDisplay.textContent = target;
 
-            playgroundFeedback.textContent = '';
-            resultBlock.style.opacity = '0';
-            resultBlock.classList.remove('bg-green-500', 'bg-red-500', 'animate-fade-in');
-            ovenGraphic.classList.remove('oven-flash');
+        async function runMission() {
+            const expression = codeInput.value.trim();
+            missionResult.style.opacity = '0';
+            missionMessage.textContent = 'Processing...';
 
+            let result;
             try {
-                // Simple regex to check for the format 'number**number'
-                if (!/^(\d+)\*\*(\d+)$/.test(code)) {
-                    playgroundFeedback.innerHTML = '❌ Syntax Error! Use the format: <span class="font-mono">base ** exponent</span>.';
-                    throw new Error("Invalid format");
-                }
-
-                // Parse base and exponent from the string (safe way)
-                const parts = code.split('**');
-                const base = parseInt(parts[0]);
-                const exponent = parseInt(parts[1]);
-
-                if (isNaN(base) || isNaN(exponent)) {
-                    throw new Error("Invalid numbers");
-                }
-                
-                result = Math.pow(base, exponent);
-                
-                // Animation
-                ovenGraphic.classList.add('oven-flash');
-                playgroundFeedback.textContent = `Baking ${base} stacked ${exponent} times...`;
-                document.getElementById('run-playground').disabled = true;
-
-                setTimeout(() => {
-                    ovenGraphic.classList.remove('oven-flash');
-                    resultBlock.textContent = result;
-                    resultBlock.style.opacity = '1';
-                    resultBlock.classList.add('animate-fade-in');
-                    document.getElementById('run-playground').disabled = false;
-
-                    if (result === target) {
-                        resultBlock.classList.add('bg-green-500');
-                        playgroundFeedback.innerHTML = '🎉 **MISSION ACCOMPLISHED!** The stack is perfect! (100 Points)';
-                        createConfetti();
-                    } else {
-                        resultBlock.classList.add('bg-red-500');
-                        playgroundFeedback.innerHTML = `❌ FAIL! Result is **${result}**. The stack is too high or too small. Try Again!`;
+                // Safely evaluate the expression (only numbers and ** allowed)
+                if (!/^\s*\d+\s*\*\*\s*\d+\s*$/.test(expression)) {
+                    // Check for wrong operator (like 5 * 3)
+                    if (expression.includes('*') && !expression.includes('**')) {
+                        missionMessage.innerHTML = "❌ Wrong Operator! You used the <span class='font-bold'>Replication Stamper (*)</span>, not the Power Stack (**)!";
+                        return;
                     }
-                }, 2000);
-
-            } catch (error) {
-                if (result === null) {
-                    playgroundFeedback.innerHTML = playgroundFeedback.innerHTML || '❌ Error! Check your syntax and numbers.';
+                    missionMessage.innerHTML = "❌ Invalid Code: Use only numbers and the ** operator (e.g., 5 ** 3).";
+                    return;
                 }
+                
+                // Execute the math using Function constructor (safe for simple arithmetic)
+                result = (new Function('return ' + expression))();
+
+            } catch (e) {
+                missionMessage.textContent = '❌ Code Error! Check your syntax.';
+                return;
+            }
+
+            // Animation
+            await delay(500);
+            missionMessage.textContent = 'Power Stack Running...';
+            missionResult.textContent = expression; // Show the code in the block briefly
+            missionResult.style.opacity = '1';
+            missionResult.classList.add('bg-purple-400', 'speaking');
+            
+            await delay(1000);
+            
+            missionResult.classList.remove('speaking');
+            missionResult.textContent = result;
+            
+            if (result === target) {
+                missionResult.classList.add('bg-yellow-400', 'border-yellow-600', 'font-extrabold');
+                missionMessage.innerHTML = "🎉 PRODUCTION GOAL ACHIEVED! Block <span class='font-bold text-3xl'>" + target + "</span> complete!";
+            } else {
+                missionResult.classList.remove('bg-purple-400');
+                missionResult.classList.add('bg-red-400', 'shake');
+                missionMessage.innerHTML = "❌ Failure! You produced block <span class='font-bold'>" + result + "</span>. We needed " + target + ".";
+                setTimeout(() => missionResult.classList.remove('shake'), 500);
             }
         }
 
