@@ -69,6 +69,29 @@
         .comment { color: #94a3b8; /* Slate-400 */ }
         .string { color: #facc15; /* Yellow-400 */ }
         .number { color: #34d399; /* Emerald-400 */ }
+
+        /* Drag and Drop styles for Challenge 4 */
+        .code-block {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: bold;
+            cursor: grab;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        .code-block:active {
+            cursor: grabbing;
+        }
+        #code-assembly .code-block {
+            cursor: pointer; /* Change to click to remove */
+            margin-bottom: 4px;
+        }
+        /* Style for drag hover hint */
+        #code-assembly.drag-over {
+            border: 2px dashed #60a5fa;
+            background-color: #bfdbfe; /* blue-200 */
+        }
     </style>
 </head>
 <body class="bg-slate-50 font-[Inter] text-slate-700 p-8">
@@ -82,9 +105,9 @@
         </div>
 
         <div class="max-w-4xl mx-auto mt-6 relative">
-            <img src="https://api.dicebear.com/8.x/bottts/svg?seed=Pico&mouth=frown01&eyes=round&baseColor=60a5fa"
-                 alt="Mascot Pico"
-                 class="absolute w-20 h-20 -top-4 rounded-full border-4 border-white shadow-xl bg-blue-100 p-1 z-10">
+            <div class="absolute w-20 h-20 -top-4 rounded-full border-4 border-white shadow-xl bg-blue-100 p-1 z-10 flex items-center justify-center text-4xl">
+                 🤖
+            </div>
 
             <div class="ml-24 p-4 bg-white rounded-2xl shadow-md bubble-tail border-2 border-blue-200 transition-all duration-300 hover:shadow-lg">
                 <p class="font-semibold text-blue-700">
@@ -220,7 +243,7 @@
 
     <section id="challenge-card" class="max-w-4xl mx-auto mb-12 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
         <h2 class="text-2xl font-bold mb-4 text-blue-600">4. 🎮 The Challenge: Build the Output!</h2>
-        <p class="mb-4">The variable <span class="font-bold font-mono">final_score</span> is <span class="font-bold">95</span>. Use the blocks below to print the exact <span class="font-bold">Target Output</span>!</p>
+        <p class="mb-4">The variable <span class="font-bold font-mono">final_score</span> is <span class="font-bold">95</span>. Use the blocks below to print the exact <span class="font-bold">Target Output</span>! Click a block in the assembly area to remove it.</p>
 
         <div class="flex justify-between items-center mb-6 p-3 bg-yellow-100 rounded-lg border border-yellow-400">
             <p class="font-bold text-lg text-yellow-800">🎯 TARGET OUTPUT:</p>
@@ -229,7 +252,7 @@
 
         <div class="flex gap-6">
             <div class="w-2/3">
-                <p class="font-bold mb-2">Assemble Code Here:</p>
+                <p class="font-bold mb-2">Assemble Code Here (Drag and Reorder):</p>
                 <div id="code-assembly" class="min-h-[150px] bg-slate-200 rounded-lg p-3 flex flex-wrap gap-2 items-start" ondrop="dropBlock(event)" ondragover="allowDrop(event)">
                     </div>
                 <button id="run-challenge" onclick="runChallenge()" class="mt-4 bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-150 w-full">
@@ -238,14 +261,15 @@
             </div>
 
             <div class="w-1/3">
-                <p class="font-bold mb-2">Available Blocks:</p>
+                <p class="font-bold mb-2">Available Blocks (Drag):</p>
                 <div id="code-blocks-source" class="flex flex-wrap gap-1 mb-4">
-                    <div class="code-block bg-pink-400 text-white p-2 rounded cursor-grab" draggable="true" data-value="print(" data-type="syntax">print(</div>
-                    <div class="code-block bg-yellow-400 text-slate-800 p-2 rounded cursor-grab" draggable="true" data-value='"The score is "' data-type="string">"The score is "</div>
-                    <div class="code-block bg-gray-400 text-white p-2 rounded cursor-grab" draggable="true" data-value="," data-type="syntax">,</div>
-                    <div class="code-block bg-green-400 text-white p-2 rounded cursor-grab" draggable="true" data-value="final_score" data-type="variable">final_score</div>
-                    <div class="code-block bg-yellow-400 text-slate-800 p-2 rounded cursor-grab" draggable="true" data-value='" points!"' data-type="string">" points!"</div>
-                    <div class="code-block bg-pink-400 text-white p-2 rounded cursor-grab" draggable="true" data-value=")" data-type="syntax">)</div>
+                    <div class="code-block bg-pink-400 text-white p-2 rounded cursor-grab" draggable="true" data-value="print(" data-type="syntax" data-order="1">print(</div>
+                    <div class="code-block bg-yellow-400 text-slate-800 p-2 rounded cursor-grab" draggable="true" data-value='"The score is "' data-type="string" data-order="2">"The score is "</div>
+                    <div class="code-block bg-gray-400 text-white p-2 rounded cursor-grab" draggable="true" data-value="," data-type="syntax" data-order="3">,</div>
+                    <div class="code-block bg-green-400 text-white p-2 rounded cursor-grab" draggable="true" data-value="final_score" data-type="variable" data-order="4">final_score</div>
+                    <div class="code-block bg-gray-400 text-white p-2 rounded cursor-grab" draggable="true" data-value="," data-type="syntax" data-order="5">,</div>
+                    <div class="code-block bg-yellow-400 text-slate-800 p-2 rounded cursor-grab" draggable="true" data-value='" points!"' data-type="string" data-order="6">" points!"</div>
+                    <div class="code-block bg-pink-400 text-white p-2 rounded cursor-grab" draggable="true" data-value=")" data-type="syntax" data-order="7">)</div>
                 </div>
 
                 <p class="font-bold mb-2">Variable in Memory:</p>
@@ -398,6 +422,7 @@
         const quotesFeedback = document.getElementById('quotes-feedback');
         const quoteDragArea = document.getElementById('quote-drag-area');
         const fixMessage = document.getElementById('fix-message');
+        const fixContainer = document.getElementById('fix-container');
         
         let quoteCount = 0;
         let quotesPlaced = { 'start': false, 'end': false };
@@ -442,7 +467,20 @@
 
         function allowDrop(e) {
             e.preventDefault();
+            // Add visual cue for drag-over in challenge 4
+            if (e.currentTarget.id === 'code-assembly') {
+                e.currentTarget.classList.add('drag-over');
+            }
         }
+        
+        function dragLeave(e) {
+            if (e.currentTarget.id === 'code-assembly') {
+                e.currentTarget.classList.remove('drag-over');
+            }
+        }
+        
+        // Add dragleave listeners to challenge assembly area
+        document.getElementById('code-assembly').addEventListener('dragleave', dragLeave);
 
         // --- Stage 4 Challenge Logic ---
         const codeAssembly = document.getElementById('code-assembly');
@@ -453,107 +491,232 @@
         document.querySelectorAll('#code-blocks-source .code-block').forEach(block => {
             block.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData("text/html", e.target.outerHTML);
+                // Use 'copy' effect for source blocks
                 e.dataTransfer.effectAllowed = "copy";
             });
         });
 
+        // Event listener for reordering within the assembly area
+        codeAssembly.addEventListener('dragstart', (e) => {
+            if (e.target.classList.contains('code-block')) {
+                e.dataTransfer.setData("text/plain", e.target.getAttribute('data-value'));
+                e.dataTransfer.setData("text/nodeid", e.target.id); // Set a unique ID for reordering
+                e.dataTransfer.effectAllowed = "move";
+            }
+        });
+
+        // Event listener for dropping and reordering
         function dropBlock(e) {
             e.preventDefault();
-            const data = e.dataTransfer.getData("text/html");
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = data;
-            const block = tempDiv.firstChild;
-            
-            // Make the dropped block draggable and handle removal
-            block.draggable = true;
-            block.classList.add('cursor-move');
-            block.onclick = (event) => {
-                event.target.remove();
-                challengeResult.innerHTML = ''; // Clear result when code changes
-            };
-            
-            // Check for spacing error before dropping
-            const lastBlock = codeAssembly.lastElementChild;
-            if (lastBlock) {
-                const lastValue = lastBlock.getAttribute('data-value');
-                const newValue = block.getAttribute('data-value');
-                
-                // Rule: String/Variable next to another String/Variable requires a comma separator
-                const needsComma = (lastValue.endsWith('"') || lastValue === 'final_score') && (newValue.startsWith('"') || newValue === 'final_score');
-                
-                // Rule: Comma cannot be next to a comma, or at the start/end of print()
-                const isComma = newValue === ',';
-                const isLastComma = lastValue === ',';
+            e.currentTarget.classList.remove('drag-over');
+            challengeResult.innerHTML = ''; // Clear result on block change
 
-                if (needsComma && newValue !== ',') {
-                    challengeResult.innerHTML = "⚠️ Warning: You need a <span class='font-bold'>comma</span> to separate two non-syntax items!";
-                    codeAssembly.classList.add('shake');
-                    setTimeout(() => codeAssembly.classList.remove('shake'), 500);
-                    return;
-                } else if (isComma && (isLastComma || lastValue === 'print(' || newValue === ')')) {
-                     challengeResult.innerHTML = "⚠️ Warning: You cannot place a <span class='font-bold'>comma</span> here!";
+            // 1. Dropping a NEW block (from source)
+            if (e.dataTransfer.types.includes('text/html')) {
+                const data = e.dataTransfer.getData("text/html");
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = data;
+                const block = tempDiv.firstChild;
+                
+                // Assign a unique ID and make it moveable
+                const newId = `block-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                block.id = newId;
+                block.draggable = true;
+                block.classList.add('cursor-move');
+                
+                // Add removal listener
+                block.onclick = (event) => {
+                    event.target.remove();
+                    challengeResult.innerHTML = '';
+                };
+
+                // Add dragover to allow reordering
+                block.addEventListener('dragover', (ev) => {
+                    ev.preventDefault();
+                    ev.dataTransfer.dropEffect = 'move';
+                });
+                
+                // Add drop to handle internal reordering
+                block.addEventListener('drop', (ev) => {
+                    ev.preventDefault();
+                    const draggedId = ev.dataTransfer.getData("text/nodeid");
+                    const draggedNode = document.getElementById(draggedId);
+                    if (draggedNode && draggedNode !== ev.currentTarget) {
+                        ev.currentTarget.parentNode.insertBefore(draggedNode, ev.currentTarget);
+                    }
+                });
+
+                // Insert the new block based on drop position
+                let dropTarget = e.target.closest('.code-block');
+                if (dropTarget && dropTarget.parentNode === codeAssembly) {
+                    dropTarget.parentNode.insertBefore(block, dropTarget);
+                } else {
+                    codeAssembly.appendChild(block);
+                }
+
+                // Temporary block check to trigger warning if necessary
+                checkBlockPlacement(block);
+                return;
+            }
+
+            // 2. Reordering an EXISTING block (from assembly)
+            const draggedId = e.dataTransfer.getData("text/nodeid");
+            const draggedNode = document.getElementById(draggedId);
+            let dropTarget = e.target.closest('.code-block');
+            
+            if (draggedNode && draggedNode !== dropTarget && draggedNode.parentNode === codeAssembly) {
+                if (dropTarget && dropTarget.parentNode === codeAssembly) {
+                    // Reorder before the drop target
+                    dropTarget.parentNode.insertBefore(draggedNode, dropTarget);
+                } else if (e.target === codeAssembly) {
+                    // Reorder at the end of the container
+                    codeAssembly.appendChild(draggedNode);
+                }
+            }
+            
+            // Recheck sequence after reordering
+            checkSequenceForWarnings();
+        }
+
+        // Helper function for checking syntax warnings during drag/drop
+        function checkBlockPlacement(newBlock) {
+             const blocks = Array.from(codeAssembly.children);
+             const blockIndex = blocks.indexOf(newBlock);
+
+             // Only check the new block against its neighbors
+             if (blockIndex > 0) {
+                 const prevBlock = blocks[blockIndex - 1];
+                 const lastValue = prevBlock.getAttribute('data-value');
+                 const newValue = newBlock.getAttribute('data-value');
+                 
+                 // Rule: String/Variable next to another String/Variable requires a comma separator
+                 const isPrevContent = lastValue.endsWith('"') || lastValue === 'final_score';
+                 const isNewContent = newValue.startsWith('"') || newValue === 'final_score';
+                 
+                 if (isPrevContent && isNewContent && newValue !== ',') {
+                     challengeResult.innerHTML = "⚠️ Warning: You need a <span class='font-bold'>comma</span> to separate two content items!";
+                     codeAssembly.classList.add('shake');
+                     setTimeout(() => codeAssembly.classList.remove('shake'), 500);
+                 }
+             }
+
+             if (blockIndex < blocks.length - 1) {
+                 const nextBlock = blocks[blockIndex + 1];
+                 const nextValue = nextBlock.getAttribute('data-value');
+                 const newValue = newBlock.getAttribute('data-value');
+
+                 // Rule: Comma cannot be next to a comma, or at the start/end of print()
+                 const isComma = newValue === ',';
+                 const isNextComma = nextValue === ',';
+
+                 if (isComma && isNextComma) {
+                     challengeResult.innerHTML = "⚠️ Warning: You cannot have two <span class='font-bold'>commas</span> in a row!";
+                     codeAssembly.classList.add('shake');
+                     setTimeout(() => codeAssembly.classList.remove('shake'), 500);
+                 }
+             }
+        }
+        
+        function checkSequenceForWarnings() {
+             const blocks = Array.from(codeAssembly.children);
+             // Basic structure check after reorder
+             if (blocks.length > 0) {
+                const firstBlockValue = blocks[0].getAttribute('data-value');
+                const lastBlockValue = blocks[blocks.length - 1].getAttribute('data-value');
+                
+                if (firstBlockValue !== 'print(') {
+                    challengeResult.innerHTML = "⚠️ Warning: Code must start with <span class='font-bold'>print(</span>";
                     codeAssembly.classList.add('shake');
                     setTimeout(() => codeAssembly.classList.remove('shake'), 500);
                     return;
                 }
-            }
-
-            codeAssembly.appendChild(block);
+                if (lastBlockValue !== ')') {
+                    challengeResult.innerHTML = "⚠️ Warning: Code must end with <span class='font-bold'>)</span>";
+                    codeAssembly.classList.add('shake');
+                    setTimeout(() => codeAssembly.classList.remove('shake'), 500);
+                    return;
+                }
+             }
+             
+             // Check for missing commas between items
+             for (let i = 1; i < blocks.length - 1; i++) {
+                 const prevValue = blocks[i-1].getAttribute('data-value');
+                 const currValue = blocks[i].getAttribute('data-value');
+                 
+                 const isPrevContent = prevValue.endsWith('"') || prevValue === 'final_score';
+                 const isCurrContent = currValue.startsWith('"') || currValue === 'final_score';
+                 
+                 if (isPrevContent && isCurrContent && currValue !== ',') {
+                     challengeResult.innerHTML = "⚠️ Warning: Missing <span class='font-bold'>comma</span> between content!";
+                     codeAssembly.classList.add('shake');
+                     setTimeout(() => codeAssembly.classList.remove('shake'), 500);
+                     return;
+                 }
+             }
+             challengeResult.innerHTML = ''; // Clear warnings if none found
         }
+        
 
         function runChallenge() {
             const blocks = Array.from(codeAssembly.children);
             if (blocks.length === 0) {
                 challengeResult.innerHTML = "Assemble the code blocks first!";
+                challengeResult.classList.add('text-red-600');
                 return;
             }
 
             let codeString = blocks.map(b => b.getAttribute('data-value')).join('');
             
-            // Simple parsing to mimic Python output
+            // Check essential syntax
             if (!codeString.startsWith('print(') || !codeString.endsWith(')')) {
                 challengeOutput.innerHTML = `<span class="text-red-400">Syntax Error: Missing print() parentheses.</span>`;
                 challengeResult.innerHTML = "❌ Fail! Check your parentheses.";
+                challengeResult.classList.add('text-red-600');
                 return;
             }
 
             let content = codeString.slice(6, -1); // Remove print()
             
-            // Replace variable with its value
+            // Simple parsing to mimic Python output
+            // 1. Handle value replacement
             content = content.replace(/final_score/g, '95');
             
-            // Simple string concatenation based on print()'s rules:
-            // 1. Remove commas
-            // 2. Concatenate items, adding a space where a comma was (or just where two items meet without a comma, which is forbidden in challenge)
+            // 2. Split by comma and process (Python's print() adds a space for each comma)
+            let outputParts;
+            try {
+                 // Check for structural issues before splitting (like comma at start/end or double comma)
+                if (content.startsWith(',') || content.endsWith(',') || content.includes(',,')) {
+                    throw new Error("Invalid comma placement.");
+                }
+                outputParts = content.split(',').map(part => part.trim());
+            } catch (e) {
+                challengeOutput.innerHTML = `<span class="text-red-400">Syntax Error: Invalid comma usage.</span>`;
+                challengeResult.innerHTML = "❌ Fail! Invalid comma usage. Check your warnings!";
+                challengeResult.classList.add('text-red-600');
+                return;
+            }
 
-            let outputParts = content.split(',').map(part => part.trim());
-            
-            // Clean up quotes and handle empty parts from trailing/leading commas (though block logic should prevent this)
+            // 3. Clean up quotes and join with space
             let finalOutput = outputParts.map(part => {
                 if (part.startsWith('"') && part.endsWith('"')) {
-                    return part.slice(1, -1);
+                    return part.slice(1, -1); // Remove quotes from string literals
                 }
                 return part;
-            }).join(' '); // Default separator is a space
+            }).join(' '); 
 
-            // Check if the code is structurally correct and matches output
-            const expectedSequence = ['print(', '"The score is "', ',', 'final_score', ',', '" points!"', ')'].map(val => val.trim());
-            const actualSequence = blocks.map(b => b.getAttribute('data-value').trim());
-            
-            let sequenceCorrect = actualSequence.length === expectedSequence.length && actualSequence.every((val, index) => val === expectedSequence[index]);
-            
+            // Check if the output matches the target
             challengeOutput.innerHTML = finalOutput;
 
-            if (finalOutput === targetOutputText && sequenceCorrect) {
+            if (finalOutput === targetOutputText) {
                 challengeResult.innerHTML = "🎉 SUCCESS! Your code runs perfectly and matches the target!";
                 challengeResult.classList.remove('text-red-600');
                 challengeResult.classList.add('text-green-600');
                 createConfetti();
             } else {
-                challengeResult.innerHTML = "❌ FAIL! Output does not match OR code structure is wrong. Did you remember the commas and spaces?";
+                challengeResult.innerHTML = "❌ FAIL! The output is: " + finalOutput + ". Does not match target!";
                 challengeResult.classList.add('text-red-600');
                 challengeResult.classList.remove('text-green-600');
-                challengeAssembly.classList.add('shake');
+                codeAssembly.classList.add('shake');
                 setTimeout(() => codeAssembly.classList.remove('shake'), 500);
             }
         }
