@@ -3,117 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Math Hero: Time Attack V31</title>
+    <title>Math Hero: Time Attack V32</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     
     <style>
         :root { --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        body { margin: 0; overflow: hidden; background: #000; color: white; font-family: var(--font-main); height: 100vh; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            margin: 0; padding: 0; overflow: hidden; 
+            background: #000; color: white; font-family: var(--font-main); 
+            height: 100vh; width: 100vw; 
+        }
 
-        /* BACKGROUNDS */
-        #bg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; transition: background 1s ease; }
+        /* APP CONTAINER - Handles Layout Switching */
+        #app-root {
+            display: flex; width: 100%; height: 100%;
+            flex-direction: column; /* Default: Mobile Portrait */
+        }
+
+        /* GAME STAGE (Canvas + HUD) */
+        #game-stage {
+            position: relative;
+            flex: 1; /* Takes remaining space */
+            width: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* BACKGROUNDS (Inside Stage) */
+        #bg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; transition: background 1s ease; }
         .bg-lvl-1 { background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364); }
         .bg-lvl-2 { background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%); }
         .bg-lvl-3 { background: linear-gradient(to bottom, #320b35, #000000); }
         .bg-lvl-4 { background: linear-gradient(to bottom, #480048, #C04848); }
         .bg-lvl-5 { background: linear-gradient(to bottom, #23074d, #cc5333); }
         .bg-lvl-6 { background: radial-gradient(circle at center, #000000 0%, #2c3e50 100%); }
-        .bg-lvl-7 { background: linear-gradient(135deg, #000000 0%, #434343 100%); } /* THE END */
-        .bg-clear { background: linear-gradient(to bottom, #FFD700, #FF8C00); } /* VICTORY */
+        .bg-lvl-7 { background: linear-gradient(135deg, #000000 0%, #434343 100%); }
+        .bg-clear { background: linear-gradient(to bottom, #FFD700, #FF8C00); }
 
-        /* UI */
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; z-index: 10; }
-        .hud-top { display: flex; justify-content: space-between; align-items: center; }
+        /* CANVAS */
+        #game-cvs { 
+            display: block; width: 100%; height: 100%; 
+            position: absolute; top: 0; left: 0; z-index: 1;
+        }
+
+        /* HUD (Inside Stage) */
+        #ui-layer { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            pointer-events: none; padding: 15px; z-index: 10;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .hud-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .stat-grp { display: flex; gap: 10px; }
-        .stat-box { background: rgba(0,0,0,0.7); padding: 5px 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); font-weight: bold; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(5px); }
-        .bar-cont { width: 80px; height: 8px; background: rgba(255,255,255,0.2); border-radius: 5px; overflow: hidden; margin-left: 8px; }
+        .stat-box { 
+            background: rgba(0,0,0,0.7); padding: 6px 16px; border-radius: 20px; 
+            border: 1px solid rgba(255,255,255,0.2); font-weight: bold; font-size: 1rem;
+            display: flex; align-items: center; gap: 6px; backdrop-filter: blur(5px); 
+        }
+        .bar-cont { width: 80px; height: 8px; background: rgba(255,255,255,0.2); border-radius: 5px; overflow: hidden; margin-left: 5px; }
         #lvl-bar { height: 100%; background: #facc15; width: 0%; transition: width 0.3s; }
-        .lvl-badge { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); background: linear-gradient(90deg, #ff8a00, #e52e71); padding: 5px 15px; border-radius: 10px; font-weight: bold; font-size: 0.9rem; text-transform: uppercase; box-shadow: 0 0 15px rgba(229, 46, 113, 0.5); text-align: center; white-space: nowrap; }
+        .lvl-badge { 
+            position: absolute; top: 60px; left: 50%; transform: translateX(-50%); 
+            background: linear-gradient(90deg, #ff8a00, #e52e71); padding: 6px 20px; 
+            border-radius: 10px; font-weight: bold; font-size: 0.9rem; text-transform: uppercase; 
+            box-shadow: 0 0 15px rgba(229, 46, 113, 0.5); text-align: center; white-space: nowrap; 
+        }
 
-        #game-cvs { display: block; width: 100%; flex-grow: 1; }
+        /* CONTROL PANEL */
+        #ctrl-panel { 
+            flex-shrink: 0; /* Don't shrink below content */
+            background: rgba(15, 23, 42, 0.98); border-top: 3px solid #334155; 
+            padding: 15px; display: flex; flex-direction: column; align-items: center; z-index: 20; 
+            padding-bottom: max(15px, env(safe-area-inset-bottom));
+            /* Mobile Height */
+            height: 40vh; min-height: 250px; box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        }
 
-        /* CONTROLS */
-        #ctrl-panel { flex-shrink: 0; min-height: 35vh; background: rgba(15, 23, 42, 0.98); border-top: 3px solid #334155; padding: 10px; display: flex; flex-direction: column; align-items: center; z-index: 20; padding-bottom: env(safe-area-inset-bottom); }
-        #q-box { width: 100%; max-width: 700px; background: #1e293b; border-radius: 12px; padding: 10px; margin-bottom: 10px; text-align: center; border: 1px solid #475569; position: relative; min-height: 70px; display: flex; flex-direction: column; justify-content: center; }
-        .q-lbl { color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px; }
-        .math-txt { font-size: 1.3rem; color: #e2e8f0; line-height: 1.2; overflow-wrap: break-word; }
+        #q-box { 
+            width: 100%; max-width: 800px; background: #1e293b; border-radius: 12px; 
+            padding: 10px; margin-bottom: 10px; text-align: center; border: 1px solid #475569; 
+            position: relative; min-height: 70px; display: flex; flex-direction: column; justify-content: center;
+            overflow: hidden;
+        }
+        .q-lbl { color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
+        .math-txt { 
+            font-size: clamp(1.2rem, 3vw, 1.8rem); color: #e2e8f0; line-height: 1.3; 
+            overflow-x: auto; white-space: nowrap; scrollbar-width: none;
+        }
+        .math-txt::-webkit-scrollbar { display: none; }
         
-        /* FEEDBACK */
-        #fb-ol { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 30; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; padding: 15px; backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        /* FEEDBACK OVERLAY */
+        #fb-ol { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.92); z-index: 30; border-radius: 12px; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            color: white; padding: 10px; opacity: 0; pointer-events: none; transition: opacity 0.2s; 
+        }
         #fb-ol.active { opacity: 1; pointer-events: auto; }
-        .fb-t { font-weight: bold; margin-bottom: 5px; color: #f87171; font-size: 1.3rem; }
-        .fb-r { color: #fbbf24; font-size: 1.1rem; }
+        .fb-t { font-weight: bold; margin-bottom: 5px; color: #f87171; font-size: 1.4rem; }
+        .fb-r { color: #fbbf24; font-size: 1.1rem; line-height: 1.4; }
 
-        #ans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; max-width: 700px; flex-grow: 1; }
-        .ans-btn { background: linear-gradient(145deg, #334155, #1e293b); border: 2px solid #475569; border-radius: 12px; color: white; cursor: pointer; position: relative; display: flex; justify-content: center; align-items: center; padding: 5px; font-size: 1rem; }
-        .ans-btn:active { transform: scale(0.96); }
+        /* ANSWER GRID */
+        #ans-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; 
+            width: 100%; max-width: 800px; flex-grow: 1;
+        }
+        .ans-btn { 
+            background: linear-gradient(145deg, #334155, #1e293b); border: 2px solid #475569; 
+            border-radius: 12px; color: white; cursor: pointer; position: relative; 
+            display: flex; justify-content: center; align-items: center; 
+            padding: 5px; font-size: clamp(1rem, 2.5vw, 1.3rem); 
+            touch-action: manipulation; transition: transform 0.1s;
+        }
+        .ans-btn:active { transform: scale(0.97); }
         .ans-btn.cor { background: #059669 !important; border-color: #34d399 !important; box-shadow: 0 0 15px #34d399; }
         .ans-btn.err { background: #dc2626 !important; border-color: #f87171 !important; opacity: 0.5; }
+
+        /* --- DESKTOP / LANDSCAPE ADAPTATION --- */
+        @media (min-width: 768px) and (orientation: landscape) {
+            #app-root { flex-direction: row; }
+            
+            #game-stage { height: 100%; flex: 1; }
+            
+            #ctrl-panel { 
+                width: 38%; height: 100%; min-height: auto;
+                border-top: none; border-left: 3px solid #334155;
+                justify-content: center; padding: 30px;
+            }
+            
+            #ans-grid { grid-template-columns: 1fr; gap: 15px; max-height: 60%; } /* Stack buttons vertically */
+            .ans-btn { min-height: 60px; font-size: 1.3rem; }
+            
+            .lvl-badge { top: 20px; } /* Adjust badge pos */
+            .stat-box { font-size: 1.1rem; padding: 8px 20px; }
+        }
 
         /* MENUS */
         .menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 10, 0.98); z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
         .hidden { display: none !important; }
-        h1 { font-size: 2.5rem; background: linear-gradient(to right, #4facfe, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
-        input { background: rgba(255,255,255,0.1); border: 2px solid #475569; color: white; padding: 10px; font-size: 16px; border-radius: 30px; margin: 10px; text-align: center; width: 250px; outline: none; }
+        h1 { font-size: clamp(2.5rem, 5vw, 4rem); background: linear-gradient(to right, #4facfe, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+        input { background: rgba(255,255,255,0.1); border: 2px solid #475569; color: white; padding: 12px; font-size: 1.2rem; border-radius: 30px; margin: 15px; text-align: center; width: 280px; outline: none; }
         input:focus { border-color: #60a5fa; }
-        .hero-grid { display: flex; gap: 10px; margin: 15px 0; justify-content: center; flex-wrap: wrap; }
-        .hero-opt { font-size: 2rem; cursor: pointer; padding: 8px; border-radius: 50%; border: 2px solid transparent; background: rgba(255,255,255,0.1); transition: 0.2s; }
-        .hero-opt.sel { border-color: #facc15; background: rgba(250, 204, 21, 0.2); }
-        .btn { background: linear-gradient(90deg, #4f46e5, #7c3aed); border: none; padding: 12px 30px; font-size: 1.2rem; color: white; border-radius: 50px; cursor: pointer; margin-top: 10px; font-weight: bold; box-shadow: 0 5px 15px rgba(124,58,237,0.4); min-width: 120px; }
+        .hero-grid { display: flex; gap: 15px; margin: 20px 0; justify-content: center; flex-wrap: wrap; max-width: 800px; }
+        .hero-opt { font-size: 2.5rem; cursor: pointer; padding: 10px; border-radius: 50%; border: 2px solid transparent; background: rgba(255,255,255,0.1); transition: 0.2s; }
+        .hero-opt.sel { border-color: #facc15; background: rgba(250, 204, 21, 0.2); transform: scale(1.1); }
+        .btn { background: linear-gradient(90deg, #4f46e5, #7c3aed); border: none; padding: 12px 40px; font-size: 1.2rem; color: white; border-radius: 50px; cursor: pointer; margin-top: 15px; font-weight: bold; box-shadow: 0 5px 15px rgba(124,58,237,0.4); min-width: 140px; }
         
-        .log { background: #1e293b; width: 100%; max-width: 600px; max-height: 40vh; overflow-y: auto; border-radius: 10px; margin: 15px 0; border: 1px solid #334155; font-size: 0.9rem; }
+        .log { background: #1e293b; width: 100%; max-width: 700px; max-height: 50vh; overflow-y: auto; border-radius: 10px; margin: 20px 0; border: 1px solid #334155; font-size: 0.9rem; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #334155; color: #cbd5e1; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; color: #cbd5e1; }
         th { background: #0f172a; position: sticky; top: 0; }
         .red { color: #fca5a5; } .grn { color: #86efac; }
-
-        @media (max-width: 600px) { 
-            #ctrl-panel { min-height: 40vh; } .q-lbl { display: none; } 
-            #q-box { min-height: 60px; padding: 5px; margin-bottom: 5px; }
-            .ans-btn { font-size: 0.9rem; } 
-        }
     </style>
 </head>
 <body>
 
-<div id="bg-layer" class="bg-lvl-1"></div>
+<!-- APP ROOT: Layout Manager -->
+<div id="app-root">
+    
+    <!-- GAME STAGE -->
+    <div id="game-stage">
+        <div id="bg-layer" class="bg-lvl-1"></div>
 
-<div id="ui-layer">
-    <div class="hud-top">
-        <div class="stat-grp">
-            <div class="stat-box" style="color: #ef4444;">❤️ <span id="hp-val">3</span></div>
-            <div class="stat-box"><span id="lvl-txt">LVL 1</span><div class="bar-cont"><div id="lvl-bar"></div></div></div>
+        <div id="ui-layer">
+            <div class="hud-top">
+                <div class="stat-grp">
+                    <div class="stat-box" style="color: #ef4444;">❤️ <span id="hp-val">3</span></div>
+                    <div class="stat-box"><span id="lvl-txt">LVL 1</span><div class="bar-cont"><div id="lvl-bar"></div></div></div>
+                </div>
+                <div class="stat-box" style="color: #facc15;">🏆 <span id="sc-val">0</span></div>
+            </div>
+            <div id="lvl-badge" class="lvl-badge">FOREST</div>
         </div>
-        <div class="stat-box" style="color: #facc15;">🏆 <span id="sc-val">0</span></div>
+
+        <canvas id="game-cvs"></canvas>
     </div>
-    <div id="lvl-badge" class="lvl-badge">FOREST</div>
+
+    <!-- CONTROL PANEL -->
+    <div id="ctrl-panel">
+        <div id="q-box">
+            <div id="fb-ol">
+                <div class="fb-t">TRAP!</div>
+                <div class="fb-r" id="fb-txt">...</div>
+            </div>
+            <span class="q-lbl">SOLVE TO ATTACK</span>
+            <div id="math-q" class="math-txt">...</div>
+        </div>
+        <div id="ans-grid">
+            <button class="ans-btn" id="b0"></button>
+            <button class="ans-btn" id="b1"></button>
+            <button class="ans-btn" id="b2"></button>
+            <button class="ans-btn" id="b3"></button>
+        </div>
+    </div>
+
 </div>
 
-<canvas id="game-cvs"></canvas>
-
-<div id="ctrl-panel">
-    <div id="q-box">
-        <div id="fb-ol">
-            <div class="fb-t">TRAP!</div>
-            <div class="fb-r" id="fb-text">...</div>
-        </div>
-        <span class="q-lbl">SOLVE TO ATTACK</span>
-        <div id="math-q" class="math-txt">...</div>
-    </div>
-    <div id="ans-grid">
-        <button class="ans-btn" id="b0"></button>
-        <button class="ans-btn" id="b1"></button>
-        <button class="ans-btn" id="b2"></button>
-        <button class="ans-btn" id="b3"></button>
-    </div>
-</div>
-
-<!-- INTRO -->
+<!-- INTRO MENU (Overlay) -->
 <div id="scr-intro" class="menu">
     <h1>Math Hero</h1>
-    <p>Select Hero</p>
+    <p>Choose Your Hero</p>
     <div class="hero-grid">
         <div class="hero-opt sel" onclick="Game.setHero(this,'🧝')">🧝</div>
         <div class="hero-opt" onclick="Game.setHero(this,'🧙‍♂️')">🧙‍♂️</div>
@@ -126,15 +217,15 @@
     <button class="btn" onclick="Game.checkStart()">BATTLE START</button>
 </div>
 
-<!-- END -->
+<!-- GAME OVER / VICTORY MENU -->
 <div id="scr-end" class="menu hidden">
     <h1 id="end-title">GAME OVER</h1>
     <p>Hero: <span id="end-name" style="color:#60a5fa"></span></p>
     <h3>Score: <span id="end-score">0</span></h3>
     <div class="log">
-        <table id="log-tbl"><thead><tr><th>Q</th><th>You</th><th>Ans</th><th>Trap</th></tr></thead><tbody id="log-body"></tbody></table>
+        <table id="log-tbl"><thead><tr><th>Q</th><th>You</th><th>Ans</th><th>Feedback</th></tr></thead><tbody id="log-body"></tbody></table>
     </div>
-    <div style="display:flex; gap:10px; flex-wrap: wrap; justify-content: center;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
         <button class="btn" style="background:#059669" onclick="Game.export()">💾 Save</button>
         <button class="btn" id="btn-restart" onclick="Game.tryRestart()">↻ Retry</button>
         <button class="btn" style="background:#64748b" onclick="Game.restart()">🏠 Menu</button>
@@ -239,7 +330,6 @@ const Gen = {
         for(let t of tAns) tQ.push(Sym.mult(t, {c:k, v:{}}));
         let qStr = `\\text{Factorize: } ${Sym.poly(tQ, true)}`;
         let aStr = `${k}(${Sym.poly(tAns, false)})`;
-        
         let d1 = `${k}(${Sym.poly(tAns.slice(0, tAns.length-1), false)})`;
         let d2 = `${Math.abs(k)}(${Sym.poly(tAns, false)})`;
         return { q: qStr, a: aStr, ds: [{v:d1, r:"Missing term"}, {v:d2, r:"Sign Error"}] };
@@ -324,7 +414,7 @@ const Gen = {
             let [v1,v2] = Utils.vars(); let [c1,c2] = Utils.vars(); if(c1===v1) c1='z';
             let n = -Utils.rand(2,5);
             let t1={c:1,v:{[c1]:1,[v1]:1}}, t2={c:1,v:{[c1]:1,[v2]:1}}, t3={c:n,v:{[v1]:1}}, t4={c:n,v:{[v2]:1}};
-            return { q: `\\text{Factorize: } ${Sym.poly([t1,t2,t3,t4], true)}`, a: `(${c1}${n})(${v1}+${v2})`, ds: [{v:`(${c1}+${v1})(${n}+${v2})`, r:"Bad Grouping"}, {v:`${c1}(${v1}+${v2})+${n}(${v1}+${v2})`, r:"Unfinished"}] };
+            return { q: `\\text{Factorize: } ${Sym.poly([t1,t2,t3,t4], true)}`, a: `(${c1}${n})(${v1}+${v2})`, ds: [{v:`(${c1}+${v1})(${n}+${v2})`, r:"Bad Grouping"}, {v:`${c1}(${v1}+${v2})+${n}...`, r:"Unfinished"}] };
         } else { // x^2 + 2xy + y^2 - a^2
             let [x,y] = Utils.vars(); let a=Utils.rand(2,5), a2=a*a;
             let t1=Sym.term(1,{[x]:2}), t2=Sym.term(2,{[x]:1,[y]:1}), t3=Sym.term(1,{[y]:2}), t4=Sym.term(-a2,{});
@@ -332,12 +422,13 @@ const Gen = {
         }
     },
 
-    // L7: The End
+    // L7: The End (Progressive)
     getL7: (qIndex) => {
         if(qIndex < 3) return Gen.getL4(); 
         if(qIndex < 6) return Gen.getL5();
         if(qIndex < 9) return Gen.getL6();
 
+        // BOSS: 6 Term
         if(Math.random() > 0.5) {
             let [x,y] = Utils.vars();
             let t1=Sym.term(1,{[x]:2}), t2=Sym.term(-1,{[y]:2}), t3=Sym.term(1,{[x]:1}), t4=Sym.term(-1,{[y]:1});
@@ -347,6 +438,7 @@ const Gen = {
                 ds: [{v:`(${x}-${y})(${x}+${y})`, r:"Missing +1"}, {v:`(${x}+${y})(${x}-${y}+1)`, r:"Sign Error"}]
             };
         } else {
+            // 6 Term
             let [x,y] = Utils.vars(); let a='a', b='b';
             return {
                 q: `\\text{Factorize: } ax+ay+az+bx+by+bz`,
@@ -433,7 +525,7 @@ const Game = {
             Game.state=2; Game.hp--; Game.log.push({q:Game.qD.q, y:sel.v, a:Game.qD.a, r:sel.r||"Error"});
             btns[i].classList.add('err');
             Game.curOpts.forEach((o,k)=>{if(o.ok)btns[k].classList.add('cor');});
-            document.getElementById('fb-text').innerText = sel.r;
+            document.getElementById('fb-txt').innerText = sel.r;
             document.getElementById('fb-ol').classList.add('active'); Renderer.hit(); Game.updUI();
             setTimeout(()=>{ document.getElementById('fb-ol').classList.remove('active'); if(Game.hp<=0)Game.over(); else{Game.state=1;Game.nextQ();} },2500);
         }
@@ -495,7 +587,12 @@ const Renderer = {
     hero:{x:100,y:0,c:"🧝",s:0}, en:{x:1000,y:0,c:"🐉", dead:false}, bgs:[], parts:[],
     stop:()=>{if(Renderer.id)cancelAnimationFrame(Renderer.id);},
     start:()=>{ Renderer.stop(); if(!Renderer.init){Renderer.ctx=Renderer.cvs.getContext('2d'); window.onresize=Renderer.resize; Renderer.init=true;} Renderer.resize(); Renderer.loop(); },
-    resize:()=>{ Renderer.cw=Renderer.cvs.clientWidth; Renderer.ch=Renderer.cvs.clientHeight; Renderer.cvs.width=Renderer.cw; Renderer.cvs.height=Renderer.ch; Renderer.hero.y=Renderer.ch*0.65; Renderer.en.y=Renderer.ch*0.65; },
+    resize:()=>{ 
+        let stage = document.getElementById('game-stage');
+        Renderer.cw=stage.clientWidth; Renderer.ch=stage.clientHeight; 
+        Renderer.cvs.width=Renderer.cw; Renderer.cvs.height=Renderer.ch; 
+        Renderer.hero.y=Renderer.ch*0.65; Renderer.en.y=Renderer.ch*0.65; 
+    },
     setBg:(l)=>{
         Renderer.bgs=[]; let n=(l===2?50:20);
         let type = l===1?'tree':(l===2?'star':(l===3?'grid':(l===4?'shard':(l===5?'fire':(l===6?'orb':'void')))));
