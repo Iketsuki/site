@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Knowledge Fusion</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Marked.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <!-- Highlight.js (Syntax Highlighting) -->
+    <link id="hljs-theme" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        bgMain: 'var(--bg-main)',
+                        bgSidebar: 'var(--bg-sidebar)',
+                        bgItem: 'var(--bg-item)',
+                        bgHover: 'var(--bg-hover)',
+                        textMain: 'var(--text-main)',
+                        textMuted: 'var(--text-muted)',
+                        borderMain: 'var(--border-main)',
+                        accent: 'var(--accent)',
+                        tagColor: 'var(--tag-color)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg-main: #ffffff;
+            --bg-sidebar: #f9fafb;
+            --bg-item: #ffffff;
+            --bg-hover: #f3f4f6;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-main: #e5e7eb;
+            --accent: #8b5cf6;
+            --tag-color: #10b981;
+            --scroll-track: #f3f4f6;
+            --scroll-thumb: #d1d5db;
+            --app-font-size: 15px;
+        }
+
+        html.dark {
+            --bg-main: #0f0f0f;
+            --bg-sidebar: #111827;
+            --bg-item: #1f2937;
+            --bg-hover: #374151;
+            --text-main: #e5e7eb;
+            --text-muted: #9ca3af;
+            --border-main: #1f2937;
+            --accent: #8b5cf6;
+            --tag-color: #34d399;
+            --scroll-track: #1f2937;
+            --scroll-thumb: #4b5563;
+        }
+
+        /* Apply font size to root so rem units scale */
+        html { font-size: var(--app-font-size); }
+        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--scroll-track); }
+        ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 4px; }
+
+        /* Editor Typography */
+        .markdown-preview { padding-bottom: 5rem; }
+        .markdown-preview h1 { font-size: 2em; font-weight: bold; margin-bottom: 0.5em; border-bottom: 1px solid var(--border-main); padding-bottom: 0.3em; }
+        .markdown-preview h2 { font-size: 1.5em; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; }
+        .markdown-preview h3 { font-size: 1.25em; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; }
+        .markdown-preview p { margin-bottom: 1em; line-height: 1.6; }
+        .markdown-preview ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        .markdown-preview ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+        .markdown-preview li { margin-bottom: 0.25em; }
+        
+        .markdown-preview blockquote { border-left: 4px solid var(--accent); padding-left: 1em; font-style: italic; color: var(--text-muted); background: var(--bg-hover); padding-top:0.5em; padding-bottom:0.5em; margin-bottom: 1em; border-radius: 0 4px 4px 0; }
+        
+        .markdown-preview code { font-family: 'Menlo', 'Monaco', 'Courier New', monospace; font-size: 0.85em; }
+        .markdown-preview :not(pre) > code { background-color: var(--bg-hover); padding: 0.2em 0.4em; border-radius: 4px; color: var(--accent); }
+        .markdown-preview pre { padding: 0; margin-bottom: 1em; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-main); }
+        .markdown-preview pre code.hljs { padding: 1em; display: block; overflow-x: auto; line-height: 1.5; }
+        
+        .markdown-preview table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
+        .markdown-preview th, .markdown-preview td { border: 1px solid var(--border-main); padding: 8px; text-align: left; }
+        .markdown-preview th { background-color: var(--bg-sidebar); font-weight: 600; }
+        .markdown-preview input[type="checkbox"] { margin-right: 0.5em; cursor: pointer; }
+        .markdown-preview a { color: #60a5fa; text-decoration: underline; cursor: pointer; }
+
+        .wikilink { color: var(--accent); cursor: pointer; background: rgba(139, 92, 246, 0.1); padding: 0 4px; border-radius: 4px; font-weight: 500; text-decoration: none; }
+        .tag-pill { color: var(--tag-color); background: rgba(16, 185, 129, 0.1); padding: 0 6px; border-radius: 12px; font-size: 0.8em; font-weight: 500; cursor: pointer; margin-right: 2px; display: inline-block;}
+
+        /* UI Components */
+        .sidebar-item:hover { background-color: var(--bg-hover); }
+        .sidebar-item.active { background-color: var(--bg-hover); border-left: 3px solid var(--accent); font-weight: 600; color: var(--text-main); }
+        .sidebar-item.selected { background-color: rgba(139, 92, 246, 0.15); border-left: 3px solid var(--accent); }
+        .drop-target { border: 2px dashed var(--accent) !important; background-color: rgba(139, 92, 246, 0.1) !important; }
+        .root-drop-zone { min-height: 50px; flex: 1; border-top: 1px solid transparent; }
+        .root-drop-zone.drop-target { border-top: 2px dashed var(--accent) !important; }
+
+        /* Whiteboard */
+        .bg-dot-pattern { background-image: radial-gradient(var(--text-muted) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.2; }
+        .wb-card { position: absolute; width: 300px; background: var(--bg-item); border: 1px solid var(--border-main); border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column; cursor: grab; transition: box-shadow 0.2s; }
+        .wb-card:active { cursor: grabbing; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); }
+        .wb-header { padding: 10px; border-bottom: 1px solid var(--border-main); font-weight: bold; font-size: 0.9rem; cursor: grab; display: flex; justify-content: space-between; background: var(--bg-sidebar); border-radius: 8px 8px 0 0; }
+        .wb-body { padding: 12px; font-size: 0.8rem; height: 150px; overflow: hidden; color: var(--text-muted); pointer-events: none; position: relative; }
+        .wb-footer { padding: 8px; border-top: 1px solid var(--border-main); font-size: 0.7rem; display: flex; flex-wrap: wrap; gap: 4px; }
+        .wb-status-badge { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; background: var(--bg-hover); color: var(--text-muted); padding: 2px 6px; border-radius: 4px; cursor: pointer; border: 1px solid var(--border-main); flex-shrink: 0; }
+
+        /* Kanban */
+        .kanban-container { display: flex; gap: 16px; padding: 24px; align-items: flex-start; transform-origin: 0 0; width: max-content; min-width: 100%; }
+        .kanban-container.layout-row { flex-direction: row; }
+        .kanban-container.layout-col { flex-direction: column; width: 600px; }
+        .kanban-col { background: var(--bg-sidebar); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; flex-shrink: 0; border: 1px solid var(--border-main); transition: all 0.2s; }
+        .kanban-container.layout-row .kanban-col { min-width: 320px; width: 320px; }
+        .kanban-container.layout-col .kanban-col { width: 100%; margin-bottom: 16px; }
+        .kanban-header { font-weight: bold; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); cursor: grab; user-select: none; }
+        .kanban-list { display: flex; gap: 8px; min-height: 50px; }
+        .kanban-list.items-col { flex-direction: column; }
+        .kanban-list.items-row { flex-direction: row; flex-wrap: wrap; }
+        .kanban-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px); border: 1px solid var(--border-main); padding: 12px; border-radius: 6px; cursor: grab; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        html.dark .kanban-card { background: rgba(31, 41, 55, 0.7); }
+        .kanban-list.items-col .kanban-card { width: 100%; }
+        .kanban-list.items-row .kanban-card { width: 220px; height: 120px; overflow: hidden; }
+        .kanban-drop-zone { min-height: 50px; height: 100%; }
+
+        /* Glassy Panels */
+        .glassy-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid var(--border-main); }
+        html.dark .glassy-panel { background: rgba(17, 24, 39, 0.85); }
+
+        .view-section { display: none; height: 100%; width: 100%; }
+        .view-section.active { display: block; }
+        #view-editor.active { display: flex; }
+        #view-kanban.active { display: flex; }
+
+        .nav-btn { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; margin-bottom: 8px; transition: all 0.2s; }
+        .nav-btn:hover { background: var(--bg-hover); color: var(--text-main); }
+        .nav-btn.active { background: var(--accent); color: white; }
+    </style>
+</head>
+<body class="flex h-screen w-screen overflow-hidden">
+
+    <!-- Loader -->
+    <div id="loader" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; flex-direction: column; color: white; backdrop-filter: blur(4px);">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mb-4"></div>
+        <div id="loader-text" class="font-bold text-lg">Processing...</div>
+    </div>
+
+    <!-- Settings Modal -->
+    <dialog id="settings-modal" class="bg-bgItem text-textMain border border-borderMain rounded-lg shadow-2xl p-6 w-96 backdrop:bg-black/50">
+        <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-sliders text-accent"></i> Settings</h3>
+        
+        <div class="mb-4">
+            <label class="block text-xs font-bold mb-2 text-textMuted">Text Size</label>
+            <div class="flex items-center gap-2">
+                <span class="text-xs">A-</span>
+                <input type="range" id="font-size-slider" min="12" max="24" value="15" class="flex-1 h-1 bg-bgSidebar rounded-lg appearance-none cursor-pointer accent-accent">
+                <span class="text-xs">A+</span>
+            </div>
+            <div class="text-center text-xs mt-1 text-textMuted" id="font-size-val">15px</div>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-xs font-bold mb-2 text-textMuted">Code Block Theme</label>
+            <select id="code-theme-select" class="w-full bg-bgSidebar border border-borderMain rounded p-2 text-sm focus:border-accent outline-none">
+                <option value="atom-one-dark.min.css">Atom One Dark</option>
+                <option value="atom-one-light.min.css">Atom One Light</option>
+                <option value="github.min.css">GitHub Light</option>
+                <option value="github-dark.min.css">GitHub Dark</option>
+                <option value="nord.min.css">Nord</option>
+            </select>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-6">
+            <button onclick="document.getElementById('settings-modal').close()" class="px-3 py-1.5 rounded bg-accent text-white hover:bg-opacity-90 text-sm font-bold">Done</button>
+        </div>
+    </dialog>
+
+    <!-- Import Modal -->
+    <dialog id="import-modal" class="bg-bgItem text-textMain border border-borderMain rounded-lg shadow-2xl p-6 w-96 backdrop:bg-black/50">
+        <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-brands fa-github text-accent"></i> GitHub Import</h3>
+        <input type="text" id="gh-url" class="w-full bg-bgSidebar border border-borderMain rounded p-2 mb-3 text-sm focus:border-accent outline-none" placeholder="Repo URL">
+        <input type="password" id="gh-token" class="w-full bg-bgSidebar border border-borderMain rounded p-2 mb-1 text-sm focus:border-accent outline-none" placeholder="Token (Optional)">
+        <div class="flex justify-end gap-2 mt-4">
+            <button onclick="document.getElementById('import-modal').close()" class="px-3 py-1.5 rounded border border-borderMain hover:bg-bgHover text-sm">Cancel</button>
+            <button onclick="startGithubImport()" class="px-3 py-1.5 rounded bg-accent text-white hover:bg-opacity-90 text-sm font-bold">Import</button>
+        </div>
+    </dialog>
+
+    <!-- Nav -->
+    <nav class="w-14 bg-bgSidebar border-r border-borderMain flex flex-col items-center py-4 flex-shrink-0 z-50">
+        <div class="mb-6 text-accent text-xl font-bold"><i class="fa-solid fa-bolt"></i></div>
+        <div class="nav-btn active" id="nav-editor" onclick="switchView('editor')" title="Editor"><i class="fa-solid fa-pen-nib"></i></div>
+        <div class="nav-btn" id="nav-whiteboard" onclick="switchView('whiteboard')" title="Whiteboard"><i class="fa-solid fa-object-group"></i></div>
+        <div class="nav-btn" id="nav-kanban" onclick="switchView('kanban')" title="Kanban"><i class="fa-solid fa-list-check"></i></div>
+        <div class="nav-btn" id="nav-graph" onclick="switchView('graph')" title="Graph"><i class="fa-solid fa-share-nodes"></i></div>
+        <div class="mt-auto flex flex-col items-center gap-2">
+            <div class="nav-btn" onclick="document.getElementById('settings-modal').showModal()" title="Settings"><i class="fa-solid fa-sliders"></i></div>
+            <div class="nav-btn" onclick="document.getElementById('import-modal').showModal()" title="Import"><i class="fa-brands fa-github"></i></div>
+            <div class="nav-btn" id="btn-theme" title="Theme"><i class="fa-regular fa-sun"></i></div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside id="sidebar-tree" class="w-60 bg-bgSidebar border-r border-borderMain flex flex-col flex-shrink-0 transition-all duration-300">
+        <div class="p-3 border-b border-borderMain flex flex-col gap-2">
+            <h2 class="font-bold text-sm text-textMain">Nexus Core</h2>
+            <div class="flex gap-1">
+                <input type="text" id="search-input" placeholder="Search..." class="w-full bg-bgMain border border-borderMain rounded px-2 py-1 text-xs outline-none focus:border-accent text-textMain">
+                <input type="text" id="sidebar-tag-filter" placeholder="Filter tags..." class="w-full bg-bgMain border border-borderMain rounded px-2 py-1 text-xs outline-none focus:border-accent text-textMain">
+            </div>
+        </div>
+        <div id="file-tree" class="flex-1 overflow-y-auto p-2 space-y-0.5 text-sm" ondragover="allowDrop(event)"></div>
+        <div class="root-drop-zone p-2 text-xs text-textMuted text-center opacity-50 border-t border-transparent" ondragover="allowDrop(event)" ondrop="dropToRoot(event)">Drop to root</div>
+        <div class="p-2 border-t border-borderMain bg-bgSidebar grid grid-cols-3 gap-2">
+            <button onclick="createNote()" class="bg-accent text-white py-1.5 rounded flex justify-center"><i class="fa-solid fa-plus"></i></button>
+            <button onclick="createFolder()" class="bg-bgMain border border-borderMain text-textMain py-1.5 rounded flex justify-center"><i class="fa-solid fa-folder"></i></button>
+            <button onclick="createTimestampNote()" class="bg-bgMain border border-borderMain text-textMain py-1.5 rounded flex justify-center"><i class="fa-regular fa-clock"></i></button>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 relative h-full overflow-hidden bg-bgMain">
+        <!-- Editor -->
+        <div id="view-editor" class="view-section active flex-col h-full">
+            <header class="h-12 bg-bgSidebar border-b border-borderMain flex items-center justify-between px-4">
+                <input type="text" id="note-title" class="bg-transparent text-lg font-medium outline-none text-textMain w-full" placeholder="Untitled">
+                <div class="flex items-center gap-2 text-xs">
+                    <select id="note-board" class="bg-bgMain border border-borderMain rounded px-2 py-1 text-textMuted focus:border-accent max-w-[120px]"></select>
+                    <select id="note-status" class="bg-bgMain border border-borderMain rounded px-2 py-1 text-textMuted focus:border-accent max-w-[120px]"></select>
+                    <button id="btn-toggle-mode" class="text-textMuted hover:text-textMain px-2 py-1 border border-borderMain rounded"><i class="fa-regular fa-eye"></i></button>
+                    <button id="btn-delete-note" class="text-red-500 hover:text-red-600 px-2 py-1 border border-borderMain rounded"><i class="fa-regular fa-trash-can"></i></button>
+                    <span id="save-status" class="text-textMuted w-12 text-right"></span>
+                </div>
+            </header>
+            <div class="flex flex-1 overflow-hidden">
+                <textarea id="markdown-input" class="w-1/2 h-full bg-bgMain text-textMain p-6 resize-none outline-none font-mono text-sm border-r border-borderMain overflow-y-auto"></textarea>
+                <div id="markdown-preview" class="w-1/2 h-full bg-bgMain text-textMain p-6 overflow-y-auto markdown-preview"></div>
+            </div>
+        </div>
+
+        <!-- Whiteboard -->
+        <div id="view-whiteboard" class="view-section relative overflow-hidden cursor-grab active:cursor-grabbing">
+            <div class="absolute inset-0 bg-dot-pattern pointer-events-none"></div>
+            <div id="wb-canvas" class="absolute top-0 left-0 transform-origin-0-0"></div>
+            <div class="absolute top-4 left-4 glassy-panel p-3 rounded-lg shadow-lg text-xs z-50 flex flex-col gap-2">
+               <button onclick="autoArrangeWhiteboard()" class="text-accent font-bold mb-1"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto Arrange</button>
+               <label class="flex items-center cursor-pointer"><input type="checkbox" id="wb-show-hidden" class="mr-2"> Show Hidden</label>
+            </div>
+        </div>
+
+        <!-- Kanban -->
+        <div id="view-kanban" class="view-section overflow-hidden flex-col relative">
+            <div class="h-12 bg-bgSidebar border-b border-borderMain flex items-center justify-between px-4 z-20">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-textMuted uppercase">Group By:</span>
+                    <select id="kanban-group-by" class="bg-bgMain border border-borderMain rounded px-2 py-1 text-sm text-textMain focus:border-accent">
+                        <option value="status">Status</option>
+                        <option value="difficulty">Difficulty</option>
+                        <option value="tag">Primary Tag</option>
+                    </select>
+                    <div class="h-4 w-px bg-borderMain mx-1"></div>
+                    <select id="kanban-board-select" class="bg-bgMain border border-borderMain rounded px-2 py-1 text-sm text-textMain focus:border-accent"></select>
+                    <button onclick="addBoard()" class="text-textMuted hover:text-accent px-2"><i class="fa-solid fa-plus"></i></button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleKanbanLayout('board')" class="text-textMuted hover:text-textMain px-2" title="Toggle Board Flow"><i class="fa-solid fa-rotate"></i></button>
+                    <button onclick="addKanbanColumn()" class="bg-accent text-white px-3 py-1 rounded text-xs font-bold">New Col</button>
+                </div>
+            </div>
+            <div id="kanban-wrapper" class="flex-1 relative overflow-hidden">
+                <div id="kanban-canvas" class="absolute top-0 left-0 min-h-full min-w-full">
+                     <div id="kanban-container" class="flex gap-4 p-6"></div>
+                </div>
+            </div>
+             <div class="absolute bottom-4 right-4 flex gap-2 z-50">
+                <button onclick="exportData()" class="glassy-panel p-2 rounded shadow hover:bg-bgHover text-textMain" title="Export"><i class="fa-solid fa-download"></i></button>
+                <button onclick="document.getElementById('file-import').click()" class="glassy-panel p-2 rounded shadow hover:bg-bgHover text-textMain" title="Import"><i class="fa-solid fa-upload"></i></button>
+            </div>
+        </div>
+
+        <!-- Graph -->
+        <div id="view-graph" class="view-section relative">
+            <canvas id="graph-canvas" class="block w-full h-full"></canvas>
+            <div class="absolute top-4 right-4 glassy-panel p-3 rounded-lg shadow-lg text-xs flex flex-col gap-3 z-50 w-48">
+                <div class="flex flex-col gap-1 pb-2 border-b border-borderMain">
+                    <span class="font-bold text-textMuted">Filter Tags:</span>
+                    <input type="text" id="graph-tag-filter" placeholder="e.g. python" class="bg-bgMain border border-borderMain rounded px-2 py-1 text-textMain">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="flex items-center cursor-pointer text-textMain"><input type="checkbox" id="chk-show-tags" class="mr-2 accent-accent" checked> Show Tags</label>
+                    <label class="flex items-center cursor-pointer text-textMain"><input type="checkbox" id="chk-freeze-graph" class="mr-2 accent-accent"> Freeze Nodes</label>
+                </div>
+                <button onclick="resetGraphView()" class="w-full bg-bgSidebar border border-borderMain p-1 rounded hover:bg-bgHover">Reset View</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- UTILS ---
+        function getTimestamp() {
+            const now = new Date();
+            const f = (n) => n.toString().padStart(2,'0');
+            return `${now.getFullYear().toString().slice(2)}${f(now.getMonth()+1)}${f(now.getDate())}${f(now.getHours())}${f(now.getMinutes())}`;
+        }
+        function toggleTheme() { state.theme = state.theme === 'dark' ? 'light' : 'dark'; applyTheme(state.theme); if(state.currentView === 'graph') drawGraph(); }
+        function applyTheme(theme) { localStorage.setItem('nexus_theme', theme); document.documentElement.className = theme; const btn = document.getElementById('btn-theme'); if(btn) btn.innerHTML = `<i class="fa-regular fa-${theme === 'dark' ? 'moon' : 'sun'}"></i>`; }
+        function setFontSize(size) { document.documentElement.style.setProperty('--app-font-size', `${size}px`); if(document.getElementById('font-size-val')) document.getElementById('font-size-val').innerText = `${size}px`; localStorage.setItem('nexus_font_size', size); }
+        function setCodeTheme(theme) { document.getElementById('hljs-theme').href = `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/${theme}`; localStorage.setItem('nexus_code_theme', theme); }
+
+        // --- APP STATE ---
+        let state = {
+            notes: [], folders: [], boards: [], activeBoardId: 'default', activeNoteId: null, currentView: 'editor', isEditMode: true,
+            selectedIds: new Set(), lastSelectedId: null, theme: 'light',
+            wb: { x: 0, y: 0, scale: 1, isPanning: false, lastX: 0, lastY: 0, showHidden: false },
+            kanban: { x: 0, y: 0, scale: 1, isPanning: false, lastX: 0, lastY: 0, groupBy: 'status' },
+            graph: { showTags: true, frozen: false, textFilter: '' }
+        };
+
+        // --- DOM CACHE ---
+        let el = {};
+
+        document.addEventListener('DOMContentLoaded', () => {
+            el = {
+                title: document.getElementById('note-title'), editor: document.getElementById('markdown-input'), preview: document.getElementById('markdown-preview'),
+                noteStatus: document.getElementById('note-status'), noteBoard: document.getElementById('note-board'),
+                fileTree: document.getElementById('file-tree'), sidebarTagFilter: document.getElementById('sidebar-tag-filter'),
+                wbCanvas: document.getElementById('wb-canvas'), wbContainer: document.getElementById('view-whiteboard'),
+                kanbanContainer: document.getElementById('kanban-container'), kanbanWrapper: document.getElementById('kanban-wrapper'), kanbanCanvas: document.getElementById('kanban-canvas'), kanbanBoardSelect: document.getElementById('kanban-board-select'), kanbanGroupBy: document.getElementById('kanban-group-by'),
+                graphCanvas: document.getElementById('graph-canvas'), chkTags: document.getElementById('chk-show-tags'), chkFreeze: document.getElementById('chk-freeze-graph'), graphTagFilter: document.getElementById('graph-tag-filter'),
+                views: document.querySelectorAll('.view-section'), loader: document.getElementById('loader'), loaderText: document.getElementById('loader-text'),
+                fontSizeSlider: document.getElementById('font-size-slider'), codeThemeSelect: document.getElementById('code-theme-select')
+            };
+
+            // Load Settings
+            const storedTheme = localStorage.getItem('nexus_theme') || 'light';
+            const storedFontSize = localStorage.getItem('nexus_font_size') || '15';
+            const storedCodeTheme = localStorage.getItem('nexus_code_theme') || 'atom-one-dark.min.css';
+            
+            state.theme = storedTheme;
+            applyTheme(storedTheme);
+            setFontSize(storedFontSize); if(el.fontSizeSlider) el.fontSizeSlider.value = storedFontSize;
+            setCodeTheme(storedCodeTheme); if(el.codeThemeSelect) el.codeThemeSelect.value = storedCodeTheme;
+            
+            loadData();
+
+            if (state.notes.length === 0) createDefaultNote();
+            if (!state.activeNoteId && state.notes.length > 0) setActiveNote(state.notes[0].id);
+            else if (state.activeNoteId) setActiveNote(state.activeNoteId);
+
+            setupWhiteboardInteractions(); setupKanbanInteractions(); setupMarkdownInteractions();
+            renderTree(); updateBoardUI(); renderKanban();
+
+            // Safe Event Listeners
+            if(document.getElementById('btn-theme')) document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+            if(document.getElementById('search-input')) document.getElementById('search-input').addEventListener('input', renderTree);
+            if(el.title) el.title.addEventListener('input', e => updateActiveNote('title', e.target.value));
+            if(el.editor) el.editor.addEventListener('input', updatePreview);
+            if(el.noteStatus) el.noteStatus.addEventListener('change', e => { updateActiveNote('status', e.target.value); renderKanban(); });
+            if(el.noteBoard) el.noteBoard.addEventListener('change', e => { updateActiveNote('boardId', e.target.value); renderKanban(); });
+            if(el.kanbanBoardSelect) el.kanbanBoardSelect.addEventListener('change', e => { state.activeBoardId = e.target.value; saveData(); renderKanban(); });
+            if(el.kanbanGroupBy) el.kanbanGroupBy.addEventListener('change', e => { state.kanban.groupBy = e.target.value; renderKanban(); });
+            if(document.getElementById('btn-toggle-mode')) document.getElementById('btn-toggle-mode').addEventListener('click', toggleEditMode);
+            if(document.getElementById('btn-delete-note')) document.getElementById('btn-delete-note').addEventListener('click', deleteCurrentNote);
+            if(document.getElementById('wb-show-hidden')) document.getElementById('wb-show-hidden').addEventListener('change', e => { state.wb.showHidden = e.target.checked; renderWhiteboard(); });
+            if(el.chkTags) el.chkTags.addEventListener('change', e => { state.graph.showTags = e.target.checked; if(state.currentView === 'graph') initGraph(); });
+            if(el.chkFreeze) el.chkFreeze.addEventListener('change', e => { state.graph.frozen = e.target.checked; if(!state.graph.frozen) animateGraph(); });
+            if(el.graphTagFilter) el.graphTagFilter.addEventListener('input', e => { state.graph.textFilter = e.target.value; initGraph(); });
+            if(el.sidebarTagFilter) el.sidebarTagFilter.addEventListener('input', (e) => { state.sidebar = { filterText: e.target.value }; renderTree(); });
+            if(document.getElementById('file-import')) document.getElementById('file-import').addEventListener('change', importData);
+            
+            if(el.fontSizeSlider) el.fontSizeSlider.addEventListener('input', e => setFontSize(e.target.value));
+            if(el.codeThemeSelect) el.codeThemeSelect.addEventListener('change', e => setCodeTheme(e.target.value));
+
+            updateModeUI();
+        });
+
+        function loadData() {
+            const raw = localStorage.getItem('nexus_data_v22');
+            if (raw) {
+                const data = JSON.parse(raw);
+                state = { ...state, ...data };
+                if(!state.boards || state.boards.length === 0) state.boards = [{ id: 'default', name: 'Main', statuses: ['todo', 'doing', 'done'] }];
+                if(!state.activeBoardId) state.activeBoardId = 'default';
+            } else {
+                state.boards = [{ id: 'default', name: 'Main', statuses: ['todo', 'doing', 'done'] }];
+                state.activeBoardId = 'default';
+            }
+        }
+        function saveData() { localStorage.setItem('nexus_data_v22', JSON.stringify(state)); document.getElementById('save-status').innerText = 'Saved'; setTimeout(() => document.getElementById('save-status').innerText = '', 2000); }
+        function createDefaultNote() {
+            const content = `---
+tags: [demo, features]
+difficulty: Easy
+---
+# Nexus v22 Demo
+
+### 1. Settings & Customization
+Click the **Gear Icon** (bottom left) to:
+- **Adjust Text Size**: Slider controls global font size.
+- **Switch Code Themes**: Choose from 5 themes (GitHub, Monokai, etc.).
+
+### 2. Code Blocks
+\`\`\`python
+def hello():
+    print("Colorful code!")
+\`\`\`
+
+### 3. GitHub Import (Lazy Load)
+Import a repo URL via the cloud icon. Files load instantly.
+
+### 4. Kanban Grouping
+Use the "Group By" dropdown in Kanban to organize by:
+- **Status** (default)
+- **Difficulty** (from metadata)
+- **Tag** (first tag)
+
+### 5. Links
+[Internal Link](./nexus_github_edition.html) works!`;
+            const note = { 
+                id: getTimestamp(), title: 'Welcome', content, folderId: null, tags: ['demo'], 
+                boardId: state.activeBoardId, status: 'todo', wb: {x:100, y:100}, timestamp: Date.now(),
+                meta: { difficulty: 'Easy' }
+            };
+            state.notes.push(note); saveData(); setActiveNote(note.id);
+        }
+
+        function parseMetadata(content) {
+            const regex = /^---\n([\s\S]*?)\n---/;
+            const match = content.match(regex);
+            if (!match) return {};
+            const meta = {};
+            match[1].split('\n').forEach(line => {
+                const [k, v] = line.split(':').map(s=>s.trim());
+                if(k && v) {
+                    if (v.startsWith('[') && v.endsWith(']')) {
+                         meta[k] = v.slice(1,-1).split(',').map(s=>s.trim());
+                    } else {
+                         meta[k] = v;
+                    }
+                }
+            });
+            return meta;
+        }
+
+        function createNote(title) {
+            const id = title || getTimestamp();
+            const note = { id, title: title || id, content: '', folderId: null, tags: [], boardId: state.activeBoardId, status: 'no-status', wb: { x: Math.random()*500, y: Math.random()*500 }, timestamp: Date.now(), meta: {} };
+            state.notes.unshift(note); saveData(); setActiveNote(note.id); renderTree(); if(state.currentView==='kanban') renderKanban();
+        }
+        function createTimestampNote() {
+            const ts = getTimestamp();
+            if(state.currentView === 'editor' && state.activeNoteId) { const newContent = el.editor.value + `\n${ts}`; el.editor.value = newContent; updateActiveNote('content', newContent); updatePreview(); } else { createNote(ts); }
+        }
+        function createFolder() { const n = prompt("Folder Name"); if(n) { state.folders.push({id:'f_'+Date.now(), name:n, isOpen:true}); saveData(); renderTree(); }}
+        function deleteCurrentNote() { if(confirm("Delete?")) { state.notes = state.notes.filter(n=>n.id!==state.activeNoteId); state.activeNoteId=null; saveData(); renderTree(); el.editor.value=''; el.preview.innerHTML=''; }}
+        function resetData() { if(confirm("Reset?")) { localStorage.removeItem('nexus_data_v22'); location.reload(); }}
+        function updateActiveNote(key, value) {
+            const note = state.notes.find(n => n.id === state.activeNoteId);
+            if (note) {
+                note[key] = value; 
+                if (key === 'content') {
+                    note.meta = parseMetadata(value);
+                    if (note.meta.tags) note.tags = note.meta.tags; 
+                    const regexTags = [...value.matchAll(/(?<=^|\s)(#[a-zA-Z0-9_]+)/g)].map(m => m[0].replace('#',''));
+                    if (regexTags.length > 0) { note.tags = [...new Set([...(note.tags||[]), ...regexTags])]; }
+                }
+                saveData();
+                if(key==='title') { renderTree(); if(state.currentView==='whiteboard') renderWhiteboard(); if(state.currentView==='kanban') renderKanban(); }
+                if(key==='status' || key==='boardId') { if(state.currentView==='whiteboard') renderWhiteboard(); if(state.currentView==='kanban') renderKanban(); }
+            }
+        }
+        function setActiveNote(id) {
+            state.activeNoteId = id; state.selectedIds.clear(); state.selectedIds.add(id); state.lastSelectedId = id;
+            const note = state.notes.find(n => n.id === id); if (!note) return;
+            if (!note.content && note.downloadUrl) { fetchNoteContent(note); return; }
+            if(note.folderId) {
+                let curr = note.folderId;
+                while(curr) { const f = state.folders.find(fl => fl.id === curr); if(f) { f.isOpen = true; curr = null; } else { curr = null; } }
+            }
+            el.title.value = note.title; el.editor.value = note.content;
+            updateBoardUI(); 
+            if(el.noteBoard) el.noteBoard.value = note.boardId; 
+            if(el.noteStatus) el.noteStatus.value = note.status;
+            updatePreview(); renderTree();
+            setTimeout(() => { const item = document.querySelector(`.sidebar-item.active`); if(item) item.scrollIntoView({block: 'nearest'}); }, 100);
+        }
+        
+        async function fetchNoteContent(note) {
+            el.loader.style.display = 'flex'; el.loaderText.innerText = "Downloading Note...";
+            try {
+                const resp = await fetch(note.downloadUrl);
+                if(resp.ok) {
+                     note.content = await resp.text();
+                     delete note.downloadUrl; 
+                     updateActiveNote('content', note.content); 
+                     setActiveNote(note.id); 
+                }
+            } catch(e) { alert("Error downloading note"); }
+            el.loader.style.display = 'none';
+        }
+
+        function handleNoteClick(e, id) {
+            if (e.shiftKey && state.lastSelectedId) { const visibleIds = getVisibleNoteIds(); const start = visibleIds.indexOf(state.lastSelectedId); const end = visibleIds.indexOf(id); if (start !== -1 && end !== -1) { const low = Math.min(start, end); const high = Math.max(start, end); for(let i=low; i<=high; i++) state.selectedIds.add(visibleIds[i]); } }
+            else if (e.ctrlKey || e.metaKey) { if (state.selectedIds.has(id)) state.selectedIds.delete(id); else state.selectedIds.add(id); state.lastSelectedId = id; }
+            else { setActiveNote(id); return; }
+            renderTree();
+        }
+        function getVisibleNoteIds() {
+            const search = document.getElementById('search-input').value.toLowerCase();
+            const tagTextFilter = state.sidebar && state.sidebar.filterText ? state.sidebar.filterText.split(',').map(t => t.trim().toLowerCase().replace('#','')).filter(t=>t) : [];
+            const filterFn = (n) => { const matchesSearch = n.title.toLowerCase().includes(search); let matchesTagText = true; if (tagTextFilter.length > 0) matchesTagText = n.tags.some(t => tagTextFilter.some(f => t.toLowerCase().includes(f))); return matchesSearch && matchesTagText; };
+            let ids = []; state.folders.forEach(f => { if(f.isOpen) { state.notes.filter(n => n.folderId === f.id && filterFn(n)).forEach(n => ids.push(n.id)); } }); state.notes.filter(n => !n.folderId && filterFn(n)).forEach(n => ids.push(n.id)); return ids;
+        }
+        function updateBoardUI() {
+            const boardOpts = state.boards.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+            el.kanbanBoardSelect.innerHTML = boardOpts; el.kanbanBoardSelect.value = state.activeBoardId;
+            el.noteBoard.innerHTML = boardOpts;
+            const note = state.notes.find(n => n.id === state.activeNoteId);
+            if(note) { const board = state.boards.find(b => b.id === (note.boardId || state.activeBoardId)) || state.boards[0]; el.noteStatus.innerHTML = board.statuses.map(s => `<option value="${s}">${s}</option>`).join(''); el.noteStatus.value = note.status; }
+        }
+        function updatePreview() {
+            const raw = el.editor.value; let html = marked.parse(raw.replace(/^---[\s\S]*?---/, '')); 
+            html = html.replace(/\[([^\]]+)\]\(\.\/([^)]+)\.md\)/g, `<span class="wikilink" onclick="handleLink('$2')">$1</span>`); 
+            html = html.replace(/\[\[(.*?)\]\]/g, `<span class="wikilink" onclick="handleLink('$1')">$1</span>`); 
+            html = html.replace(/ disabled=""/g, ''); el.preview.innerHTML = html;
+            el.preview.querySelectorAll('pre code').forEach((block) => { hljs.highlightElement(block); });
+            try { el.preview.querySelectorAll('p').forEach(p => { if(p.innerText.startsWith('$$')) katex.render(p.innerText.replace(/\$\$/g,''), p, {displayMode:true}); }); } catch(e){}
+        }
+        function setupMarkdownInteractions() {
+            el.preview.addEventListener('click', (e) => {
+                if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
+                    const allChecks = Array.from(el.preview.querySelectorAll('input[type="checkbox"]')); const index = allChecks.indexOf(e.target);
+                    let raw = el.editor.value; let matchIndex = -1; const newRaw = raw.replace(/^(\s*[-*1-9.]+\s\[)([ x])(\])/gm, (match, pre, val, suf) => { matchIndex++; if (matchIndex === index) return `${pre}${val === ' ' ? 'x' : ' '}${suf}`; return match; });
+                    el.editor.value = newRaw; updateActiveNote('content', newRaw); updatePreview();
+                }
+            });
+        }
+        function switchView(v) {
+            state.currentView = v; el.views.forEach(e => e.classList.remove('active')); document.getElementById(`view-${v}`).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); document.getElementById(`nav-${v}`).classList.add('active');
+            if(v==='editor') { document.getElementById('sidebar-tree').classList.remove('w-0', 'opacity-0', 'overflow-hidden'); document.getElementById('sidebar-tree').classList.add('w-60'); } else { document.getElementById('sidebar-tree').classList.add('w-0', 'opacity-0', 'overflow-hidden'); document.getElementById('sidebar-tree').classList.remove('w-60'); }
+            if(v==='whiteboard') renderWhiteboard(); if(v==='kanban') renderKanban(); if(v==='graph') { setTimeout(() => { resetGraphView(); initGraph(); }, 50); }
+        }
+        function toggleEditMode() { state.isEditMode = !state.isEditMode; updateModeUI(); }
+        function updateModeUI() { if (state.isEditMode) { el.editor.classList.remove('hidden'); el.editor.classList.add('w-1/2'); el.preview.classList.remove('w-full'); el.preview.classList.add('w-1/2'); } else { el.editor.classList.add('hidden'); el.editor.classList.remove('w-1/2'); el.preview.classList.remove('w-1/2'); el.preview.classList.add('w-full'); } }
+        function renderTree() {
+            const c = el.fileTree; c.innerHTML = ''; const search = document.getElementById('search-input').value.toLowerCase(); const fn = n => n.title.toLowerCase().includes(search);
+            state.folders.forEach(f => { const div = document.createElement('div'); div.innerHTML = `<div class="p-1 font-bold flex items-center cursor-pointer hover:bg-bgHover rounded text-textMain" ondrop="dropInFolder(event, '${f.id}')" ondragover="allowDrop(event)"><i class="fa-solid ${f.isOpen?'fa-chevron-down':'fa-chevron-right'} w-4 text-xs mr-1 text-textMuted"></i> ${f.name}</div>`; div.onclick = (e) => { if(!e.target.classList.contains('fa-solid')) {f.isOpen = !f.isOpen; saveData(); renderTree();} }; c.appendChild(div); if(f.isOpen) state.notes.filter(n => n.folderId === f.id && fn(n)).forEach(n => div.appendChild(createTreeItem(n, true))); });
+            state.notes.filter(n => !n.folderId && fn(n)).forEach(n => c.appendChild(createTreeItem(n, false)));
+        }
+        function createTreeItem(n, indent) {
+            const d = document.createElement('div'); d.className = `sidebar-item p-1 flex items-center cursor-pointer rounded ${indent?'ml-4':''} ${n.id===state.activeNoteId?'active':''} ${state.selectedIds.has(n.id)?'selected':''}`; d.draggable = true; d.innerHTML = `<i class="fa-regular fa-file-lines text-xs mr-2 w-4 text-center text-textMuted"></i> <span class="truncate">${n.title}</span>`;
+            d.onclick = (e) => handleNoteClick(e, n.id); d.ondragstart = (e) => handleDragStart(e, n.id); return d;
+        }
+        function handleDragStart(e, id) { if(!state.selectedIds.has(id)) { state.selectedIds.clear(); state.selectedIds.add(id); } e.dataTransfer.setData('ids', JSON.stringify([...state.selectedIds])); }
+        function allowDrop(e) { e.preventDefault(); }
+        function dropToRoot(e) { handleDrop(e, null); }
+        function dropInFolder(e, fId) { e.stopPropagation(); handleDrop(e, fId); }
+        function handleDrop(e, fId) { const ids = JSON.parse(e.dataTransfer.getData('ids')); state.notes.forEach(n => { if(ids.includes(n.id)) n.folderId = fId; }); saveData(); renderTree(); }
+        function setupPanZoom(container, canvas, stateObj) { container.addEventListener('wheel', e => { if (e.ctrlKey) { e.preventDefault(); const s = Math.exp(-e.deltaY * 0.001); stateObj.scale = Math.min(Math.max(0.1, stateObj.scale * s), 4); } else { stateObj.x -= e.deltaX; stateObj.y -= e.deltaY; } updateTransform(canvas, stateObj); saveData(); }); container.addEventListener('mousedown', e => { if (e.target === container || e.target === canvas || e.target.id === 'kanban-container') { stateObj.isPanning = true; stateObj.lastX = e.clientX; stateObj.lastY = e.clientY; container.style.cursor = 'grabbing'; } }); window.addEventListener('mousemove', e => { if (stateObj.isPanning) { stateObj.x += e.clientX-stateObj.lastX; stateObj.y += e.clientY-stateObj.lastY; stateObj.lastX=e.clientX; stateObj.lastY=e.clientY; updateTransform(canvas, stateObj); } }); window.addEventListener('mouseup', () => { stateObj.isPanning = false; container.style.cursor = 'grab'; }); }
+        function updateTransform(el, state) { el.style.transform = `translate(${state.x}px, ${state.y}px) scale(${state.scale})`; }
+        function setupWhiteboardInteractions() { setupPanZoom(el.wbContainer, el.wbCanvas, state.wb); window.addEventListener('mousemove', e => { if (window.draggedCard) { const dx = (e.clientX - window.dragStart.x) / state.wb.scale; const dy = (e.clientY - window.dragStart.y) / state.wb.scale; const note = state.notes.find(n => n.id === window.draggedCard); note.wb.x = window.cardStart.x + dx; note.wb.y = window.cardStart.y + dy; renderWhiteboard(); } }); window.addEventListener('mouseup', () => { if(window.draggedCard) { window.draggedCard = null; saveData(); } }); }
+        function renderWhiteboard() { el.wbCanvas.innerHTML = ''; state.notes.forEach(n => { if(n.status==='no-status' && !state.wb.showHidden) return; const d = document.createElement('div'); d.className='wb-card'; d.style.left=`${n.wb.x}px`; d.style.top=`${n.wb.y}px`; d.innerHTML = `<div class="wb-header" onmousedown="startWbDrag(event, '${n.id}')"><span>${n.title}</span><i class="fa-solid fa-expand cursor-pointer" onclick="setActiveNote('${n.id}');switchView('editor')"></i></div><div class="wb-body">${n.content.slice(0,100)}</div><div class="wb-footer"><div class="wb-status-badge" onclick="cycleStatus('${n.id}')">${n.status}</div></div>`; el.wbCanvas.appendChild(d); }); updateTransform(el.wbCanvas, state.wb); }
+        function startWbDrag(e, id) { e.stopPropagation(); window.dragId = id; window.dragStart = {x:e.clientX, y:e.clientY}; const n = state.notes.find(x=>x.id===id); window.wbStart = {x:n.wb.x, y:n.wb.y}; }
+        window.autoArrangeWhiteboard = () => { const vis = state.notes.filter(n => n.status!=='no-status'); vis.forEach((n,i) => { n.wb.x=(i%5)*300; n.wb.y=Math.floor(i/5)*300; }); renderWhiteboard(); saveData(); };
+        window.cycleStatus = (id) => { const note = state.notes.find(n => n.id === id); if (note) { const board = state.boards.find(b => b.id === note.boardId) || state.boards[0]; const currIdx = board.statuses.indexOf(note.status); note.status = board.statuses[(currIdx + 1) % board.statuses.length]; saveData(); renderWhiteboard(); } };
+        function setupKanbanInteractions() { setupPanZoom(el.kanbanWrapper, el.kanbanCanvas, state.kanban); updateTransform(el.kanbanCanvas, state.kanban); }
+        function renderKanban() {
+            const c = el.kanbanContainer; c.innerHTML = '';
+            // Grouping Logic
+            const groupBy = state.kanban.groupBy;
+            let keys = [];
+            if (groupBy === 'status') {
+                const board = state.boards.find(b=>b.id===state.activeBoardId)||state.boards[0];
+                keys = board.statuses;
+            } else if (groupBy === 'difficulty') {
+                keys = ['Beginner', 'Easy', 'Medium', 'Hard']; // Simplified for demo, ideally dynamic
+            } else if (groupBy === 'tag') {
+                keys = [...new Set(state.notes.map(n=>n.tags?.[0] || 'Untagged'))];
+            }
+
+            keys.forEach(key => {
+                const col = document.createElement('div'); col.className='kanban-col';
+                let colNotes = [];
+                if (groupBy === 'status') colNotes = state.notes.filter(n=>n.status===key && n.boardId===state.activeBoardId);
+                else if (groupBy === 'difficulty') colNotes = state.notes.filter(n=>n.meta?.difficulty === key);
+                else if (groupBy === 'tag') colNotes = state.notes.filter(n=>(n.tags?.[0] || 'Untagged') === key);
+
+                col.innerHTML = `<div class="kanban-header"><span>${key}</span><span class="bg-bgHover px-2 rounded-full text-xs">${colNotes.length}</span></div><div class="kanban-list flex flex-col gap-2 min-h-[50px]" ondragover="event.preventDefault()" ondrop="dropKanban(event, '${key}')"></div>`;
+                const list = col.querySelector('.kanban-list');
+                colNotes.forEach(n => {
+                    const card = document.createElement('div'); card.className='kanban-card'; card.draggable=true;
+                    card.innerHTML = `<div class="font-bold text-sm mb-1">${n.title}</div><div class="text-xs text-textMuted">${n.content.slice(0,50)}</div>`;
+                    card.ondragstart = (e) => e.dataTransfer.setData('id', n.id);
+                    card.ondrop = (e) => { e.stopPropagation(); handleReorder(e.dataTransfer.getData('id'), n.id); };
+                    card.ondragover = allowDrop;
+                    card.onclick = () => { setActiveNote(n.id); switchView('editor'); };
+                    list.appendChild(card);
+                });
+                c.appendChild(col);
+            });
+        }
+        window.dropKanban = (e, key) => { 
+            e.preventDefault(); const id = e.dataTransfer.getData('id'); const n = state.notes.find(x=>x.id===id); 
+            if(n){ 
+                if(state.kanban.groupBy === 'status') n.status=key;
+                else if (state.kanban.groupBy === 'difficulty') { if(!n.meta) n.meta={}; n.meta.difficulty = key; }
+                saveData(); renderKanban(); 
+            } 
+        };
+        window.handleReorder = (dragId, targetId) => { if (dragId === targetId) return; const dIdx = state.notes.findIndex(n => n.id === dragId); const tIdx = state.notes.findIndex(n => n.id === targetId); const [removed] = state.notes.splice(dIdx, 1); state.notes.splice(tIdx, 0, removed); saveData(); renderKanban(); };
+        window.addBoard = () => { const n = prompt("Name"); if(n) { state.boards.push({id:'b_'+Date.now(), name:n, statuses:['todo','doing','done']}); state.activeBoardId=state.boards[state.boards.length-1].id; updateBoardUI(); renderKanban(); saveData(); }};
+        window.addKanbanColumn = () => { const n = prompt("Status"); if(n) { const b = state.boards.find(x=>x.id===state.activeBoardId); b.statuses.push(n); renderKanban(); saveData(); }};
+        function initGraph() { const canv = el.graphCanvas; const rect = canv.parentElement.getBoundingClientRect(); canv.width=rect.width; canv.height=rect.height; const ctx = canv.getContext('2d'); const nodes = state.notes.map(n=>({id:n.id, x:Math.random()*canv.width, y:Math.random()*canv.height, ...n})); function draw() { ctx.clearRect(0,0,canv.width,canv.height); nodes.forEach(n => { ctx.beginPath(); ctx.arc(n.x, n.y, 5, 0, Math.PI*2); ctx.fillStyle = state.activeNoteId===n.id?'#8b5cf6':'#6b7280'; ctx.fill(); ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text-main'); ctx.fillText(n.title, n.x+8, n.y+4); }); if(!state.graph.frozen) { nodes.forEach(a => nodes.forEach(b => { if(a===b)return; const dx=b.x-a.x, dy=b.y-a.y, d=Math.sqrt(dx*dx+dy*dy); if(d<200) { a.x-=dx/d; a.y-=dy/d; } })); requestAnimationFrame(draw); } } draw(); }
+        window.resetGraphView = initGraph;
+        function exportData() { const ts = getTimestamp(); const dataStr = JSON.stringify({ notes: state.notes, folders: state.folders, boards: state.boards, activeBoardId: state.activeBoardId, kanban: state.kanban }, null, 2); const blob = new Blob([dataStr], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${ts}.json`; a.click(); }
+        function importData(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (event) => { try { const data = JSON.parse(event.target.result); if (confirm("Overwrite data?")) { localStorage.setItem('nexus_data_v22', JSON.stringify(data)); location.reload(); } } catch (err) { alert("Invalid file"); } }; reader.readAsText(file); }
+        async function startGithubImport() { const urlInput = document.getElementById('gh-url').value.trim(); const token = document.getElementById('gh-token').value.trim(); if (!urlInput) return alert("Please enter a GitHub URL"); let owner, repo, branch = 'main', path = ''; try { const url = new URL(urlInput); const parts = url.pathname.split('/').filter(p => p); if (parts.length < 2) throw new Error("Invalid Repo URL"); owner = parts[0]; repo = parts[1]; if (parts[2] === 'tree' && parts[3]) { branch = parts[3]; path = parts.slice(4).join('/'); } } catch (e) { return alert("Invalid URL format"); } el.loader.style.display = 'flex'; el.loaderText.innerText = "Fetching file tree..."; document.getElementById('import-modal').close(); try { const headers = token ? { 'Authorization': `token ${token}` } : {}; const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`; const resp = await fetch(treeUrl, { headers }); if (!resp.ok) throw new Error((await resp.json()).message || "Failed to fetch tree"); const data = await resp.json(); let files = data.tree.filter(item => item.type === 'blob' && item.path.endsWith('.md')); if (path) files = files.filter(f => f.path.startsWith(path)); el.loaderText.innerText = `Found ${files.length} markdown files. Downloading...`; let count = 0; for (const file of files) { const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${file.path}`; 
+            // LAZY IMPORT LOGIC
+            const pathParts = file.path.split('/'); const fileName = pathParts.pop().replace('.md', ''); let parentId = null; for (const folderName of pathParts) { let folder = state.folders.find(f => f.name === folderName); if (!folder) { folder = { id: 'f_' + Math.random().toString(36).substr(2, 9), name: folderName, isOpen: true }; state.folders.push(folder); } parentId = folder.id; } 
+            const newNote = { id: getTimestamp() + count, title: fileName, content: '', downloadUrl: rawUrl, folderId: parentId, tags: ['imported'], boardId: state.activeBoardId, status: 'no-status', wb: { x: Math.random() * 800, y: Math.random() * 600 }, timestamp: Date.now(), meta: {} }; state.notes.push(newNote); count++; 
+        } saveData(); renderTree(); alert(`Import complete! ${count} notes added (Lazy Loaded).`); } catch (err) { alert("Import failed: " + err.message); } finally { el.loader.style.display = 'none'; } }
+        window.handleLink = (title) => { 
+            let target = state.notes.find(n => n.title.toLowerCase() === title.toLowerCase());
+            // If absolute path in imports or relative path logic needed
+            if(!target && title.includes('/')) {
+                 const parts = title.split('/');
+                 const name = parts[parts.length-1].replace('.md','');
+                 target = state.notes.find(n => n.title.toLowerCase() === name.toLowerCase());
+            }
+            if (target) { setActiveNote(target.id); switchView('editor'); } else createNote(title); 
+        };
+    </script>
+</body>
+</html>
