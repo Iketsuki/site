@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robo-Academy: Train Your AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #0f172a;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .canvas-container {
+            position: relative;
+            box-shadow: 0 0 50px rgba(56, 189, 248, 0.1);
+        }
+
+        canvas {
+            border-radius: 12px;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            margin-top: -6px; 
+            box-shadow: 0 0 10px #38bdf8;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #334155;
+            border-radius: 2px;
+        }
+
+        input[type=number] {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 4px 8px;
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            width: 100%;
+        }
+        input[type=number]:focus {
+            outline: none;
+            border-color: #38bdf8;
+        }
+
+        /* Toggle Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #10b981;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #10b981;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col lg:flex-row">
+
+    <!-- Sidebar / Controls -->
+    <div class="w-full lg:w-96 glass-panel p-5 flex flex-col gap-5 z-10 border-r border-slate-700 overflow-y-auto max-h-screen scrollbar-hide">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <i class="fas fa-robot text-white text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold leading-none">Robo-Academy</h1>
+                <p class="text-xs text-slate-400">Reinforcement Learning Lab</p>
+            </div>
+        </div>
+
+        <!-- Training Controls -->
+        <div class="space-y-3">
+            <div class="grid grid-cols-2 gap-2">
+                <button id="btnTrain" class="bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fas fa-play"></i> Train
+                </button>
+                <button id="btnReset" class="bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-lg font-bold transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            </div>
+            
+            <!-- Auto Toggle -->
+            <div class="flex items-center justify-between bg-slate-800/50 p-2 rounded-lg border border-slate-700">
+                <span class="text-xs font-bold text-slate-300">Auto-Loop Episodes</span>
+                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                    <input type="checkbox" name="toggle" id="autoTrainToggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-300 checked:right-0 checked:border-emerald-400"/>
+                    <label for="autoTrainToggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-300 cursor-pointer checked:bg-emerald-400"></label>
+                </div>
+            </div>
+
+            <!-- Next Episode Button (Hidden by default) -->
+            <button id="btnNextEp" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-bold shadow-lg hidden animate-pulse">
+                Next Episode <i class="fas fa-forward ml-2"></i>
+            </button>
+        </div>
+
+        <!-- Speed Control -->
+        <div class="bg-slate-800/30 rounded-xl p-3 border border-slate-700">
+            <label class="text-xs font-bold text-slate-300 flex justify-between mb-2">
+                <span>Simulation Speed</span>
+                <span class="text-xs text-slate-400 font-mono" id="speedLabel">Normal</span>
+            </label>
+            <input type="range" min="1" max="100" value="50" id="speedSlider">
+            <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                <span>Slow-Mo</span>
+                <span>Hyper</span>
+            </div>
+        </div>
+
+        <!-- Stats Panel -->
+        <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700 space-y-3">
+            <!-- Real-time Score -->
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                <span class="text-xs text-slate-400 font-bold uppercase">Current Score</span>
+                <span class="text-2xl font-bold text-white stat-value" id="currentScore">0</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 text-center">
+                <div>
+                    <div class="text-[10px] text-slate-500 uppercase">Episode</div>
+                    <div class="text-sm font-bold text-white stat-value" id="episodeCount">0</div>
+                </div>
+                <div>
+                    <div class="text-[10px] text-slate-500 uppercase">Best Score</div>
+                    <div class="text-sm font-bold text-green-400 stat-value" id="bestReward">0</div>
+                </div>
+                <div>
+                    <div class="text-[10px] text-slate-500 uppercase">Wins</div>
+                    <div class="text-sm font-bold text-blue-400 stat-value" id="winCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Tabs -->
+        <div class="space-y-4">
+            
+            <!-- Builder Tools -->
+            <div class="bg-slate-800/30 rounded-xl p-4 border border-slate-700">
+                <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Map Builder</h2>
+                
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                    <button class="tool-btn py-2 rounded-lg bg-blue-600 text-white text-xs font-bold ring-2 ring-blue-400 ring-offset-2 ring-offset-slate-900" data-tool="wall">
+                        <i class="fas fa-square mr-1"></i> Wall
+                    </button>
+                    <button class="tool-btn py-2 rounded-lg bg-slate-700 text-slate-300 text-xs font-bold hover:bg-slate-600" data-tool="eraser">
+                        <i class="fas fa-eraser mr-1"></i> Eraser
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                     <button class="tool-btn py-2 rounded-lg bg-slate-700 text-slate-300 text-xs font-bold hover:bg-slate-600" data-tool="goal">
+                        <i class="fas fa-star mr-1 text-yellow-400"></i> Set Goal
+                    </button>
+                    <button class="tool-btn py-2 rounded-lg bg-slate-700 text-slate-300 text-xs font-bold hover:bg-slate-600" data-tool="button">
+                        <i class="fas fa-circle mr-1 text-purple-400"></i> Button
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Width</label>
+                        <input type="number" id="gridCols" value="5" min="3" max="25">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Height</label>
+                        <input type="number" id="gridRows" value="5" min="3" max="25">
+                    </div>
+                </div>
+                <button id="btnApplyGrid" class="w-full mt-2 bg-slate-700 hover:bg-slate-600 text-xs py-1.5 rounded text-slate-200 transition-colors">Apply New Grid Size</button>
+            </div>
+
+            <!-- Logic Lab -->
+            <div class="bg-slate-800/30 rounded-xl p-4 border border-slate-700">
+                <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Logic Lab (Parameters)</h2>
+                
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-slate-300 w-24">Goal Reward</label>
+                        <input type="number" id="rewardGoal" value="100" class="flex-1 text-green-400">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-slate-300 w-24">Button Bonus</label>
+                        <input type="number" id="rewardButton" value="20" class="flex-1 text-purple-400">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-slate-300 w-24">Wall Penalty</label>
+                        <input type="number" id="rewardWall" value="-100" class="flex-1 text-red-400">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-slate-300 w-24">Step Cost</label>
+                        <input type="number" id="rewardStep" value="-1" class="flex-1 text-yellow-400">
+                    </div>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <input type="checkbox" id="toggleView" class="w-4 h-4 rounded border-slate-600 text-blue-500 focus:ring-blue-500 bg-slate-700" checked>
+                        <span class="text-xs text-slate-300 group-hover:text-white transition-colors">Visualize "Brain" (Heatmap)</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reward Chart -->
+        <div class="flex-1 min-h-[100px] bg-slate-900/50 rounded-xl border border-slate-700 p-2 relative flex flex-col">
+            <h3 class="text-[10px] text-slate-500 mb-1">Performance Graph</h3>
+            <canvas id="chartCanvas" class="w-full h-full flex-1"></canvas>
+        </div>
+    </div>
+
+    <!-- Main Display -->
+    <div class="flex-1 bg-slate-950 flex items-center justify-center p-4 lg:p-10 relative overflow-hidden">
+        
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#38bdf8 1px, transparent 1px); background-size: 30px 30px;"></div>
+
+        <div class="canvas-container relative">
+            <div class="absolute -top-10 left-0 flex gap-4 text-xs font-bold text-slate-400">
+                <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div> Agent</span>
+                <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-yellow-400"></div> Goal</span>
+                <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-purple-500"></div> Button</span>
+                <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-sm bg-slate-600"></div> Wall</span>
+            </div>
+            
+            <canvas id="gameCanvas" width="800" height="600" class="bg-slate-900 shadow-2xl border border-slate-800"></canvas>
+            
+            <!-- Floating Notification -->
+            <div id="notification" class="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-800/90 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg opacity-0 transition-opacity pointer-events-none border border-slate-600 whitespace-nowrap z-20">
+                Training Started
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ROBO-ACADEMY
+         * Educational Q-Learning Implementation
+         */
+
+        // --- Configuration & State ---
+        let CONFIG = {
+            gridSize: 40, 
+            cols: 5,     
+            rows: 5,     
+            colors: {
+                bg: '#0f172a',
+                wall: '#334155',
+                agent: '#38bdf8',
+                goal: '#facc15',
+                goalInactive: '#475569',
+                button: '#a855f7',
+                grid: '#1e293b',
+                path: 'rgba(255, 255, 255, 0.3)'
+            },
+            rewards: {
+                goal: 100,
+                button: 20,
+                wall: -100,
+                step: -1
+            }
+        };
+
+        const state = {
+            running: false,
+            autoTrain: false, 
+            speedValue: 50, 
+            showBrain: true,
+            episode: 0,
+            wins: 0,
+            bestReward: -Infinity,
+            history: [],
+            tool: 'wall',
+            isDrawing: false,
+            frameCount: 0,
+            needsReset: false,
+            path: [] // Stores coordinates for trail
+        };
+
+        // --- Elements ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const chartCanvas = document.getElementById('chartCanvas');
+        const chartCtx = chartCanvas.getContext('2d');
+        const scoreEl = document.getElementById('currentScore');
+        
+        // --- The Environment ---
+        class Environment {
+            constructor() {
+                this.resize(CONFIG.cols, CONFIG.rows);
+            }
+
+            resize(cols, rows) {
+                this.width = cols;
+                this.height = rows;
+                
+                const maxW = 800;
+                const maxH = 600;
+                
+                const sizeX = maxW / cols;
+                const sizeY = maxH / rows;
+                CONFIG.gridSize = Math.floor(Math.min(sizeX, sizeY));
+
+                canvas.width = maxW;
+                canvas.height = maxH;
+                
+                this.offsetX = (maxW - (cols * CONFIG.gridSize)) / 2;
+                this.offsetY = (maxH - (rows * CONFIG.gridSize)) / 2;
+
+                this.resetMap();
+            }
+
+            // Called when map size changes or reset button
+            resetMap() {
+                this.grid = Array(this.height).fill().map(() => Array(this.width).fill(0));
+                this.agentPos = { x: 0, y: 0 };
+                this.goalPos = { x: this.width - 1, y: this.height - 1 };
+                this.buttonPos = null; // Coordinates of button (if any)
+                this.resetEpisode();
+            }
+
+            // Called every episode
+            resetEpisode() {
+                this.agentPos = { x: 0, y: 0 };
+                // Goal is active if NO button exists. If button exists, goal is inactive.
+                this.goalActive = (this.buttonPos === null); 
+                state.path = [{x:0, y:0}];
+            }
+
+            toGrid(px, py) {
+                return {
+                    x: Math.floor((px - this.offsetX) / CONFIG.gridSize),
+                    y: Math.floor((py - this.offsetY) / CONFIG.gridSize)
+                };
+            }
+
+            handleMapClick(x, y) {
+                // Ignore click on start pos
+                if (x === 0 && y === 0) return;
+                if (x < 0 || x >= this.width || y < 0 || y >= this.height) return;
+
+                if (state.tool === 'goal') {
+                    this.goalPos = { x, y };
+                    // Clear walls or buttons at this spot
+                    this.grid[y][x] = 0;
+                    if (this.buttonPos && this.buttonPos.x === x && this.buttonPos.y === y) this.buttonPos = null;
+                } 
+                else if (state.tool === 'button') {
+                    // Toggle button
+                    if (this.buttonPos && this.buttonPos.x === x && this.buttonPos.y === y) {
+                        this.buttonPos = null;
+                    } else {
+                        this.buttonPos = { x, y };
+                        // Clear walls/goal
+                        this.grid[y][x] = 0;
+                        if (this.goalPos.x === x && this.goalPos.y === y) this.goalPos = null; // Should not happen in UI logic but safety
+                    }
+                } 
+                else if (state.tool === 'wall') {
+                    // Avoid overwriting special items unless erased first
+                    if ((this.goalPos.x === x && this.goalPos.y === y) || 
+                        (this.buttonPos && this.buttonPos.x === x && this.buttonPos.y === y)) return;
+                    this.grid[y][x] = 1;
+                }
+                else if (state.tool === 'eraser') {
+                    this.grid[y][x] = 0;
+                    if (this.buttonPos && this.buttonPos.x === x && this.buttonPos.y === y) this.buttonPos = null;
+                    // Can't erase goal, just move it
+                }
+            }
+
+            // Key change: State now includes "Goal Active" status
+            getState() {
+                const isActive = this.goalActive ? 1 : 0;
+                return `${this.agentPos.x},${this.agentPos.y},${isActive}`;
+            }
+
+            step(action) {
+                let nx = this.agentPos.x;
+                let ny = this.agentPos.y;
+
+                if (action === 0) ny--;
+                if (action === 1) nx++;
+                if (action === 2) ny++;
+                if (action === 3) nx--;
+
+                // Hit Grid Boundary
+                if (nx < 0 || nx >= this.width || ny < 0 || ny >= this.height) {
+                    return { reward: CONFIG.rewards.wall, done: true, nextState: this.getState() };
+                }
+
+                // Hit Wall
+                if (this.grid[ny][nx] === 1) {
+                    return { reward: CONFIG.rewards.wall, done: true, nextState: this.getState() };
+                }
+
+                // Valid Move
+                this.agentPos = { x: nx, y: ny };
+                state.path.push({x: nx, y: ny}); // Track path
+                
+                // Logic: Check for Button Press
+                let r = CONFIG.rewards.step;
+                
+                if (this.buttonPos && nx === this.buttonPos.x && ny === this.buttonPos.y) {
+                    if (!this.goalActive) {
+                        this.goalActive = true;
+                        r += CONFIG.rewards.button; // Bonus for activating
+                        showNotification("Activated!", "text-purple-400");
+                    }
+                }
+
+                const newState = this.getState(); // Calculate new state (includes active flag)
+
+                // Logic: Check for Goal
+                if (nx === this.goalPos.x && ny === this.goalPos.y) {
+                    if (this.goalActive) {
+                        return { reward: CONFIG.rewards.goal, done: true, nextState: newState };
+                    } 
+                    // If goal inactive, it's just a normal tile (maybe a visual indicator?)
+                }
+
+                return { reward: r, done: false, nextState: newState };
+            }
+        }
+
+        // --- The Agent (Q-Learning) ---
+        class Agent {
+            constructor() {
+                this.qTable = {}; 
+                this.learningRate = 0.5; 
+                this.discountFactor = 0.9; 
+                this.epsilon = 0.9; 
+                this.epsilonDecay = 0.99;
+                this.epsilonMin = 0.01;
+            }
+
+            getQ(state) {
+                if (!this.qTable[state]) {
+                    this.qTable[state] = [0, 0, 0, 0];
+                }
+                return this.qTable[state];
+            }
+
+            getAction(state) {
+                if (Math.random() < this.epsilon) {
+                    return Math.floor(Math.random() * 4); 
+                } else {
+                    const qs = this.getQ(state);
+                    let maxQ = Math.max(...qs);
+                    // Randomize ties to prevent sticking
+                    let indices = qs.map((q, i) => q === maxQ ? i : -1).filter(i => i !== -1);
+                    return indices[Math.floor(Math.random() * indices.length)];
+                }
+            }
+
+            learn(state, action, reward, nextState) {
+                const currentQ = this.getQ(state)[action];
+                const nextQs = this.getQ(nextState);
+                const maxNextQ = Math.max(...nextQs);
+
+                const newQ = currentQ + this.learningRate * (reward + this.discountFactor * maxNextQ - currentQ);
+                this.qTable[state][action] = newQ;
+            }
+
+            decayEpsilon() {
+                if (this.epsilon > this.epsilonMin) {
+                    this.epsilon *= this.epsilonDecay;
+                }
+            }
+
+            resetBrain() {
+                this.qTable = {};
+                this.epsilon = 0.9;
+            }
+        }
+
+        // --- Visualization & Loop ---
+        const env = new Environment();
+        const agent = new Agent();
+
+        function drawRect(gridX, gridY, color, fill = true) {
+            const size = CONFIG.gridSize;
+            const x = env.offsetX + gridX * size;
+            const y = env.offsetY + gridY * size;
+            
+            if (fill) {
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, size, size);
+            } else {
+                ctx.strokeStyle = color;
+                ctx.strokeRect(x, y, size, size);
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = CONFIG.colors.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Grid & Q-Values
+            for (let y = 0; y < env.height; y++) {
+                for (let x = 0; x < env.width; x++) {
+                    // Which state should we visualize?
+                    // We visualize the Q-values relevant to the CURRENT situation (Goal Active vs Inactive)
+                    const isActiveFlag = env.goalActive ? 1 : 0;
+                    const stateKey = `${x},${y},${isActiveFlag}`;
+                    
+                    // Draw Walls
+                    if (env.grid[y][x] === 1) {
+                        drawRect(x, y, CONFIG.colors.wall);
+                        ctx.fillStyle = '#475569';
+                        const px = env.offsetX + x * CONFIG.gridSize + 4;
+                        const py = env.offsetY + y * CONFIG.gridSize + 4;
+                        ctx.fillRect(px, py, CONFIG.gridSize - 8, CONFIG.gridSize - 8);
+                        continue;
+                    }
+
+                    // Draw Brain Visualization (Heatmap)
+                    if (state.showBrain && agent.qTable[stateKey]) {
+                        const qs = agent.qTable[stateKey];
+                        const maxQ = Math.max(...qs);
+                        const sumQ = qs.reduce((a, b) => a + b, 0);
+                        const avgQ = sumQ / 4;
+
+                        if (maxQ > 0) {
+                            const alpha = Math.min(maxQ / (CONFIG.rewards.goal * 0.5), 0.8);
+                            ctx.fillStyle = `rgba(52, 211, 153, ${alpha})`;
+                            const px = env.offsetX + x * CONFIG.gridSize;
+                            const py = env.offsetY + y * CONFIG.gridSize;
+                            ctx.fillRect(px, py, CONFIG.gridSize, CONFIG.gridSize);
+                        } 
+                        else if (avgQ < -5) { 
+                            const severity = Math.min(Math.abs(avgQ) / 50, 0.7);
+                            ctx.fillStyle = `rgba(239, 68, 68, ${severity})`;
+                            const px = env.offsetX + x * CONFIG.gridSize;
+                            const py = env.offsetY + y * CONFIG.gridSize;
+                            ctx.fillRect(px, py, CONFIG.gridSize, CONFIG.gridSize);
+                        }
+                    }
+
+                    // Grid Lines
+                    ctx.strokeStyle = CONFIG.colors.grid;
+                    ctx.lineWidth = 1;
+                    const px = env.offsetX + x * CONFIG.gridSize;
+                    const py = env.offsetY + y * CONFIG.gridSize;
+                    ctx.strokeRect(px, py, CONFIG.gridSize, CONFIG.gridSize);
+                }
+            }
+
+            // Draw Button
+            if (env.buttonPos) {
+                const bx = env.offsetX + env.buttonPos.x * CONFIG.gridSize + CONFIG.gridSize/2;
+                const by = env.offsetY + env.buttonPos.y * CONFIG.gridSize + CONFIG.gridSize/2;
+                ctx.fillStyle = CONFIG.colors.button;
+                ctx.beginPath();
+                ctx.arc(bx, by, CONFIG.gridSize/4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowColor = CONFIG.colors.button;
+                ctx.shadowBlur = 10;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+
+            // Draw Goal
+            const gx = env.offsetX + env.goalPos.x * CONFIG.gridSize + CONFIG.gridSize/2;
+            const gy = env.offsetY + env.goalPos.y * CONFIG.gridSize + CONFIG.gridSize/2;
+            
+            // Goal Logic Color
+            ctx.fillStyle = env.goalActive ? CONFIG.colors.goal : CONFIG.colors.goalInactive;
+            
+            ctx.beginPath();
+            ctx.arc(gx, gy, CONFIG.gridSize/3, 0, Math.PI * 2);
+            ctx.fill();
+            if (env.goalActive) {
+                ctx.shadowColor = CONFIG.colors.goal;
+                ctx.shadowBlur = 15;
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Draw Path Trail
+            if (state.path.length > 1) {
+                ctx.beginPath();
+                ctx.strokeStyle = CONFIG.colors.path;
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                
+                state.path.forEach((pos, i) => {
+                    const px = env.offsetX + pos.x * CONFIG.gridSize + CONFIG.gridSize/2;
+                    const py = env.offsetY + pos.y * CONFIG.gridSize + CONFIG.gridSize/2;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+            }
+
+            // Draw Agent
+            const ax = env.offsetX + env.agentPos.x * CONFIG.gridSize + CONFIG.gridSize/2;
+            const ay = env.offsetY + env.agentPos.y * CONFIG.gridSize + CONFIG.gridSize/2;
+            
+            ctx.fillStyle = CONFIG.colors.agent;
+            ctx.beginPath();
+            ctx.arc(ax, ay, CONFIG.gridSize/2.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(ax - 5, ay - 2, 3, 0, Math.PI * 2);
+            ctx.arc(ax + 5, ay - 2, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        let currentEpisodeReward = 0;
+
+        function runStep() {
+            if (state.needsReset) return;
+
+            const currentState = env.getState();
+            const action = agent.getAction(currentState);
+            const { reward, done, nextState } = env.step(action);
+
+            agent.learn(currentState, action, reward, nextState);
+            currentEpisodeReward += reward;
+            
+            scoreEl.innerText = currentEpisodeReward;
+            if (currentEpisodeReward > 0) scoreEl.classList.add('text-green-400');
+            else if (currentEpisodeReward < -50) scoreEl.classList.add('text-red-400');
+            else scoreEl.className = "text-2xl font-bold text-white stat-value";
+
+            if (done) {
+                finishEpisode(reward);
+            }
+        }
+
+        function finishEpisode(finalReward) {
+            state.episode++;
+            state.history.push(currentEpisodeReward);
+            if (state.history.length > 50) state.history.shift();
+            
+            if (finalReward === CONFIG.rewards.goal) {
+                state.wins++;
+                showNotification("Goal Reached!", "text-green-400");
+            } else {
+                showNotification("Crashed!", "text-red-400");
+            }
+
+            if (currentEpisodeReward > state.bestReward) state.bestReward = currentEpisodeReward;
+            
+            agent.decayEpsilon();
+            updateStats();
+            drawChart();
+
+            if (state.autoTrain) {
+                env.resetEpisode();
+                currentEpisodeReward = 0;
+            } else {
+                state.needsReset = true;
+                state.running = false;
+                document.getElementById('btnNextEp').classList.remove('hidden');
+                updateTrainBtnState();
+            }
+        }
+
+        function startNextEpisode() {
+            state.needsReset = false;
+            env.resetEpisode();
+            currentEpisodeReward = 0;
+            scoreEl.innerText = "0";
+            document.getElementById('btnNextEp').classList.add('hidden');
+            state.running = true;
+            updateTrainBtnState();
+        }
+
+        function updateTrainBtnState() {
+            const btn = document.getElementById('btnTrain');
+            if (state.needsReset) {
+                 btn.innerHTML = '<i class="fas fa-play"></i> Resume';
+                 btn.classList.remove('bg-yellow-500', 'shadow-yellow-500/20');
+                 btn.classList.add('bg-emerald-500', 'shadow-emerald-500/20');
+            } else if (state.running) {
+                btn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                btn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600', 'shadow-emerald-500/20');
+                btn.classList.add('bg-yellow-500', 'hover:bg-yellow-600', 'shadow-yellow-500/20');
+            } else {
+                btn.innerHTML = '<i class="fas fa-play"></i> Train';
+                btn.classList.add('bg-emerald-500', 'hover:bg-emerald-600', 'shadow-emerald-500/20');
+                btn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600', 'shadow-yellow-500/20');
+            }
+        }
+
+        function update() {
+            if (!state.running) return;
+
+            let stepsToTake = 0;
+            if (state.speedValue <= 40) {
+                state.frameCount++;
+                const interval = Math.floor(41 - state.speedValue);
+                if (state.frameCount % interval === 0) stepsToTake = 1;
+            } else if (state.speedValue <= 60) {
+                stepsToTake = 1;
+            } else {
+                stepsToTake = Math.floor((state.speedValue - 60) * 2) + 1;
+            }
+
+            for (let i = 0; i < stepsToTake; i++) {
+                if (!state.running) break;
+                runStep();
+            }
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- Charts & UI ---
+        function updateStats() {
+            document.getElementById('episodeCount').innerText = state.episode;
+            document.getElementById('bestReward').innerText = state.bestReward === -Infinity ? 0 : state.bestReward;
+            document.getElementById('winCount').innerText = state.wins;
+        }
+
+        function drawChart() {
+            const w = chartCanvas.width = chartCanvas.clientWidth;
+            const h = chartCanvas.height = chartCanvas.clientHeight;
+            chartCtx.clearRect(0, 0, w, h);
+            if (state.history.length < 2) return;
+
+            chartCtx.strokeStyle = '#38bdf8';
+            chartCtx.lineWidth = 2;
+            chartCtx.beginPath();
+            const maxVal = Math.max(100, ...state.history);
+            const minVal = Math.min(-200, ...state.history); 
+            const range = maxVal - minVal || 1;
+            state.history.forEach((val, i) => {
+                const x = (i / (state.history.length - 1)) * w;
+                const normalized = (val - minVal) / range;
+                const y = h - (normalized * h);
+                if (i === 0) chartCtx.moveTo(x, y);
+                else chartCtx.lineTo(x, y);
+            });
+            chartCtx.stroke();
+        }
+
+        function showNotification(msg, colorClass = "text-white") {
+            const notif = document.getElementById('notification');
+            notif.innerText = msg;
+            notif.className = `absolute top-4 left-1/2 -translate-x-1/2 bg-slate-800/90 px-4 py-2 rounded-full text-sm font-bold shadow-lg transition-opacity pointer-events-none border border-slate-600 whitespace-nowrap z-20 ${colorClass}`;
+            notif.style.opacity = '1';
+            setTimeout(() => notif.style.opacity = '0', 2000);
+        }
+
+        // --- Interaction ---
+        function handleInput(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+            const gridPos = env.toGrid(x, y);
+            env.handleMapClick(gridPos.x, gridPos.y);
+        }
+
+        canvas.addEventListener('mousedown', (e) => { state.isDrawing = true; handleInput(e); });
+        canvas.addEventListener('mousemove', (e) => { if (state.isDrawing) handleInput(e); });
+        window.addEventListener('mouseup', () => state.isDrawing = false);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); state.isDrawing = true; handleInput(e); }, {passive: false});
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (state.isDrawing) handleInput(e); }, {passive: false});
+
+        document.getElementById('btnTrain').addEventListener('click', () => {
+            if (state.needsReset) startNextEpisode();
+            else { state.running = !state.running; updateTrainBtnState(); }
+        });
+        document.getElementById('btnNextEp').addEventListener('click', startNextEpisode);
+        document.getElementById('autoTrainToggle').addEventListener('change', (e) => { state.autoTrain = e.target.checked; });
+        document.getElementById('btnReset').addEventListener('click', () => {
+            state.running = false; state.needsReset = false; state.episode = 0; state.wins = 0; state.bestReward = -Infinity; state.history = [];
+            scoreEl.innerText = "0";
+            document.getElementById('btnNextEp').classList.add('hidden');
+            updateTrainBtnState();
+            CONFIG.rewards.goal = parseInt(document.getElementById('rewardGoal').value);
+            CONFIG.rewards.button = parseInt(document.getElementById('rewardButton').value);
+            CONFIG.rewards.wall = parseInt(document.getElementById('rewardWall').value);
+            CONFIG.rewards.step = parseInt(document.getElementById('rewardStep').value);
+            env.resetMap();
+            agent.resetBrain();
+            updateStats(); drawChart(); showNotification("Full Reset");
+        });
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            state.speedValue = parseInt(e.target.value);
+            const label = document.getElementById('speedLabel');
+            if (state.speedValue <= 40) label.innerText = "Slow-Mo";
+            else if (state.speedValue <= 60) label.innerText = "Normal";
+            else label.innerText = "Hyper";
+        });
+        document.getElementById('toggleView').addEventListener('change', (e) => { state.showBrain = e.target.checked; });
+        document.getElementById('btnApplyGrid').addEventListener('click', () => {
+            const c = parseInt(document.getElementById('gridCols').value);
+            const r = parseInt(document.getElementById('gridRows').value);
+            if(c < 3 || r < 3 || c > 25 || r > 25) { showNotification("Size limited to 3-25"); return; }
+            CONFIG.cols = c; CONFIG.rows = r;
+            document.getElementById('btnReset').click();
+            env.resize(c, r);
+            showNotification(`Grid Resized to ${c}x${r}`);
+        });
+
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tool-btn').forEach(b => {
+                    b.classList.remove('ring-2', 'ring-blue-400', 'ring-offset-2', 'ring-offset-slate-900', 'bg-blue-600', 'text-white');
+                    b.classList.add('bg-slate-700', 'text-slate-300');
+                });
+                const target = e.currentTarget;
+                target.classList.remove('bg-slate-700', 'text-slate-300');
+                target.classList.add('ring-2', 'ring-blue-400', 'ring-offset-2', 'ring-offset-slate-900', 'bg-blue-600', 'text-white');
+                state.tool = target.dataset.tool;
+            });
+        });
+
+        // Init
+        env.resize(CONFIG.cols, CONFIG.rows);
+        gameLoop();
+    </script>
+</body>
+</html>
