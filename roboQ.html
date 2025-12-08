@@ -19,12 +19,15 @@
         .canvas-container {
             position: relative;
             box-shadow: 0 0 50px rgba(56, 189, 248, 0.1);
+            max-width: 100%;
         }
 
         canvas {
             border-radius: 12px;
             cursor: crosshair;
             touch-action: none;
+            max-width: 100%;
+            height: auto;
         }
 
         .glass-panel {
@@ -103,16 +106,6 @@
             ring-width: 2px;
             ring-color: #60a5fa;
         }
-        
-        .tooltip {
-            visibility: hidden;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .has-tooltip:hover .tooltip {
-            visibility: visible;
-            opacity: 1;
-        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col lg:flex-row">
@@ -138,7 +131,7 @@
             </div>
         </div>
 
-        <!-- SHARED PRIMARY CONTROLS (Moved here so they exist in both modes) -->
+        <!-- SHARED PRIMARY CONTROLS -->
         <div class="space-y-3">
             <div class="grid grid-cols-2 gap-2">
                 <button id="btnTrain" class="bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 flex items-center justify-center gap-2">
@@ -175,7 +168,7 @@
         <!-- CHALLENGE SECTION -->
         <div id="challengeSection" class="hidden space-y-4">
             <div class="bg-indigo-900/30 border border-indigo-500/30 p-3 rounded-lg text-sm text-indigo-200">
-                <i class="fas fa-graduation-cap mr-2"></i> <strong>Mission:</strong> Fix the robot's empty brain! All parameters are 0. Tune them to solve the level.
+                <i class="fas fa-graduation-cap mr-2"></i> <strong>Mission:</strong> Parameters start at 0. Tune them to make the AI survive and win.
             </div>
             
             <div id="challengeList" class="space-y-2 max-h-56 overflow-y-auto scrollbar-hide">
@@ -206,22 +199,29 @@
             <div class="bg-slate-800/30 rounded-xl p-4 border border-slate-700 relative">
                 <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Map Builder</h2>
                 
-                <div class="grid grid-cols-4 gap-2 mb-2">
+                <!-- Tools Grid -->
+                <div class="grid grid-cols-3 gap-2 mb-3">
                     <button class="tool-btn active py-2 rounded-lg bg-blue-600 text-white text-xs font-bold ring-2 ring-blue-400 ring-offset-2 ring-offset-slate-900 transition-all" data-tool="wall" title="Draw Walls">
-                        <i class="fas fa-square"></i>
+                        <i class="fas fa-square mr-1"></i> Wall
                     </button>
                     <button class="tool-btn py-2 rounded-lg bg-slate-700 text-slate-300 text-xs font-bold hover:bg-slate-600 transition-all" data-tool="eraser" title="Eraser">
-                        <i class="fas fa-eraser"></i>
+                        <i class="fas fa-eraser mr-1"></i> Eraser
+                    </button>
+                    <button class="tool-btn py-2 rounded-lg bg-slate-700 text-slate-300 text-xs font-bold hover:bg-slate-600 transition-all" data-tool="spawn" title="Set Spawn Point">
+                        <i class="fas fa-robot text-blue-400 mr-1"></i> Spawn
                     </button>
                     <button class="tool-btn py-2 rounded-lg bg-slate-700 text-slate-300 text-xs font-bold hover:bg-slate-600 transition-all" data-tool="goal" title="Move Goal">
-                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400 mr-1"></i> Goal
                     </button>
                     <button class="tool-btn py-2 rounded-lg bg-slate-700 text-slate-300 text-xs font-bold hover:bg-slate-600 transition-all" data-tool="button" title="Place Button">
-                        <i class="fas fa-circle text-purple-400"></i>
+                        <i class="fas fa-circle text-purple-400 mr-1"></i> Button
+                    </button>
+                    <button class="tool-btn py-2 rounded-lg bg-slate-700 text-slate-300 text-xs font-bold hover:bg-slate-600 transition-all" data-tool="hazard" title="Place Hazard (Lava)">
+                        <i class="fas fa-fire text-orange-500 mr-1"></i> Hazard
                     </button>
                 </div>
                 
-                <div class="flex items-center gap-2 mt-3">
+                <div class="flex items-center gap-2 mt-3 pt-3 border-t border-slate-700/50">
                     <input type="number" id="gridCols" value="5" min="3" max="25" class="text-center w-16" placeholder="W">
                     <span class="text-slate-500 text-xs">x</span>
                     <input type="number" id="gridRows" value="5" min="3" max="25" class="text-center w-16" placeholder="H">
@@ -237,61 +237,64 @@
                 <span class="text-[9px] bg-slate-800 px-2 py-0.5 rounded text-slate-500">HYPERPARAMETERS</span>
             </h2>
             
-            <div class="space-y-3 flex-1">
+            <div class="space-y-3 flex-1 overflow-y-auto max-h-[220px] scrollbar-hide pr-1" id="logicLabContainer">
                 <!-- Goal Reward -->
-                <div class="group has-tooltip relative">
-                    <div class="tooltip absolute z-50 -top-10 right-0 w-48 bg-slate-900 border border-slate-600 p-2 rounded text-[10px] text-slate-300 shadow-xl">
-                        How much "happiness" the robot gets for winning. High = Very motivated.
-                    </div>
+                <div class="group param-row" data-info="The reward (happiness) for reaching the goal. Higher = More motivated to win.">
                     <div class="flex items-center gap-2 mb-1">
-                        <label class="text-xs font-bold text-green-400 w-28 flex items-center gap-1">
-                            Goal Reward <i class="far fa-question-circle text-slate-600 text-[10px]"></i>
+                        <label class="text-xs font-bold text-green-400 w-28 flex items-center gap-1 cursor-help">
+                            Goal Reward
                         </label>
-                        <input type="number" id="rewardGoal" value="100" class="flex-1 text-green-400 text-right">
+                        <input type="number" id="rewardGoal" value="0" class="flex-1 text-green-400 text-right">
                     </div>
                 </div>
 
                 <!-- Wall Penalty -->
-                <div class="group has-tooltip relative">
-                    <div class="tooltip absolute z-50 -top-10 right-0 w-48 bg-slate-900 border border-slate-600 p-2 rounded text-[10px] text-slate-300 shadow-xl">
-                        The "pain" of hitting a wall. Make this a large negative number (e.g. -100) to teach safety.
-                    </div>
+                <div class="group param-row" data-info="The penalty (pain) for crashing into a wall. Negative values (e.g., -100) teach safety.">
                     <div class="flex items-center gap-2 mb-1">
-                        <label class="text-xs font-bold text-red-400 w-28 flex items-center gap-1">
-                            Wall Penalty <i class="far fa-question-circle text-slate-600 text-[10px]"></i>
+                        <label class="text-xs font-bold text-slate-400 w-28 flex items-center gap-1 cursor-help">
+                            Wall Penalty
                         </label>
-                        <input type="number" id="rewardWall" value="-100" class="flex-1 text-red-400 text-right">
+                        <input type="number" id="rewardWall" value="0" class="flex-1 text-slate-400 text-right">
                     </div>
                 </div>
 
                 <!-- Step Cost -->
-                <div class="group has-tooltip relative">
-                    <div class="tooltip absolute z-50 -top-10 right-0 w-48 bg-slate-900 border border-slate-600 p-2 rounded text-[10px] text-slate-300 shadow-xl">
-                        The cost of time. A negative number (e.g. -1) makes the robot hurry up to stop the bleeding.
-                    </div>
+                <div class="group param-row" data-info="The cost of time. A small penalty per step (e.g., -1) makes the robot hurry up.">
                     <div class="flex items-center gap-2 mb-1">
-                        <label class="text-xs font-bold text-yellow-400 w-28 flex items-center gap-1">
-                            Step Cost <i class="far fa-question-circle text-slate-600 text-[10px]"></i>
+                        <label class="text-xs font-bold text-yellow-400 w-28 flex items-center gap-1 cursor-help">
+                            Step Cost
                         </label>
-                        <input type="number" id="rewardStep" value="-1" class="flex-1 text-yellow-400 text-right">
+                        <input type="number" id="rewardStep" value="0" class="flex-1 text-yellow-400 text-right">
                     </div>
                 </div>
 
                 <!-- Button Bonus -->
-                 <div class="group has-tooltip relative">
-                    <div class="tooltip absolute z-50 -top-10 right-0 w-48 bg-slate-900 border border-slate-600 p-2 rounded text-[10px] text-slate-300 shadow-xl">
-                        Reward for sub-goals. If high, the robot will prioritize pressing buttons.
-                    </div>
+                 <div class="group param-row" data-info="Reward for activating sub-goals. High values make the robot detour for buttons.">
                     <div class="flex items-center gap-2 mb-1">
-                        <label class="text-xs font-bold text-purple-400 w-28 flex items-center gap-1">
-                            Button Bonus <i class="far fa-question-circle text-slate-600 text-[10px]"></i>
+                        <label class="text-xs font-bold text-purple-400 w-28 flex items-center gap-1 cursor-help">
+                            Button Bonus
                         </label>
-                        <input type="number" id="rewardButton" value="20" class="flex-1 text-purple-400 text-right">
+                        <input type="number" id="rewardButton" value="0" class="flex-1 text-purple-400 text-right">
+                    </div>
+                </div>
+
+                <!-- Hazard Penalty -->
+                 <div class="group param-row" data-info="Penalty for Lava. Needs to be extremely high (e.g., -500) to ensure survival.">
+                    <div class="flex items-center gap-2 mb-1">
+                        <label class="text-xs font-bold text-orange-500 w-28 flex items-center gap-1 cursor-help">
+                            Hazard Cost
+                        </label>
+                        <input type="number" id="rewardHazard" value="0" class="flex-1 text-orange-500 text-right">
                     </div>
                 </div>
             </div>
             
-            <div class="mt-4 pt-4 border-t border-slate-700">
+            <!-- Static Info Box -->
+            <div id="paramInfoBox" class="mt-3 bg-slate-900/80 p-2 rounded border border-slate-600 text-[10px] text-slate-300 min-h-[40px] flex items-center">
+                <i class="fas fa-info-circle mr-2 text-blue-400"></i> <span id="paramInfoText">Hover over a parameter to learn what it does.</span>
+            </div>
+            
+            <div class="mt-2 pt-2 border-t border-slate-700">
                 <label class="flex items-center gap-3 cursor-pointer group">
                     <input type="checkbox" id="toggleView" class="w-4 h-4 rounded border-slate-600 text-blue-500 focus:ring-blue-500 bg-slate-700" checked>
                     <span class="text-xs text-slate-300 group-hover:text-white transition-colors">Visualize "Brain" (Heatmap)</span>
@@ -301,14 +304,15 @@
     </div>
 
     <!-- Main Display -->
-    <div class="flex-1 bg-slate-950 flex flex-col relative overflow-hidden">
+    <div class="flex-1 bg-slate-950 flex flex-col relative overflow-hidden h-full">
         <!-- Floating Header -->
-        <div class="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none z-10">
-             <div class="flex gap-4 text-xs font-bold text-slate-400 bg-slate-900/80 p-2 rounded-full backdrop-blur border border-slate-700 shadow-xl">
-                <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div> Agent</span>
-                <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-yellow-400"></div> Goal</span>
-                <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-purple-500"></div> Button</span>
-                <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-sm bg-slate-600"></div> Wall</span>
+        <div class="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none z-10 flex-wrap gap-2">
+             <div class="flex gap-4 text-xs font-bold text-slate-400 bg-slate-900/80 p-2 rounded-full backdrop-blur border border-slate-700 shadow-xl overflow-x-auto max-w-full">
+                <span class="flex items-center gap-2 whitespace-nowrap"><div class="w-2 h-2 rounded-full bg-blue-500"></div> Agent</span>
+                <span class="flex items-center gap-2 whitespace-nowrap"><div class="w-2 h-2 rounded-full bg-yellow-400"></div> Goal</span>
+                <span class="flex items-center gap-2 whitespace-nowrap"><div class="w-2 h-2 rounded-full bg-purple-500"></div> Button</span>
+                <span class="flex items-center gap-2 whitespace-nowrap"><div class="w-2 h-2 rounded-sm bg-slate-600"></div> Wall</span>
+                <span class="flex items-center gap-2 whitespace-nowrap"><div class="w-2 h-2 rounded-sm bg-orange-600"></div> Lava</span>
             </div>
             
             <!-- Quick Stats -->
@@ -328,17 +332,17 @@
             </div>
         </div>
 
-        <div class="flex-1 flex items-center justify-center p-4">
+        <div class="flex-1 flex items-center justify-center p-4 overflow-auto">
              <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#38bdf8 1px, transparent 1px); background-size: 30px 30px;"></div>
-             <div class="canvas-container relative">
+             <div class="canvas-container relative mx-auto">
                 <canvas id="gameCanvas" width="800" height="600" class="bg-slate-900 shadow-2xl border border-slate-800"></canvas>
                 <div id="notification" class="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-800/90 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg opacity-0 transition-opacity pointer-events-none border border-slate-600 whitespace-nowrap z-20">Training Started</div>
              </div>
         </div>
 
         <!-- Chart Footer -->
-        <div class="h-32 bg-slate-900 border-t border-slate-800 p-2 flex gap-4">
-             <div class="w-64 flex flex-col justify-center px-4 border-r border-slate-800">
+        <div class="h-32 bg-slate-900 border-t border-slate-800 p-2 flex gap-4 shrink-0">
+             <div class="w-64 flex flex-col justify-center px-4 border-r border-slate-800 hidden lg:flex">
                  <h3 class="text-xs font-bold text-slate-400 mb-1">Performance Graph</h3>
                  <p class="text-[10px] text-slate-500">Visualizes the total reward per episode. Upward trend = Learning.</p>
                  <div class="mt-2 text-[10px] text-slate-500">
@@ -360,8 +364,8 @@
         // --- Configuration & State ---
         let CONFIG = {
             gridSize: 40, cols: 5, rows: 5,     
-            colors: { bg: '#0f172a', wall: '#334155', agent: '#38bdf8', goal: '#facc15', goalInactive: '#475569', button: '#a855f7', grid: '#1e293b', path: 'rgba(255, 255, 255, 0.3)' },
-            rewards: { goal: 100, button: 20, wall: -100, step: -1 }
+            colors: { bg: '#0f172a', wall: '#334155', agent: '#38bdf8', goal: '#facc15', goalInactive: '#475569', button: '#a855f7', hazard: '#ea580c', grid: '#1e293b', path: 'rgba(255, 255, 255, 0.3)' },
+            rewards: { goal: 0, button: 0, wall: 0, step: 0, hazard: 0 } // ALL 0 START
         };
 
         const state = {
@@ -390,6 +394,17 @@
         const chartCtx = chartCanvas.getContext('2d');
         const scoreEl = document.getElementById('currentScore');
 
+        // --- Info Box Logic ---
+        document.querySelectorAll('.param-row').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                const text = row.getAttribute('data-info');
+                document.getElementById('paramInfoText').innerText = text;
+            });
+            row.addEventListener('mouseleave', () => {
+                document.getElementById('paramInfoText').innerText = "Hover over a parameter to learn what it does.";
+            });
+        });
+
         // --- Challenge Manager ---
         const challenges = [
             {
@@ -398,12 +413,12 @@
                 objective: "Win in < 10 steps (3 times in a row).",
                 map: (env) => {
                     env.resize(5, 5);
-                    env.agentPos = {x:0, y:0};
+                    env.spawnPos = {x:0, y:0};
                     env.goalPos = {x:4, y:4};
                 },
-                setupParams: { goal: 0, wall: 0, step: 0, button: 0 }, 
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0, hazard: 0 }, 
                 checkWin: (lastSteps, lastWin) => (lastWin && lastSteps < 10),
-                advisor: "Everything is zero! It has no reason to move. Try setting 'Goal Reward' to 100 and 'Step Cost' to -5 to make it hurry."
+                advisor: "Everything is zero! Set 'Goal Reward' to 100 and 'Step Cost' to -5."
             },
             {
                 title: "2. The Hazardous Path",
@@ -411,13 +426,13 @@
                 objective: "Win 5 times consecutively without crashing.",
                 map: (env) => {
                     env.resize(7, 5);
-                    env.agentPos = {x:0, y:2};
+                    env.spawnPos = {x:0, y:2};
                     env.goalPos = {x:6, y:2};
                     for(let x=1; x<6; x++) { env.grid[1][x] = 1; env.grid[3][x] = 1; }
                 },
-                setupParams: { goal: 0, wall: 0, step: 0, button: 0 }, 
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0, hazard: 0 }, 
                 checkWin: (lastSteps, lastWin) => lastWin,
-                advisor: "The robot isn't afraid of walls because 'Wall Penalty' is 0. Set 'Wall Penalty' to -200 so it learns fear!"
+                advisor: "It hits walls because 'Wall Penalty' is 0. Set 'Wall Penalty' to -200!"
             },
             {
                 title: "3. The Key Master",
@@ -425,32 +440,31 @@
                 objective: "Activate button & Win (3 times in a row).",
                 map: (env) => {
                     env.resize(6, 6);
-                    env.agentPos = {x:0, y:0};
+                    env.spawnPos = {x:0, y:0};
                     env.goalPos = {x:5, y:0};
                     env.buttonPos = {x:0, y:5}; 
                     env.grid[0][4] = 1; env.grid[1][4] = 1;
                 },
-                setupParams: { goal: 0, wall: 0, step: 0, button: 0 }, 
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0, hazard: 0 }, 
                 checkWin: (lastSteps, lastWin, activated) => (lastWin && activated),
-                advisor: "It ignores the button. Set 'Button Bonus' to 50 so it knows the button is valuable."
+                advisor: "Set 'Button Bonus' to 50 so it knows the button is valuable."
             },
             {
                 title: "4. The Maze Runner",
-                desc: "A complex winding path. Efficiency is key.",
+                desc: "Efficiency is key in this maze.",
                 objective: "Reach goal in < 30 steps (2 times in a row).",
                 map: (env) => {
                     env.resize(9, 7);
-                    env.agentPos = {x:0, y:0};
+                    env.spawnPos = {x:0, y:0};
                     env.goalPos = {x:8, y:6};
-                    // Zigzag walls
-                    for(let y=0; y<6; y++) env.grid[y][1] = 1; // Wall col 1
-                    for(let y=1; y<7; y++) env.grid[y][3] = 1; // Wall col 3
-                    for(let y=0; y<6; y++) env.grid[y][5] = 1; // Wall col 5
-                    for(let y=1; y<7; y++) env.grid[y][7] = 1; // Wall col 7
+                    for(let y=0; y<6; y++) env.grid[y][1] = 1; 
+                    for(let y=1; y<7; y++) env.grid[y][3] = 1; 
+                    for(let y=0; y<6; y++) env.grid[y][5] = 1; 
+                    for(let y=1; y<7; y++) env.grid[y][7] = 1; 
                 },
-                setupParams: { goal: 0, wall: 0, step: 0, button: 0 },
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0, hazard: 0 },
                 checkWin: (lastSteps, lastWin) => (lastWin && lastSteps < 30),
-                advisor: "It's a long journey. If 'Step Cost' is 0, it will wander. Make 'Step Cost' -1 or lower to keep it moving forward."
+                advisor: "Set 'Step Cost' to -2 so it stops wandering aimlessly."
             },
             {
                 title: "5. The Minefield",
@@ -458,21 +472,80 @@
                 objective: "Win 3 times consecutively.",
                 map: (env) => {
                     env.resize(10, 8);
-                    env.agentPos = {x:0, y:0};
+                    env.spawnPos = {x:0, y:0};
                     env.goalPos = {x:9, y:7};
-                    // Random scatter (deterministic for challenge consistency)
-                    const obstacles = [
-                        [1,1], [1,3], [1,5], [1,7],
-                        [3,0], [3,2], [3,4], [3,6],
-                        [5,1], [5,3], [5,5], [5,7],
-                        [7,0], [7,2], [7,4], [7,6],
-                        [8,3], [2,5], [6,2], [4,4]
-                    ];
+                    const obstacles = [[1,1], [1,3], [1,5], [1,7], [3,0], [3,2], [3,4], [3,6], [5,1], [5,3], [5,5], [5,7], [7,0], [7,2], [7,4], [7,6], [8,3], [2,5], [6,2], [4,4]];
                     obstacles.forEach(p => { if(p[0]<10 && p[1]<8) env.grid[p[1]][p[0]] = 1; });
                 },
-                setupParams: { goal: 0, wall: 0, step: 0, button: 0 },
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0, hazard: 0 },
                 checkWin: (lastSteps, lastWin) => lastWin,
-                advisor: "Tight spaces! Set a HUGE 'Wall Penalty' (e.g., -500) and a high 'Goal Reward' (200) to balance the risk."
+                advisor: "Set 'Wall Penalty' to -500 and 'Goal Reward' to 200."
+            },
+            {
+                title: "6. The Floor is Lava",
+                desc: "Orange tiles kill you instantly.",
+                objective: "Win 5 times consecutively.",
+                map: (env) => {
+                    env.resize(8, 6);
+                    env.spawnPos = {x:0, y:3};
+                    env.goalPos = {x:7, y:3};
+                    // Ensure solvable: Create a safe "snake" path
+                    // Lava Top
+                    for(let x=1; x<8; x++) env.grid[1][x] = 2; 
+                    // Lava Bottom
+                    for(let x=0; x<7; x++) env.grid[5][x] = 2; 
+                    
+                    // Specific blocks to force winding
+                    env.grid[3][3] = 2; // Block straight path
+                    
+                    // Fill surrounding with lava for effect
+                    env.grid[2][2] = 2; 
+                    env.grid[2][4] = 2;
+                    env.grid[4][2] = 2;
+                    env.grid[4][4] = 2;
+                    
+                    // Clear a specific path: (0,3)->(1,3)->(2,3)->(2,4)->(3,4)->(4,4)->(5,4)->(5,3)->(6,3)->(7,3)
+                    // Wait, let's just make it simpler but tight
+                    // Reset grid to clear
+                    for(let y=0; y<6; y++) for(let x=0; x<8; x++) env.grid[y][x] = 0;
+                    
+                    // Draw Lava Tunnel
+                    for(let x=0; x<8; x++) { env.grid[2][x] = 2; env.grid[4][x] = 2; }
+                    env.grid[2][0] = 0; env.grid[4][7] = 0; // Entrances/Exits just in case
+                    
+                    // The path is row 3. Block it at x=3
+                    env.grid[3][3] = 2;
+                    
+                    // Open a detour: go up at x=2, over to x=4, down to x=4
+                    env.grid[2][2] = 0; 
+                    env.grid[2][3] = 0;
+                    env.grid[2][4] = 0;
+                    
+                    // Just to be safe, clear start/goal
+                    env.grid[3][0] = 0; env.grid[3][7] = 0;
+                },
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0, hazard: 0 },
+                checkWin: (lastSteps, lastWin) => lastWin,
+                advisor: "Lava (Hazards) are distinct from walls. You must set 'Hazard Cost' to a HUGE negative (e.g., -1000) to survive."
+            },
+             {
+                title: "7. The Long Haul",
+                desc: "A massive map. Patience vs Efficiency.",
+                objective: "Win once.",
+                map: (env) => {
+                    env.resize(15, 10);
+                    env.spawnPos = {x:0, y:0};
+                    env.goalPos = {x:14, y:9};
+                    // Random walls
+                    for(let i=0; i<40; i++) {
+                        let rx = Math.floor(Math.random()*15);
+                        let ry = Math.floor(Math.random()*10);
+                        if((rx!==0 || ry!==0) && (rx!==14 || ry!==9)) env.grid[ry][rx] = 1;
+                    }
+                },
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0, hazard: 0 },
+                checkWin: (lastSteps, lastWin) => lastWin,
+                advisor: "For large maps, you need a balance. Goal=200, Step Cost=-1."
             }
         ];
 
@@ -517,11 +590,12 @@
             env.resetMap();
             c.map(env);
             
-            // Set BAD parameters
+            // Set parameters to 0
             document.getElementById('rewardGoal').value = c.setupParams.goal;
             document.getElementById('rewardWall').value = c.setupParams.wall;
             document.getElementById('rewardStep').value = c.setupParams.step;
             document.getElementById('rewardButton').value = c.setupParams.button;
+            document.getElementById('rewardHazard').value = c.setupParams.hazard;
             
             document.getElementById('btnReset').click();
         }
@@ -537,8 +611,9 @@
                 showNotification(`Streak: ${state.consecutiveWins}`, "text-green-400");
                 
                 let targetWins = 3; 
-                if(state.activeChallengeIndex === 1) targetWins = 5;
+                if(state.activeChallengeIndex === 1 || state.activeChallengeIndex === 5) targetWins = 5;
                 if(state.activeChallengeIndex === 3) targetWins = 2;
+                if(state.activeChallengeIndex === 6) targetWins = 1;
                 
                 let pct = Math.min((state.consecutiveWins / targetWins) * 100, 100);
                 document.getElementById('challengeProgress').style.width = `${pct}%`;
@@ -579,15 +654,13 @@
             }
             resetMap() {
                 this.grid = Array(this.height).fill().map(() => Array(this.width).fill(0));
-                this.agentPos = { x: 0, y: 0 };
+                this.spawnPos = { x: 0, y: 0 };
                 this.goalPos = { x: this.width - 1, y: this.height - 1 };
                 this.buttonPos = null;
                 this.resetEpisode();
             }
             resetEpisode() {
-                this.agentPos = { x: 0, y: 0 };
-                // Ensure correct start pos for specific challenges
-                if(state.mode === 'challenge' && state.activeChallengeIndex === 1) this.agentPos = {x:0, y:2}; 
+                this.agentPos = { ...this.spawnPos };
                 
                 this.goalActive = (this.buttonPos === null); 
                 state.path = [{x:this.agentPos.x, y:this.agentPos.y}];
@@ -602,12 +675,33 @@
                     showNotification("Map Locked in Challenge Mode", "text-red-400");
                     return;
                 }
-                if (x === 0 && y === 0) return;
                 if (x < 0 || x >= this.width || y < 0 || y >= this.height) return;
-                if (state.tool === 'goal') { this.goalPos = { x, y }; this.grid[y][x] = 0; if (this.buttonPos && this.buttonPos.x === x && this.buttonPos.y === y) this.buttonPos = null; } 
-                else if (state.tool === 'button') { if (this.buttonPos && this.buttonPos.x === x && this.buttonPos.y === y) this.buttonPos = null; else { this.buttonPos = { x, y }; this.grid[y][x] = 0; } } 
-                else if (state.tool === 'wall') { if ((this.goalPos.x === x && this.goalPos.y === y) || (this.buttonPos && this.buttonPos.x === x && this.buttonPos.y === y)) return; this.grid[y][x] = 1; }
-                else if (state.tool === 'eraser') { this.grid[y][x] = 0; if (this.buttonPos && this.buttonPos.x === x && this.buttonPos.y === y) this.buttonPos = null; }
+                
+                if (state.tool === 'spawn') { 
+                    this.grid[y][x] = 0;
+                    this.spawnPos = { x, y };
+                    this.agentPos = { x, y }; 
+                }
+                else if (state.tool === 'goal') { 
+                    this.goalPos = { x, y }; this.grid[y][x] = 0; 
+                    if (this.buttonPos && this.buttonPos.x === x && this.buttonPos.y === y) this.buttonPos = null; 
+                } 
+                else if (state.tool === 'button') { 
+                    if (this.buttonPos && this.buttonPos.x === x && this.buttonPos.y === y) this.buttonPos = null; 
+                    else { this.buttonPos = { x, y }; this.grid[y][x] = 0; } 
+                } 
+                else if (state.tool === 'wall') { 
+                    if ((this.goalPos.x === x && this.goalPos.y === y) || (this.buttonPos && this.buttonPos.x === x && this.buttonPos.y === y) || (this.spawnPos.x === x && this.spawnPos.y === y)) return; 
+                    this.grid[y][x] = 1; 
+                }
+                else if (state.tool === 'hazard') { 
+                     if ((this.goalPos.x === x && this.goalPos.y === y) || (this.buttonPos && this.buttonPos.x === x && this.buttonPos.y === y) || (this.spawnPos.x === x && this.spawnPos.y === y)) return; 
+                    this.grid[y][x] = 2; 
+                }
+                else if (state.tool === 'eraser') { 
+                    this.grid[y][x] = 0; 
+                    if (this.buttonPos && this.buttonPos.x === x && this.buttonPos.y === y) this.buttonPos = null; 
+                }
             }
             getState() { return `${this.agentPos.x},${this.agentPos.y},${this.goalActive ? 1 : 0}`; }
             step(action) {
@@ -615,17 +709,29 @@
                 let nx = this.agentPos.x; let ny = this.agentPos.y;
                 if (action === 0) ny--; if (action === 1) nx++; if (action === 2) ny++; if (action === 3) nx--;
                 
+                // Boundary
                 if (nx < 0 || nx >= this.width || ny < 0 || ny >= this.height) return { reward: CONFIG.rewards.wall, done: true, won: false, nextState: this.getState() };
+                
+                // Wall
                 if (this.grid[ny][nx] === 1) return { reward: CONFIG.rewards.wall, done: true, won: false, nextState: this.getState() };
                 
+                // Hazard (Lava)
+                if (this.grid[ny][nx] === 2) return { reward: CONFIG.rewards.hazard, done: true, won: false, nextState: this.getState() };
+
+                // Valid Move
                 this.agentPos = { x: nx, y: ny };
                 state.path.push({x: nx, y: ny});
                 
                 let r = CONFIG.rewards.step;
+                
+                // Button
                 if (this.buttonPos && nx === this.buttonPos.x && ny === this.buttonPos.y) {
                     if (!this.goalActive) { this.goalActive = true; this.activatedButtonThisRun = true; r += CONFIG.rewards.button; showNotification("Activated!", "text-purple-400"); }
                 }
+                
                 const newState = this.getState();
+                
+                // Goal
                 if (nx === this.goalPos.x && ny === this.goalPos.y) {
                     if (this.goalActive) return { reward: CONFIG.rewards.goal, done: true, won: true, nextState: newState };
                 }
@@ -677,7 +783,7 @@
             if (state.history.length > 50) state.history.shift();
             
             if (won) { state.wins++; showNotification("Goal Reached!", "text-green-400"); } 
-            else showNotification("Crashed!", "text-red-400");
+            else showNotification("Failed!", "text-red-400");
             
             if (currentEpisodeReward > state.bestReward) state.bestReward = currentEpisodeReward;
             agent.decayEpsilon();
@@ -706,40 +812,74 @@
                 for (let x = 0; x < env.width; x++) {
                     const isActiveFlag = env.goalActive ? 1 : 0;
                     const stateKey = `${x},${y},${isActiveFlag}`;
+                    
+                    // Walls
                     if (env.grid[y][x] === 1) {
                         drawRect(x, y, CONFIG.colors.wall);
                         ctx.fillStyle = '#475569';
-                        ctx.fillRect(env.offsetX + x * CONFIG.gridSize + 4, env.offsetY + y * CONFIG.gridSize + 4, CONFIG.gridSize - 8, CONFIG.gridSize - 8);
+                        const p = getRect(x, y);
+                        ctx.fillRect(p.x + 4, p.y + 4, p.w - 8, p.h - 8);
                         continue;
                     }
+                    
+                    // Hazards
+                    if (env.grid[y][x] === 2) {
+                        drawRect(x, y, CONFIG.colors.hazard);
+                        ctx.fillStyle = '#c2410c';
+                        const p = getRect(x, y);
+                        ctx.fillRect(p.x + 4, p.y + 4, p.w - 8, p.h - 8);
+                        continue;
+                    }
+
                     if (state.showBrain && agent.qTable[stateKey]) {
                         const qs = agent.qTable[stateKey];
                         const maxQ = Math.max(...qs);
                         const avgQ = qs.reduce((a, b) => a + b, 0) / 4;
-                        if (maxQ > 0) { ctx.fillStyle = `rgba(52, 211, 153, ${Math.min(maxQ / (CONFIG.rewards.goal * 0.5), 0.8)})`; ctx.fillRect(env.offsetX + x * CONFIG.gridSize, env.offsetY + y * CONFIG.gridSize, CONFIG.gridSize, CONFIG.gridSize); } 
-                        else if (avgQ < -5) { ctx.fillStyle = `rgba(239, 68, 68, ${Math.min(Math.abs(avgQ) / 50, 0.7)})`; ctx.fillRect(env.offsetX + x * CONFIG.gridSize, env.offsetY + y * CONFIG.gridSize, CONFIG.gridSize, CONFIG.gridSize); }
+                        const p = getRect(x, y);
+                        if (maxQ > 0) { ctx.fillStyle = `rgba(52, 211, 153, ${Math.min(maxQ / 100, 0.8)})`; ctx.fillRect(p.x, p.y, p.w, p.h); } 
+                        else if (avgQ < -5) { ctx.fillStyle = `rgba(239, 68, 68, ${Math.min(Math.abs(avgQ) / 100, 0.7)})`; ctx.fillRect(p.x, p.y, p.w, p.h); }
                     }
-                    ctx.strokeStyle = CONFIG.colors.grid; ctx.lineWidth = 1; ctx.strokeRect(env.offsetX + x * CONFIG.gridSize, env.offsetY + y * CONFIG.gridSize, CONFIG.gridSize, CONFIG.gridSize);
+                    
+                    const p = getRect(x, y);
+                    ctx.strokeStyle = CONFIG.colors.grid; ctx.lineWidth = 1; ctx.strokeRect(p.x, p.y, p.w, p.h);
                 }
             }
             if (env.buttonPos) {
-                const bx = env.offsetX + env.buttonPos.x * CONFIG.gridSize + CONFIG.gridSize/2; const by = env.offsetY + env.buttonPos.y * CONFIG.gridSize + CONFIG.gridSize/2;
-                ctx.fillStyle = CONFIG.colors.button; ctx.beginPath(); ctx.arc(bx, by, CONFIG.gridSize/4, 0, Math.PI * 2); ctx.fill(); ctx.shadowColor = CONFIG.colors.button; ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
+                const p = getRect(env.buttonPos.x, env.buttonPos.y);
+                const cx = p.x + p.w/2; const cy = p.y + p.h/2;
+                ctx.fillStyle = CONFIG.colors.button; ctx.beginPath(); ctx.arc(cx, cy, p.w/4, 0, Math.PI * 2); ctx.fill(); ctx.shadowColor = CONFIG.colors.button; ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
             }
-            const gx = env.offsetX + env.goalPos.x * CONFIG.gridSize + CONFIG.gridSize/2; const gy = env.offsetY + env.goalPos.y * CONFIG.gridSize + CONFIG.gridSize/2;
-            ctx.fillStyle = env.goalActive ? CONFIG.colors.goal : CONFIG.colors.goalInactive; ctx.beginPath(); ctx.arc(gx, gy, CONFIG.gridSize/3, 0, Math.PI * 2); ctx.fill(); 
+            const pGoal = getRect(env.goalPos.x, env.goalPos.y);
+            const gx = pGoal.x + pGoal.w/2; const gy = pGoal.y + pGoal.h/2;
+            ctx.fillStyle = env.goalActive ? CONFIG.colors.goal : CONFIG.colors.goalInactive; ctx.beginPath(); ctx.arc(gx, gy, pGoal.w/3, 0, Math.PI * 2); ctx.fill(); 
             if (env.goalActive) { ctx.shadowColor = CONFIG.colors.goal; ctx.shadowBlur = 15; } ctx.stroke(); ctx.shadowBlur = 0;
             if (state.path.length > 1) {
                 ctx.beginPath(); ctx.strokeStyle = CONFIG.colors.path; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-                state.path.forEach((pos, i) => { const px = env.offsetX + pos.x * CONFIG.gridSize + CONFIG.gridSize/2; const py = env.offsetY + pos.y * CONFIG.gridSize + CONFIG.gridSize/2; if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); }); ctx.stroke();
+                state.path.forEach((pos, i) => { 
+                    const p = getRect(pos.x, pos.y);
+                    const px = p.x + p.w/2; const py = p.y + p.h/2; 
+                    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); 
+                }); ctx.stroke();
             }
-            const ax = env.offsetX + env.agentPos.x * CONFIG.gridSize + CONFIG.gridSize/2; const ay = env.offsetY + env.agentPos.y * CONFIG.gridSize + CONFIG.gridSize/2;
-            ctx.fillStyle = CONFIG.colors.agent; ctx.beginPath(); ctx.arc(ax, ay, CONFIG.gridSize/2.5, 0, Math.PI * 2); ctx.fill();
+            const pAgent = getRect(env.agentPos.x, env.agentPos.y);
+            const ax = pAgent.x + pAgent.w/2; const ay = pAgent.y + pAgent.h/2;
+            ctx.fillStyle = CONFIG.colors.agent; ctx.beginPath(); ctx.arc(ax, ay, pAgent.w/2.5, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(ax - 5, ay - 2, 3, 0, Math.PI * 2); ctx.arc(ax + 5, ay - 2, 3, 0, Math.PI * 2); ctx.fill();
         }
+        
+        function getRect(gridX, gridY) {
+            const size = CONFIG.gridSize;
+            return {
+                x: env.offsetX + gridX * size,
+                y: env.offsetY + gridY * size,
+                w: size, h: size
+            };
+        }
+
         function drawRect(gridX, gridY, color, fill = true) {
-            const size = CONFIG.gridSize; const x = env.offsetX + gridX * size; const y = env.offsetY + gridY * size;
-            if (fill) { ctx.fillStyle = color; ctx.fillRect(x, y, size, size); } else { ctx.strokeStyle = color; ctx.strokeRect(x, y, size, size); }
+            const p = getRect(gridX, gridY);
+            if (fill) { ctx.fillStyle = color; ctx.fillRect(p.x, p.y, p.w, p.h); } 
+            else { ctx.strokeStyle = color; ctx.strokeRect(p.x, p.y, p.w, p.h); }
         }
 
         // --- Helpers ---
@@ -797,7 +937,8 @@
         document.getElementById('btnNextEp').addEventListener('click', startNextEpisode);
         document.getElementById('btnReset').addEventListener('click', () => {
             state.running = false; state.needsReset = false; state.episode = 0; state.wins = 0; state.bestReward = -Infinity; state.history = []; scoreEl.innerText = "0"; document.getElementById('btnNextEp').classList.add('hidden'); updateTrainBtnState();
-            CONFIG.rewards.goal = parseInt(document.getElementById('rewardGoal').value); CONFIG.rewards.button = parseInt(document.getElementById('rewardButton').value); CONFIG.rewards.wall = parseInt(document.getElementById('rewardWall').value); CONFIG.rewards.step = parseInt(document.getElementById('rewardStep').value);
+            CONFIG.rewards.goal = parseInt(document.getElementById('rewardGoal').value); CONFIG.rewards.button = parseInt(document.getElementById('rewardButton').value); CONFIG.rewards.wall = parseInt(document.getElementById('rewardWall').value); CONFIG.rewards.step = parseInt(document.getElementById('rewardStep').value); 
+            CONFIG.rewards.hazard = parseInt(document.getElementById('rewardHazard').value);
             // Don't reset map layout if challenge active, just agent
             if(state.mode !== 'challenge') env.resetMap(); else env.resetEpisode(); 
             agent.resetBrain(); updateStats(); drawChart(); showNotification("Reset");
@@ -820,7 +961,31 @@
         canvas.addEventListener('mousedown', (e) => { state.isDrawing = true; handleInput(e); });
         window.addEventListener('mouseup', () => state.isDrawing = false);
         canvas.addEventListener('mousemove', (e) => { if (state.isDrawing) handleInput(e); });
-        function handleInput(e) { const rect = canvas.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const gp = env.toGrid(x, y); env.handleMapClick(gp.x, gp.y); }
+        
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); // Stop scrolling
+            state.isDrawing = true; handleInput(e); 
+        }, {passive: false});
+        canvas.addEventListener('touchmove', (e) => { 
+            e.preventDefault(); 
+            if (state.isDrawing) handleInput(e); 
+        }, {passive: false});
+
+        function handleInput(e) { 
+            const rect = canvas.getBoundingClientRect(); 
+            const scaleX = canvas.width / rect.width; // Relationship bitmap vs DOM width
+            const scaleY = canvas.height / rect.height;
+            
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            const x = (clientX - rect.left) * scaleX; 
+            const y = (clientY - rect.top) * scaleY; 
+            
+            const gp = env.toGrid(x, y); 
+            env.handleMapClick(gp.x, gp.y); 
+        }
 
         function gameLoop() {
             if (state.running) {
