@@ -124,6 +124,57 @@
 </head>
 <body class="min-h-screen flex flex-col lg:flex-row">
 
+    <!-- Concepts Modal (Scaffolding) -->
+    <div id="conceptsModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4" onclick="if(event.target===this) toggleConcepts()">
+        <div class="bg-slate-800 p-6 rounded-2xl border border-blue-500 shadow-2xl max-w-2xl w-full relative overflow-y-auto max-h-[90vh]">
+            <button onclick="toggleConcepts()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            <h2 class="text-2xl font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-brain text-blue-400"></i> RL Concepts Guide</h2>
+            
+            <div class="space-y-4 text-sm text-slate-300">
+                <div class="p-3 bg-slate-900/50 rounded border-l-4 border-green-500">
+                    <h3 class="font-bold text-white mb-1">Reward (The "Carrot")</h3>
+                    <p>Positive points given to the AI for doing something good (like reaching the Goal). It motivates the AI to find the destination.</p>
+                </div>
+                <div class="p-3 bg-slate-900/50 rounded border-l-4 border-red-500">
+                    <h3 class="font-bold text-white mb-1">Penalty (The "Stick")</h3>
+                    <p>Negative points for bad actions (like hitting a Wall). It teaches the AI what to avoid. If the penalty isn't high enough, the AI might ignore it!</p>
+                </div>
+                <div class="p-3 bg-slate-900/50 rounded border-l-4 border-yellow-500">
+                    <h3 class="font-bold text-white mb-1">Step Cost (Urgency)</h3>
+                    <p>A small penalty for every single move (e.g., -1). This teaches efficiency. If every step "costs money", the robot will learn to run to the exit to stop losing points!</p>
+                </div>
+                <div class="p-3 bg-slate-900/50 rounded border-l-4 border-purple-500">
+                    <h3 class="font-bold text-white mb-1">Sub-Goals (Shaping)</h3>
+                    <p>Sometimes the main goal is too far away or locked. Intermediate rewards (like Buttons) act as "breadcrumbs" to guide the AI towards the solution.</p>
+                </div>
+                <div class="p-3 bg-slate-900/50 rounded border-l-4 border-blue-400">
+                    <h3 class="font-bold text-white mb-1">Q-Learning (The Brain)</h3>
+                    <p>The algorithm the robot uses. It builds a "cheat sheet" (Q-Table) of every square, remembering the long-term value of moving Up, Down, Left, or Right from that spot.</p>
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <button onclick="toggleConcepts()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Debrief Modal (Summary) -->
+    <div id="debriefModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="bg-slate-800 p-6 rounded-2xl border border-yellow-500 shadow-2xl max-w-md w-full text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-yellow-500"></div>
+            <div class="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-yellow-500/30">
+                <i class="fas fa-lightbulb text-3xl text-slate-900"></i>
+            </div>
+            <h2 class="text-xl font-bold text-white mb-2">Lesson Learned!</h2>
+            <div class="text-slate-300 text-sm mb-6 bg-slate-900/50 p-4 rounded border border-slate-700 leading-relaxed text-left" id="debriefText">
+                ...
+            </div>
+            <button onclick="closeDebrief()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-colors">
+                Continue to Next Level <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- Certificate Modal -->
     <div id="certModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4">
         <div class="bg-slate-800 p-8 rounded-2xl border border-blue-500 shadow-2xl max-w-md w-full text-center relative overflow-hidden">
@@ -164,6 +215,11 @@
                 <button onclick="setMode('challenge')" id="btnModeChallenge" class="px-3 py-1 rounded text-xs font-bold text-slate-400 hover:text-white transition-colors">Challenges</button>
             </div>
         </div>
+
+        <!-- NEW: Concepts Button -->
+        <button onclick="toggleConcepts()" class="w-full bg-slate-800 hover:bg-slate-700 text-blue-300 text-xs font-bold py-2 rounded border border-slate-600 transition-colors flex items-center justify-center gap-2">
+            <i class="fas fa-book"></i> RL Concept Guide
+        </button>
 
         <!-- SHARED PRIMARY CONTROLS -->
         <div class="space-y-3">
@@ -445,6 +501,28 @@
             });
         });
 
+        // --- Modal Logic ---
+        function toggleConcepts() {
+            const modal = document.getElementById('conceptsModal');
+            modal.classList.toggle('hidden');
+        }
+
+        function showDebrief(index) {
+            const c = challenges[index];
+            document.getElementById('debriefText').innerText = c.lesson;
+            document.getElementById('debriefModal').classList.remove('hidden');
+            state.running = false;
+            confettiEffect();
+        }
+
+        function closeDebrief() {
+            document.getElementById('debriefModal').classList.add('hidden');
+            // If there's a next level and we aren't at the end, maybe suggest it?
+            // For now, just let user stay on screen or select next manually.
+            // Actually, mark completed visually
+            initChallenges(); // Refresh UI
+        }
+
         // --- Certificate Logic ---
         document.getElementById('btnClaimCert').addEventListener('click', () => {
             const name = document.getElementById('certName').value.trim();
@@ -536,6 +614,7 @@
                 title: "1. The Lazy Robot",
                 desc: "The robot has zero motivation. Fix its logic.",
                 objective: "Win in < 10 steps (3 times in a row).",
+                lesson: "Lesson: Without a 'cost' for time (Step Cost), an AI has no urgency to act. By making time 'expensive', you force it to be efficient.",
                 map: (env) => {
                     env.resize(5, 5);
                     env.spawnPos = {x:0, y:0};
@@ -549,6 +628,7 @@
                 title: "2. The Hazardous Path",
                 desc: "Navigate the corridor without crashing.",
                 objective: "Win 5 times consecutively without crashing.",
+                lesson: "Lesson: If the reward for winning is huge, a small penalty for crashing might be ignored. To teach safety, the penalty must be significant (like -200).",
                 map: (env) => {
                     env.resize(7, 5);
                     env.spawnPos = {x:0, y:2};
@@ -563,6 +643,7 @@
                 title: "3. The Key Master",
                 desc: "The goal is locked. Find the key (button).",
                 objective: "Activate button & Win (3 times in a row).",
+                lesson: "Lesson: Complex tasks need sub-goals. By rewarding the Button separately, you created a 'breadcrumb' that guided the AI to the final solution.",
                 map: (env) => {
                     env.resize(6, 6);
                     env.spawnPos = {x:0, y:0};
@@ -578,6 +659,7 @@
                 title: "4. The Maze Runner",
                 desc: "Efficiency is key in this maze.",
                 objective: "Reach goal in < 50 steps (2 times in a row).",
+                lesson: "Lesson: In a maze, wandering aimlessly is easy. A strict Step Cost (like -2) acts as a compass, constantly pushing the AI toward the shortest valid path.",
                 map: (env) => {
                     env.resize(9, 7);
                     env.spawnPos = {x:0, y:0};
@@ -595,6 +677,7 @@
                 title: "5. The Minefield",
                 desc: "Dense obstacles. Requires extreme caution.",
                 objective: "Win 3 times consecutively.",
+                lesson: "Lesson: Risk Management. To navigate a dense minefield, the fear of hitting a wall (-500) must outweigh the desire to rush. Slow and steady wins.",
                 map: (env) => {
                     env.resize(10, 8);
                     env.spawnPos = {x:0, y:0};
@@ -610,6 +693,7 @@
                 title: "6. The Floor is Lava",
                 desc: "Orange tiles kill you instantly.",
                 objective: "Win 5 times consecutively.",
+                lesson: "Lesson: Not all dangers are equal. A wall just blocks you, but Lava kills you. The penalty for Lava must be catastrophic to ensure the AI never touches it.",
                 map: (env) => {
                     env.resize(8, 6);
                     env.spawnPos = {x:0, y:3};
@@ -630,6 +714,7 @@
                 title: "7. The Long Haul",
                 desc: "A massive map. Patience vs Efficiency.",
                 objective: "Win once.",
+                lesson: "Lesson: Sparse Rewards. On large maps, the 'Step Cost' shouldn't be too high, or the AI might give up (suicide) before finding the goal because it's 'too far'.",
                 map: (env) => {
                     env.resize(15, 10);
                     env.spawnPos = {x:0, y:0};
@@ -648,6 +733,7 @@
                 title: "8. The Trap",
                 desc: "The goal is close but guarded by lava.",
                 objective: "Win without touching lava.",
+                lesson: "Lesson: Local Optima. The goal looks close, but the direct path is deadly. The AI must learn that moving *away* from the goal (to go around) is actually better.",
                 map: (env) => {
                     env.resize(7, 7);
                     env.spawnPos = {x:3, y:6};
@@ -667,6 +753,7 @@
                 title: "9. The Gauntlet",
                 desc: "Final Exam. All elements combined.",
                 objective: "Activate Button & Win.",
+                lesson: "Congratulations! You've combined Safety, Urgency, Shaping, and Exploration to create a truly intelligent agent. You are ready to certify.",
                 map: (env) => {
                     env.resize(10, 10);
                     env.spawnPos = {x:0, y:0};
@@ -800,8 +887,7 @@
 
                 if (state.consecutiveWins >= targetWins) {
                     showNotification("LEVEL COMPLETE!", "text-yellow-400");
-                    confettiEffect();
-                    state.running = false;
+                    showDebrief(state.activeChallengeIndex);
                     
                     // Mark as complete
                     if(!state.completedLevels.has(state.activeChallengeIndex)) {
