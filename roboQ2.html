@@ -107,6 +107,12 @@
             linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
             background-size: 20px 20px;
         }
+
+        /* Summary Modal */
+        .summary-overlay {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(5px);
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col lg:flex-row">
@@ -117,6 +123,22 @@
         <div class="mb-2">
             <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Robo-Academy</h1>
             <p class="text-slate-400 text-sm">Teach AI to think!</p>
+        </div>
+
+        <!-- Levels / Scaffolding -->
+        <div class="space-y-2">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Tutorial Levels</h2>
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="app.loadLevel('open')" class="btn bg-slate-700 hover:bg-slate-600 p-2 rounded-lg text-xs flex flex-col items-center gap-1 border border-slate-600">
+                    <i class="fa-solid fa-wind text-green-400"></i> Open Field
+                </button>
+                <button onclick="app.loadLevel('trap')" class="btn bg-slate-700 hover:bg-slate-600 p-2 rounded-lg text-xs flex flex-col items-center gap-1 border border-slate-600">
+                    <i class="fa-solid fa-magnet text-yellow-400"></i> The Trap
+                </button>
+                <button onclick="app.loadLevel('mud')" class="btn bg-slate-700 hover:bg-slate-600 p-2 rounded-lg text-xs flex flex-col items-center gap-1 border border-slate-600">
+                    <i class="fa-solid fa-shoe-prints text-amber-600"></i> Muddy Choice
+                </button>
+            </div>
         </div>
 
         <!-- Reasoning Level Selector -->
@@ -164,61 +186,46 @@
             </button>
         </div>
 
-        <!-- Brain Tweaks (Interactive Rules) -->
+        <!-- Brain Tweaks -->
         <div id="tweaks-panel" class="glass-panel p-4 bg-slate-800/50 hidden">
             <h3 class="font-bold mb-3 text-sm text-slate-200 flex items-center gap-2">
                 <i class="fa-solid fa-sliders"></i> Brain Tweaks
             </h3>
             
-            <!-- Skill Mode Tweaks -->
             <div id="tweaks-skill" class="space-y-4 hidden">
-                <div>
-                    <label class="flex items-center justify-between cursor-pointer">
-                        <span class="text-sm text-slate-300 font-bold">Survival Instinct</span>
-                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="check-survival" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-600"/>
-                            <label for="check-survival" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
-                        </div>
-                    </label>
-                    <p class="text-[10px] text-slate-400 mt-1 leading-tight">If ON, the robot will never randomly walk into a wall. It forces 'safe' moves only.</p>
-                </div>
-                <div>
-                    <label class="flex items-center justify-between cursor-pointer">
-                        <span class="text-sm text-slate-300 font-bold">Hyperactive</span>
-                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="check-hyper" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-600"/>
-                            <label for="check-hyper" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
-                        </div>
-                    </label>
-                    <p class="text-[10px] text-slate-400 mt-1 leading-tight">If ON, the robot ignores safety more often and moves randomly.</p>
-                </div>
+                <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-sm text-slate-300 font-bold">Survival Instinct</span>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" id="check-survival" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-600"/>
+                        <label for="check-survival" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
+                    </div>
+                </label>
+                <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-sm text-slate-300 font-bold">Hyperactive</span>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" id="check-hyper" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-600"/>
+                        <label for="check-hyper" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
+                    </div>
+                </label>
             </div>
 
-            <!-- Rule Mode Tweaks -->
             <div id="tweaks-rule" class="space-y-4 hidden">
-                <div>
-                    <label class="flex items-center justify-between cursor-pointer">
-                        <span class="text-sm text-slate-300 font-bold">Fear Mud?</span>
-                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="check-fear-mud" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-600"/>
-                            <label for="check-fear-mud" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
-                        </div>
-                    </label>
-                    <p class="text-[10px] text-slate-400 mt-1 leading-tight">If ON, the robot sees Mud as an obstacle (high cost) and will try to go around it.</p>
-                </div>
-                <div>
-                    <label class="flex items-center justify-between cursor-pointer">
-                        <span class="text-sm text-slate-300 font-bold">No Backtracking?</span>
-                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="check-no-back" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-600"/>
-                            <label for="check-no-back" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
-                        </div>
-                    </label>
-                    <p class="text-[10px] text-slate-400 mt-1 leading-tight">If ON, the robot remembers its last step and won't immediately return to it. Helps avoid getting stuck in loops.</p>
-                </div>
+                <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-sm text-slate-300 font-bold">Fear Mud?</span>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" id="check-fear-mud" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-600"/>
+                        <label for="check-fear-mud" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
+                    </div>
+                </label>
+                <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-sm text-slate-300 font-bold">No Backtracking?</span>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" id="check-no-back" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-600"/>
+                        <label for="check-no-back" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
+                    </div>
+                </label>
             </div>
 
-            <!-- Knowledge Mode Tweaks -->
             <div id="tweaks-knowledge" class="space-y-4 hidden">
                 <div>
                     <div class="flex justify-between items-center mb-1">
@@ -226,30 +233,21 @@
                         <span id="episodes-val" class="text-xs text-blue-400 font-mono">1500 eps</span>
                     </div>
                     <input type="range" id="slider-episodes" min="100" max="5000" step="100" value="1500" oninput="document.getElementById('episodes-val').innerText = this.value + ' eps'">
-                    <p class="text-[10px] text-slate-400 mt-1 leading-tight">More episodes = smarter bot, but takes longer to train. Low episodes might leave the bot confused.</p>
                 </div>
-                
-                <div>
-                    <label class="flex items-center justify-between cursor-pointer">
-                        <span class="text-sm text-slate-300 font-bold">Hate Mud</span>
-                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="check-hate-mud" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-600"/>
-                            <label for="check-hate-mud" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
-                        </div>
-                    </label>
-                    <p class="text-[10px] text-slate-400 mt-1 leading-tight">Increases punishment for stepping in mud during training.</p>
-                </div>
-
-                <div>
-                    <label class="flex items-center justify-between cursor-pointer">
-                        <span class="text-sm text-slate-300 font-bold">Hate Walls</span>
-                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="check-hate-walls" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-600"/>
-                            <label for="check-hate-walls" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
-                        </div>
-                    </label>
-                    <p class="text-[10px] text-slate-400 mt-1 leading-tight">Increases punishment for hitting walls during training.</p>
-                </div>
+                <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-sm text-slate-300 font-bold">Hate Mud</span>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" id="check-hate-mud" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-600"/>
+                        <label for="check-hate-mud" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
+                    </div>
+                </label>
+                <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-sm text-slate-300 font-bold">Hate Walls</span>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" id="check-hate-walls" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-600"/>
+                        <label for="check-hate-walls" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
+                    </div>
+                </label>
             </div>
         </div>
 
@@ -257,7 +255,7 @@
         <div class="glass-panel p-4 bg-slate-800/50">
             <h3 id="desc-title" class="font-bold mb-2 text-blue-300">Knowledge-Based (AI)</h3>
             <p id="desc-text" class="text-sm text-slate-300 leading-relaxed">
-                The agent simulates thousands of runs (episodes) to learn the entire map. It discovers that mud is slow and walls are blocked, eventually finding the true optimal path through in-depth analysis.
+                The agent simulates thousands of runs (episodes) to learn the entire map. It discovers that mud is slow and walls are blocked, eventually finding the true optimal path.
             </p>
         </div>
 
@@ -284,7 +282,7 @@
             </div>
         </div>
 
-        <!-- Action Buttons -->
+        <!-- Action Buttons & Speed -->
         <div class="mt-auto space-y-3">
              <div id="training-controls" class="hidden">
                 <div class="flex justify-between text-xs mb-1 text-slate-400">
@@ -299,14 +297,23 @@
                 </button>
              </div>
 
-             <!-- Simulation Controls Container -->
             <div id="simulation-controls" class="w-full">
+                <!-- Sim Speed Slider -->
+                <div class="mb-3 px-1">
+                     <div class="flex justify-between text-xs mb-1 text-slate-400">
+                        <span>Speed</span>
+                        <span id="speed-val">1x</span>
+                    </div>
+                    <input type="range" id="sim-speed" min="1" max="10" step="1" value="5" 
+                           oninput="app.setSpeed(this.value)">
+                </div>
+
                 <!-- Initial Run Button -->
                 <button onclick="app.runSimulation()" id="btn-run" class="btn w-full py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
                     <i class="fa-solid fa-play"></i> Run Simulation
                 </button>
 
-                <!-- Active Controls (Pause/Reset) - Hidden by default -->
+                <!-- Active Controls (Pause/Reset) -->
                 <div id="btn-group-active" class="hidden grid grid-cols-2 gap-2">
                     <button onclick="app.togglePause()" id="btn-pause" class="btn w-full py-3 bg-amber-500 hover:bg-amber-400 rounded-xl font-bold shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-pause"></i> Pause
@@ -351,6 +358,23 @@
                     <div id="stat-reward" class="text-xl font-mono text-emerald-400">0</div>
                 </div>
             </div>
+            
+            <!-- Summary Overlay (Hidden by default) -->
+            <div id="summary-modal" class="hidden absolute inset-0 rounded-lg summary-overlay flex items-center justify-center p-6 z-50">
+                <div class="bg-slate-900 border border-slate-700 p-6 rounded-2xl max-w-sm w-full shadow-2xl transform transition-all scale-100">
+                    <div class="text-center mb-4">
+                        <div id="summary-icon" class="text-4xl mb-2">🎉</div>
+                        <h3 id="summary-title" class="text-xl font-bold text-white">Result</h3>
+                    </div>
+                    <p id="summary-text" class="text-slate-300 text-sm mb-6 text-center leading-relaxed">
+                        Explanation goes here...
+                    </p>
+                    <button onclick="app.closeSummary()" class="btn w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-semibold">
+                        Close
+                    </button>
+                </div>
+            </div>
+
         </div>
         
         <div class="mt-6 text-center max-w-lg text-slate-400 text-sm z-10">
@@ -363,14 +387,14 @@
     <script>
         // --- Configuration & Constants ---
         const GRID_SIZE = 15;
-        const CELL_SIZE = 40; // Desktop default, will scale
+        const CELL_SIZE = 40; 
         const COLORS = {
             empty: '#1e293b',
             wall: '#94a3b8',
-            mud: '#451a03', // Dark brown
+            mud: '#451a03', 
             start: '#3b82f6',
             goal: '#ef4444',
-            path: '#eab308', // Yellow path trace
+            path: '#eab308',
             visited: 'rgba(100, 116, 139, 0.2)',
             agent: '#fbbf24'
         };
@@ -381,31 +405,30 @@
                 this.canvas = document.getElementById('gridCanvas');
                 this.ctx = this.canvas.getContext('2d');
                 this.grid = [];
-                this.mode = 'knowledge'; // skill, rule, knowledge
+                this.mode = 'knowledge'; 
                 this.tool = 'wall';
                 this.isDrawing = false;
                 this.startPos = {x: 1, y: 1};
                 this.goalPos = {x: 13, y: 13};
                 this.agentPos = { ...this.startPos };
-                this.prevPos = { ...this.startPos }; // For no-backtracking
-                this.path = []; // Store path history
+                this.prevPos = { ...this.startPos }; 
+                this.path = []; 
                 
                 this.isRunning = false;
                 this.isPaused = false;
-                this.simulationTimer = null;
+                this.simulationTimeout = null; // Changed to timeout for dynamic speed
+                this.simSpeed = 5; // 1 to 10
                 
-                this.qTable = {}; // Map string(x,y) -> {up, down, left, right}
+                this.qTable = {}; 
                 this.isTrained = false;
                 
-                // Stats
                 this.steps = 0;
                 this.totalReward = 0;
 
-                this.resizeCanvas();
                 this.initGrid();
                 this.setupInputs();
                 this.loop();
-                this.setMode('knowledge'); // Default
+                this.setMode('knowledge'); 
             }
 
             initGrid() {
@@ -413,20 +436,66 @@
                 for(let y=0; y<GRID_SIZE; y++) {
                     let row = [];
                     for(let x=0; x<GRID_SIZE; x++) {
-                        row.push(0); // 0: empty, 1: wall, 2: mud
+                        row.push(0); 
                     }
                     this.grid.push(row);
                 }
-                // Default walls for interest
-                this.grid[5][5] = 1; this.grid[5][6] = 1; this.grid[5][7] = 1;
-                this.grid[6][5] = 1; this.grid[7][5] = 1;
-                // Some mud
-                this.grid[10][10] = 2; this.grid[10][11] = 2; this.grid[11][10] = 2;
             }
 
-            resizeCanvas() {
-                // Responsive canvas logic could go here
-                // For now fixed size logic, scaled via CSS
+            // --- Level Loading (Scaffolding) ---
+            loadLevel(type) {
+                this.stopSimulation();
+                this.initGrid();
+                this.isTrained = false;
+                this.startPos = {x:1, y:7};
+                this.goalPos = {x:13, y:7};
+
+                if (type === 'open') {
+                    // Just open field, maybe a few random blocks
+                    this.updateStatus('Level: Open Field', 'text-blue-300');
+                    this.setMode('skill'); // Recommend skill mode
+                } 
+                else if (type === 'trap') {
+                    // A U-shape trap
+                    this.updateStatus('Level: The Trap', 'text-yellow-300');
+                    for(let i=0; i<8; i++) {
+                        this.grid[3+i][8] = 1; // Vertical wall
+                    }
+                    // Wings
+                    this.grid[3][7] = 1; this.grid[3][6] = 1;
+                    this.grid[10][7] = 1; this.grid[10][6] = 1;
+                    this.setMode('rule'); // Recommend rule mode
+                } 
+                else if (type === 'mud') {
+                    // Two paths: Straight through mud, or around
+                    this.updateStatus('Level: Muddy Choice', 'text-amber-500');
+                    // Wall separating paths
+                    for(let x=3; x<12; x++) this.grid[5][x] = 1; 
+                    for(let x=3; x<12; x++) this.grid[9][x] = 1;
+                    
+                    // Middle path (Muddy)
+                    for(let x=2; x<13; x++) {
+                         this.grid[7][x] = 2; 
+                         this.grid[6][x] = 2;
+                         this.grid[8][x] = 2;
+                    }
+                    this.setMode('knowledge'); // Recommend knowledge
+                }
+
+                this.agentPos = { ...this.startPos };
+                this.path = [];
+                this.draw();
+            }
+
+            // --- Simulation Speed ---
+            setSpeed(val) {
+                this.simSpeed = parseInt(val);
+                document.getElementById('speed-val').innerText = val + 'x';
+            }
+
+            getDelay() {
+                // Map 1-10 to delay. 1=1000ms, 10=50ms
+                return 1000 - (this.simSpeed * 95); 
             }
 
             // --- Drawing ---
@@ -446,11 +515,9 @@
 
                         this.ctx.fillStyle = color;
                         
-                        // Rounded rect for cells
                         let gap = 2;
                         this.ctx.fillRect(x*CELL_SIZE + gap, y*CELL_SIZE + gap, CELL_SIZE - gap*2, CELL_SIZE - gap*2);
 
-                        // Visuals for Mud
                         if(type === 2) {
                             this.ctx.fillStyle = 'rgba(255,255,255,0.1)';
                             this.ctx.font = '20px Arial';
@@ -459,7 +526,6 @@
                             this.ctx.fillText('🐌', x*CELL_SIZE + CELL_SIZE/2, y*CELL_SIZE + CELL_SIZE/2);
                         }
 
-                        // Visualization for Q-Values (Knowledge Mode Only)
                         if (this.mode === 'knowledge' && this.isTrained && type !== 1) {
                             this.drawQArrows(x, y);
                         }
@@ -473,7 +539,7 @@
                     this.ctx.lineWidth = 4;
                     this.ctx.lineJoin = 'round';
                     this.ctx.lineCap = 'round';
-                    this.ctx.globalAlpha = 0.6; // Slightly transparent
+                    this.ctx.globalAlpha = 0.6; 
 
                     const startX = this.path[0].x * CELL_SIZE + CELL_SIZE/2;
                     const startY = this.path[0].y * CELL_SIZE + CELL_SIZE/2;
@@ -484,7 +550,6 @@
                         const py = this.path[i].y * CELL_SIZE + CELL_SIZE/2;
                         this.ctx.lineTo(px, py);
                     }
-                    // Draw to current pos
                     const currX = this.agentPos.x * CELL_SIZE + CELL_SIZE/2;
                     const currY = this.agentPos.y * CELL_SIZE + CELL_SIZE/2;
                     this.ctx.lineTo(currX, currY);
@@ -502,7 +567,6 @@
                 this.ctx.arc(ax, ay, CELL_SIZE/3, 0, Math.PI*2);
                 this.ctx.fill();
                 
-                // Agent Eyes
                 this.ctx.fillStyle = 'black';
                 this.ctx.beginPath();
                 this.ctx.arc(ax - 5, ay - 2, 2, 0, Math.PI*2);
@@ -516,7 +580,6 @@
                 if (!this.qTable[key]) return;
                 
                 const actions = this.qTable[key];
-                // Find best action
                 let bestVal = -Infinity;
                 let bestAct = null;
                 for(let a in actions) {
@@ -540,22 +603,19 @@
                 }
             }
 
-            // --- Agents Logic ---
+            // --- Agents Logic (Unchanged core logic) ---
             getSkillAction() {
                 const survival = document.getElementById('check-survival').checked;
                 const hyperactive = document.getElementById('check-hyper').checked;
                 const moves = ['up', 'down', 'left', 'right'];
                 
                 if (hyperactive && Math.random() < 0.5) return moves[Math.floor(Math.random() * moves.length)];
-
                 const validMoves = moves.filter(m => {
                     const next = this.getNextPos(this.agentPos.x, this.agentPos.y, m);
                     return !this.isWall(next.x, next.y);
                 });
-
                 if (survival && validMoves.length > 0) return validMoves[Math.floor(Math.random() * validMoves.length)];
                 if (validMoves.length > 0 && Math.random() > 0.2) return validMoves[Math.floor(Math.random() * validMoves.length)];
-                
                 return moves[Math.floor(Math.random() * moves.length)];
             }
 
@@ -565,26 +625,18 @@
                 const moves = ['up', 'down', 'left', 'right'];
                 let bestMove = moves[0];
                 let minCost = Infinity;
-
                 moves.sort(() => Math.random() - 0.5);
-
                 let stuck = true;
                 for (let m of moves) {
                     const next = this.getNextPos(this.agentPos.x, this.agentPos.y, m);
                     if (this.isWall(next.x, next.y)) continue;
-                    
                     if (noBack && next.x === this.prevPos.x && next.y === this.prevPos.y) {
                          if (moves.length > 1) continue; 
                     }
-
                     stuck = false;
                     let cost = Math.abs(next.x - this.goalPos.x) + Math.abs(next.y - this.goalPos.y);
                     if (fearMud && this.grid[next.y][next.x] === 2) cost += 10;
-
-                    if (cost < minCost) {
-                        minCost = cost;
-                        bestMove = m;
-                    }
+                    if (cost < minCost) { minCost = cost; bestMove = m; }
                 }
                 if (stuck) return moves[Math.floor(Math.random()*4)];
                 return bestMove;
@@ -595,14 +647,10 @@
                 const key = `${this.agentPos.x},${this.agentPos.y}`;
                 const actions = this.qTable[key];
                 if (!actions) return this.getSkillAction();
-
                 let bestAct = null;
                 let maxQ = -Infinity;
                 for(let a in actions) {
-                    if (actions[a] > maxQ) {
-                        maxQ = actions[a];
-                        bestAct = a;
-                    }
+                    if (actions[a] > maxQ) { maxQ = actions[a]; bestAct = a; }
                 }
                 return bestAct;
             }
@@ -645,7 +693,6 @@
                                 let qs = this.qTable[`${curr.x},${curr.y}`];
                                 action = Object.keys(qs).reduce((a, b) => qs[a] > qs[b] ? a : b);
                             }
-
                             let next = this.getNextPos(curr.x, curr.y, action);
                             let reward = -1; 
                             let isDone = false;
@@ -659,24 +706,20 @@
                             } else if (this.grid[next.y][next.x] === 2) { 
                                 reward = mudPenalty; 
                             }
-
                             const currKey = `${curr.x},${curr.y}`;
                             const nextKey = `${next.x},${next.y}`;
                             const maxNextQ = Math.max(...Object.values(this.qTable[nextKey]));
                             const currentQ = this.qTable[currKey][action];
                             this.qTable[currKey][action] = currentQ + alpha * (reward + gamma * maxNextQ - currentQ);
-
                             curr = next;
                             steps++;
                             if (isDone) break;
                         }
                         ep++;
                     }
-
                     const progress = (ep / episodes) * 100;
                     bar.style.width = `${progress}%`;
                     epLabel.innerText = `${ep} / ${episodes}`;
-
                     if (ep < episodes) {
                         if (ep % 200 === 0) { this.isTrained = true; this.draw(); }
                         requestAnimationFrame(trainChunk);
@@ -700,42 +743,43 @@
                     return;
                 }
 
-                // Reset State
                 this.isRunning = true;
                 this.isPaused = false;
                 this.agentPos = { ...this.startPos };
                 this.prevPos = { ...this.startPos };
-                this.path = []; // Reset path
+                this.path = []; 
                 this.steps = 0;
                 this.totalReward = 0;
 
                 this.updateUIForRun(true);
                 this.updateStatus('Running...', 'text-blue-400');
                 this.updateStatsUI();
-
-                // Start Loop
-                this.startTimer();
+                this.runStepLoop();
             }
 
-            startTimer() {
-                if (this.simulationTimer) clearInterval(this.simulationTimer);
-                const speed = this.mode === 'knowledge' ? 100 : 200;
-                this.simulationTimer = setInterval(() => this.simulationStep(), speed);
+            runStepLoop() {
+                if (!this.isRunning) return;
+                
+                this.simulationStep();
+                
+                // Use Timeout for variable speed support
+                if (this.isRunning && !this.isPaused) {
+                    this.simulationTimeout = setTimeout(() => this.runStepLoop(), this.getDelay());
+                }
             }
 
             togglePause() {
                 if (!this.isRunning) return;
-                
                 this.isPaused = !this.isPaused;
                 const btnPause = document.getElementById('btn-pause');
                 
                 if (this.isPaused) {
-                    clearInterval(this.simulationTimer);
+                    clearTimeout(this.simulationTimeout);
                     btnPause.innerHTML = '<i class="fa-solid fa-play"></i> Resume';
                     btnPause.className = "btn w-full py-3 bg-emerald-500 hover:bg-emerald-400 rounded-xl font-bold shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2";
                     this.updateStatus('Paused', 'text-amber-400');
                 } else {
-                    this.startTimer();
+                    this.runStepLoop();
                     btnPause.innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
                     btnPause.className = "btn w-full py-3 bg-amber-500 hover:bg-amber-400 rounded-xl font-bold shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2";
                     this.updateStatus('Running...', 'text-blue-400');
@@ -745,52 +789,42 @@
             stopSimulation() {
                 this.isRunning = false;
                 this.isPaused = false;
-                clearInterval(this.simulationTimer);
-                
-                // Reset agent to start
+                clearTimeout(this.simulationTimeout);
                 this.agentPos = { ...this.startPos };
-                this.path = []; // Clear path trace
+                this.path = []; 
                 this.draw();
-                
                 this.updateUIForRun(false);
                 this.updateStatus('Reset - Ready', 'text-slate-300');
-                
-                // Reset stats UI
                 document.getElementById('stat-steps').innerText = '0';
                 document.getElementById('stat-reward').innerText = '0';
+                document.getElementById('summary-modal').classList.add('hidden');
             }
 
             simulationStep() {
-                // Determine Action
                 let action = 'stay';
                 if (this.mode === 'skill') action = this.getSkillAction();
                 else if (this.mode === 'rule') action = this.getRuleAction();
                 else if (this.mode === 'knowledge') action = this.getKnowledgeAction();
 
-                // Move Logic
                 const next = this.getNextPos(this.agentPos.x, this.agentPos.y, action);
-                
-                // Track Path
                 this.path.push({ ...this.agentPos });
 
                 if (this.isWall(next.x, next.y)) {
-                    this.totalReward -= 5; // Bonk
+                    this.totalReward -= 5; 
                 } else {
                     this.prevPos = { ...this.agentPos };
                     this.agentPos = next;
-                    if (this.grid[next.y][next.x] === 2) this.totalReward -= 5; // Mud
-                    else this.totalReward -= 1; // Step
+                    if (this.grid[next.y][next.x] === 2) this.totalReward -= 5; 
+                    else this.totalReward -= 1; 
                 }
                 
                 this.steps++;
                 this.updateStatsUI();
                 this.draw();
 
-                // Check Goal
                 if (this.agentPos.x === this.goalPos.x && this.agentPos.y === this.goalPos.y) {
                     this.finishSimulation(true);
                 }
-                // Check Timeout
                 if (this.steps > 100) {
                      this.finishSimulation(false);
                 }
@@ -798,17 +832,65 @@
 
             finishSimulation(success) {
                 this.isRunning = false;
-                clearInterval(this.simulationTimer);
+                clearTimeout(this.simulationTimeout);
+                this.updateUIForRun(false);
                 
                 if (success) {
                     this.totalReward += 100;
-                    this.confetti();
                     this.updateStatus('Goal Reached!', 'text-emerald-400');
+                    this.confetti();
+                    this.showSummary(true);
                 } else {
                     this.updateStatus('Timeout - Robot is lost!', 'text-orange-400');
+                    this.showSummary(false);
                 }
                 this.updateStatsUI();
-                this.updateUIForRun(false);
+            }
+
+            // --- Summary / Scaffolding Feedback ---
+            showSummary(success) {
+                const modal = document.getElementById('summary-modal');
+                const title = document.getElementById('summary-title');
+                const text = document.getElementById('summary-text');
+                const icon = document.getElementById('summary-icon');
+
+                modal.classList.remove('hidden');
+
+                if (this.mode === 'skill') {
+                    if (success) {
+                        icon.innerText = "🍀";
+                        title.innerText = "Lucky Guess!";
+                        text.innerText = "The robot made it, but mostly by luck. Skill-based reasoning is just reaction—it has no long-term plan.";
+                    } else {
+                        icon.innerText = "😵‍💫";
+                        title.innerText = "Wandering Aimlessly";
+                        text.innerText = "Without a plan, the robot just reacted to walls randomly. It got lost because it didn't know where the goal was.";
+                    }
+                } else if (this.mode === 'rule') {
+                    if (success) {
+                        icon.innerText = "📏";
+                        title.innerText = "Logic Prevailed!";
+                        text.innerText = "The 'Move Closer' rule worked because the path was simple. Rule-based systems are great when the world is predictable.";
+                    } else {
+                        icon.innerText = "🛑";
+                        title.innerText = "Stuck in a Logic Trap";
+                        text.innerText = "The robot got stuck because its rule ('Move Closer') told it to walk into the wall instead of going around. It lacks 'Big Picture' thinking.";
+                    }
+                } else if (this.mode === 'knowledge') {
+                    if (success) {
+                        icon.innerText = "🧠";
+                        title.innerText = "True Intelligence";
+                        text.innerText = "The AI used its training (Q-Table) to find the best path. It ignored traps and mud because it knew the consequences!";
+                    } else {
+                        icon.innerText = "🤔";
+                        title.innerText = "Needs More Training";
+                        text.innerText = "The AI failed. Try increasing the training episodes or tweaking the 'Hate Walls' setting so it learns better.";
+                    }
+                }
+            }
+
+            closeSummary() {
+                document.getElementById('summary-modal').classList.add('hidden');
             }
 
             updateUIForRun(active) {
@@ -819,7 +901,6 @@
                 if (active) {
                     btnRun.classList.add('hidden');
                     btnGroup.classList.remove('hidden');
-                    // Reset pause button state just in case
                     btnPause.innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
                     btnPause.className = "btn w-full py-3 bg-amber-500 hover:bg-amber-400 rounded-xl font-bold shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2";
                 } else {
@@ -833,7 +914,6 @@
                 document.getElementById('stat-reward').innerText = this.totalReward;
             }
 
-            // --- Helpers ---
             getNextPos(x, y, action) {
                 let nx = x, ny = y;
                 if (action === 'up') ny--;
@@ -848,13 +928,10 @@
                 return this.grid[y][x] === 1;
             }
 
-            // --- UI Interaction ---
             setMode(mode) {
-                if (this.isRunning) this.stopSimulation(); // Auto stop if changing modes
-                
+                if (this.isRunning) this.stopSimulation();
                 this.mode = mode;
                 
-                // Update UI Buttons
                 ['skill', 'rule', 'knowledge'].forEach(m => {
                     const btn = document.getElementById(`btn-${m}`);
                     const isActive = m === mode;
@@ -865,12 +942,10 @@
                     }
                 });
 
-                // Update Description & Tweaks Panel
                 const title = document.getElementById('desc-title');
                 const text = document.getElementById('desc-text');
                 const trainControls = document.getElementById('training-controls');
                 
-                // Config Panels
                 const tweaksPanel = document.getElementById('tweaks-panel');
                 const tweaksSkill = document.getElementById('tweaks-skill');
                 const tweaksRule = document.getElementById('tweaks-rule');
@@ -886,7 +961,6 @@
                     title.innerText = "Skill-Based (The Baby Bot)";
                     title.className = "font-bold mb-2 text-green-400";
                     text.innerText = "This robot has no plan. It uses basic reflexes to avoid walking directly into walls, but it moves randomly. It struggles to find the goal unless it's nearby.";
-                    
                     tweaksPanel.classList.remove('hidden');
                     tweaksSkill.classList.remove('hidden');
 
@@ -894,7 +968,6 @@
                     title.innerText = "Rule-Based (The Logic Bot)";
                     title.className = "font-bold mb-2 text-yellow-400";
                     text.innerText = "This robot follows a strict rule: 'Always move to the square closest to the goal.' Check 'Fear Mud' to make it smarter!";
-                    
                     tweaksPanel.classList.remove('hidden');
                     tweaksRule.classList.remove('hidden');
 
@@ -902,13 +975,11 @@
                     title.innerText = "Knowledge-Based (The AI)";
                     title.className = "font-bold mb-2 text-blue-400";
                     text.innerText = "This uses Reinforcement Learning (Q-Learning). It explores the map thousands of times in its 'mind'. Use tweaks to change its personality before training!";
-                    
                     trainControls.classList.remove('hidden');
                     tweaksPanel.classList.remove('hidden');
                     tweaksKnowledge.classList.remove('hidden');
                 }
                 
-                // Clear training vis if switching out
                 if (mode !== 'knowledge') this.draw();
                 else if (this.isTrained) this.draw();
             }
@@ -935,7 +1006,6 @@
                 this.canvas.addEventListener('mousemove', handleMove);
                 window.addEventListener('mouseup', handleEnd);
 
-                // Touch support
                 this.canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleStart(e.touches[0]); }, {passive:false});
                 this.canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e.touches[0]); }, {passive:false});
             }
@@ -949,14 +1019,12 @@
                 const y = Math.floor((e.clientY - rect.top) * scaleY / CELL_SIZE);
 
                 if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
-                    // Prevent overwriting Start/Goal
                     if ((x===this.startPos.x && y===this.startPos.y) || (x===this.goalPos.x && y===this.goalPos.y)) return;
 
                     if (this.tool === 'wall') this.grid[y][x] = 1;
                     else if (this.tool === 'mud') this.grid[y][x] = 2;
                     else if (this.tool === 'eraser') this.grid[y][x] = 0;
                     
-                    // If map changes, AI knowledge is outdated!
                     if (this.isTrained) {
                         this.isTrained = false;
                         this.updateStatus('Map changed! Retrain AI.', 'text-yellow-400');
@@ -969,7 +1037,7 @@
             }
 
             resetGrid() {
-                this.stopSimulation(); // Ensure stop
+                this.stopSimulation();
                 this.initGrid();
                 this.isTrained = false;
                 this.path = [];
@@ -986,12 +1054,10 @@
             }
 
             loop() {
-                // Main visual loop if needed, currently draw is event driven + animation frame for training
                 requestAnimationFrame(() => this.loop());
             }
             
             confetti() {
-                // Simple visual reward
                 for(let i=0; i<50; i++) {
                     const p = document.createElement('div');
                     p.style.position = 'absolute';
@@ -1016,7 +1082,6 @@
             }
         }
 
-        // Initialize
         const app = new RoboApp();
 
     </script>
