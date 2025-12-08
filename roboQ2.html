@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robo-Academy: AI Reasoning Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        canvas {
+            image-rendering: pixelated; /* Sharp rendering for grid */
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .btn {
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+        .btn:active::after { width: 200px; height: 200px; }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+            padding: 0.75rem;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+            50% { box-shadow: 0 0 25px rgba(56, 189, 248, 0.5); }
+        }
+        .animate-glow { animation: pulse-glow 2s infinite; }
+        
+        .grid-overlay {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col lg:flex-row">
+
+    <!-- Sidebar Controls -->
+    <div class="w-full lg:w-96 p-4 lg:p-6 flex flex-col gap-4 z-10 lg:h-screen lg:overflow-y-auto glass-panel border-r border-slate-700">
+        
+        <div class="mb-2">
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Robo-Academy</h1>
+            <p class="text-slate-400 text-sm">Teach AI to think!</p>
+        </div>
+
+        <!-- Reasoning Level Selector -->
+        <div class="space-y-3">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Select Reasoning Level</h2>
+            
+            <!-- Level 1: Skill -->
+            <button onclick="app.setMode('skill')" id="btn-skill" class="btn w-full p-3 rounded-xl border border-slate-600 hover:bg-slate-700 text-left transition-colors group">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-green-500/20 text-green-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-green-400">Skill-Based</div>
+                        <div class="text-xs text-slate-400">Instinctive & Fast</div>
+                    </div>
+                </div>
+            </button>
+
+            <!-- Level 2: Rule -->
+            <button onclick="app.setMode('rule')" id="btn-rule" class="btn w-full p-3 rounded-xl border border-slate-600 hover:bg-slate-700 text-left transition-colors group">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-scroll"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-yellow-400">Rule-Based</div>
+                        <div class="text-xs text-slate-400">Follows Logic/Heuristics</div>
+                    </div>
+                </div>
+            </button>
+
+            <!-- Level 3: Knowledge -->
+            <button onclick="app.setMode('knowledge')" id="btn-knowledge" class="btn w-full p-3 rounded-xl border-2 border-blue-500 bg-blue-500/10 text-left transition-colors group relative overflow-hidden">
+                <div class="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition-colors"></div>
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-blue-400">Knowledge-Based</div>
+                        <div class="text-xs text-blue-200">Reinforcement Learning</div>
+                    </div>
+                </div>
+            </button>
+        </div>
+
+        <!-- Description Box -->
+        <div class="glass-panel p-4 bg-slate-800/50">
+            <h3 id="desc-title" class="font-bold mb-2 text-blue-300">Knowledge-Based (AI)</h3>
+            <p id="desc-text" class="text-sm text-slate-300 leading-relaxed">
+                The agent simulates thousands of runs (episodes) to learn the entire map. It discovers that mud is slow and walls are blocked, eventually finding the true optimal path through in-depth analysis.
+            </p>
+        </div>
+
+        <!-- Map Editor Tools -->
+        <div class="space-y-2">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Map Editor</h2>
+            <div class="grid grid-cols-4 gap-2">
+                <button onclick="app.setTool('wall')" class="btn tool-btn bg-slate-700 hover:bg-slate-600 p-2 rounded-lg flex flex-col items-center gap-1 active-tool ring-2 ring-blue-400" id="tool-wall">
+                    <span class="text-xl">🧱</span>
+                    <span class="text-[10px]">Wall</span>
+                </button>
+                <button onclick="app.setTool('mud')" class="btn tool-btn bg-slate-700 hover:bg-slate-600 p-2 rounded-lg flex flex-col items-center gap-1" id="tool-mud">
+                    <span class="text-xl">🐌</span>
+                    <span class="text-[10px]">Mud</span>
+                </button>
+                <button onclick="app.setTool('eraser')" class="btn tool-btn bg-slate-700 hover:bg-slate-600 p-2 rounded-lg flex flex-col items-center gap-1" id="tool-eraser">
+                    <span class="text-xl">🫧</span>
+                    <span class="text-[10px]">Eraser</span>
+                </button>
+                <button onclick="app.resetGrid()" class="btn bg-red-900/30 hover:bg-red-900/50 text-red-400 p-2 rounded-lg flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-trash text-lg"></i>
+                    <span class="text-[10px]">Clear</span>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 italic mt-1">Hint: Mud slows the robot down!</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-auto space-y-3">
+             <div id="training-controls" class="hidden">
+                <div class="flex justify-between text-xs mb-1 text-slate-400">
+                    <span>Training Progress</span>
+                    <span id="train-episode">0 eps</span>
+                </div>
+                <div class="w-full bg-slate-700 rounded-full h-2 mb-3 overflow-hidden">
+                    <div id="train-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-75" style="width: 0%"></div>
+                </div>
+                <button onclick="app.trainAgent()" id="btn-train" class="btn w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-graduation-cap"></i> Train AI
+                </button>
+             </div>
+
+            <button onclick="app.runSimulation()" id="btn-run" class="btn w-full py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-play"></i> Run Simulation
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Viewport -->
+    <div class="flex-1 p-2 lg:p-8 flex flex-col items-center justify-center bg-[#0b1120] relative overflow-hidden">
+        <!-- Background Decor -->
+        <div class="absolute top-0 left-0 w-full h-full grid-overlay opacity-30 pointer-events-none"></div>
+        <div class="absolute top-10 right-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Header for Canvas -->
+        <div class="flex justify-between items-center w-full max-w-2xl mb-4 z-10">
+            <div class="flex gap-4 text-sm font-mono">
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Start</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500"></span> Goal</div>
+            </div>
+            <div id="status-badge" class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono text-slate-300">
+                Ready
+            </div>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="relative canvas-container group">
+            <canvas id="gridCanvas" width="600" height="600" class="shadow-2xl shadow-black/50"></canvas>
+            
+            <!-- Floating Stats (visible on hover or run) -->
+            <div class="absolute -right-32 top-0 flex flex-col gap-2 transition-opacity duration-300 opacity-100 lg:opacity-100">
+                <div class="stat-card w-28">
+                    <div class="text-[10px] uppercase text-slate-500 font-bold">Steps</div>
+                    <div id="stat-steps" class="text-xl font-mono text-white">0</div>
+                </div>
+                <div class="stat-card w-28">
+                    <div class="text-[10px] uppercase text-slate-500 font-bold">Reward</div>
+                    <div id="stat-reward" class="text-xl font-mono text-emerald-400">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-6 text-center max-w-lg text-slate-400 text-sm z-10">
+            <i class="fa-solid fa-mouse pointer-events-none mr-1"></i> Click & Drag to draw walls. 
+            <span class="hidden lg:inline">Right click to erase.</span>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Configuration & Constants ---
+        const GRID_SIZE = 15;
+        const CELL_SIZE = 40; // Desktop default, will scale
+        const COLORS = {
+            empty: '#1e293b',
+            wall: '#94a3b8',
+            mud: '#451a03', // Dark brown
+            start: '#3b82f6',
+            goal: '#ef4444',
+            path: 'rgba(56, 189, 248, 0.3)',
+            visited: 'rgba(100, 116, 139, 0.2)',
+            agent: '#fbbf24'
+        };
+
+        const COSTS = {
+            empty: 1,
+            mud: 5,   // Mud is "traffic" - high cost
+            wall: 999
+        };
+
+        // --- Game Logic ---
+        class RoboApp {
+            constructor() {
+                this.canvas = document.getElementById('gridCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.grid = [];
+                this.mode = 'knowledge'; // skill, rule, knowledge
+                this.tool = 'wall';
+                this.isDrawing = false;
+                this.startPos = {x: 1, y: 1};
+                this.goalPos = {x: 13, y: 13};
+                this.agentPos = { ...this.startPos };
+                this.isRunning = false;
+                this.qTable = {}; // Map string(x,y) -> {up, down, left, right}
+                this.isTrained = false;
+                this.resizeCanvas();
+                this.initGrid();
+                this.setupInputs();
+                this.loop();
+                this.setMode('knowledge'); // Default
+            }
+
+            initGrid() {
+                this.grid = [];
+                for(let y=0; y<GRID_SIZE; y++) {
+                    let row = [];
+                    for(let x=0; x<GRID_SIZE; x++) {
+                        row.push(0); // 0: empty, 1: wall, 2: mud
+                    }
+                    this.grid.push(row);
+                }
+                // Default walls for interest
+                this.grid[5][5] = 1; this.grid[5][6] = 1; this.grid[5][7] = 1;
+                this.grid[6][5] = 1; this.grid[7][5] = 1;
+                // Some mud
+                this.grid[10][10] = 2; this.grid[10][11] = 2; this.grid[11][10] = 2;
+            }
+
+            resizeCanvas() {
+                // Responsive canvas logic could go here
+                // For now fixed size logic, scaled via CSS
+            }
+
+            // --- Drawing ---
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // 1. Draw Grid
+                for(let y=0; y<GRID_SIZE; y++) {
+                    for(let x=0; x<GRID_SIZE; x++) {
+                        let type = this.grid[y][x];
+                        let color = COLORS.empty;
+                        
+                        if (type === 1) color = COLORS.wall;
+                        if (type === 2) color = COLORS.mud;
+                        if (x === this.startPos.x && y === this.startPos.y) color = COLORS.start;
+                        if (x === this.goalPos.x && y === this.goalPos.y) color = COLORS.goal;
+
+                        this.ctx.fillStyle = color;
+                        
+                        // Rounded rect for cells
+                        let gap = 2;
+                        this.ctx.fillRect(x*CELL_SIZE + gap, y*CELL_SIZE + gap, CELL_SIZE - gap*2, CELL_SIZE - gap*2);
+
+                        // Visuals for Mud
+                        if(type === 2) {
+                            this.ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                            this.ctx.font = '20px Arial';
+                            this.ctx.textAlign = 'center';
+                            this.ctx.textBaseline = 'middle';
+                            this.ctx.fillText('🐌', x*CELL_SIZE + CELL_SIZE/2, y*CELL_SIZE + CELL_SIZE/2);
+                        }
+
+                        // Visualization for Q-Values (Knowledge Mode Only)
+                        if (this.mode === 'knowledge' && this.isTrained && type !== 1) {
+                            this.drawQArrows(x, y);
+                        }
+                    }
+                }
+
+                // 2. Draw Agent
+                const ax = this.agentPos.x * CELL_SIZE + CELL_SIZE/2;
+                const ay = this.agentPos.y * CELL_SIZE + CELL_SIZE/2;
+                
+                this.ctx.fillStyle = COLORS.agent;
+                this.ctx.beginPath();
+                this.ctx.arc(ax, ay, CELL_SIZE/3, 0, Math.PI*2);
+                this.ctx.fill();
+                
+                // Agent Eyes
+                this.ctx.fillStyle = 'black';
+                this.ctx.beginPath();
+                this.ctx.arc(ax - 5, ay - 2, 2, 0, Math.PI*2);
+                this.ctx.arc(ax + 5, ay - 2, 2, 0, Math.PI*2);
+                this.ctx.fill();
+            }
+
+            drawQArrows(x, y) {
+                if (x === this.goalPos.x && y === this.goalPos.y) return;
+                const key = `${x},${y}`;
+                if (!this.qTable[key]) return;
+                
+                const actions = this.qTable[key];
+                // Find best action
+                let bestVal = -Infinity;
+                let bestAct = null;
+                for(let a in actions) {
+                    if (actions[a] > bestVal) {
+                        bestVal = actions[a];
+                        bestAct = a;
+                    }
+                }
+
+                if (bestVal > -999) {
+                    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    let char = '';
+                    if (bestAct === 'up') char = '↑';
+                    if (bestAct === 'down') char = '↓';
+                    if (bestAct === 'left') char = '←';
+                    if (bestAct === 'right') char = '→';
+                    this.ctx.fillText(char, x*CELL_SIZE + CELL_SIZE/2, y*CELL_SIZE + CELL_SIZE/2);
+                }
+            }
+
+            // --- Agents ---
+
+            // Level 1: Skill (Random/Reflex)
+            getSkillAction() {
+                // Instinct: Don't hit a wall immediately if possible.
+                // Otherwise, random.
+                const moves = ['up', 'down', 'left', 'right'];
+                const validMoves = moves.filter(m => {
+                    const next = this.getNextPos(this.agentPos.x, this.agentPos.y, m);
+                    // Simple reflex: is it a wall?
+                    return !this.isWall(next.x, next.y);
+                });
+
+                if (validMoves.length === 0) return moves[Math.floor(Math.random() * moves.length)];
+                
+                // 20% chance to move randomly anyway (imperfect skill), 80% pick random valid
+                return validMoves[Math.floor(Math.random() * validMoves.length)];
+            }
+
+            // Level 2: Rule (Heuristic / Greedy)
+            getRuleAction() {
+                // Rule: "Minimize distance to goal".
+                // Doesn't account for mud cost, just geometry. 
+                // Prone to getting stuck in U-shapes (local minima).
+                
+                const moves = ['up', 'down', 'left', 'right'];
+                let bestMove = moves[0];
+                let minDist = Infinity;
+
+                // Shuffle to avoid directional bias when distances are equal
+                moves.sort(() => Math.random() - 0.5);
+
+                let stuck = true;
+
+                for (let m of moves) {
+                    const next = this.getNextPos(this.agentPos.x, this.agentPos.y, m);
+                    if (this.isWall(next.x, next.y)) continue;
+
+                    stuck = false;
+                    // Distance metric: Manhattan
+                    const dist = Math.abs(next.x - this.goalPos.x) + Math.abs(next.y - this.goalPos.y);
+                    
+                    if (dist < minDist) {
+                        minDist = dist;
+                        bestMove = m;
+                    }
+                }
+
+                if (stuck) return moves[Math.floor(Math.random()*4)]; // Panic
+                return bestMove;
+            }
+
+            // Level 3: Knowledge (Q-Learning execution)
+            getKnowledgeAction() {
+                if (!this.isTrained) return 'stop'; // Should not happen if UI enforced
+                
+                const key = `${this.agentPos.x},${this.agentPos.y}`;
+                const actions = this.qTable[key];
+                if (!actions) return this.getSkillAction(); // Fallback
+
+                // Greedy exploitation of Q-Table
+                let bestAct = null;
+                let maxQ = -Infinity;
+                for(let a in actions) {
+                    if (actions[a] > maxQ) {
+                        maxQ = actions[a];
+                        bestAct = a;
+                    }
+                }
+                return bestAct;
+            }
+
+            // --- Q-Learning Training Logic ---
+            async trainAgent() {
+                this.isTrained = false;
+                const episodes = 1500;
+                const alpha = 0.5; // Learning rate
+                const gamma = 0.9; // Discount factor
+                const epsilon = 0.1; // Exploration rate
+                
+                // Reset Q-Table
+                this.qTable = {}; 
+                for(let y=0; y<GRID_SIZE; y++) {
+                    for(let x=0; x<GRID_SIZE; x++) {
+                        this.qTable[`${x},${y}`] = {up:0, down:0, left:0, right:0};
+                    }
+                }
+
+                const btn = document.getElementById('btn-train');
+                const bar = document.getElementById('train-bar');
+                const epLabel = document.getElementById('train-episode');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Thinking...';
+
+                // Run training in chunks to not freeze UI
+                let ep = 0;
+                const trainChunk = () => {
+                    const chunkSize = 50;
+                    for(let k=0; k<chunkSize && ep < episodes; k++) {
+                        let curr = { ...this.startPos };
+                        let steps = 0;
+                        
+                        while(steps < 100) { // Max steps per episode
+                            // 1. Choose Action (Epsilon Greedy)
+                            let action;
+                            if (Math.random() < epsilon) {
+                                const moves = ['up','down','left','right'];
+                                action = moves[Math.floor(Math.random()*4)];
+                            } else {
+                                // Best Q
+                                let qs = this.qTable[`${curr.x},${curr.y}`];
+                                action = Object.keys(qs).reduce((a, b) => qs[a] > qs[b] ? a : b);
+                            }
+
+                            // 2. Perform Action
+                            let next = this.getNextPos(curr.x, curr.y, action);
+                            
+                            // 3. Get Reward
+                            let reward = -1; // Living penalty
+                            let isDone = false;
+                            
+                            if (next.x === this.goalPos.x && next.y === this.goalPos.y) {
+                                reward = 100;
+                                isDone = true;
+                            } else if (this.isWall(next.x, next.y)) {
+                                reward = -5;
+                                next = curr; // Hit wall, stay put
+                            } else if (this.grid[next.y][next.x] === 2) { // Mud
+                                reward = -5; // High penalty for mud
+                            }
+
+                            // 4. Update Q-Value
+                            const currKey = `${curr.x},${curr.y}`;
+                            const nextKey = `${next.x},${next.y}`;
+                            
+                            const maxNextQ = Math.max(...Object.values(this.qTable[nextKey]));
+                            const currentQ = this.qTable[currKey][action];
+                            
+                            this.qTable[currKey][action] = currentQ + alpha * (reward + gamma * maxNextQ - currentQ);
+
+                            curr = next;
+                            steps++;
+                            if (isDone) break;
+                        }
+                        ep++;
+                    }
+
+                    // UI Update
+                    const progress = (ep / episodes) * 100;
+                    bar.style.width = `${progress}%`;
+                    epLabel.innerText = `${ep} / ${episodes}`;
+
+                    if (ep < episodes) {
+                        if (ep % 200 === 0) {
+                            // Visualize intermediate training occasionally
+                            this.isTrained = true; // Temporary
+                            this.draw(); 
+                        }
+                        requestAnimationFrame(trainChunk);
+                    } else {
+                        // Done
+                        this.isTrained = true;
+                        this.draw(); // Draw final arrows
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-graduation-cap"></i> Retrain';
+                        this.updateStatus('Training Complete! Brain optimized.', 'text-green-400');
+                    }
+                };
+
+                trainChunk();
+            }
+
+            // --- Simulation Runner ---
+            runSimulation() {
+                if (this.isRunning) return;
+                
+                if (this.mode === 'knowledge' && !this.isTrained) {
+                    this.updateStatus('Please Train the AI first!', 'text-red-400');
+                    return;
+                }
+
+                this.isRunning = true;
+                this.agentPos = { ...this.startPos };
+                let steps = 0;
+                let totalReward = 0;
+
+                document.getElementById('stat-steps').innerText = '0';
+                document.getElementById('stat-reward').innerText = '0';
+                this.updateStatus('Running...', 'text-blue-400');
+
+                const interval = setInterval(() => {
+                    if (!this.isRunning) { clearInterval(interval); return; }
+
+                    // Determine Action based on Mode
+                    let action = 'stay';
+                    if (this.mode === 'skill') action = this.getSkillAction();
+                    else if (this.mode === 'rule') action = this.getRuleAction();
+                    else if (this.mode === 'knowledge') action = this.getKnowledgeAction();
+
+                    // Move
+                    const next = this.getNextPos(this.agentPos.x, this.agentPos.y, action);
+                    
+                    // Logic for Wall Hitting
+                    if (this.isWall(next.x, next.y)) {
+                        // Bonk!
+                        totalReward -= 5;
+                    } else {
+                        this.agentPos = next;
+                        if (this.grid[next.y][next.x] === 2) totalReward -= 5; // Mud penalty
+                        else totalReward -= 1; // Step penalty
+                    }
+                    
+                    steps++;
+                    document.getElementById('stat-steps').innerText = steps;
+                    document.getElementById('stat-reward').innerText = totalReward;
+                    this.draw();
+
+                    // Check End
+                    if (this.agentPos.x === this.goalPos.x && this.agentPos.y === this.goalPos.y) {
+                        this.isRunning = false;
+                        totalReward += 100;
+                        document.getElementById('stat-reward').innerText = totalReward;
+                        clearInterval(interval);
+                        this.confetti();
+                        this.updateStatus('Goal Reached!', 'text-emerald-400');
+                    }
+
+                    if (steps > 100) {
+                         this.isRunning = false;
+                         clearInterval(interval);
+                         this.updateStatus('Timeout - Robot is lost!', 'text-orange-400');
+                    }
+
+                }, this.mode === 'knowledge' ? 100 : 200); // Run faster for smart bot
+            }
+
+
+            // --- Helpers ---
+            getNextPos(x, y, action) {
+                let nx = x, ny = y;
+                if (action === 'up') ny--;
+                if (action === 'down') ny++;
+                if (action === 'left') nx--;
+                if (action === 'right') nx++;
+                return {x: nx, y: ny};
+            }
+
+            isWall(x, y) {
+                if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return true;
+                return this.grid[y][x] === 1;
+            }
+
+            // --- UI Interaction ---
+            setMode(mode) {
+                this.mode = mode;
+                
+                // Update UI Buttons
+                ['skill', 'rule', 'knowledge'].forEach(m => {
+                    const btn = document.getElementById(`btn-${m}`);
+                    const isActive = m === mode;
+                    if(isActive) {
+                        btn.className = "btn w-full p-3 rounded-xl border-2 border-blue-500 bg-blue-500/10 text-left transition-colors relative overflow-hidden";
+                    } else {
+                        btn.className = "btn w-full p-3 rounded-xl border border-slate-600 hover:bg-slate-700 text-left transition-colors group";
+                    }
+                });
+
+                // Update Description
+                const title = document.getElementById('desc-title');
+                const text = document.getElementById('desc-text');
+                const trainControls = document.getElementById('training-controls');
+
+                trainControls.classList.add('hidden');
+
+                if (mode === 'skill') {
+                    title.innerText = "Skill-Based (The Baby Bot)";
+                    title.className = "font-bold mb-2 text-green-400";
+                    text.innerText = "This robot has no plan. It uses basic reflexes to avoid walking directly into walls, but it moves randomly. It struggles to find the goal unless it's nearby.";
+                } else if (mode === 'rule') {
+                    title.innerText = "Rule-Based (The Logic Bot)";
+                    title.className = "font-bold mb-2 text-yellow-400";
+                    text.innerText = "This robot follows a strict rule: 'Always move to the square closest to the goal.' It's efficient on open maps, but gets stuck easily if a wall blocks the direct path (Local Minimum). It doesn't understand that Mud is slow.";
+                } else if (mode === 'knowledge') {
+                    title.innerText = "Knowledge-Based (The AI)";
+                    title.className = "font-bold mb-2 text-blue-400";
+                    text.innerText = "This uses Reinforcement Learning (Q-Learning). It explores the map thousands of times in its 'mind' (Training) to learn the consequences of every action. It avoids walls, takes the long way around mud, and solves complex mazes.";
+                    trainControls.classList.remove('hidden');
+                }
+                
+                // Clear training vis if switching out
+                if (mode !== 'knowledge') this.draw();
+                else if (this.isTrained) this.draw();
+            }
+
+            setTool(t) {
+                this.tool = t;
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('ring-2', 'ring-blue-400', 'active-tool'));
+                document.getElementById(`tool-${t}`).classList.add('ring-2', 'ring-blue-400', 'active-tool');
+            }
+
+            setupInputs() {
+                let isDragging = false;
+                
+                const handleStart = (e) => {
+                    isDragging = true;
+                    this.handleInput(e);
+                };
+                const handleMove = (e) => {
+                    if (isDragging) this.handleInput(e);
+                };
+                const handleEnd = () => isDragging = false;
+
+                this.canvas.addEventListener('mousedown', handleStart);
+                this.canvas.addEventListener('mousemove', handleMove);
+                window.addEventListener('mouseup', handleEnd);
+
+                // Touch support
+                this.canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleStart(e.touches[0]); }, {passive:false});
+                this.canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e.touches[0]); }, {passive:false});
+            }
+
+            handleInput(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const scaleX = this.canvas.width / rect.width;
+                const scaleY = this.canvas.height / rect.height;
+                
+                const x = Math.floor((e.clientX - rect.left) * scaleX / CELL_SIZE);
+                const y = Math.floor((e.clientY - rect.top) * scaleY / CELL_SIZE);
+
+                if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
+                    // Prevent overwriting Start/Goal
+                    if ((x===this.startPos.x && y===this.startPos.y) || (x===this.goalPos.x && y===this.goalPos.y)) return;
+
+                    if (this.tool === 'wall') this.grid[y][x] = 1;
+                    else if (this.tool === 'mud') this.grid[y][x] = 2;
+                    else if (this.tool === 'eraser') this.grid[y][x] = 0;
+                    
+                    // If map changes, AI knowledge is outdated!
+                    if (this.isTrained) {
+                        this.isTrained = false;
+                        this.updateStatus('Map changed! Retrain AI.', 'text-yellow-400');
+                        document.getElementById('train-bar').style.width = '0%';
+                        document.getElementById('train-episode').innerText = '0 eps';
+                        document.getElementById('btn-train').innerHTML = '<i class="fa-solid fa-graduation-cap"></i> Train AI';
+                    }
+                    this.draw();
+                }
+            }
+
+            resetGrid() {
+                this.initGrid();
+                this.isTrained = false;
+                this.agentPos = { ...this.startPos };
+                document.getElementById('train-bar').style.width = '0%';
+                this.draw();
+            }
+
+            updateStatus(msg, colorClass) {
+                const el = document.getElementById('status-badge');
+                el.innerText = msg;
+                el.className = `px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-mono ${colorClass}`;
+            }
+
+            loop() {
+                // Main visual loop if needed, currently draw is event driven + animation frame for training
+                requestAnimationFrame(() => this.loop());
+            }
+            
+            confetti() {
+                // Simple visual reward
+                for(let i=0; i<50; i++) {
+                    const p = document.createElement('div');
+                    p.style.position = 'absolute';
+                    p.style.left = '50%';
+                    p.style.top = '50%';
+                    p.style.width = '8px';
+                    p.style.height = '8px';
+                    p.style.backgroundColor = ['#f472b6', '#34d399', '#60a5fa', '#fbbf24'][Math.floor(Math.random()*4)];
+                    p.style.transition = 'all 1s ease-out';
+                    p.style.zIndex = '100';
+                    document.body.appendChild(p);
+                    
+                    setTimeout(() => {
+                        const x = (Math.random() - 0.5) * window.innerWidth;
+                        const y = (Math.random() - 0.5) * window.innerHeight;
+                        p.style.transform = `translate(${x}px, ${y}px) rotate(${Math.random()*360}deg)`;
+                        p.style.opacity = '0';
+                    }, 10);
+                    
+                    setTimeout(() => p.remove(), 1000);
+                }
+            }
+        }
+
+        // Initialize
+        const app = new RoboApp();
+
+    </script>
+</body>
+</html>
