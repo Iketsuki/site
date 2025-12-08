@@ -175,10 +175,10 @@
         <!-- CHALLENGE SECTION -->
         <div id="challengeSection" class="hidden space-y-4">
             <div class="bg-indigo-900/30 border border-indigo-500/30 p-3 rounded-lg text-sm text-indigo-200">
-                <i class="fas fa-graduation-cap mr-2"></i> <strong>Mission:</strong> Fix the robot's bad behavior by adjusting the Logic Lab parameters below.
+                <i class="fas fa-graduation-cap mr-2"></i> <strong>Mission:</strong> Fix the robot's empty brain! All parameters are 0. Tune them to solve the level.
             </div>
             
-            <div id="challengeList" class="space-y-2 max-h-40 overflow-y-auto scrollbar-hide">
+            <div id="challengeList" class="space-y-2 max-h-56 overflow-y-auto scrollbar-hide">
                 <!-- Challenges injected via JS -->
             </div>
 
@@ -394,20 +394,20 @@
         const challenges = [
             {
                 title: "1. The Lazy Robot",
-                desc: "The robot is wandering aimlessly. Teach it urgency!",
+                desc: "The robot has zero motivation. Fix its logic.",
                 objective: "Win in < 10 steps (3 times in a row).",
                 map: (env) => {
                     env.resize(5, 5);
                     env.agentPos = {x:0, y:0};
                     env.goalPos = {x:4, y:4};
                 },
-                setupParams: { goal: 100, wall: -100, step: 0, button: 0 }, 
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0 }, 
                 checkWin: (lastSteps, lastWin) => (lastWin && lastSteps < 10),
-                advisor: "The 'Step Cost' is 0, so the robot doesn't mind wasting time. Make the Step Cost negative (e.g., -5) to make it hurry!"
+                advisor: "Everything is zero! It has no reason to move. Try setting 'Goal Reward' to 100 and 'Step Cost' to -5 to make it hurry."
             },
             {
                 title: "2. The Hazardous Path",
-                desc: "The robot keeps crashing. Teach it safety!",
+                desc: "Navigate the corridor without crashing.",
                 objective: "Win 5 times consecutively without crashing.",
                 map: (env) => {
                     env.resize(7, 5);
@@ -415,13 +415,13 @@
                     env.goalPos = {x:6, y:2};
                     for(let x=1; x<6; x++) { env.grid[1][x] = 1; env.grid[3][x] = 1; }
                 },
-                setupParams: { goal: 100, wall: -10, step: -1, button: 0 }, 
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0 }, 
                 checkWin: (lastSteps, lastWin) => lastWin,
-                advisor: "The 'Wall Penalty' is only -10. That's not painful enough! Try -200 so it really fears walls."
+                advisor: "The robot isn't afraid of walls because 'Wall Penalty' is 0. Set 'Wall Penalty' to -200 so it learns fear!"
             },
             {
                 title: "3. The Key Master",
-                desc: "The robot ignores the button. Teach it priorities!",
+                desc: "The goal is locked. Find the key (button).",
                 objective: "Activate button & Win (3 times in a row).",
                 map: (env) => {
                     env.resize(6, 6);
@@ -430,9 +430,49 @@
                     env.buttonPos = {x:0, y:5}; 
                     env.grid[0][4] = 1; env.grid[1][4] = 1;
                 },
-                setupParams: { goal: 100, wall: -100, step: -1, button: 0 }, 
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0 }, 
                 checkWin: (lastSteps, lastWin, activated) => (lastWin && activated),
-                advisor: "The 'Button Bonus' is 0. Give the robot a reason to detour! Set Button Bonus to +50."
+                advisor: "It ignores the button. Set 'Button Bonus' to 50 so it knows the button is valuable."
+            },
+            {
+                title: "4. The Maze Runner",
+                desc: "A complex winding path. Efficiency is key.",
+                objective: "Reach goal in < 30 steps (2 times in a row).",
+                map: (env) => {
+                    env.resize(9, 7);
+                    env.agentPos = {x:0, y:0};
+                    env.goalPos = {x:8, y:6};
+                    // Zigzag walls
+                    for(let y=0; y<6; y++) env.grid[y][1] = 1; // Wall col 1
+                    for(let y=1; y<7; y++) env.grid[y][3] = 1; // Wall col 3
+                    for(let y=0; y<6; y++) env.grid[y][5] = 1; // Wall col 5
+                    for(let y=1; y<7; y++) env.grid[y][7] = 1; // Wall col 7
+                },
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0 },
+                checkWin: (lastSteps, lastWin) => (lastWin && lastSteps < 30),
+                advisor: "It's a long journey. If 'Step Cost' is 0, it will wander. Make 'Step Cost' -1 or lower to keep it moving forward."
+            },
+            {
+                title: "5. The Minefield",
+                desc: "Dense obstacles. Requires extreme caution.",
+                objective: "Win 3 times consecutively.",
+                map: (env) => {
+                    env.resize(10, 8);
+                    env.agentPos = {x:0, y:0};
+                    env.goalPos = {x:9, y:7};
+                    // Random scatter (deterministic for challenge consistency)
+                    const obstacles = [
+                        [1,1], [1,3], [1,5], [1,7],
+                        [3,0], [3,2], [3,4], [3,6],
+                        [5,1], [5,3], [5,5], [5,7],
+                        [7,0], [7,2], [7,4], [7,6],
+                        [8,3], [2,5], [6,2], [4,4]
+                    ];
+                    obstacles.forEach(p => { if(p[0]<10 && p[1]<8) env.grid[p[1]][p[0]] = 1; });
+                },
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0 },
+                checkWin: (lastSteps, lastWin) => lastWin,
+                advisor: "Tight spaces! Set a HUGE 'Wall Penalty' (e.g., -500) and a high 'Goal Reward' (200) to balance the risk."
             }
         ];
 
@@ -498,6 +538,7 @@
                 
                 let targetWins = 3; 
                 if(state.activeChallengeIndex === 1) targetWins = 5;
+                if(state.activeChallengeIndex === 3) targetWins = 2;
                 
                 let pct = Math.min((state.consecutiveWins / targetWins) * 100, 100);
                 document.getElementById('challengeProgress').style.width = `${pct}%`;
@@ -574,8 +615,8 @@
                 let nx = this.agentPos.x; let ny = this.agentPos.y;
                 if (action === 0) ny--; if (action === 1) nx++; if (action === 2) ny++; if (action === 3) nx--;
                 
-                if (nx < 0 || nx >= this.width || ny < 0 || ny >= this.height) return { reward: CONFIG.rewards.wall, done: true, nextState: this.getState() };
-                if (this.grid[ny][nx] === 1) return { reward: CONFIG.rewards.wall, done: true, nextState: this.getState() };
+                if (nx < 0 || nx >= this.width || ny < 0 || ny >= this.height) return { reward: CONFIG.rewards.wall, done: true, won: false, nextState: this.getState() };
+                if (this.grid[ny][nx] === 1) return { reward: CONFIG.rewards.wall, done: true, won: false, nextState: this.getState() };
                 
                 this.agentPos = { x: nx, y: ny };
                 state.path.push({x: nx, y: ny});
@@ -586,9 +627,9 @@
                 }
                 const newState = this.getState();
                 if (nx === this.goalPos.x && ny === this.goalPos.y) {
-                    if (this.goalActive) return { reward: CONFIG.rewards.goal, done: true, nextState: newState };
+                    if (this.goalActive) return { reward: CONFIG.rewards.goal, done: true, won: true, nextState: newState };
                 }
-                return { reward: r, done: false, nextState: newState };
+                return { reward: r, done: false, won: false, nextState: newState };
             }
         }
 
@@ -622,20 +663,19 @@
             if (state.needsReset) return;
             const currentState = env.getState();
             const action = agent.getAction(currentState);
-            const { reward, done, nextState } = env.step(action);
+            const { reward, done, nextState, won } = env.step(action);
             agent.learn(currentState, action, reward, nextState);
             currentEpisodeReward += reward;
             scoreEl.innerText = currentEpisodeReward;
             scoreEl.className = currentEpisodeReward > 0 ? 'text-white text-green-400' : currentEpisodeReward < -50 ? 'text-white text-red-400' : "text-white";
-            if (done) finishEpisode(reward);
+            if (done) finishEpisode(reward, won);
         }
 
-        function finishEpisode(finalReward) {
+        function finishEpisode(finalReward, won) {
             state.episode++;
             state.history.push(currentEpisodeReward);
             if (state.history.length > 50) state.history.shift();
             
-            const won = finalReward === CONFIG.rewards.goal;
             if (won) { state.wins++; showNotification("Goal Reached!", "text-green-400"); } 
             else showNotification("Crashed!", "text-red-400");
             
