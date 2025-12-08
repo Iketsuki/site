@@ -99,6 +99,10 @@
             border-color: #10b981;
             background: rgba(16, 185, 129, 0.1);
         }
+        .challenge-completed .fa-check-circle {
+            color: #10b981;
+            display: inline-block;
+        }
 
         .tool-btn.active {
             background-color: #2563eb;
@@ -106,9 +110,39 @@
             ring-width: 2px;
             ring-color: #60a5fa;
         }
+        
+        .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .has-tooltip:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col lg:flex-row">
+
+    <!-- Certificate Modal -->
+    <div id="certModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="bg-slate-800 p-8 rounded-2xl border border-blue-500 shadow-2xl max-w-md w-full text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-green-500"></div>
+            <i class="fas fa-graduation-cap text-6xl text-yellow-400 mb-4 animate-bounce"></i>
+            <h2 class="text-2xl font-bold text-white mb-2">Curriculum Complete!</h2>
+            <p class="text-slate-400 mb-6 text-sm">You have mastered the fundamentals of Reinforcement Learning.</p>
+            
+            <div class="mb-6">
+                <label class="block text-xs text-slate-500 mb-1 text-left">Enter Name for Certificate:</label>
+                <input type="text" id="certName" placeholder="Your Name" class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white focus:border-blue-500 outline-none text-center font-bold">
+            </div>
+            
+            <button id="btnClaimCert" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2">
+                <i class="fas fa-file-download"></i> Download Certificate
+            </button>
+            <p class="text-[10px] text-slate-600 mt-4">Progress will be reset after download.</p>
+        </div>
+    </div>
 
     <!-- Sidebar / Controls -->
     <div class="w-full lg:w-[28rem] glass-panel p-5 flex flex-col gap-4 z-10 border-r border-slate-700 overflow-y-auto max-h-screen scrollbar-hide">
@@ -168,7 +202,8 @@
         <!-- CHALLENGE SECTION -->
         <div id="challengeSection" class="hidden space-y-4">
             <div class="bg-indigo-900/30 border border-indigo-500/30 p-3 rounded-lg text-sm text-indigo-200">
-                <i class="fas fa-graduation-cap mr-2"></i> <strong>Mission:</strong> Parameters start at 0. Tune them to make the AI survive and win.
+                <i class="fas fa-graduation-cap mr-2"></i> <strong>Mission:</strong> Solve all levels to earn your certificate.
+                <div id="progressStatus" class="text-[10px] mt-1 font-bold text-indigo-300">0/9 Completed</div>
             </div>
             
             <div id="challengeList" class="space-y-2 max-h-56 overflow-y-auto scrollbar-hide">
@@ -289,6 +324,10 @@
                 </div>
             </div>
             
+            <button id="btnSaveLogic" class="w-full mt-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+                <i class="fas fa-save"></i> Save Parameters
+            </button>
+
             <!-- Static Info Box -->
             <div id="paramInfoBox" class="mt-3 bg-slate-900/80 p-2 rounded border border-slate-600 text-[10px] text-slate-300 min-h-[40px] flex items-center">
                 <i class="fas fa-info-circle mr-2 text-blue-400"></i> <span id="paramInfoText">Hover over a parameter to learn what it does.</span>
@@ -384,7 +423,8 @@
             frameCount: 0,
             needsReset: false,
             path: [],
-            consecutiveWins: 0
+            consecutiveWins: 0,
+            completedLevels: new Set()
         };
 
         // --- Elements ---
@@ -404,6 +444,91 @@
                 document.getElementById('paramInfoText').innerText = "Hover over a parameter to learn what it does.";
             });
         });
+
+        // --- Certificate Logic ---
+        document.getElementById('btnClaimCert').addEventListener('click', () => {
+            const name = document.getElementById('certName').value.trim();
+            if(!name) { alert("Please enter your name!"); return; }
+            generateCertificate(name);
+        });
+
+        function showCertificateModal() {
+            document.getElementById('certModal').classList.remove('hidden');
+            confettiEffect();
+        }
+
+        function generateCertificate(name) {
+            const certCanvas = document.createElement('canvas');
+            certCanvas.width = 1000;
+            certCanvas.height = 700;
+            const cCtx = certCanvas.getContext('2d');
+
+            // Background
+            cCtx.fillStyle = '#0f172a';
+            cCtx.fillRect(0, 0, 1000, 700);
+            
+            // Decorative Border
+            cCtx.strokeStyle = '#3b82f6';
+            cCtx.lineWidth = 10;
+            cCtx.strokeRect(20, 20, 960, 660);
+            cCtx.strokeStyle = '#10b981';
+            cCtx.lineWidth = 2;
+            cCtx.strokeRect(40, 40, 920, 620);
+
+            // Title
+            cCtx.fillStyle = '#facc15';
+            cCtx.font = 'bold 70px monospace';
+            cCtx.textAlign = 'center';
+            cCtx.fillText('ROBO-ACADEMY', 500, 150);
+            
+            cCtx.fillStyle = 'white';
+            cCtx.font = '40px sans-serif';
+            cCtx.fillText('Certificate of Mastery', 500, 220);
+
+            cCtx.fillStyle = '#94a3b8';
+            cCtx.font = '25px sans-serif';
+            cCtx.fillText('This certifies that', 500, 280);
+
+            // Name
+            cCtx.fillStyle = '#38bdf8';
+            cCtx.font = 'bold 80px sans-serif';
+            cCtx.fillText(name, 500, 380);
+            
+            // Footer
+            cCtx.fillStyle = 'white';
+            cCtx.font = '25px sans-serif';
+            cCtx.fillText('Has successfully trained an AI Agent through 9 levels', 500, 450);
+            cCtx.fillText('of Reinforcement Learning.', 500, 490);
+
+            // Date
+            cCtx.fillStyle = '#64748b';
+            cCtx.font = '20px monospace';
+            cCtx.fillText(`Issued: ${new Date().toLocaleDateString()}`, 500, 600);
+
+            // Download
+            const link = document.createElement('a');
+            link.download = `Robo-Academy-Cert-${name.replace(/\s+/g, '-')}.png`;
+            link.href = certCanvas.toDataURL();
+            link.click();
+
+            // Reset
+            setTimeout(() => {
+                document.getElementById('certModal').classList.add('hidden');
+                resetAllProgress();
+            }, 1000);
+        }
+
+        function resetAllProgress() {
+            state.completedLevels.clear();
+            setMode('sandbox'); // Go back to start
+            state.activeChallengeIndex = null;
+            document.querySelectorAll('.challenge-card').forEach(el => {
+                el.classList.remove('challenge-completed', 'border-l-green-500');
+                if(el.querySelector('.fa-check-circle')) el.querySelector('.fa-check-circle').remove();
+            });
+            document.getElementById('progressStatus').innerText = '0/9 Completed';
+            showNotification("Game Reset", "text-blue-400");
+        }
 
         // --- Challenge Manager ---
         const challenges = [
@@ -489,44 +614,17 @@
                     env.resize(8, 6);
                     env.spawnPos = {x:0, y:3};
                     env.goalPos = {x:7, y:3};
-                    // Ensure solvable: Create a safe "snake" path
-                    // Lava Top
-                    for(let x=1; x<8; x++) env.grid[1][x] = 2; 
-                    // Lava Bottom
-                    for(let x=0; x<7; x++) env.grid[5][x] = 2; 
-                    
-                    // Specific blocks to force winding
-                    env.grid[3][3] = 2; // Block straight path
-                    
-                    // Fill surrounding with lava for effect
-                    env.grid[2][2] = 2; 
-                    env.grid[2][4] = 2;
-                    env.grid[4][2] = 2;
-                    env.grid[4][4] = 2;
-                    
-                    // Clear a specific path: (0,3)->(1,3)->(2,3)->(2,4)->(3,4)->(4,4)->(5,4)->(5,3)->(6,3)->(7,3)
-                    // Wait, let's just make it simpler but tight
-                    // Reset grid to clear
+                    // Solvable path
                     for(let y=0; y<6; y++) for(let x=0; x<8; x++) env.grid[y][x] = 0;
-                    
-                    // Draw Lava Tunnel
                     for(let x=0; x<8; x++) { env.grid[2][x] = 2; env.grid[4][x] = 2; }
-                    env.grid[2][0] = 0; env.grid[4][7] = 0; // Entrances/Exits just in case
-                    
-                    // The path is row 3. Block it at x=3
-                    env.grid[3][3] = 2;
-                    
-                    // Open a detour: go up at x=2, over to x=4, down to x=4
-                    env.grid[2][2] = 0; 
-                    env.grid[2][3] = 0;
-                    env.grid[2][4] = 0;
-                    
-                    // Just to be safe, clear start/goal
+                    env.grid[2][0] = 0; env.grid[4][7] = 0; 
+                    env.grid[3][3] = 2; // Block
+                    env.grid[2][2] = 0; env.grid[2][3] = 0; env.grid[2][4] = 0; // Detour up
                     env.grid[3][0] = 0; env.grid[3][7] = 0;
                 },
                 setupParams: { goal: 0, wall: 0, step: 0, button: 0, hazard: 0 },
                 checkWin: (lastSteps, lastWin) => lastWin,
-                advisor: "Lava (Hazards) are distinct from walls. You must set 'Hazard Cost' to a HUGE negative (e.g., -1000) to survive."
+                advisor: "Set 'Hazard Cost' to a HUGE negative (e.g., -1000) to survive."
             },
              {
                 title: "7. The Long Haul",
@@ -536,7 +634,6 @@
                     env.resize(15, 10);
                     env.spawnPos = {x:0, y:0};
                     env.goalPos = {x:14, y:9};
-                    // Random walls
                     for(let i=0; i<40; i++) {
                         let rx = Math.floor(Math.random()*15);
                         let ry = Math.floor(Math.random()*10);
@@ -546,6 +643,47 @@
                 setupParams: { goal: 0, wall: 0, step: 0, button: 0, hazard: 0 },
                 checkWin: (lastSteps, lastWin) => lastWin,
                 advisor: "For large maps, you need a balance. Goal=200, Step Cost=-1."
+            },
+            {
+                title: "8. The Trap",
+                desc: "The goal is close but guarded by lava.",
+                objective: "Win without touching lava.",
+                map: (env) => {
+                    env.resize(7, 7);
+                    env.spawnPos = {x:3, y:6};
+                    env.goalPos = {x:3, y:3};
+                    // Box of lava around goal
+                    env.grid[2][3] = 2; env.grid[4][3] = 2; env.grid[3][2] = 2; env.grid[3][4] = 2;
+                    // Leave only one entrance at top
+                    env.grid[2][3] = 0; 
+                    // But block direct path
+                    env.grid[5][3] = 1;
+                },
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0, hazard: 0 },
+                checkWin: (lastSteps, lastWin) => lastWin,
+                advisor: "Goal is surrounded. It must learn to walk ALL the way around. Step Cost -1, Hazard -500."
+            },
+            {
+                title: "9. The Gauntlet",
+                desc: "Final Exam. All elements combined.",
+                objective: "Activate Button & Win.",
+                map: (env) => {
+                    env.resize(10, 10);
+                    env.spawnPos = {x:0, y:0};
+                    env.goalPos = {x:9, y:9};
+                    env.buttonPos = {x:0, y:9}; // Button far corner
+                    
+                    // Lava river in middle
+                    for(let x=0; x<10; x++) env.grid[5][x] = 2;
+                    env.grid[5][5] = 0; // Bridge
+                    
+                    // Walls
+                    env.grid[2][2] = 1; env.grid[2][3] = 1; env.grid[2][4] = 1;
+                    env.grid[7][7] = 1; env.grid[7][6] = 1;
+                },
+                setupParams: { goal: 0, wall: 0, step: 0, button: 0, hazard: 0 },
+                checkWin: (lastSteps, lastWin, activated) => (lastWin && activated),
+                advisor: "Final Exam: Needs Button, Safety, and Pathfinding. Good luck!"
             }
         ];
 
@@ -554,11 +692,21 @@
             list.innerHTML = '';
             challenges.forEach((c, i) => {
                 const div = document.createElement('div');
-                div.className = "challenge-card bg-slate-800 p-3 rounded cursor-pointer border-l-4 border-l-transparent";
+                
+                // Determine style based on completion status
+                const isCompleted = state.completedLevels.has(i);
+                const borderClass = isCompleted ? 'border-l-green-500 challenge-completed' : 'border-l-transparent';
+                const checkIcon = isCompleted ? '<i class="fas fa-check-circle text-emerald-500 text-xl ml-2"></i>' : '';
+                
+                div.className = `challenge-card bg-slate-800 p-3 rounded cursor-pointer border-l-4 ${borderClass} flex items-center justify-between`;
                 div.innerHTML = `
-                    <div class="font-bold text-sm text-slate-200">${c.title}</div>
-                    <div class="text-[10px] text-slate-400 mt-1">${c.desc}</div>
+                    <div>
+                        <div class="font-bold text-sm text-slate-200">${c.title}</div>
+                        <div class="text-[10px] text-slate-400 mt-1">${c.desc}</div>
+                    </div>
+                    ${checkIcon}
                 `;
+                div.id = `challenge-card-${i}`;
                 div.onclick = () => loadChallenge(i);
                 list.appendChild(div);
             });
@@ -573,9 +721,15 @@
                 if(i === index) {
                     el.classList.add('challenge-active', 'border-l-emerald-500');
                     el.classList.remove('border-l-transparent');
+                    // Remove green border momentarily while active if desired, but adding active style is enough
                 } else {
                     el.classList.remove('challenge-active', 'border-l-emerald-500');
-                    el.classList.add('border-l-transparent');
+                    // Restore completion border if completed
+                    if(state.completedLevels.has(i)) {
+                        el.classList.add('border-l-green-500');
+                    } else {
+                        el.classList.add('border-l-transparent');
+                    }
                 }
             });
 
@@ -586,18 +740,40 @@
             document.getElementById('challengeProgressText').innerText = "0 Streak";
             showNotification(`Loaded: ${c.title}`);
 
-            // Lock Sandbox
             env.resetMap();
             c.map(env);
             
-            // Set parameters to 0
             document.getElementById('rewardGoal').value = c.setupParams.goal;
             document.getElementById('rewardWall').value = c.setupParams.wall;
             document.getElementById('rewardStep').value = c.setupParams.step;
             document.getElementById('rewardButton').value = c.setupParams.button;
             document.getElementById('rewardHazard').value = c.setupParams.hazard;
             
-            document.getElementById('btnReset').click();
+            // Auto-save logic triggers update via Save button logic, 
+            // but we want to prep it without user click.
+            // However, we want user to click Save to apply.
+            // To mimic "start fresh", we reset agent but DON'T update config yet (forcing user to do it)
+            // OR update config to 0s as challenge demands.
+            // Let's force update config to 0s so they fail if they run immediately.
+            CONFIG.rewards.goal = c.setupParams.goal;
+            CONFIG.rewards.wall = c.setupParams.wall;
+            CONFIG.rewards.step = c.setupParams.step;
+            CONFIG.rewards.button = c.setupParams.button;
+            CONFIG.rewards.hazard = c.setupParams.hazard;
+            
+            // Just reset episode
+            state.running = false;
+            state.needsReset = false;
+            state.episode = 0;
+            state.wins = 0;
+            state.bestReward = -Infinity;
+            state.history = [];
+            scoreEl.innerText = "0";
+            document.getElementById('btnNextEp').classList.add('hidden');
+            updateTrainBtnState();
+            agent.resetBrain();
+            updateStats();
+            drawChart();
         }
 
         function updateChallengeProgress(lastSteps, lastWin, activated) {
@@ -623,10 +799,29 @@
                 document.getElementById('challengeAdvisor').className = "text-green-400 font-bold";
 
                 if (state.consecutiveWins >= targetWins) {
-                    showNotification("CHALLENGE COMPLETE!", "text-yellow-400");
-                    document.getElementById('challengeAdvisor').innerText = "CHALLENGE COMPLETE! Select a new one.";
+                    showNotification("LEVEL COMPLETE!", "text-yellow-400");
                     confettiEffect();
                     state.running = false;
+                    
+                    // Mark as complete
+                    if(!state.completedLevels.has(state.activeChallengeIndex)) {
+                        state.completedLevels.add(state.activeChallengeIndex);
+                        const card = document.getElementById(`challenge-card-${state.activeChallengeIndex}`);
+                        if(card) {
+                            card.classList.add('challenge-completed', 'border-l-green-500');
+                            card.classList.remove('border-l-transparent');
+                            if(!card.querySelector('.fa-check-circle')) {
+                                card.insertAdjacentHTML('beforeend', '<i class="fas fa-check-circle text-emerald-500 text-xl ml-2"></i>');
+                            }
+                        }
+                        
+                        document.getElementById('progressStatus').innerText = `${state.completedLevels.size}/${challenges.length} Completed`;
+                        
+                        // Check ALL complete
+                        if(state.completedLevels.size === challenges.length) {
+                            setTimeout(showCertificateModal, 1000);
+                        }
+                    }
                 }
             } else {
                 state.consecutiveWins = 0;
@@ -935,14 +1130,34 @@
         // --- Init Listeners ---
         document.getElementById('btnTrain').addEventListener('click', () => { if (state.needsReset) startNextEpisode(); else { state.running = !state.running; updateTrainBtnState(); } });
         document.getElementById('btnNextEp').addEventListener('click', startNextEpisode);
+        
+        // SAVE BUTTON LOGIC (Logic Lab)
+        document.getElementById('btnSaveLogic').addEventListener('click', () => {
+            CONFIG.rewards.goal = parseInt(document.getElementById('rewardGoal').value);
+            CONFIG.rewards.wall = parseInt(document.getElementById('rewardWall').value);
+            CONFIG.rewards.step = parseInt(document.getElementById('rewardStep').value);
+            CONFIG.rewards.button = parseInt(document.getElementById('rewardButton').value);
+            CONFIG.rewards.hazard = parseInt(document.getElementById('rewardHazard').value);
+            
+            agent.resetBrain(); 
+            updateStats(); 
+            drawChart();
+            
+            showNotification("Parameters Saved & Brain Reset", "text-blue-400");
+        });
+
+        // RESET BUTTON LOGIC (Position & Agent only, not Config from inputs)
         document.getElementById('btnReset').addEventListener('click', () => {
             state.running = false; state.needsReset = false; state.episode = 0; state.wins = 0; state.bestReward = -Infinity; state.history = []; scoreEl.innerText = "0"; document.getElementById('btnNextEp').classList.add('hidden'); updateTrainBtnState();
-            CONFIG.rewards.goal = parseInt(document.getElementById('rewardGoal').value); CONFIG.rewards.button = parseInt(document.getElementById('rewardButton').value); CONFIG.rewards.wall = parseInt(document.getElementById('rewardWall').value); CONFIG.rewards.step = parseInt(document.getElementById('rewardStep').value); 
-            CONFIG.rewards.hazard = parseInt(document.getElementById('rewardHazard').value);
+            
+            // NOTE: We do NOT pull from inputs here anymore. We use whatever is in CONFIG.
+            // If user wants to change params, they must click "Save Parameters".
+            
             // Don't reset map layout if challenge active, just agent
             if(state.mode !== 'challenge') env.resetMap(); else env.resetEpisode(); 
             agent.resetBrain(); updateStats(); drawChart(); showNotification("Reset");
         });
+        
         document.getElementById('autoTrainToggle').addEventListener('change', (e) => state.autoTrain = e.target.checked);
         document.getElementById('speedSlider').addEventListener('input', (e) => { state.speedValue = parseInt(e.target.value); document.getElementById('speedLabel').innerText = state.speedValue <= 40 ? "Slow-Mo" : state.speedValue <= 60 ? "Normal" : "Hyper"; });
         document.getElementById('btnApplyGrid').addEventListener('click', () => { const c = parseInt(document.getElementById('gridCols').value); const r = parseInt(document.getElementById('gridRows').value); CONFIG.cols = c; CONFIG.rows = r; document.getElementById('btnReset').click(); env.resize(c, r); });
