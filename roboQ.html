@@ -577,7 +577,7 @@
             {
                 title: "4. The Maze Runner",
                 desc: "Efficiency is key in this maze.",
-                objective: "Reach goal in < 30 steps (2 times in a row).",
+                objective: "Reach goal in < 50 steps (2 times in a row).",
                 map: (env) => {
                     env.resize(9, 7);
                     env.spawnPos = {x:0, y:0};
@@ -588,7 +588,7 @@
                     for(let y=1; y<7; y++) env.grid[y][7] = 1; 
                 },
                 setupParams: { goal: 0, wall: 0, step: 0, button: 0, hazard: 0 },
-                checkWin: (lastSteps, lastWin) => (lastWin && lastSteps < 30),
+                checkWin: (lastSteps, lastWin) => (lastWin && lastSteps < 50),
                 advisor: "Set 'Step Cost' to -2 so it stops wandering aimlessly."
             },
             {
