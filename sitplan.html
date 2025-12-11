@@ -4,54 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Smart Seat Planner Ultimate</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- html2canvas for Image Export -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
         body { font-family: 'Inter', sans-serif; touch-action: none; overscroll-behavior: none; }
-        
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Drag & Drop Visuals */
         .dragging { opacity: 0.4; }
         .drag-over { background-color: rgba(59, 130, 246, 0.15) !important; border-color: #3b82f6 !important; border-style: dashed !important; transform: scale(1.02); }
         
-        /* Canvas Panning */
         #canvas-container { cursor: grab; background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 20px 20px; }
         #canvas-container.panning { cursor: grabbing; }
 
-        /* Presenter Mode */
-        body.presenter-mode header, 
-        body.presenter-mode #sidebar,
-        body.presenter-mode #toolbar,
-        body.presenter-mode #bottom-zoom-controls { display: none !important; }
+        body.presenter-mode header, body.presenter-mode #sidebar, body.presenter-mode #toolbar, body.presenter-mode #bottom-zoom-controls { display: none !important; }
         body.presenter-mode #presenter-overlay { display: flex !important; }
 
-        /* Print Styles */
+        /* Print Styles - Full Page Fix */
         @media print {
-            @page { size: landscape; margin: 0; }
-            body { 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact; 
-                background: white; 
-                margin: 0; 
-                padding: 0;
-            }
+            @page { size: landscape; margin: 0mm; }
+            body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .no-print { display: none !important; }
             #main-content { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: visible; background: white; }
-            #canvas-container { padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; transform: none !important; background: none; width: 100%; height: 100%; }
-            #classroom-grid { border: none; box-shadow: none; transform: none !important; padding: 10px; margin: 0 auto; width: 98% !important; max-height: 98vh; position: static !important; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; }
-            .seat-card { border: 1px solid #94a3b8 !important; box-shadow: none !important; break-inside: avoid; page-break-inside: avoid; }
+            #canvas-container { 
+                margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; 
+                transform: none !important; background: none; width: 100%; height: 100%; 
+            }
+            #classroom-grid { 
+                border: none; box-shadow: none; transform: none !important; 
+                padding: 0; margin: 0; width: 100% !important; height: 100% !important;
+                display: flex; flex-direction: column; justify-content: center; align-items: center;
+                position: static !important;
+                left: auto !important; top: auto !important;
+            }
+            .seat-card { border: 1px solid #94a3b8 !important; box-shadow: none !important; break-inside: avoid; }
             .bg-blue-50 { background-color: #eff6ff !important; }
             .bg-green-500 { background-color: #22c55e !important; }
             .bg-yellow-500 { background-color: #eab308 !important; }
@@ -63,25 +54,18 @@
             .bg-pink-100 { background-color: #fce7f3 !important; }
             .bg-sky-100 { background-color: #e0f2fe !important; }
             .bg-gray-100 { background-color: #f3f4f6 !important; }
-            #bg-layer { opacity: 0.2 !important; }
+            #bg-layer { display: none !important; }
         }
 
-        /* Mobile Sidebar */
         #sidebar { transition: transform 0.3s ease-in-out; }
         .sidebar-closed { transform: translateX(-100%); }
         .sidebar-open { transform: translateX(0); }
-        @media (min-width: 1024px) {
-            .sidebar-closed { transform: translateX(0); }
-            #mobile-overlay { display: none !important; }
-        }
+        @media (min-width: 1024px) { .sidebar-closed { transform: translateX(0); } #mobile-overlay { display: none !important; } }
 
-        /* Confirm Animation */
         .btn-confirm { background-color: #fee2e2; color: #dc2626; transform: scale(1.1); animation: pulse 0.5s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
-        
         .fill-opt.active-pattern { background-color: #f3e8ff; border-color: #d8b4fe; ring: 2px solid #a855f7; }
 
-        /* Interaction Zones */
         .click-zone { position: absolute; width: 40%; height: 40%; z-index: 30; cursor: pointer; } 
         .click-zone:active { background-color: rgba(0,0,0,0.05); }
         .zone-tl { top: 0; left: 0; border-top-left-radius: 0.75rem; }
@@ -89,15 +73,11 @@
         .zone-bl { bottom: 0; left: 0; border-bottom-left-radius: 0.75rem; }
         .zone-br { bottom: 0; right: 0; border-bottom-right-radius: 0.75rem; }
 
-        /* Import Format Items */
         .import-item { cursor: grab; user-select: none; }
         .import-item:active { cursor: grabbing; }
         .import-item.dragging-format { opacity: 0.5; border: 2px dashed #6366f1; }
-        
-        /* Centering Helpers */
         .badge-center { display: flex; align-items: center; justify-content: center; line-height: normal; padding-top: 1px; padding-bottom: 1px; }
-
-        /* Foldable Sections */
+        
         details summary::-webkit-details-marker { display:none; }
         details > summary { list-style: none; }
         details > summary:focus { outline: none; }
@@ -119,10 +99,9 @@
                 <button onclick="app.undo()" id="btn-undo" class="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-white rounded-md disabled:opacity-30"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
                 <button onclick="app.redo()" id="btn-redo" class="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-white rounded-md disabled:opacity-30"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
             </div>
-            <!-- Settings -->
             <div class="relative">
                 <button onclick="app.toggleSettingsMenu()" class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md" id="settings-trigger"><i data-lucide="settings-2" class="w-4 h-4"></i></button>
-                <div id="settings-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-2">
+                <div id="settings-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-2 overflow-y-auto max-h-[80vh]">
                     <div class="text-xs font-semibold text-gray-500 uppercase px-2 py-1 mb-1">View Options</div>
                     <button onclick="app.togglePerspective()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded text-sm"><i data-lucide="arrow-down-up" class="w-4 h-4 mr-2 text-indigo-500"></i> <span id="perspective-label">Teacher View</span></button>
                     <button onclick="app.toggleDualMode()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded text-sm"><i data-lucide="flip-vertical" class="w-4 h-4 mr-2 text-orange-500"></i> <span id="dual-label">Single Mode</span></button>
@@ -171,8 +150,6 @@
                 <div class="p-2 text-center border-r border-gray-100"><div class="text-[10px] text-blue-500 uppercase font-bold">Boys</div><div class="text-base font-bold text-blue-600" id="stat-boys">0</div></div>
                 <div class="p-2 text-center"><div class="text-[10px] text-pink-500 uppercase font-bold">Girls</div><div class="text-base font-bold text-pink-600" id="stat-girls">0</div></div>
             </div>
-
-            <!-- List View -->
             <div id="view-list" class="flex-1 flex flex-col bg-slate-50/30 relative overflow-hidden">
                 <div class="px-3 py-2 border-b border-gray-100 bg-white space-y-2 shrink-0">
                     <div class="flex items-center gap-2 mb-2">
@@ -180,7 +157,7 @@
                             <i data-lucide="search" class="absolute left-2.5 top-2 w-3.5 h-3.5 text-gray-400"></i>
                             <input type="text" id="searchInput" placeholder="Search..." class="w-full pl-8 pr-2 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
                         </div>
-                        <select id="listNameDisplay" onchange="app.setSidebarNameType(this.value)" class="text-[10px] border border-gray-200 rounded px-1 py-1.5 bg-gray-50 text-gray-700 font-medium cursor-pointer" title="Name Display">
+                        <select id="listNameDisplay" onchange="app.setSidebarNameType(this.value)" class="text-[10px] border border-gray-200 rounded px-1 py-1.5 bg-gray-50 text-gray-700 font-medium cursor-pointer">
                             <option value="englishName" selected>Eng Full</option>
                             <option value="chineseName">Chinese</option>
                             <option value="name">Nickname</option>
@@ -188,7 +165,9 @@
                     </div>
                     <div class="flex gap-2">
                         <select id="filterGender" onchange="app.renderSidebar()" class="flex-1 text-xs border border-gray-200 rounded p-1"><option value="all">All Genders</option><option value="M">Boys</option><option value="F">Girls</option></select>
-                        <select id="filterTier" onchange="app.renderSidebar()" class="flex-1 text-xs border border-gray-200 rounded p-1"><option value="all">All Tiers</option><option value="1">Tier 1</option><option value="2">Tier 2</option><option value="3">Tier 3</option><option value="4">Tier 4</option><option value="5">Tier 5</option><option value="6">Tier 6</option></select>
+                        <select id="filterTier" onchange="app.renderSidebar()" class="flex-1 text-xs border border-gray-200 rounded p-1">
+                            <option value="all">All Tiers</option><option value="1">Tier 1</option><option value="2">Tier 2</option><option value="3">Tier 3</option><option value="4">Tier 4</option><option value="5">Tier 5</option><option value="6">Tier 6</option>
+                        </select>
                     </div>
                     <div class="flex justify-between items-center text-xs text-gray-500 mt-2">
                         <span>Sort:</span>
@@ -202,10 +181,7 @@
                 <div id="student-list-container" class="flex-1 overflow-y-auto p-2 space-y-1.5 pb-20"></div>
                 <div id="drop-zone-sidebar" class="hidden absolute inset-2 border-2 border-red-400 border-dashed rounded-lg bg-red-50/90 z-20 flex-col items-center justify-center text-red-500 pointer-events-none"><i data-lucide="user-minus" class="w-8 h-8 mb-1"></i><span class="text-xs font-bold uppercase">Drop to Unseat</span></div>
             </div>
-
-            <!-- Smart Fill Tab -->
             <div id="view-fill" class="hidden flex-1 overflow-y-auto p-4 space-y-5 bg-slate-50/50">
-                <!-- ... existing fill tab content ... -->
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Direction</label>
                     <div class="grid grid-cols-2 gap-2">
@@ -236,10 +212,7 @@
                     <button onclick="app.executeSmartFill('all')" class="w-full py-2 bg-purple-600 text-white rounded-lg font-bold shadow hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"><i data-lucide="forward" class="w-4 h-4"></i> Auto-Fill Remaining</button>
                 </div>
             </div>
-
-            <!-- Remix Tab -->
             <div id="view-remix" class="hidden flex-1 overflow-y-auto p-4 space-y-5 bg-slate-50/50">
-                <!-- ... existing remix content ... -->
                 <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                     <div class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2"><i data-lucide="filter" class="w-4 h-4 text-indigo-500"></i> Remix Criteria</div>
                     <div class="mb-4">
@@ -264,16 +237,9 @@
                     <button onclick="app.remixSeats()" class="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold shadow hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"><i data-lucide="shuffle" class="w-4 h-4"></i> Shuffle Selected</button>
                 </div>
             </div>
-
-            <!-- Add Tab (Smart Import) -->
             <div id="view-add" class="hidden flex-1 overflow-y-auto p-4 space-y-4">
-                 
-                 <!-- Section 1: Add Single (Collapsible) -->
                  <details open class="group bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                    <summary class="flex items-center justify-between p-3 cursor-pointer bg-gray-50 hover:bg-gray-100">
-                        <span class="text-xs font-bold text-gray-700 uppercase tracking-widest">Add Single Student</span>
-                        <span class="text-gray-400 transition-transform group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
-                    </summary>
+                    <summary class="flex items-center justify-between p-3 cursor-pointer bg-gray-50 hover:bg-gray-100"><span class="text-xs font-bold text-gray-700 uppercase tracking-widest">Add Single Student</span><span class="text-gray-400 transition-transform group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span></summary>
                     <div class="p-3 border-t border-gray-100 space-y-3">
                         <div class="grid grid-cols-4 gap-2">
                             <input type="text" id="newStudentClassNo" placeholder="No." class="col-span-1 px-2 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500 outline-none">
@@ -284,26 +250,16 @@
                             <input type="text" id="newStudentChinese" placeholder="Chinese Name" class="px-2 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div class="grid grid-cols-3 gap-2">
-                            <select id="newStudentGender" class="px-2 py-1.5 text-sm border rounded outline-none text-gray-700">
-                                <option value="">Gender</option><option value="M">Boy</option><option value="F">Girl</option>
-                            </select>
-                            <select id="newStudentTier" class="px-2 py-1.5 text-sm border rounded outline-none text-gray-700">
-                                <option value="0">Tier</option><option value="1">T1</option><option value="2">T2</option><option value="3">T3</option><option value="4">T4</option><option value="5">T5</option><option value="6">T6</option>
-                            </select>
+                            <select id="newStudentGender" class="px-2 py-1.5 text-sm border rounded outline-none text-gray-700"><option value="">Gender</option><option value="M">Boy</option><option value="F">Girl</option></select>
+                            <select id="newStudentTier" class="px-2 py-1.5 text-sm border rounded outline-none text-gray-700"><option value="0">Tier</option><option value="1">T1</option><option value="2">T2</option><option value="3">T3</option><option value="4">T4</option><option value="5">T5</option><option value="6">T6</option></select>
                              <input type="text" id="newStudentRole" placeholder="Role" class="px-2 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <button onclick="app.addStudent()" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors flex justify-center items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Add to List</button>
                     </div>
                  </details>
-
-                 <!-- Section 2: Smart Import (Collapsible) -->
                  <details class="group bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                    <summary class="flex items-center justify-between p-3 cursor-pointer bg-gray-50 hover:bg-gray-100">
-                        <span class="text-xs font-bold text-gray-700 uppercase tracking-widest">Smart Bulk Import</span>
-                        <span class="text-gray-400 transition-transform group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
-                    </summary>
+                    <summary class="flex items-center justify-between p-3 cursor-pointer bg-gray-50 hover:bg-gray-100"><span class="text-xs font-bold text-gray-700 uppercase tracking-widest">Smart Bulk Import</span><span class="text-gray-400 transition-transform group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span></summary>
                     <div class="p-3 border-t border-gray-100 space-y-3">
-                        
                         <div class="bg-indigo-50 border border-indigo-100 rounded p-2">
                             <div class="text-[10px] text-indigo-500 font-bold mb-2">1. SELECT COLUMNS TO IMPORT</div>
                             <div class="flex flex-wrap gap-2 mb-3">
@@ -315,21 +271,10 @@
                                 <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="tier" checked onchange="app.renderImportFormat()"> Tier</label>
                                 <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="role" onchange="app.renderImportFormat()"> Role</label>
                             </div>
-                            <div class="text-[10px] text-indigo-500 font-bold mb-2">2. KEY FIELD (REQUIRED)</div>
-                            <select id="import-key" class="w-full text-xs border rounded p-1 mb-3 bg-white">
-                                <option value="name" selected>Nickname</option>
-                                <option value="classNo">Class No</option>
-                                <option value="englishName">English Name</option>
-                                <option value="chineseName">Chinese Name</option>
-                            </select>
-
-                            <div class="text-[10px] text-indigo-500 font-bold mb-2">3. DELIMITER & ORDER (DRAG TO REORDER)</div>
-                            <select id="import-delimiter" class="w-full text-xs border rounded p-1 mb-2 bg-white">
-                                <option value=",">Comma (,)</option><option value="\t">Tab (Excel Copy)</option><option value=" ">Space</option><option value=";">Semicolon (;)</option><option value=":">Colon (:)</option>
-                            </select>
+                            <div class="text-[10px] text-indigo-500 font-bold mb-2">2. DELIMITER & ORDER (DRAG TO REORDER)</div>
+                            <select id="import-delimiter" class="w-full text-xs border rounded p-1 mb-2 bg-white"><option value=",">Comma (,)</option><option value="\t">Tab (Excel Copy)</option><option value=" ">Space</option><option value=";">Semicolon (;)</option></select>
                             <div id="import-format-container" class="flex flex-col gap-1 mb-1 max-h-32 overflow-y-auto"></div>
                         </div>
-
                         <textarea id="bulkInput" rows="6" placeholder="Paste data here..." class="w-full px-2 py-2 text-xs border border-gray-300 rounded-md font-mono focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
                         <button onclick="app.bulkAdd()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition-colors flex justify-center items-center gap-2"><i data-lucide="file-text" class="w-4 h-4"></i> Process Data</button>
                     </div>
@@ -337,22 +282,11 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <div id="main-content" class="flex-1 flex flex-col bg-slate-100 relative transition-all overflow-hidden">
-            
-            <!-- Toolbar -->
             <div id="toolbar" class="h-auto md:h-14 bg-white border-b border-gray-200 flex flex-wrap items-center justify-between px-2 py-2 md:px-4 shrink-0 shadow-sm z-10 no-print gap-2">
                 <div class="flex items-center gap-2 md:gap-4">
-                    <div class="flex items-center gap-1 md:gap-2 text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded border border-gray-200">
-                        <span class="text-xs font-semibold text-gray-500 uppercase">Grid</span>
-                        <input type="number" id="rowsInput" class="w-10 bg-transparent text-center focus:outline-none font-bold" min="2" max="15">
-                        <span class="text-gray-400">×</span>
-                        <input type="number" id="colsInput" class="w-10 bg-transparent text-center focus:outline-none font-bold" min="2" max="15">
-                    </div>
-                    <div class="flex items-center gap-1 md:gap-2 text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded border border-gray-200" title="Gap Column">
-                        <span class="text-xs font-semibold text-gray-500 uppercase">Gap:</span>
-                        <input type="number" id="gapInput" class="w-10 bg-transparent text-center focus:outline-none font-bold" min="0" max="15">
-                    </div>
+                    <div class="flex items-center gap-1 md:gap-2 text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded border border-gray-200"><span class="text-xs font-semibold text-gray-500 uppercase">Grid</span><input type="number" id="rowsInput" class="w-10 bg-transparent text-center focus:outline-none font-bold" min="2" max="15"><span class="text-gray-400">×</span><input type="number" id="colsInput" class="w-10 bg-transparent text-center focus:outline-none font-bold" min="2" max="15"></div>
+                    <div class="flex items-center gap-1 md:gap-2 text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded border border-gray-200" title="Gap Column"><span class="text-xs font-semibold text-gray-500 uppercase">Gap:</span><input type="number" id="gapInput" class="w-10 bg-transparent text-center focus:outline-none font-bold" min="0" max="15"></div>
                 </div>
                 <div class="flex items-center gap-3">
                      <button id="btn-unseat-all" onclick="app.handleUnseatAllClick(this)" class="p-2 text-red-500 hover:bg-red-50 rounded transition-all" title="Double Click to Unseat All"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
@@ -360,7 +294,6 @@
                 </div>
             </div>
 
-            <!-- Presenter Overlay Bar -->
             <div id="presenter-overlay" class="hidden absolute top-0 left-0 w-full p-4 justify-center z-50 pointer-events-none">
                 <div id="presenter-controls" class="bg-white/90 backdrop-blur shadow-xl rounded-full px-2 py-1 flex items-center gap-1 border border-gray-200 pointer-events-auto transition-all">
                     <button onclick="document.getElementById('presenter-inner').classList.toggle('hidden'); this.querySelector('svg').classList.toggle('rotate-180')" class="p-2 hover:bg-gray-100 rounded-full text-gray-500"><i data-lucide="chevron-left" class="w-5 h-5 transition-transform"></i></button>
@@ -376,7 +309,6 @@
                 </div>
             </div>
 
-            <!-- Canvas -->
             <div id="canvas-container" class="flex-1 overflow-hidden relative" onmousedown="app.handlePanStart(event)" onmousemove="app.handlePanMove(event)" onmouseup="app.handlePanEnd(event)" onmouseleave="app.handlePanEnd(event)">
                 <div id="bg-layer" class="absolute pointer-events-none opacity-50 z-0 bg-no-repeat bg-contain bg-center transition-all duration-300 origin-top-left" style="width: 100%; height: 100%; top: 0; left: 0;"></div>
                 <div id="classroom-grid" class="absolute top-10 left-10 transition-transform duration-75 origin-top-left bg-white p-8 rounded-3xl border border-gray-200 shadow-xl print:shadow-none print:border-none print:p-0 flex flex-col gap-6 select-none z-10">
@@ -394,6 +326,32 @@
                 <button onclick="app.zoom(-0.1)" class="p-2 hover:bg-gray-100 rounded text-gray-600"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
                 <span id="zoom-val" class="px-2 flex items-center text-xs font-mono text-gray-500 w-12 justify-center">100%</span>
                 <button onclick="app.zoom(0.1)" class="p-2 hover:bg-gray-100 rounded text-gray-600"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div id="edit-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-5 space-y-4">
+            <h2 class="text-lg font-bold text-gray-800 border-b pb-2">Edit Student</h2>
+            <div class="space-y-3">
+                <div class="grid grid-cols-4 gap-2">
+                     <input id="edit-classNo" class="col-span-1 border rounded p-2 text-sm" placeholder="No.">
+                     <input id="edit-name" class="col-span-3 border rounded p-2 text-sm" placeholder="Nickname">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                     <input id="edit-chineseName" class="border rounded p-2 text-sm" placeholder="Chinese Name">
+                     <input id="edit-englishName" class="border rounded p-2 text-sm" placeholder="English Name">
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <select id="edit-gender" class="border rounded p-2 text-sm"><option value="M">Boy</option><option value="F">Girl</option></select>
+                    <select id="edit-tier" class="border rounded p-2 text-sm"><option value="1">T1</option><option value="2">T2</option><option value="3">T3</option><option value="4">T4</option><option value="5">T5</option><option value="6">T6</option></select>
+                    <input id="edit-role" class="border rounded p-2 text-sm" placeholder="Role">
+                </div>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="document.getElementById('edit-modal').classList.add('hidden')" class="flex-1 py-2 text-gray-600 hover:bg-gray-100 rounded font-medium">Cancel</button>
+                <button onclick="app.saveStudentChanges()" class="flex-1 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded font-bold">Save Changes</button>
             </div>
         </div>
     </div>
@@ -419,6 +377,8 @@
                 this.panState = { active: false, startX: 0, startY: 0, initialPanX: 0, initialPanY: 0 };
                 this.TIER_COLORS = { 0: 'bg-gray-400', 1: 'bg-green-500', 2: 'bg-yellow-500', 3: 'bg-red-500', 4: 'bg-blue-500', 5: 'bg-purple-500', 6: 'bg-orange-500' };
                 this.importFormat = ['classNo', 'name', 'englishName', 'chineseName', 'gender', 'tier', 'role']; 
+                this.editingStudentId = null;
+
                 this.init();
             }
 
@@ -662,6 +622,54 @@
                 else { btn.dataset.confirm = "true"; btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>'; btn.classList.add('btn-confirm'); lucide.createIcons(); setTimeout(() => { if(document.body.contains(btn)) { btn.dataset.confirm = "false"; btn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i>'; btn.classList.remove('btn-confirm'); lucide.createIcons(); } }, 2000); }
             }
             
+            // --- EDIT FUNCTIONALITY ---
+            openEditModal(studentId) {
+                this.editingStudentId = studentId;
+                const s = this.state.students.find(st => st.id === studentId);
+                if (!s) return;
+
+                document.getElementById('edit-classNo').value = s.classNo || '';
+                document.getElementById('edit-name').value = s.name || ''; // Nickname
+                document.getElementById('edit-chineseName').value = s.chineseName || '';
+                document.getElementById('edit-englishName').value = s.englishName || '';
+                document.getElementById('edit-gender').value = s.gender || '';
+                document.getElementById('edit-tier').value = s.tier || 0;
+                document.getElementById('edit-role').value = s.role || '';
+                
+                document.getElementById('edit-modal').classList.remove('hidden');
+                
+                // Focus on the field currently displayed in the list view context (heuristic)
+                // For modal opened from grid, default to Nickname or English
+            }
+
+            openEditModalFromList(studentId) {
+                 this.openEditModal(studentId);
+                 // Optional: Auto-focus the field matching the current list view type
+                 const type = this.state.sidebarNameType;
+                 if (type === 'englishName') document.getElementById('edit-englishName').focus();
+                 else if (type === 'chineseName') document.getElementById('edit-chineseName').focus();
+                 else document.getElementById('edit-name').focus();
+            }
+
+            saveStudentChanges() {
+                if (!this.editingStudentId) return;
+                const s = this.state.students.find(st => st.id === this.editingStudentId);
+                if (s) {
+                    s.classNo = document.getElementById('edit-classNo').value;
+                    s.name = document.getElementById('edit-name').value;
+                    s.chineseName = document.getElementById('edit-chineseName').value;
+                    s.englishName = document.getElementById('edit-englishName').value;
+                    s.gender = document.getElementById('edit-gender').value;
+                    s.tier = parseInt(document.getElementById('edit-tier').value) || 0;
+                    s.role = document.getElementById('edit-role').value;
+                    
+                    this.saveState();
+                    this.render();
+                    document.getElementById('edit-modal').classList.add('hidden');
+                    this.editingStudentId = null;
+                }
+            }
+
             updateStudent(id, field, value) { const s=this.state.students.find(st=>st.id===id); if(s) { if(field==='tier') s.tier=parseInt(value); if(field==='gender') s.gender=value; if(field==='role') s.role=value; this.saveState(); this.renderSidebar(); this.renderGrid(); } }
             deleteAllStudents() { if(confirm("Delete ALL students?")) { this.state.students=[]; this.state.assignments={}; this.saveState(); this.render(); } }
             
@@ -678,17 +686,8 @@
             addStudent() { 
                 const c=document.getElementById('newStudentClassNo').value.trim(); const n=document.getElementById('newStudentName').value.trim(); const r=document.getElementById('newStudentRole').value.trim(); 
                 const ch=document.getElementById('newStudentChinese').value.trim(); const en=document.getElementById('newStudentEnglish').value.trim();
-                const keyField = document.getElementById('import-key').value;
-                
-                // Simple validation for single add: ensure at least one name-like field or classNo is present, but usually Name is good.
-                if(!n && !ch && !en) { alert('Name is required'); return; }
-                
-                this.state.students.push({
-                    id:'s_'+Date.now(), classNo:c, name:n, chineseName:ch, englishName:en, 
-                    gender:document.getElementById('newStudentGender').value, 
-                    tier:parseInt(document.getElementById('newStudentTier').value)||0, score:0, material:0, role:r
-                }); 
-                
+                if(!n)return; 
+                this.state.students.push({id:'s_'+Date.now(), classNo:c, name:n, chineseName:ch, englishName:en, gender:document.getElementById('newStudentGender').value, tier:parseInt(document.getElementById('newStudentTier').value)||0, score:0, material:0, role:r}); 
                 document.getElementById('newStudentName').value=''; document.getElementById('newStudentClassNo').value=''; document.getElementById('newStudentRole').value=''; document.getElementById('newStudentChinese').value=''; document.getElementById('newStudentEnglish').value='';
                 this.saveState(); this.setTab('list'); 
             }
@@ -696,7 +695,6 @@
             bulkAdd() { 
                 const r = document.getElementById('bulkInput').value; 
                 const delimiter = document.getElementById('import-delimiter').value || ',';
-                const keyField = document.getElementById('import-key').value;
                 if(!r) return; 
                 
                 r.split('\n').forEach(line => {
@@ -719,15 +717,14 @@
                             }
                         });
                     } else {
-                        data.name = l; // Fallback
+                        data.name = l; 
                     }
 
-                    // Strict check on Key Field
-                    if (data[keyField]) {
+                    if (data.name) {
                         this.state.students.push({
                             id: 's_' + Math.random().toString(36).substr(2, 9), 
                             classNo: data.classNo || '', 
-                            name: data.name || '', 
+                            name: data.name, 
                             chineseName: data.chineseName || '',
                             englishName: data.englishName || '',
                             gender: data.gender || '', 
@@ -874,6 +871,9 @@
                         cell.className = `seat-zone draggable-item seat-card relative w-20 md:w-28 lg:w-32 rounded-lg md:rounded-xl border-2 shadow-sm transition-colors flex flex-col items-center justify-center group ${hClass} ${bgClass} ${borderClass} ${s ? 'hover:shadow-md cursor-grab active:cursor-grabbing' : 'hover:border-blue-300'}`;
                         cell.dataset.r = r; cell.dataset.c = c;
                         
+                        // Edit Event Bindings
+                        cell.ondblclick = (e) => { e.stopPropagation(); if(s) this.openEditModal(s.id); };
+                        
                         cell.ondragover = (e) => { e.preventDefault(); cell.classList.add('drag-over'); };
                         cell.ondragleave = () => cell.classList.remove('drag-over');
                         cell.ondrop = (e) => this.handleDrop(e, r, c);
@@ -973,7 +973,7 @@
                     el.innerHTML = `
                         <i data-lucide="grip-vertical" class="w-4 h-4 text-gray-300"></i>
                         <div class="flex-1 min-w-0">
-                            <div class="text-sm font-medium text-gray-800 truncate">${s.classNo ? `<span class="font-bold text-gray-500 mr-1">${s.classNo}.</span>` : ''}${displayName}</div>
+                            <div class="text-sm font-medium text-gray-800 truncate cursor-pointer hover:text-blue-600 hover:underline" onclick="app.openEditModalFromList('${s.id}')">${s.classNo ? `<span class="font-bold text-gray-500 mr-1">${s.classNo}.</span>` : ''}${displayName}</div>
                             <div class="flex gap-1 mt-1">
                                 <select onchange="app.updateStudent('${s.id}', 'gender', this.value)" class="text-[10px] border rounded bg-gray-50 p-0.5">
                                     <option value="" ${gVal===''?'selected':''}>-</option>
