@@ -11,7 +11,7 @@
     <!-- html2canvas for Image Export -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <!-- Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
         body { font-family: 'Inter', sans-serif; touch-action: none; overscroll-behavior: none; }
@@ -93,6 +93,14 @@
         .import-item { cursor: grab; user-select: none; }
         .import-item:active { cursor: grabbing; }
         .import-item.dragging-format { opacity: 0.5; border: 2px dashed #6366f1; }
+        
+        /* Centering Helpers */
+        .badge-center { display: flex; align-items: center; justify-content: center; line-height: normal; padding-top: 1px; padding-bottom: 1px; }
+
+        /* Foldable Sections */
+        details summary::-webkit-details-marker { display:none; }
+        details > summary { list-style: none; }
+        details > summary:focus { outline: none; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 h-screen flex flex-col overflow-hidden">
@@ -118,12 +126,18 @@
                     <div class="text-xs font-semibold text-gray-500 uppercase px-2 py-1 mb-1">View Options</div>
                     <button onclick="app.togglePerspective()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded text-sm"><i data-lucide="arrow-down-up" class="w-4 h-4 mr-2 text-indigo-500"></i> <span id="perspective-label">Teacher View</span></button>
                     <button onclick="app.toggleDualMode()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded text-sm"><i data-lucide="flip-vertical" class="w-4 h-4 mr-2 text-orange-500"></i> <span id="dual-label">Single Mode</span></button>
+                    
                     <div class="h-px bg-gray-200 my-2"></div>
                     <div class="px-2 pb-1 text-xs font-bold text-gray-400">VISIBILITY</div>
-                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-names" checked onchange="app.toggleViewOption('showNames')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Names</span></label>
+                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-names" checked onchange="app.toggleViewOption('showNames')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Default Name</span></label>
+                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-nickname" onchange="app.toggleViewOption('showNickname')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Nickname</span></label>
+                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-chinese" onchange="app.toggleViewOption('showChinese')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Chinese Name</span></label>
+                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-english" checked onchange="app.toggleViewOption('showEnglish')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">English Full Name</span></label>
+                    
+                    <div class="h-px bg-gray-200 my-1"></div>
                     <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-tiers" checked onchange="app.toggleViewOption('showTiers')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Tiers</span></label>
                     <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-gender" checked onchange="app.toggleViewOption('showGender')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Gender (Colors)</span></label>
-                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-scores" onchange="app.toggleViewOption('showScores')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Scores (Marks)</span></label>
+                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-scores" checked onchange="app.toggleViewOption('showScores')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Scores (Marks)</span></label>
                     <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-classNo" checked onchange="app.toggleViewOption('showClassNo')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Class No</span></label>
                     <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-role" checked onchange="app.toggleViewOption('showRole')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Role</span></label>
                     
@@ -161,15 +175,22 @@
             <!-- List View -->
             <div id="view-list" class="flex-1 flex flex-col bg-slate-50/30 relative overflow-hidden">
                 <div class="px-3 py-2 border-b border-gray-100 bg-white space-y-2 shrink-0">
-                    <div class="relative">
-                        <i data-lucide="search" class="absolute left-2.5 top-2 w-3.5 h-3.5 text-gray-400"></i>
-                        <input type="text" id="searchInput" placeholder="Search..." class="w-full pl-8 pr-2 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="relative flex-1">
+                            <i data-lucide="search" class="absolute left-2.5 top-2 w-3.5 h-3.5 text-gray-400"></i>
+                            <input type="text" id="searchInput" placeholder="Search..." class="w-full pl-8 pr-2 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        </div>
+                        <select id="listNameDisplay" onchange="app.setSidebarNameType(this.value)" class="text-[10px] border border-gray-200 rounded px-1 py-1.5 bg-gray-50 text-gray-700 font-medium cursor-pointer" title="Name Display">
+                            <option value="englishName" selected>Eng Full</option>
+                            <option value="chineseName">Chinese</option>
+                            <option value="name">Nickname</option>
+                        </select>
                     </div>
                     <div class="flex gap-2">
                         <select id="filterGender" onchange="app.renderSidebar()" class="flex-1 text-xs border border-gray-200 rounded p-1"><option value="all">All Genders</option><option value="M">Boys</option><option value="F">Girls</option></select>
                         <select id="filterTier" onchange="app.renderSidebar()" class="flex-1 text-xs border border-gray-200 rounded p-1"><option value="all">All Tiers</option><option value="1">Tier 1</option><option value="2">Tier 2</option><option value="3">Tier 3</option><option value="4">Tier 4</option><option value="5">Tier 5</option><option value="6">Tier 6</option></select>
                     </div>
-                    <div class="flex justify-between items-center text-xs text-gray-500">
+                    <div class="flex justify-between items-center text-xs text-gray-500 mt-2">
                         <span>Sort:</span>
                         <div class="flex gap-1">
                             <button onclick="app.sortList('name')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">Name</button>
@@ -184,6 +205,7 @@
 
             <!-- Smart Fill Tab -->
             <div id="view-fill" class="hidden flex-1 overflow-y-auto p-4 space-y-5 bg-slate-50/50">
+                <!-- ... existing fill tab content ... -->
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Direction</label>
                     <div class="grid grid-cols-2 gap-2">
@@ -217,6 +239,7 @@
 
             <!-- Remix Tab -->
             <div id="view-remix" class="hidden flex-1 overflow-y-auto p-4 space-y-5 bg-slate-50/50">
+                <!-- ... existing remix content ... -->
                 <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                     <div class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2"><i data-lucide="filter" class="w-4 h-4 text-indigo-500"></i> Remix Criteria</div>
                     <div class="mb-4">
@@ -243,56 +266,66 @@
             </div>
 
             <!-- Add Tab (Smart Import) -->
-            <div id="view-add" class="hidden flex-1 overflow-y-auto p-4 space-y-6">
-                 <div class="space-y-3">
-                    <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">New Student</div>
-                    <div class="flex gap-2">
-                        <input type="text" id="newStudentClassNo" placeholder="No." class="w-16 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
-                        <input type="text" id="newStudentName" placeholder="Full Name" class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
+            <div id="view-add" class="hidden flex-1 overflow-y-auto p-4 space-y-4">
+                 
+                 <!-- Section 1: Add Single (Collapsible) -->
+                 <details open class="group bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                    <summary class="flex items-center justify-between p-3 cursor-pointer bg-gray-50 hover:bg-gray-100">
+                        <span class="text-xs font-bold text-gray-700 uppercase tracking-widest">Add Single Student</span>
+                        <span class="text-gray-400 transition-transform group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
+                    </summary>
+                    <div class="p-3 border-t border-gray-100 space-y-3">
+                        <div class="grid grid-cols-4 gap-2">
+                            <input type="text" id="newStudentClassNo" placeholder="No." class="col-span-1 px-2 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                            <input type="text" id="newStudentName" placeholder="Nickname *" class="col-span-3 px-2 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="newStudentEnglish" placeholder="Full English Name" class="px-2 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                            <input type="text" id="newStudentChinese" placeholder="Chinese Name" class="px-2 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <select id="newStudentGender" class="px-2 py-1.5 text-sm border rounded outline-none text-gray-700">
+                                <option value="">Gender</option><option value="M">Boy</option><option value="F">Girl</option>
+                            </select>
+                            <select id="newStudentTier" class="px-2 py-1.5 text-sm border rounded outline-none text-gray-700">
+                                <option value="0">Tier</option><option value="1">T1</option><option value="2">T2</option><option value="3">T3</option><option value="4">T4</option><option value="5">T5</option><option value="6">T6</option>
+                            </select>
+                             <input type="text" id="newStudentRole" placeholder="Role" class="px-2 py-1.5 text-sm border rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <button onclick="app.addStudent()" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors flex justify-center items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Add to List</button>
                     </div>
-                    <div class="flex gap-2">
-                        <select id="newStudentGender" class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md outline-none text-gray-700">
-                            <option value="">No Gender</option><option value="M">Boy</option><option value="F">Girl</option>
-                        </select>
-                        <select id="newStudentTier" class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md outline-none text-gray-700">
-                            <option value="0">No Tier</option><option value="1">Tier 1</option><option value="2">Tier 2</option><option value="3">Tier 3</option><option value="4">Tier 4</option><option value="5">Tier 5</option><option value="6">Tier 6</option>
-                        </select>
-                    </div>
-                    <input type="text" id="newStudentRole" placeholder="Role (e.g. Leader)" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
-                    <button onclick="app.addStudent()" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors flex justify-center items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Add</button>
-                </div>
-                <hr>
-                
-                <!-- Smart Import Section -->
-                <div class="space-y-3">
-                    <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">Smart Custom Import</div>
-                    
-                    <div class="bg-gray-50 border rounded-lg p-3">
-                        <div class="text-[10px] text-gray-500 font-bold mb-2">1. SELECT COLUMNS</div>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="classNo" checked onchange="app.renderImportFormat()"> Class No</label>
-                            <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="name" checked onchange="app.renderImportFormat()"> Name</label>
-                            <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="gender" checked onchange="app.renderImportFormat()"> Gender</label>
-                            <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="tier" checked onchange="app.renderImportFormat()"> Tier</label>
-                            <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="role" onchange="app.renderImportFormat()"> Role</label>
+                 </details>
+
+                 <!-- Section 2: Smart Import (Collapsible) -->
+                 <details class="group bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                    <summary class="flex items-center justify-between p-3 cursor-pointer bg-gray-50 hover:bg-gray-100">
+                        <span class="text-xs font-bold text-gray-700 uppercase tracking-widest">Smart Bulk Import</span>
+                        <span class="text-gray-400 transition-transform group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
+                    </summary>
+                    <div class="p-3 border-t border-gray-100 space-y-3">
+                        
+                        <div class="bg-indigo-50 border border-indigo-100 rounded p-2">
+                            <div class="text-[10px] text-indigo-500 font-bold mb-2">1. SELECT COLUMNS TO IMPORT</div>
+                            <div class="flex flex-wrap gap-2 mb-3">
+                                <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="classNo" checked onchange="app.renderImportFormat()"> No</label>
+                                <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="name" checked onchange="app.renderImportFormat()"> Nick</label>
+                                <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="englishName" onchange="app.renderImportFormat()"> Eng</label>
+                                <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="chineseName" onchange="app.renderImportFormat()"> Chi</label>
+                                <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="gender" checked onchange="app.renderImportFormat()"> Gen</label>
+                                <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="tier" checked onchange="app.renderImportFormat()"> Tier</label>
+                                <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="role" onchange="app.renderImportFormat()"> Role</label>
+                            </div>
+                            <div class="text-[10px] text-indigo-500 font-bold mb-2">2. DELIMITER & ORDER (DRAG TO REORDER)</div>
+                            <select id="import-delimiter" class="w-full text-xs border rounded p-1 mb-2 bg-white">
+                                <option value=",">Comma (,)</option><option value="\t">Tab (Excel Copy)</option><option value=" ">Space</option><option value=";">Semicolon (;)</option>
+                            </select>
+                            <div id="import-format-container" class="flex flex-col gap-1 mb-1 max-h-32 overflow-y-auto"></div>
                         </div>
 
-                        <div class="text-[10px] text-gray-500 font-bold mb-2">2. DELIMITER</div>
-                        <select id="import-delimiter" class="w-full text-xs border rounded p-1 mb-3">
-                            <option value=",">Comma (,)</option>
-                            <option value="\t">Tab</option>
-                            <option value=" ">Space</option>
-                            <option value=";">Semicolon (;)</option>
-                            <option value=":">Colon (:)</option>
-                        </select>
-
-                        <div class="text-[10px] text-gray-500 font-bold mb-2">3. DRAG TO REORDER FORMAT</div>
-                        <div id="import-format-container" class="flex gap-2 mb-3 p-2 bg-white rounded border border-gray-200 overflow-x-auto"></div>
+                        <textarea id="bulkInput" rows="6" placeholder="Paste data here..." class="w-full px-2 py-2 text-xs border border-gray-300 rounded-md font-mono focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                        <button onclick="app.bulkAdd()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition-colors flex justify-center items-center gap-2"><i data-lucide="file-text" class="w-4 h-4"></i> Process Data</button>
                     </div>
-
-                    <textarea id="bulkInput" rows="6" placeholder="Paste your data here..." class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md font-mono focus:ring-2 focus:ring-blue-500 outline-none text-xs"></textarea>
-                    <button onclick="app.bulkAdd()" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-md text-sm font-medium transition-colors flex justify-center items-center gap-2"><i data-lucide="file-text" class="w-4 h-4"></i> Process List</button>
-                </div>
+                 </details>
             </div>
         </aside>
 
@@ -367,16 +400,17 @@
                     layout: JSON.parse(localStorage.getItem('sp_layout')) || { rows: 5, cols: 6, gapCol: 0 },
                     assignments: JSON.parse(localStorage.getItem('sp_assignments')) || {},
                     bgImage: localStorage.getItem('sp_bgImage') || null,
-                    view: { showNames: true, showTiers: true, showGender: true, showScores: false, showClassNo: true, showRole: true, perspective: 'front', dualMode: false, fontSize: 14 }, 
+                    view: { showNames: true, showTiers: true, showGender: true, showScores: true, showClassNo: true, showRole: true, showNickname: false, showChinese: false, showEnglish: true, perspective: 'front', dualMode: false, fontSize: 14 }, 
                     pan: { x: 50, y: 50 },
-                    zoom: 1
+                    zoom: 1,
+                    sidebarNameType: 'englishName'
                 };
                 
                 this.fillSettings = { pattern: 'row-front', strategy: 'fill-all' };
                 this.dragState = { id: null, source: null, sourceSeat: null };
                 this.panState = { active: false, startX: 0, startY: 0, initialPanX: 0, initialPanY: 0 };
                 this.TIER_COLORS = { 0: 'bg-gray-400', 1: 'bg-green-500', 2: 'bg-yellow-500', 3: 'bg-red-500', 4: 'bg-blue-500', 5: 'bg-purple-500', 6: 'bg-orange-500' };
-                this.importFormat = ['classNo', 'name', 'gender', 'tier', 'role']; 
+                this.importFormat = ['classNo', 'name', 'englishName', 'chineseName', 'gender', 'tier', 'role']; 
                 this.init();
             }
 
@@ -423,12 +457,22 @@
             }
 
             updateViewControls() {
-                if (document.getElementById('show-names')) document.getElementById('show-names').checked = this.state.view.showNames;
-                if (document.getElementById('show-tiers')) document.getElementById('show-tiers').checked = this.state.view.showTiers;
-                if (document.getElementById('show-gender')) document.getElementById('show-gender').checked = this.state.view.showGender;
-                if (document.getElementById('show-scores')) document.getElementById('show-scores').checked = this.state.view.showScores;
-                if (document.getElementById('show-classNo')) document.getElementById('show-classNo').checked = this.state.view.showClassNo;
-                if (document.getElementById('show-role')) document.getElementById('show-role').checked = this.state.view.showRole;
+                const s = this.state.view;
+                const setCheck = (id, val) => { if(document.getElementById(id)) document.getElementById(id).checked = val; };
+                setCheck('show-names', s.showNames); 
+                setCheck('show-nickname', s.showNickname);
+                setCheck('show-chinese', s.showChinese);
+                setCheck('show-english', s.showEnglish);
+                setCheck('show-tiers', s.showTiers);
+                setCheck('show-gender', s.showGender);
+                setCheck('show-scores', s.showScores);
+                setCheck('show-classNo', s.showClassNo);
+                setCheck('show-role', s.showRole);
+            }
+
+            setSidebarNameType(type) {
+                this.state.sidebarNameType = type;
+                this.renderSidebar();
             }
 
             bindEvents() {
@@ -465,8 +509,8 @@
                 
                 this.importFormat.forEach((field, index) => {
                     const el = document.createElement('div');
-                    el.className = 'import-item px-3 py-1 bg-indigo-50 border border-indigo-200 rounded text-xs font-bold text-indigo-700 flex items-center shrink-0';
-                    el.textContent = this.getFieldLabel(field);
+                    el.className = 'import-item px-3 py-2 bg-white border border-gray-200 rounded text-xs font-bold text-gray-700 flex items-center justify-between w-full hover:bg-gray-50 mb-1';
+                    el.innerHTML = `<span>${this.getFieldLabel(field)}</span> <i data-lucide="grip-vertical" class="w-3 h-3 text-gray-400"></i>`;
                     el.draggable = true;
                     el.dataset.index = index;
                     
@@ -485,9 +529,10 @@
                     });
                     container.appendChild(el);
                 });
+                lucide.createIcons();
             }
 
-            getFieldLabel(f) { const labels = { classNo: 'Class No', name: 'Name', gender: 'Gender', tier: 'Tier', role: 'Role' }; return labels[f] || f; }
+            getFieldLabel(f) { const labels = { classNo: 'Class No', name: 'Nickname', chineseName: 'Chi Name', englishName: 'Eng Name', gender: 'Gender', tier: 'Tier', role: 'Role' }; return labels[f] || f; }
 
             handleUnseatAllClick(btn) {
                 if (btn.dataset.confirm === "true") { this.clearAssignments(); btn.dataset.confirm = "false"; btn.classList.remove('btn-confirm'); btn.innerHTML = '<i data-lucide="trash-2" class="w-5 h-5"></i>'; lucide.createIcons(); }
@@ -498,7 +543,6 @@
                 const checkedTiers = Array.from(document.querySelectorAll('.remix-tier:checked')).map(cb => parseInt(cb.value));
                 const genderFilter = document.querySelector('input[name="remixGender"]:checked').value;
                 if (checkedTiers.length === 0) { alert("Please select at least one tier!"); return; }
-                const seatedIds = Object.values(this.state.assignments);
                 const studentsToRemix = [];
                 const seatsToRemix = [];
                 for (const [seatKey, studentId] of Object.entries(this.state.assignments)) {
@@ -603,9 +647,10 @@
             
             addStudent() { 
                 const c=document.getElementById('newStudentClassNo').value.trim(); const n=document.getElementById('newStudentName').value.trim(); const r=document.getElementById('newStudentRole').value.trim(); 
+                const ch=document.getElementById('newStudentChinese').value.trim(); const en=document.getElementById('newStudentEnglish').value.trim();
                 if(!n)return; 
-                this.state.students.push({id:'s_'+Date.now(), classNo:c, name:n, gender:document.getElementById('newStudentGender').value, tier:parseInt(document.getElementById('newStudentTier').value)||0, score:0, material:0, role:r}); 
-                document.getElementById('newStudentName').value=''; document.getElementById('newStudentClassNo').value=''; document.getElementById('newStudentRole').value='';
+                this.state.students.push({id:'s_'+Date.now(), classNo:c, name:n, chineseName:ch, englishName:en, gender:document.getElementById('newStudentGender').value, tier:parseInt(document.getElementById('newStudentTier').value)||0, score:0, material:0, role:r}); 
+                document.getElementById('newStudentName').value=''; document.getElementById('newStudentClassNo').value=''; document.getElementById('newStudentRole').value=''; document.getElementById('newStudentChinese').value=''; document.getElementById('newStudentEnglish').value='';
                 this.saveState(); this.setTab('list'); 
             }
             
@@ -634,7 +679,7 @@
                             }
                         });
                     } else {
-                        data.name = l; // Fallback to simple name
+                        data.name = l; 
                     }
 
                     if (data.name) {
@@ -642,6 +687,8 @@
                             id: 's_' + Math.random().toString(36).substr(2, 9), 
                             classNo: data.classNo || '', 
                             name: data.name, 
+                            chineseName: data.chineseName || '',
+                            englishName: data.englishName || '',
                             gender: data.gender || '', 
                             tier: data.tier || 0, 
                             role: data.role || '',
@@ -673,7 +720,18 @@
                 const originalTransform = element.style.transform;
                 element.style.transform = 'none'; 
                 
-                html2canvas(element, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
+                html2canvas(element, { 
+                    backgroundColor: '#ffffff', 
+                    scale: 2,
+                    onclone: (doc) => {
+                        // Fix text baseline sinking in export
+                        doc.querySelectorAll('.seat-card').forEach(card => {
+                            card.style.display = 'flex';
+                            card.style.flexDirection = 'column';
+                            card.style.justifyContent = 'center';
+                        });
+                    }
+                }).then(canvas => {
                     const link = document.createElement('a');
                     link.download = `seat_plan_${new Date().toISOString().slice(0,10)}.png`;
                     link.href = canvas.toDataURL();
@@ -720,11 +778,20 @@
                 }
             }
 
-            render() { this.renderGrid(); this.renderSidebar(); this.updateStats(); lucide.createIcons(); this.dom.dualLabel.textContent = this.state.view.dualMode ? "Duo" : "Single"; this.applyTransform(); this.updateFillStrategy(); }
+            // --- Rendering ---
+            render() {
+                this.renderGrid();
+                this.renderSidebar();
+                this.updateStats();
+                lucide.createIcons();
+                this.dom.dualLabel.textContent = this.state.view.dualMode ? "Duo" : "Single";
+                this.applyTransform();
+                this.updateFillStrategy();
+            }
 
             renderGrid() {
                 const { rows, cols, gapCol } = this.state.layout;
-                const { perspective, dualMode, fontSize, showScores, showClassNo, showRole, showTiers, showNames, showGender } = this.state.view;
+                const { perspective, dualMode, fontSize, showScores, showClassNo, showRole, showTiers, showNickname, showChinese, showEnglish, showGender } = this.state.view;
                 const container = this.dom.gridContent;
                 container.innerHTML = '';
                 
@@ -749,7 +816,9 @@
                         const hClass = dualMode ? 'h-24 md:h-32 lg:h-40' : 'h-16 md:h-20 lg:h-24';
                         
                         const cell = document.createElement('div');
-                        let bgClass = 'bg-gray-50'; let borderClass = 'border-gray-200';
+                        
+                        let bgClass = 'bg-gray-50'; 
+                        let borderClass = 'border-gray-200';
 
                         if (s) {
                             if (showGender) {
@@ -774,19 +843,43 @@
                             cell.ondragend = (e) => this.handleDragEnd(e);
                             const color = this.TIER_COLORS[s.tier] || this.TIER_COLORS[0];
 
-                            // Dynamic Font Scaling Logic
-                            const calculatedFontSize = Math.min(fontSize, fontSize * (12 / Math.max(12, s.name.length)));
+                            // Name Generation
+                            let namesToShow = [];
+                            if (showChinese && s.chineseName) namesToShow.push(s.chineseName);
+                            if (showEnglish && s.englishName) namesToShow.push(s.englishName);
+                            if (showNickname) namesToShow.push(s.name); // Default/Nickname
+                            
+                            // Font Scaling Logic
+                            const renderNameLine = (text) => {
+                                // Default font size set by toolbar
+                                let activeFontSize = fontSize;
+                                // Basic heuristic: if char count > 10, start reducing scale
+                                if (text.length > 10) {
+                                    activeFontSize = Math.max(9, Math.floor(fontSize * (10 / text.length)));
+                                }
+                                return `<div class="w-full text-center font-bold text-gray-800 leading-tight select-none overflow-hidden px-0.5" style="font-size: ${activeFontSize}px;">${text}</div>`;
+                            };
 
                             let content = '';
-                            if (dualMode && showNames) content += `<div class="flex-1 flex items-center justify-center w-full border-b border-gray-300/30 rotate-180 select-none opacity-75 leading-tight px-1 overflow-hidden" style="font-size: ${calculatedFontSize}px;">${s.name}</div>`;
-                            if (showNames) content += `<div class="flex-1 flex items-center justify-center w-full px-1 text-center font-bold text-gray-800 leading-tight select-none overflow-hidden" style="font-size: ${calculatedFontSize}px;">${s.name}</div>`;
+                            if (dualMode) {
+                                content += `<div class="flex-1 flex flex-col items-center justify-center w-full border-b border-gray-300/30 rotate-180 opacity-75">
+                                    ${namesToShow.map(renderNameLine).join('')}
+                                </div>`;
+                            }
+                            content += `<div class="flex-1 flex flex-col items-center justify-center w-full">
+                                ${namesToShow.map(renderNameLine).join('')}
+                            </div>`;
 
-                            const tierDot = showTiers && s.tier > 0 ? `<span class="w-4 h-4 rounded-full ${color} text-white text-[10px] flex items-center justify-center font-bold shadow-sm flex-none leading-none">${s.tier}</span>` : '';
+                            const tierDot = showTiers && s.tier > 0 
+                                ? `<span class="w-4 h-4 rounded-full ${color} text-white text-[10px] flex items-center justify-center font-bold shadow-sm leading-none pt-[1px]">${s.tier}</span>` 
+                                : '';
+                            
                             const classNo = (showClassNo && s.classNo) ? `<div class="absolute top-1 left-1 text-[10px] font-bold text-gray-500">${s.classNo}</div>` : '';
-                            const roleBadge = (showRole && s.role) ? `<div class="absolute bottom-1 right-1 bg-gray-200 text-gray-700 text-[9px] px-1 rounded border border-gray-300 font-bold uppercase tracking-wider flex items-center justify-center leading-none" style="z-index: 10;">${s.role}</div>` : '';
+                            const roleBadge = (showRole && s.role) ? `<div class="absolute bottom-1 right-1 bg-gray-200 text-gray-700 text-[9px] px-1 rounded border border-gray-300 font-bold uppercase tracking-wider badge-center" style="z-index: 10;">${s.role}</div>` : '';
 
-                            const scoreBadge = (showScores && (s.score || 0) !== 0) ? `<div class="bg-green-100 text-green-700 text-[9px] px-1 rounded border border-green-200 font-bold">${s.score > 0 ? '+'+s.score : s.score}</div>` : '';
-                            const materialBadge = (showScores && (s.material || 0) > 0) ? `<div class="bg-red-100 text-red-700 text-[9px] px-1 rounded border border-red-200 font-bold">! ${s.material}</div>` : '';
+                            const scoreBadge = (showScores && (s.score || 0) !== 0) ? `<div class="bg-green-100 text-green-700 text-[9px] px-1 rounded border border-green-200 font-bold badge-center">${s.score > 0 ? '+'+s.score : s.score}</div>` : '';
+                            const materialBadge = (showScores && (s.material || 0) > 0) ? `<div class="bg-red-100 text-red-700 text-[9px] px-1 rounded border border-red-200 font-bold badge-center">! ${s.material}</div>` : '';
+                            
                             const badges = (scoreBadge || materialBadge) ? `<div class="absolute top-1 right-1 flex flex-col items-end gap-0.5 pointer-events-none" style="z-index: 25;">${scoreBadge}${materialBadge}</div>` : '';
 
                             const clickZones = `
@@ -814,10 +907,11 @@
                 const term = document.getElementById('searchInput').value.toLowerCase();
                 const fGender = document.getElementById('filterGender').value;
                 const fTier = document.getElementById('filterTier').value;
+                const nameType = this.state.sidebarNameType || 'englishName'; 
                 
                 const seatedIds = Object.values(this.state.assignments);
                 const unseated = this.state.students.filter(s => {
-                    const matchSearch = s.name.toLowerCase().includes(term);
+                    const matchSearch = (s.name||'').toLowerCase().includes(term) || (s.chineseName||'').toLowerCase().includes(term) || (s.englishName||'').toLowerCase().includes(term);
                     const matchGender = fGender === 'all' || s.gender === fGender;
                     const matchTier = fTier === 'all' || s.tier.toString() === fTier;
                     return !seatedIds.includes(s.id) && matchSearch && matchGender && matchTier;
@@ -832,15 +926,18 @@
                     el.ondragstart = (e) => this.handleDragStart(e, s.id, 'sidebar', null);
                     el.ondragend = (e) => this.handleDragEnd(e);
                     
+                    const gVal = s.gender || "";
+                    let displayName = s[nameType] || s.name; 
+                    
                     el.innerHTML = `
                         <i data-lucide="grip-vertical" class="w-4 h-4 text-gray-300"></i>
                         <div class="flex-1 min-w-0">
-                            <div class="text-sm font-medium text-gray-800 truncate">${s.classNo ? `<span class="font-bold text-gray-500 mr-1">${s.classNo}.</span>` : ''}${s.name}</div>
+                            <div class="text-sm font-medium text-gray-800 truncate">${s.classNo ? `<span class="font-bold text-gray-500 mr-1">${s.classNo}.</span>` : ''}${displayName}</div>
                             <div class="flex gap-1 mt-1">
                                 <select onchange="app.updateStudent('${s.id}', 'gender', this.value)" class="text-[10px] border rounded bg-gray-50 p-0.5">
-                                    <option value="" ${s.gender===''?'selected':''}>-</option>
-                                    <option value="M" ${s.gender==='M'?'selected':''}>Boy</option>
-                                    <option value="F" ${s.gender==='F'?'selected':''}>Girl</option>
+                                    <option value="" ${gVal===''?'selected':''}>-</option>
+                                    <option value="M" ${gVal==='M'?'selected':''}>Boy</option>
+                                    <option value="F" ${gVal==='F'?'selected':''}>Girl</option>
                                 </select>
                                 <select onchange="app.updateStudent('${s.id}', 'tier', this.value)" class="text-[10px] border rounded bg-gray-50 p-0.5">
                                     <option value="0" ${s.tier===0?'selected':''}>T -</option>
@@ -859,7 +956,8 @@
                     list.appendChild(el);
                 });
             }
-
+            
+            // ... (rest of methods: updateStats, sortList, setTab, window.onclick)
             updateStats() {
                 const total = this.state.students.length;
                 const boys = this.state.students.filter(s => s.gender === 'M').length;
