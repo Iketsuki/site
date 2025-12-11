@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Seat Planner Ultimate</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; touch-action: none; overscroll-behavior: none; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Drag & Drop Visuals */
+        .dragging { opacity: 0.4; }
+        .drag-over { background-color: rgba(59, 130, 246, 0.15) !important; border-color: #3b82f6 !important; border-style: dashed !important; transform: scale(1.02); }
+        
+        /* Canvas Panning */
+        #canvas-container { cursor: grab; background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 20px 20px; }
+        #canvas-container.panning { cursor: grabbing; }
+
+        /* Presenter Mode */
+        body.presenter-mode header, 
+        body.presenter-mode #sidebar,
+        body.presenter-mode #toolbar,
+        body.presenter-mode #bottom-zoom-controls { display: none !important; }
+        body.presenter-mode #presenter-overlay { display: flex !important; }
+
+        /* Print Styles */
+        @media print {
+            @page { size: landscape; margin: 0.2cm; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white; }
+            .no-print { display: none !important; }
+            #main-content { margin: 0; padding: 0; height: auto; width: 100%; overflow: visible; background: white; }
+            #canvas-container { padding: 0; display: flex; align-items: center; justify-content: center; transform: none !important; background: none; }
+            #classroom-grid { 
+                border: none; box-shadow: none; 
+                transform: scale(0.8) !important; 
+                transform-origin: center top;
+                padding: 0; margin: 0 auto;
+            }
+            .seat-card { border: 1px solid #94a3b8 !important; box-shadow: none !important; break-inside: avoid; }
+            
+            /* Force Colors */
+            .bg-blue-50 { background-color: #eff6ff !important; }
+            .bg-green-500 { background-color: #22c55e !important; }
+            .bg-yellow-500 { background-color: #eab308 !important; }
+            .bg-red-500 { background-color: #ef4444 !important; }
+            .bg-blue-500 { background-color: #3b82f6 !important; }
+            .bg-purple-500 { background-color: #a855f7 !important; }
+            .bg-orange-500 { background-color: #f97316 !important; }
+            .bg-gray-400 { background-color: #9ca3af !important; }
+            #bg-layer { opacity: 0.2 !important; }
+        }
+
+        /* Mobile Sidebar */
+        #sidebar { transition: transform 0.3s ease-in-out; }
+        .sidebar-closed { transform: translateX(-100%); }
+        .sidebar-open { transform: translateX(0); }
+        @media (min-width: 1024px) {
+            .sidebar-closed { transform: translateX(0); }
+            #mobile-overlay { display: none !important; }
+        }
+
+        /* Confirm Action Animation */
+        .btn-confirm { background-color: #fee2e2; color: #dc2626; transform: scale(1.1); animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+        
+        .fill-opt.active-pattern { background-color: #f3e8ff; border-color: #d8b4fe; ring: 2px solid #a855f7; }
+
+        /* Interaction Zones on Card */
+        .click-zone { position: absolute; width: 40%; height: 40%; z-index: 20; cursor: pointer; }
+        .click-zone:active { background-color: rgba(0,0,0,0.05); }
+        .zone-tl { top: 0; left: 0; border-top-left-radius: 0.75rem; }
+        .zone-tr { top: 0; right: 0; border-top-right-radius: 0.75rem; }
+        .zone-bl { bottom: 0; left: 0; border-bottom-left-radius: 0.75rem; }
+        .zone-br { bottom: 0; right: 0; border-bottom-right-radius: 0.75rem; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 px-3 py-2 md:px-4 md:py-3 flex items-center justify-between shrink-0 z-30 no-print">
+        <div class="flex items-center gap-3">
+            <button onclick="app.toggleSidebar()" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+            <div class="hidden md:flex bg-indigo-600 text-white p-2 rounded-lg shadow-sm">
+                <i data-lucide="layout-grid" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-base md:text-lg text-gray-800 leading-tight">Seat Planner Pro</h1>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-1 md:gap-2">
+            <button onclick="app.togglePresenterMode()" class="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-md text-sm font-medium transition-colors border border-indigo-200">
+                <i data-lucide="presentation" class="w-4 h-4"></i> <span class="hidden xl:inline">Presenter</span>
+            </button>
+
+            <div class="hidden md:flex bg-gray-100 rounded-lg p-1 border border-gray-200 mr-2">
+                <button onclick="app.undo()" id="btn-undo" class="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-white rounded-md disabled:opacity-30"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+                <button onclick="app.redo()" id="btn-redo" class="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-white rounded-md disabled:opacity-30"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+            </div>
+
+            <!-- Settings -->
+            <div class="relative">
+                <button onclick="app.toggleSettingsMenu()" class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md" id="settings-trigger">
+                    <i data-lucide="settings-2" class="w-4 h-4"></i>
+                </button>
+                <div id="settings-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-2">
+                    <div class="text-xs font-semibold text-gray-500 uppercase px-2 py-1 mb-1">View Options</div>
+                    <button onclick="app.togglePerspective()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded text-sm"><i data-lucide="arrow-down-up" class="w-4 h-4 mr-2 text-indigo-500"></i> <span id="perspective-label">Teacher View</span></button>
+                    <button onclick="app.toggleDualMode()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded text-sm"><i data-lucide="flip-vertical" class="w-4 h-4 mr-2 text-orange-500"></i> <span id="dual-label">Single Mode</span></button>
+                    
+                    <div class="h-px bg-gray-200 my-2"></div>
+                    <div class="px-2 pb-1 text-xs font-bold text-gray-400">VISIBILITY</div>
+                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-names" checked onchange="app.toggleViewOption('showNames')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Names</span></label>
+                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-tiers" checked onchange="app.toggleViewOption('showTiers')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Tiers</span></label>
+                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-gender" checked onchange="app.toggleViewOption('showGender')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Gender</span></label>
+                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-scores" checked onchange="app.toggleViewOption('showScores')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Scores (Marks)</span></label>
+                    
+                    <div class="h-px bg-gray-200 my-2"></div>
+                    <div class="px-2 pb-1 text-xs font-bold text-gray-400">DATA & BG</div>
+                    <label class="flex items-center px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm text-blue-600"><i data-lucide="image-plus" class="w-4 h-4 mr-2"></i> Set Floor Plan <input type="file" accept="image/*" class="hidden" onchange="app.handleBgUpload(this)"></label>
+                    <button onclick="app.clearBg()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm text-red-600"><i data-lucide="trash-2" class="w-4 h-4 mr-2"></i> Remove BG</button>
+                    <button onclick="app.exportData()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm text-gray-700"><i data-lucide="download" class="w-4 h-4 mr-2"></i> Export Data (JSON)</button>
+                    <label class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm text-gray-700"><i data-lucide="upload" class="w-4 h-4 mr-2"></i> Import Data <input type="file" class="hidden" accept=".json" onchange="app.importData(this)"></label>
+                    
+                    <div class="h-px bg-gray-200 my-2"></div>
+                    <button onclick="app.deleteAllStudents()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-red-50 text-red-700 rounded cursor-pointer text-sm font-bold"><i data-lucide="user-x" class="w-4 h-4 mr-2"></i> Delete All Students</button>
+                </div>
+            </div>
+
+            <button onclick="window.print()" class="flex items-center gap-2 px-3 py-2 bg-slate-800 text-white hover:bg-slate-900 rounded-md text-sm font-medium transition-colors ml-1">
+                <i data-lucide="printer" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden relative">
+        <!-- Sidebar -->
+        <div id="mobile-overlay" onclick="app.toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden transition-opacity"></div>
+        <aside id="sidebar" class="absolute lg:relative w-80 h-full bg-white border-r border-gray-200 flex flex-col shrink-0 z-50 shadow-2xl lg:shadow-none sidebar-closed no-print">
+            <button onclick="app.toggleSidebar()" class="lg:hidden absolute top-2 right-2 p-2 text-gray-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+
+            <!-- Tabs -->
+            <div class="p-2 border-b border-gray-100 flex gap-1 mt-2 lg:mt-0">
+                <button onclick="app.setTab('list')" id="tab-list" class="flex-1 py-2 text-[10px] sm:text-xs font-medium rounded-md bg-blue-50 text-blue-700">List</button>
+                <button onclick="app.setTab('add')" id="tab-add" class="flex-1 py-2 text-[10px] sm:text-xs font-medium rounded-md text-gray-600 hover:bg-gray-50">Add</button>
+                <button onclick="app.setTab('fill')" id="tab-fill" class="flex-1 py-2 text-[10px] sm:text-xs font-medium rounded-md text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1"><i data-lucide="sparkles" class="w-3 h-3"></i> Fill</button>
+                <button onclick="app.setTab('remix')" id="tab-remix" class="flex-1 py-2 text-[10px] sm:text-xs font-medium rounded-md text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1"><i data-lucide="shuffle" class="w-3 h-3"></i> Remix</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-3 border-b border-gray-100 bg-gray-50/50">
+                <div class="p-2 text-center border-r border-gray-100"><div class="text-[10px] text-gray-500 uppercase font-bold">Total</div><div class="text-base font-bold text-gray-800" id="stat-total">0</div></div>
+                <div class="p-2 text-center border-r border-gray-100"><div class="text-[10px] text-blue-500 uppercase font-bold">Boys</div><div class="text-base font-bold text-blue-600" id="stat-boys">0</div></div>
+                <div class="p-2 text-center"><div class="text-[10px] text-pink-500 uppercase font-bold">Girls</div><div class="text-base font-bold text-pink-600" id="stat-girls">0</div></div>
+            </div>
+
+            <!-- List View -->
+            <div id="view-list" class="flex-1 flex flex-col bg-slate-50/30 relative overflow-hidden">
+                <div class="px-3 py-2 border-b border-gray-100 bg-white space-y-2 shrink-0">
+                    <div class="relative">
+                        <i data-lucide="search" class="absolute left-2.5 top-2 w-3.5 h-3.5 text-gray-400"></i>
+                        <input type="text" id="searchInput" placeholder="Search..." class="w-full pl-8 pr-2 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    </div>
+                    <div class="flex gap-2">
+                        <select id="filterGender" onchange="app.renderSidebar()" class="flex-1 text-xs border border-gray-200 rounded p-1"><option value="all">All Genders</option><option value="M">Boys</option><option value="F">Girls</option></select>
+                        <select id="filterTier" onchange="app.renderSidebar()" class="flex-1 text-xs border border-gray-200 rounded p-1">
+                            <option value="all">All Tiers</option>
+                            <option value="1">Tier 1</option><option value="2">Tier 2</option><option value="3">Tier 3</option>
+                            <option value="4">Tier 4</option><option value="5">Tier 5</option><option value="6">Tier 6</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-between items-center text-xs text-gray-500">
+                        <span>Sort:</span>
+                        <div class="flex gap-1">
+                            <button onclick="app.sortList('name')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">Name</button>
+                            <button onclick="app.sortList('tier')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">Tier</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="student-list-container" class="flex-1 overflow-y-auto p-2 space-y-1.5 pb-20"></div>
+                <div id="drop-zone-sidebar" class="hidden absolute inset-2 border-2 border-red-400 border-dashed rounded-lg bg-red-50/90 z-20 flex-col items-center justify-center text-red-500 pointer-events-none">
+                    <i data-lucide="user-minus" class="w-8 h-8 mb-1"></i><span class="text-xs font-bold uppercase">Drop to Unseat</span>
+                </div>
+            </div>
+
+            <!-- Smart Fill Tab -->
+            <div id="view-fill" class="hidden flex-1 overflow-y-auto p-4 space-y-5 bg-slate-50/50">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Direction</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="app.setFillPattern('row-front')" class="fill-opt p-2 border rounded-lg text-sm bg-white text-left active-pattern" data-pat="row-front"><div class="font-bold text-xs">Row Front&rarr;Back</div></button>
+                        <button onclick="app.setFillPattern('row-back')" class="fill-opt p-2 border rounded-lg text-sm bg-white text-left" data-pat="row-back"><div class="font-bold text-xs">Row Back&rarr;Front</div></button>
+                        <button onclick="app.setFillPattern('col-left')" class="fill-opt p-2 border rounded-lg text-sm bg-white text-left" data-pat="col-left"><div class="font-bold text-xs">Col Left&rarr;Right</div></button>
+                        <button onclick="app.setFillPattern('col-right')" class="fill-opt p-2 border rounded-lg text-sm bg-white text-left" data-pat="col-right"><div class="font-bold text-xs">Col Right&rarr;Left</div></button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Composition</label>
+                    <div class="mb-2">
+                        <select id="fill-strategy" onchange="app.updateFillStrategy()" class="w-full text-xs border rounded p-1.5">
+                            <option value="fill-all">Fill Whole Class</option>
+                            <option value="group">Group by Group</option>
+                        </select>
+                    </div>
+                    <div id="group-config" class="hidden bg-white p-2 rounded border mb-2">
+                        <div class="text-[10px] font-bold text-gray-400 mb-1">GROUP SIZE</div>
+                        <div class="flex gap-2 items-center text-xs"><input type="number" id="group-rows" class="w-12 border rounded p-1" placeholder="R" min="1" value="2"> x <input type="number" id="group-cols" class="w-12 border rounded p-1" placeholder="C" min="1" value="2"></div>
+                    </div>
+                    <div class="bg-white p-2 rounded border">
+                        <div class="text-[10px] font-bold text-gray-400 mb-1">LIMITS (MIN-MAX)</div>
+                        <div class="space-y-1">
+                            <div class="grid grid-cols-6 gap-1 items-center text-xs"><div class="col-span-2 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> T1</div><input type="number" id="min-t1" class="col-span-2 border rounded px-1" placeholder="Min" min="0"><input type="number" id="max-t1" class="col-span-2 border rounded px-1" placeholder="Max" min="0"></div>
+                            <div class="grid grid-cols-6 gap-1 items-center text-xs"><div class="col-span-2 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-500"></span> T2</div><input type="number" id="min-t2" class="col-span-2 border rounded px-1" placeholder="Min" min="0"><input type="number" id="max-t2" class="col-span-2 border rounded px-1" placeholder="Max" min="0"></div>
+                            <div class="grid grid-cols-6 gap-1 items-center text-xs"><div class="col-span-2 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span> T3</div><input type="number" id="min-t3" class="col-span-2 border rounded px-1" placeholder="Min" min="0"><input type="number" id="max-t3" class="col-span-2 border rounded px-1" placeholder="Max" min="0"></div>
+                            <div class="grid grid-cols-6 gap-1 items-center text-xs"><div class="col-span-2 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> T4</div><input type="number" id="min-t4" class="col-span-2 border rounded px-1" placeholder="Min" min="0"><input type="number" id="max-t4" class="col-span-2 border rounded px-1" placeholder="Max" min="0"></div>
+                            <div class="grid grid-cols-6 gap-1 items-center text-xs"><div class="col-span-2 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-purple-500"></span> T5</div><input type="number" id="min-t5" class="col-span-2 border rounded px-1" placeholder="Min" min="0"><input type="number" id="max-t5" class="col-span-2 border rounded px-1" placeholder="Max" min="0"></div>
+                            <div class="grid grid-cols-6 gap-1 items-center text-xs"><div class="col-span-2 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> T6</div><input type="number" id="min-t6" class="col-span-2 border rounded px-1" placeholder="Min" min="0"><input type="number" id="max-t6" class="col-span-2 border rounded px-1" placeholder="Max" min="0"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <button onclick="app.executeSmartFill('next-group')" id="btn-fill-next" class="w-full py-2 bg-indigo-600 text-white rounded-lg font-bold shadow hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"><i data-lucide="play" class="w-4 h-4"></i> Fill Next Group</button>
+                    <button onclick="app.executeSmartFill('all')" class="w-full py-2 bg-purple-600 text-white rounded-lg font-bold shadow hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"><i data-lucide="forward" class="w-4 h-4"></i> Auto-Fill Remaining</button>
+                </div>
+            </div>
+
+            <!-- Remix Tab (NEW) -->
+            <div id="view-remix" class="hidden flex-1 overflow-y-auto p-4 space-y-5 bg-slate-50/50">
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                    <div class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2"><i data-lucide="filter" class="w-4 h-4 text-indigo-500"></i> Remix Criteria</div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Tiers</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <label class="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" class="remix-tier rounded text-indigo-600" value="1"> <span class="w-2 h-2 rounded-full bg-green-500"></span> T1</label>
+                            <label class="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" class="remix-tier rounded text-indigo-600" value="2"> <span class="w-2 h-2 rounded-full bg-yellow-500"></span> T2</label>
+                            <label class="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" class="remix-tier rounded text-indigo-600" value="3"> <span class="w-2 h-2 rounded-full bg-red-500"></span> T3</label>
+                            <label class="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" class="remix-tier rounded text-indigo-600" value="4"> <span class="w-2 h-2 rounded-full bg-blue-500"></span> T4</label>
+                            <label class="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" class="remix-tier rounded text-indigo-600" value="5"> <span class="w-2 h-2 rounded-full bg-purple-500"></span> T5</label>
+                            <label class="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" class="remix-tier rounded text-indigo-600" value="6"> <span class="w-2 h-2 rounded-full bg-orange-500"></span> T6</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Gender</label>
+                        <div class="flex gap-2">
+                            <label class="flex-1 border rounded-md p-2 text-xs text-center cursor-pointer hover:bg-gray-50"><input type="radio" name="remixGender" value="all" checked class="hidden peer"> <span class="peer-checked:font-bold peer-checked:text-indigo-600">All</span></label>
+                            <label class="flex-1 border rounded-md p-2 text-xs text-center cursor-pointer hover:bg-gray-50"><input type="radio" name="remixGender" value="M" class="hidden peer"> <span class="peer-checked:font-bold peer-checked:text-indigo-600">Boys</span></label>
+                            <label class="flex-1 border rounded-md p-2 text-xs text-center cursor-pointer hover:bg-gray-50"><input type="radio" name="remixGender" value="F" class="hidden peer"> <span class="peer-checked:font-bold peer-checked:text-indigo-600">Girls</span></label>
+                        </div>
+                    </div>
+
+                    <button onclick="app.remixSeats()" class="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold shadow hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="shuffle" class="w-4 h-4"></i> Shuffle Selected
+                    </button>
+                    <p class="text-[10px] text-gray-400 mt-2 text-center">Swaps students matching criteria within their existing seats.</p>
+                </div>
+            </div>
+
+            <!-- Add Tab -->
+            <div id="view-add" class="hidden flex-1 overflow-y-auto p-4 space-y-6">
+                 <div class="space-y-3">
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">New Student</div>
+                    <input type="text" id="newStudentName" placeholder="Full Name" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
+                    <div class="flex gap-2">
+                        <select id="newStudentGender" class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md outline-none text-gray-700">
+                            <option value="">No Gender</option><option value="M">Boy</option><option value="F">Girl</option>
+                        </select>
+                        <select id="newStudentTier" class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md outline-none text-gray-700">
+                            <option value="0">No Tier</option><option value="1">Tier 1</option><option value="2">Tier 2</option><option value="3">Tier 3</option><option value="4">Tier 4</option><option value="5">Tier 5</option><option value="6">Tier 6</option>
+                        </select>
+                    </div>
+                    <button onclick="app.addStudent()" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors flex justify-center items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Add</button>
+                </div>
+                <hr>
+                <div class="space-y-3">
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">Bulk Import</div>
+                    <textarea id="bulkInput" rows="6" placeholder="Name, Gender (M/F), Tier (1-6)" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md font-mono focus:ring-2 focus:ring-blue-500 outline-none text-xs"></textarea>
+                    <button onclick="app.bulkAdd()" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-md text-sm font-medium transition-colors flex justify-center items-center gap-2"><i data-lucide="file-text" class="w-4 h-4"></i> Process List</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div id="main-content" class="flex-1 flex flex-col bg-slate-100 relative transition-all overflow-hidden">
+            
+            <!-- Toolbar -->
+            <div id="toolbar" class="h-auto md:h-14 bg-white border-b border-gray-200 flex flex-wrap items-center justify-between px-2 py-2 md:px-4 shrink-0 shadow-sm z-10 no-print gap-2">
+                <!-- Grid Config -->
+                <div class="flex items-center gap-2 md:gap-4">
+                    <div class="flex items-center gap-1 md:gap-2 text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded border border-gray-200">
+                        <span class="text-xs font-semibold text-gray-500 uppercase">Grid</span>
+                        <input type="number" id="rowsInput" class="w-10 bg-transparent text-center focus:outline-none font-bold" min="2" max="15">
+                        <span class="text-gray-400">×</span>
+                        <input type="number" id="colsInput" class="w-10 bg-transparent text-center focus:outline-none font-bold" min="2" max="15">
+                    </div>
+                    <div class="flex items-center gap-1 md:gap-2 text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded border border-gray-200" title="Gap Column">
+                        <span class="text-xs font-semibold text-gray-500 uppercase">Gap:</span>
+                        <input type="number" id="gapInput" class="w-10 bg-transparent text-center focus:outline-none font-bold" min="0" max="15">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                     <button id="btn-unseat-all" onclick="app.handleUnseatAllClick(this)" class="p-2 text-red-500 hover:bg-red-50 rounded transition-all" title="Double Click to Unseat All">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                     </button>
+                     <button onclick="app.fitToScreen()" class="p-2 text-gray-500 hover:bg-gray-100 rounded" title="Fit to Screen"><i data-lucide="maximize" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+
+            <!-- Presenter Overlay Bar -->
+            <div id="presenter-overlay" class="hidden absolute top-0 left-0 w-full p-4 justify-center z-50 pointer-events-none">
+                <div id="presenter-controls" class="bg-white/90 backdrop-blur shadow-xl rounded-full px-2 py-1 flex items-center gap-1 border border-gray-200 pointer-events-auto transition-all">
+                    <button onclick="document.getElementById('presenter-inner').classList.toggle('hidden'); this.querySelector('svg').classList.toggle('rotate-180')" class="p-2 hover:bg-gray-100 rounded-full text-gray-500">
+                        <i data-lucide="chevron-left" class="w-5 h-5 transition-transform"></i>
+                    </button>
+                    <div id="presenter-inner" class="flex items-center gap-2 pr-2">
+                        <button onclick="app.zoom(-0.1)" class="p-2 hover:bg-gray-100 rounded-full"><i data-lucide="zoom-out" class="w-5 h-5"></i></button>
+                        <button onclick="app.fitToScreen()" class="p-2 hover:bg-gray-100 rounded-full"><i data-lucide="maximize" class="w-5 h-5"></i></button>
+                        <button onclick="app.zoom(0.1)" class="p-2 hover:bg-gray-100 rounded-full"><i data-lucide="zoom-in" class="w-5 h-5"></i></button>
+                        <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                        <button onclick="window.print()" class="p-2 hover:bg-gray-100 rounded-full text-gray-700" title="Print/PDF"><i data-lucide="printer" class="w-5 h-5"></i></button>
+                        <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                        <button onclick="app.togglePresenterMode()" class="p-2 hover:bg-red-50 text-red-600 rounded-full font-bold text-xs uppercase tracking-wide">Exit</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas -->
+            <div id="canvas-container" class="flex-1 overflow-hidden relative" onmousedown="app.handlePanStart(event)" onmousemove="app.handlePanMove(event)" onmouseup="app.handlePanEnd(event)" onmouseleave="app.handlePanEnd(event)">
+                <div id="bg-layer" class="absolute pointer-events-none opacity-50 z-0 bg-no-repeat bg-contain bg-center transition-all duration-300 origin-top-left" style="width: 100%; height: 100%; top: 0; left: 0;"></div>
+                <div class="hidden print:block w-full mb-6 text-center absolute top-0 w-full"><h1 class="text-2xl font-bold text-gray-900">Classroom Seating Plan</h1><p class="text-sm text-gray-500" id="print-date"></p></div>
+                
+                <div id="classroom-grid" class="absolute top-10 left-10 transition-transform duration-75 origin-top-left bg-white p-8 rounded-3xl border border-gray-200 shadow-xl print:shadow-none print:border-none print:p-0 flex flex-col gap-6 select-none z-10">
+                    <div id="teacher-desk-area" class="w-full flex justify-center order-first">
+                        <div class="bg-indigo-600 print:bg-gray-800 text-white px-10 py-2 rounded-full shadow-lg print:shadow-none flex items-center gap-2 text-sm font-bold uppercase tracking-widest ring-4 ring-indigo-100 print:ring-0">
+                            <i data-lucide="monitor" class="w-5 h-5"></i> Teacher's Desk
+                        </div>
+                    </div>
+                    <div id="grid-content" class="flex flex-col gap-4"></div>
+                </div>
+            </div>
+            
+            <!-- Bottom Zoom (Hidden in Presenter) -->
+            <div id="bottom-zoom-controls" class="absolute bottom-6 right-6 flex bg-white rounded-lg shadow-lg border border-gray-200 p-1 no-print z-20">
+                <button onclick="app.adjustFontSize(-1)" class="p-2 hover:bg-gray-100 rounded text-gray-600" title="Font -"><i data-lucide="a-large-small" class="w-3 h-3"></i></button>
+                <button onclick="app.adjustFontSize(1)" class="p-2 hover:bg-gray-100 rounded text-gray-600" title="Font +"><i data-lucide="a-large-small" class="w-5 h-5"></i></button>
+                <div class="w-px h-auto bg-gray-200 mx-1"></div>
+                <button onclick="app.zoom(-0.1)" class="p-2 hover:bg-gray-100 rounded text-gray-600"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                <span id="zoom-val" class="px-2 flex items-center text-xs font-mono text-gray-500 w-12 justify-center">100%</span>
+                <button onclick="app.zoom(0.1)" class="p-2 hover:bg-gray-100 rounded text-gray-600"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class SeatPlanner {
+            constructor() {
+                this.history = [];
+                this.historyIndex = -1;
+                this.state = {
+                    students: JSON.parse(localStorage.getItem('sp_students')) || [],
+                    layout: JSON.parse(localStorage.getItem('sp_layout')) || { rows: 5, cols: 6, gapCol: 0 },
+                    assignments: JSON.parse(localStorage.getItem('sp_assignments')) || {},
+                    bgImage: localStorage.getItem('sp_bgImage') || null,
+                    view: { showNames: true, showTiers: true, showGender: true, showScores: false, perspective: 'front', dualMode: false, fontSize: 14 }, 
+                    pan: { x: 50, y: 50 },
+                    zoom: 1
+                };
+                
+                this.fillSettings = { pattern: 'row-front', strategy: 'fill-all' };
+                this.dragState = { id: null, source: null, sourceSeat: null };
+                this.panState = { active: false, startX: 0, startY: 0, initialPanX: 0, initialPanY: 0 };
+                this.TIER_COLORS = { 0: 'bg-gray-400', 1: 'bg-green-500', 2: 'bg-yellow-500', 3: 'bg-red-500', 4: 'bg-blue-500', 5: 'bg-purple-500', 6: 'bg-orange-500' };
+                
+                this.init();
+            }
+
+            init() {
+                this.cacheDOM();
+                this.bindEvents();
+                this.applyBg();
+                this.pushHistory(true);
+                this.render();
+                document.getElementById('print-date').textContent = new Date().toLocaleDateString();
+                this.fitToScreen();
+            }
+
+            cacheDOM() {
+                this.dom = {
+                    rows: document.getElementById('rowsInput'),
+                    cols: document.getElementById('colsInput'),
+                    gap: document.getElementById('gapInput'),
+                    gridContent: document.getElementById('grid-content'),
+                    studentList: document.getElementById('student-list-container'),
+                    zoomVal: document.getElementById('zoom-val'),
+                    classroomGrid: document.getElementById('classroom-grid'),
+                    searchInput: document.getElementById('searchInput'),
+                    undoBtn: document.getElementById('btn-undo'),
+                    redoBtn: document.getElementById('btn-redo'),
+                    sidebar: document.getElementById('sidebar'),
+                    mobileOverlay: document.getElementById('mobile-overlay'),
+                    dropZoneSidebar: document.getElementById('drop-zone-sidebar'),
+                    teacherDesk: document.getElementById('teacher-desk-area'),
+                    perspectiveLabel: document.getElementById('perspective-label'),
+                    dualLabel: document.getElementById('dual-label'),
+                    bgLayer: document.getElementById('bg-layer'),
+                    canvas: document.getElementById('canvas-container')
+                };
+                this.updateInputs();
+            }
+
+            updateInputs() {
+                this.dom.rows.value = this.state.layout.rows;
+                this.dom.cols.value = this.state.layout.cols;
+                this.dom.gap.value = this.state.layout.gapCol;
+            }
+
+            bindEvents() {
+                const updateLayout = () => {
+                    this.state.layout.rows = parseInt(this.dom.rows.value) || 2;
+                    this.state.layout.cols = parseInt(this.dom.cols.value) || 2;
+                    this.state.layout.gapCol = parseInt(this.dom.gap.value) || 0;
+                    this.saveState();
+                };
+                this.dom.rows.onchange = updateLayout;
+                this.dom.cols.onchange = updateLayout;
+                this.dom.gap.onchange = updateLayout;
+                this.dom.searchInput.oninput = () => this.renderSidebar();
+
+                document.addEventListener('keydown', (e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); this.undo(); }
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); this.redo(); }
+                });
+                
+                this.dom.sidebar.addEventListener('dragover', (e) => { e.preventDefault(); if(this.dragState.source === 'grid') this.dom.dropZoneSidebar.classList.remove('hidden'); });
+                this.dom.sidebar.addEventListener('dragleave', (e) => { if(e.relatedTarget && !this.dom.sidebar.contains(e.relatedTarget)) this.dom.dropZoneSidebar.classList.add('hidden'); });
+                this.dom.sidebar.addEventListener('drop', (e) => { e.preventDefault(); this.dom.dropZoneSidebar.classList.add('hidden'); if(this.dragState.source === 'grid') this.unseat(this.dragState.sourceSeat); });
+            }
+
+            // --- Unseat All Double Click ---
+            handleUnseatAllClick(btn) {
+                if (btn.dataset.confirm === "true") {
+                    this.clearAssignments();
+                    btn.dataset.confirm = "false";
+                    btn.classList.remove('btn-confirm');
+                    btn.innerHTML = '<i data-lucide="trash-2" class="w-5 h-5"></i>';
+                    lucide.createIcons();
+                } else {
+                    btn.dataset.confirm = "true";
+                    btn.classList.add('btn-confirm');
+                    btn.innerHTML = '<i data-lucide="check" class="w-5 h-5"></i>';
+                    lucide.createIcons();
+                    setTimeout(() => {
+                        if(btn && btn.dataset.confirm === "true") {
+                            btn.dataset.confirm = "false";
+                            btn.classList.remove('btn-confirm');
+                            btn.innerHTML = '<i data-lucide="trash-2" class="w-5 h-5"></i>';
+                            lucide.createIcons();
+                        }
+                    }, 2000);
+                }
+            }
+
+            // --- Remix Functionality ---
+            remixSeats() {
+                const checkedTiers = Array.from(document.querySelectorAll('.remix-tier:checked')).map(cb => parseInt(cb.value));
+                const genderFilter = document.querySelector('input[name="remixGender"]:checked').value;
+                
+                if (checkedTiers.length === 0) { alert("Please select at least one tier!"); return; }
+
+                const seatedIds = Object.values(this.state.assignments);
+                const studentsToRemix = [];
+                const seatsToRemix = [];
+
+                for (const [seatKey, studentId] of Object.entries(this.state.assignments)) {
+                    const student = this.state.students.find(s => s.id === studentId);
+                    if (student) {
+                        const tier = student.tier || 0;
+                        const tierMatch = checkedTiers.includes(tier);
+                        const genderMatch = genderFilter === 'all' || student.gender === genderFilter;
+                        
+                        if (tierMatch && genderMatch) {
+                            studentsToRemix.push(student);
+                            seatsToRemix.push(seatKey);
+                        }
+                    }
+                }
+
+                if (studentsToRemix.length < 2) {
+                    alert("Not enough students to shuffle with current criteria!");
+                    return;
+                }
+
+                // Shuffle
+                studentsToRemix.sort(() => Math.random() - 0.5);
+
+                // Reassign
+                seatsToRemix.forEach((seatKey, index) => {
+                    this.state.assignments[seatKey] = studentsToRemix[index].id;
+                });
+
+                this.saveState();
+                this.render();
+            }
+
+            // --- Smart Fill ---
+            setFillPattern(pat) {
+                this.fillSettings.pattern = pat;
+                document.querySelectorAll('.fill-opt').forEach(b => {
+                    if(b.dataset.pat === pat) b.classList.add('active-pattern', 'text-purple-700', 'ring-1', 'ring-purple-500', 'bg-purple-50');
+                    else b.classList.remove('active-pattern', 'text-purple-700', 'ring-1', 'ring-purple-500', 'bg-purple-50');
+                });
+            }
+
+            updateFillStrategy() {
+                const strat = document.getElementById('fill-strategy').value;
+                document.getElementById('btn-fill-next').style.display = strat === 'group' ? 'flex' : 'none';
+                document.getElementById('group-config').style.display = strat === 'group' ? 'block' : 'none';
+            }
+
+            executeSmartFill(action) {
+                const { rows, cols } = this.state.layout;
+                const pattern = this.fillSettings.pattern;
+                const strategy = document.getElementById('fill-strategy').value;
+                
+                const limits = {};
+                for(let i=1; i<=6; i++) {
+                    const minV = parseInt(document.getElementById(`min-t${i}`).value);
+                    const maxV = parseInt(document.getElementById(`max-t${i}`).value);
+                    limits[i] = { min: isNaN(minV)?0:minV, max: isNaN(maxV)?Infinity:maxV };
+                }
+
+                const seatedIds = Object.values(this.state.assignments);
+                let unseated = this.state.students.filter(s => !seatedIds.includes(s.id)).sort(() => Math.random() - 0.5);
+
+                let groups = [];
+                if (strategy === 'group') {
+                    const gR = parseInt(document.getElementById('group-rows').value) || rows;
+                    const gC = parseInt(document.getElementById('group-cols').value) || cols;
+                    
+                    for(let r=0; r<rows; r+=gR) {
+                        for(let c=0; c<cols; c+=gC) {
+                            let currentGroup = [];
+                            for(let rr=r; rr<Math.min(r+gR, rows); rr++) {
+                                for(let cc=c; cc<Math.min(c+gC, cols); cc++) {
+                                    currentGroup.push(`${rr}-${cc}`);
+                                }
+                            }
+                            groups.push(currentGroup);
+                        }
+                    }
+                } else {
+                    const gapCol = this.state.layout.gapCol;
+                    if(gapCol > 0) {
+                         let currentGroup = [];
+                         for(let c=0; c<cols; c++) {
+                            if(c > 0 && c % gapCol === 0) { groups.push(currentGroup); currentGroup = []; }
+                            for(let r=0; r<rows; r++) currentGroup.push(`${r}-${c}`);
+                        }
+                        groups.push(currentGroup);
+                    } else {
+                        let all = [];
+                        for(let r=0; r<rows; r++) for(let c=0; c<cols; c++) all.push(`${r}-${c}`);
+                        groups.push(all);
+                    }
+                }
+
+                if(pattern === 'row-back' || pattern === 'col-right') {
+                    groups.reverse();
+                    groups.forEach(g => g.reverse());
+                }
+                
+                if (pattern.startsWith('col')) {
+                    groups = groups.map(group => {
+                        return group.sort((a,b) => {
+                            const [r1,c1] = a.split('-').map(Number);
+                            const [r2,c2] = b.split('-').map(Number);
+                            return pattern === 'col-left' ? (c1 - c2 || r1 - r2) : (c2 - c1 || r1 - r2);
+                        });
+                    });
+                }
+
+                let targetGroups = groups;
+                if (action === 'next-group') {
+                    const idx = groups.findIndex(g => g.some(s => !this.state.assignments[s]));
+                    if (idx === -1) { alert("Classroom full!"); return; }
+                    targetGroups = [groups[idx]];
+                }
+
+                targetGroups.forEach(group => {
+                    const counts = {1:0,2:0,3:0,4:0,5:0,6:0,0:0};
+                    group.forEach(s => {
+                        const sid = this.state.assignments[s];
+                        if(sid) {
+                            const st = this.state.students.find(x => x.id === sid);
+                            if(st) counts[st.tier||0]++;
+                        }
+                    });
+
+                    group.forEach(seat => {
+                        if (!this.state.assignments[seat]) {
+                            const idx = unseated.findIndex(s => {
+                                const t = s.tier || 0;
+                                if(t === 0) return true; 
+                                return counts[t] < limits[t].max;
+                            });
+                            
+                            if (idx !== -1) {
+                                const student = unseated.splice(idx, 1)[0];
+                                this.state.assignments[seat] = student.id;
+                                counts[student.tier||0]++;
+                            }
+                        }
+                    });
+                });
+
+                this.saveState();
+                this.render();
+            }
+
+            // --- Basic Logic ---
+            handlePanStart(e) { if(e.target.closest('.seat-zone')||e.target.closest('.draggable-item')) return; this.panState.active=true; this.panState.startX=e.clientX; this.panState.startY=e.clientY; this.panState.initialPanX=this.state.pan.x; this.panState.initialPanY=this.state.pan.y; this.dom.canvas.classList.add('panning'); }
+            handlePanMove(e) { if(!this.panState.active)return; e.preventDefault(); const dx=e.clientX-this.panState.startX; const dy=e.clientY-this.panState.startY; this.state.pan.x=this.panState.initialPanX+dx; this.state.pan.y=this.panState.initialPanY+dy; this.applyTransform(); }
+            handlePanEnd() { this.panState.active=false; this.dom.canvas.classList.remove('panning'); }
+            applyTransform() { this.dom.classroomGrid.style.transform = `translate(${this.state.pan.x}px, ${this.state.pan.y}px) scale(${this.state.zoom})`; }
+            fitToScreen() { const cw=this.dom.canvas.clientWidth; const ch=this.dom.canvas.clientHeight; const gw=this.dom.classroomGrid.offsetWidth; const gh=this.dom.classroomGrid.offsetHeight; this.state.zoom=Math.min(cw/(gw+100), ch/(gh+100), 1); this.state.pan.x=(cw-gw*this.state.zoom)/2; this.state.pan.y=40; this.applyTransform(); this.dom.zoomVal.textContent=Math.round(this.state.zoom*100)+'%'; }
+            
+            handleDeleteClick(btn, id) {
+                if (btn.dataset.confirm === "true") this.deleteStudent(id);
+                else {
+                    btn.dataset.confirm = "true"; btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>'; btn.classList.add('btn-confirm'); lucide.createIcons();
+                    setTimeout(() => { if(document.body.contains(btn)) { btn.dataset.confirm = "false"; btn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i>'; btn.classList.remove('btn-confirm'); lucide.createIcons(); } }, 2000);
+                }
+            }
+            
+            updateStudent(id, field, value) { const s=this.state.students.find(st=>st.id===id); if(s) { if(field==='tier') s.tier=parseInt(value); if(field==='gender') s.gender=value; this.saveState(); this.renderSidebar(); this.renderGrid(); } }
+            deleteAllStudents() { if(confirm("Delete ALL students?")) { this.state.students=[]; this.state.assignments={}; this.saveState(); this.render(); } }
+            
+            toggleSidebar() { this.dom.sidebar.classList.toggle('sidebar-closed'); this.dom.sidebar.classList.toggle('sidebar-open'); this.dom.mobileOverlay.classList.toggle('hidden'); }
+            togglePresenterMode() { document.body.classList.toggle('presenter-mode'); if(document.body.classList.contains('presenter-mode')) this.fitToScreen(); }
+            
+            pushHistory(isInitial=false) { if(this.historyIndex<this.history.length-1)this.history=this.history.slice(0,this.historyIndex+1); this.history.push(JSON.stringify(this.state)); if(this.history.length>20)this.history.shift(); else this.historyIndex++; if(!isInitial)localStorage.setItem('sp_state',JSON.stringify(this.state)); this.updateHistoryButtons(); }
+            undo() { if(this.historyIndex>0)this.restore(this.history[--this.historyIndex]); }
+            redo() { if(this.historyIndex<this.history.length-1)this.restore(this.history[++this.historyIndex]); }
+            restore(json) { this.state=JSON.parse(json); this.updateInputs(); this.applyBg(); this.render(); this.updateHistoryButtons(); }
+            updateHistoryButtons() { this.dom.undoBtn.disabled=this.historyIndex<=0; this.dom.undoBtn.style.opacity=this.dom.undoBtn.disabled?0.3:1; this.dom.redoBtn.disabled=this.historyIndex>=this.history.length-1; this.dom.redoBtn.style.opacity=this.dom.redoBtn.disabled?0.3:1; }
+            saveState() { this.render(); this.pushHistory(); }
+            
+            addStudent() { const n=document.getElementById('newStudentName').value.trim(); if(!n)return; this.state.students.push({id:'s_'+Date.now(), name:n, gender:document.getElementById('newStudentGender').value, tier:parseInt(document.getElementById('newStudentTier').value)||0, score:0, material:0}); document.getElementById('newStudentName').value=''; this.saveState(); this.setTab('list'); }
+            bulkAdd() { const r=document.getElementById('bulkInput').value; if(!r)return; r.split('\n').forEach(l=>{ const[n,g,t]=l.split(',').map(x=>x.trim()); if(n) this.state.students.push({id:'s_'+Math.random().toString(36).substr(2,9), name:n, gender:(g&&g.toUpperCase().startsWith('F'))?'F':(g&&g.toUpperCase().startsWith('M')?'M':''), tier:parseInt(t)||0, score:0, material:0}); }); document.getElementById('bulkInput').value=''; this.saveState(); this.setTab('list'); }
+            deleteStudent(id) { this.state.students=this.state.students.filter(s=>s.id!==id); Object.keys(this.state.assignments).forEach(k=>{if(this.state.assignments[k]===id)delete this.state.assignments[k]}); this.saveState(); }
+            clearAssignments() { this.state.assignments={}; this.saveState(); }
+            
+            togglePerspective() { this.state.view.perspective=this.state.view.perspective==='front'?'back':'front'; this.render(); }
+            toggleDualMode() { this.state.view.dualMode=!this.state.view.dualMode; this.render(); }
+            adjustFontSize(d) { this.state.view.fontSize=Math.max(10,Math.min(48,this.state.view.fontSize+d)); this.renderGrid(); }
+            zoom(d) { this.state.zoom=Math.max(0.1,Math.min(3,this.state.zoom+d)); this.applyTransform(); this.dom.zoomVal.textContent=Math.round(this.state.zoom*100)+'%'; }
+            
+            handleBgUpload(i) { const f=i.files[0]; if(!f)return; const r=new FileReader(); r.onload=(e)=>{this.state.bgImage=e.target.result; this.applyBg(); this.pushHistory();}; r.readAsDataURL(f); }
+            clearBg() { this.state.bgImage=null; this.applyBg(); this.pushHistory(); }
+            applyBg() { this.dom.bgLayer.style.backgroundImage=this.state.bgImage?`url(${this.state.bgImage})`:'none'; }
+            exportData() { const b=new Blob([JSON.stringify(this.state,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`seat_plan_${new Date().toISOString().slice(0,10)}.json`; a.click(); }
+            importData(i) { const f=i.files[0]; if(!f)return; const r=new FileReader(); r.onload=(e)=>{try{this.state=JSON.parse(e.target.result); this.pushHistory(true); this.applyBg(); }catch(e){alert('Invalid JSON');}}; r.readAsText(f); i.value=''; }
+
+            handleDragStart(e,id,src,seat) { this.dragState={id,source:src,sourceSeat:seat}; e.dataTransfer.setData('text/plain',id); setTimeout(()=>e.target.classList.add('dragging'),0); }
+            handleDragEnd(e) { e.target.classList.remove('dragging'); document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over')); }
+            handleDrop(e,r,c) { e.preventDefault(); const t=`${r}-${c}`; const d=this.dragState.id; const o=this.state.assignments[t]; if(this.dragState.source==='sidebar') Object.keys(this.state.assignments).forEach(k=>{if(this.state.assignments[k]===d)delete this.state.assignments[k]}); else if(this.dragState.source==='grid') { delete this.state.assignments[this.dragState.sourceSeat]; if(o)this.state.assignments[this.dragState.sourceSeat]=o; } this.state.assignments[t]=d; this.saveState(); }
+            unseat(k) { delete this.state.assignments[k]; this.saveState(); }
+
+            toggleSettingsMenu() { document.getElementById('settings-menu').classList.toggle('hidden'); }
+            toggleViewOption(k) { this.state.view[k]=!this.state.view[k]; this.renderGrid(); }
+            
+            updateScore(id, type, val) {
+                const s = this.state.students.find(st => st.id === id);
+                if(s) {
+                    if(!s.score) s.score = 0; if(!s.material) s.material = 0;
+                    if(type === 'score') s.score += val;
+                    if(type === 'material') s.material = Math.max(0, s.material + val);
+                    this.saveState();
+                }
+            }
+
+            // --- Rendering ---
+            render() {
+                this.renderGrid();
+                this.renderSidebar();
+                this.updateStats();
+                lucide.createIcons();
+                this.dom.dualLabel.textContent = this.state.view.dualMode ? "Duo" : "Single";
+                this.applyTransform();
+                this.updateFillStrategy();
+            }
+
+            renderGrid() {
+                const { rows, cols, gapCol } = this.state.layout;
+                const { perspective, dualMode, fontSize, showScores } = this.state.view;
+                const container = this.dom.gridContent;
+                container.innerHTML = '';
+                
+                this.dom.teacherDesk.style.order = perspective === 'front' ? '-1' : '9999';
+                this.dom.perspectiveLabel.textContent = perspective === 'front' ? 'Teacher View' : 'Back View';
+                
+                const rowIndices = Array.from({length:rows}, (_, i) => i);
+                if (perspective === 'back') rowIndices.reverse();
+
+                rowIndices.forEach(r => {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'flex gap-2 md:gap-3 justify-center';
+                    for(let c=0; c<cols; c++) {
+                        if (gapCol > 0 && c > 0 && c % gapCol === 0) {
+                             const gap = document.createElement('div');
+                             gap.className = 'w-4 md:w-16 shrink-0';
+                             rowDiv.appendChild(gap);
+                        }
+                        const key = `${r}-${c}`;
+                        const sId = this.state.assignments[key];
+                        const s = this.state.students.find(st => st.id === sId);
+                        const hClass = dualMode ? 'h-24 md:h-32 lg:h-40' : 'h-16 md:h-20 lg:h-24';
+                        
+                        const cell = document.createElement('div');
+                        cell.className = `seat-zone draggable-item seat-card relative w-20 md:w-28 lg:w-32 bg-white rounded-lg md:rounded-xl border-2 shadow-sm transition-colors flex flex-col items-center justify-center group ${hClass} ${s ? 'border-blue-200 bg-blue-50/50 hover:shadow-md cursor-grab active:cursor-grabbing' : 'border-slate-200 hover:border-blue-300'}`;
+                        cell.dataset.r = r; cell.dataset.c = c;
+                        
+                        cell.ondragover = (e) => { e.preventDefault(); cell.classList.add('drag-over'); };
+                        cell.ondragleave = () => cell.classList.remove('drag-over');
+                        cell.ondrop = (e) => this.handleDrop(e, r, c);
+
+                        if (s) {
+                            cell.draggable = true;
+                            cell.ondragstart = (e) => this.handleDragStart(e, s.id, 'grid', key);
+                            cell.ondragend = (e) => this.handleDragEnd(e);
+                            const color = this.TIER_COLORS[s.tier] || this.TIER_COLORS[0];
+                            let gIcon = '';
+                            if (this.state.view.showGender) {
+                                if (s.gender === 'F') gIcon = `<i data-lucide="user" class="w-3 h-3 text-pink-400"></i>`;
+                                else if (s.gender === 'M') gIcon = `<i data-lucide="user" class="w-3 h-3 text-blue-400"></i>`;
+                                else gIcon = `<i data-lucide="user" class="w-3 h-3 text-gray-400"></i>`;
+                            }
+
+                            let content = '';
+                            if (dualMode && this.state.view.showNames) content += `<div class="flex-1 flex items-center justify-center w-full border-b border-blue-100/50 rotate-180 select-none opacity-75 leading-tight px-1 overflow-hidden" style="font-size: ${fontSize}px;">${s.name}</div>`;
+                            if (this.state.view.showNames) content += `<div class="flex-1 flex items-center justify-center w-full px-1 text-center font-bold text-gray-800 leading-tight select-none overflow-hidden" style="font-size: ${fontSize}px;">${s.name}</div>`;
+
+                            // Numeric Tier Dot
+                            const tierDot = this.state.view.showTiers && s.tier > 0 
+                                ? `<span class="w-4 h-4 rounded-full ${color} text-white text-[10px] flex items-center justify-center font-bold shadow-sm">${s.tier}</span>` 
+                                : '';
+                            
+                            // Score Badges
+                            const scoreBadge = (showScores && (s.score || 0) !== 0) ? `<div class="absolute top-1 right-1 bg-green-100 text-green-700 text-[10px] px-1 rounded-full border border-green-200 font-bold">${s.score > 0 ? '+'+s.score : s.score}</div>` : '';
+                            const materialBadge = (showScores && (s.material || 0) > 0) ? `<div class="absolute top-1 left-1 bg-red-100 text-red-700 text-[10px] px-1 rounded-full border border-red-200 font-bold">! ${s.material}</div>` : '';
+
+                            // Click Zones (Invisible but active)
+                            const clickZones = `
+                                <div class="click-zone zone-tl" onclick="app.updateScore('${s.id}', 'score', -1)" title="Score -1"></div>
+                                <div class="click-zone zone-tr" onclick="app.updateScore('${s.id}', 'score', 1)" title="Score +1"></div>
+                                <div class="click-zone zone-bl" onclick="app.updateScore('${s.id}', 'material', -1)" title="Material Undo"></div>
+                                <div class="click-zone zone-br" onclick="app.updateScore('${s.id}', 'material', 1)" title="Forgot Material +1"></div>
+                            `;
+
+                            // Only show unseat on hover if not interacting with zones (handled by z-index and propagation)
+                            // We put the unseat button on high z-index
+                            const unseatBtn = `<div onclick="event.stopPropagation(); app.unseat('${key}')" class="absolute -top-2 -right-2 bg-white rounded-full shadow border border-gray-200 p-0.5 cursor-pointer opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity z-50 no-print"><i data-lucide="x" class="w-3 h-3"></i></div>`;
+
+                            cell.innerHTML = `
+                                ${unseatBtn}
+                                ${clickZones}
+                                ${scoreBadge} ${materialBadge}
+                                ${content}
+                                <div class="absolute bottom-1 left-1 flex gap-1 pointer-events-none">${tierDot}</div>
+                                <div class="absolute bottom-1 right-1 pointer-events-none">${gIcon}</div>
+                            `;
+                        } else {
+                            cell.innerHTML = `<span class="text-slate-200 text-[10px] font-black uppercase tracking-widest select-none pointer-events-none">Empty</span>`;
+                        }
+                        rowDiv.appendChild(cell);
+                    }
+                    container.appendChild(rowDiv);
+                });
+            }
+
+            renderSidebar() {
+                const list = document.getElementById('student-list-container');
+                list.innerHTML = '';
+                const term = document.getElementById('searchInput').value.toLowerCase();
+                const fGender = document.getElementById('filterGender').value;
+                const fTier = document.getElementById('filterTier').value;
+                
+                const seatedIds = Object.values(this.state.assignments);
+                const unseated = this.state.students.filter(s => {
+                    const matchSearch = s.name.toLowerCase().includes(term);
+                    const matchGender = fGender === 'all' || s.gender === fGender;
+                    const matchTier = fTier === 'all' || s.tier.toString() === fTier;
+                    return !seatedIds.includes(s.id) && matchSearch && matchGender && matchTier;
+                });
+
+                if (unseated.length === 0) { list.innerHTML = `<div class="text-center text-gray-400 text-xs py-8 italic">No students found</div>`; return; }
+
+                unseated.forEach(s => {
+                    const el = document.createElement('div');
+                    el.className = 'draggable-item bg-white p-2 rounded border border-gray-200 shadow-sm flex items-center gap-2 cursor-grab hover:border-blue-400 group';
+                    el.draggable = true;
+                    el.ondragstart = (e) => this.handleDragStart(e, s.id, 'sidebar', null);
+                    el.ondragend = (e) => this.handleDragEnd(e);
+                    
+                    const gVal = s.gender || "";
+                    
+                    el.innerHTML = `
+                        <i data-lucide="grip-vertical" class="w-4 h-4 text-gray-300"></i>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium text-gray-800 truncate">${s.name}</div>
+                            <div class="flex gap-1 mt-1">
+                                <select onchange="app.updateStudent('${s.id}', 'gender', this.value)" class="text-[10px] border rounded bg-gray-50 p-0.5">
+                                    <option value="" ${gVal===''?'selected':''}>-</option>
+                                    <option value="M" ${gVal==='M'?'selected':''}>Boy</option>
+                                    <option value="F" ${gVal==='F'?'selected':''}>Girl</option>
+                                </select>
+                                <select onchange="app.updateStudent('${s.id}', 'tier', this.value)" class="text-[10px] border rounded bg-gray-50 p-0.5">
+                                    <option value="0" ${s.tier===0?'selected':''}>T -</option>
+                                    <option value="1" ${s.tier===1?'selected':''}>T 1</option>
+                                    <option value="2" ${s.tier===2?'selected':''}>T 2</option>
+                                    <option value="3" ${s.tier===3?'selected':''}>T 3</option>
+                                    <option value="4" ${s.tier===4?'selected':''}>T 4</option>
+                                    <option value="5" ${s.tier===5?'selected':''}>T 5</option>
+                                    <option value="6" ${s.tier===6?'selected':''}>T 6</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="app.handleDeleteClick(this, '${s.id}')" class="text-gray-300 hover:text-red-500 transition-all duration-200"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    `;
+                    list.appendChild(el);
+                });
+            }
+
+            updateStats() {
+                const total = this.state.students.length;
+                const boys = this.state.students.filter(s => s.gender === 'M').length;
+                const girls = this.state.students.filter(s => s.gender === 'F').length;
+                document.getElementById('stat-total').textContent = total;
+                document.getElementById('stat-boys').textContent = boys;
+                document.getElementById('stat-girls').textContent = girls;
+            }
+            
+            sortList(by) {
+                if (by === 'name') this.state.students.sort((a,b) => a.name.localeCompare(b.name));
+                else if (by === 'tier') this.state.students.sort((a,b) => (a.tier||0) - (b.tier||0));
+                this.renderSidebar();
+            }
+            
+            setTab(t) {
+                document.getElementById('view-list').classList.add('hidden');
+                document.getElementById('view-add').classList.add('hidden');
+                document.getElementById('view-fill').classList.add('hidden');
+                document.getElementById('view-remix').classList.add('hidden');
+                
+                document.getElementById('tab-list').className = "flex-1 py-2 text-[10px] sm:text-xs font-medium rounded-md text-gray-600 hover:bg-gray-50";
+                document.getElementById('tab-add').className = "flex-1 py-2 text-[10px] sm:text-xs font-medium rounded-md text-gray-600 hover:bg-gray-50";
+                document.getElementById('tab-fill').className = "flex-1 py-2 text-[10px] sm:text-xs font-medium rounded-md text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1";
+                document.getElementById('tab-remix').className = "flex-1 py-2 text-[10px] sm:text-xs font-medium rounded-md text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1";
+                
+                document.getElementById(`view-${t}`).classList.remove('hidden');
+                
+                const activeClass = "flex-1 py-2 text-[10px] sm:text-xs font-medium rounded-md bg-blue-50 text-blue-700";
+                const el = document.getElementById(`tab-${t}`);
+                el.className = (t === 'fill' || t === 'remix') ? activeClass + " flex items-center justify-center gap-1" : activeClass;
+            }
+        }
+
+        window.onclick = (e) => {
+            if (!e.target.closest('#settings-trigger') && !e.target.closest('#settings-menu')) document.getElementById('settings-menu').classList.add('hidden');
+        };
+
+        const app = new SeatPlanner();
+    </script>
+</body>
+</html>
