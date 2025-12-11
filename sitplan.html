@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- html2canvas for Image Export -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -41,15 +43,19 @@
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white; }
             .no-print { display: none !important; }
             #main-content { margin: 0; padding: 0; height: auto; width: 100%; overflow: visible; background: white; }
-            #canvas-container { padding: 0; display: flex; align-items: center; justify-content: center; transform: none !important; background: none; }
+            #canvas-container { padding: 0; display: flex; align-items: flex-start; justify-content: center; transform: none !important; background: none; }
             #classroom-grid { 
                 border: none; box-shadow: none; 
-                transform: scale(0.8) !important; 
+                transform: scale(0.8) !important; /* Slight scale down to fit paper */
                 transform-origin: center top;
                 padding: 0; margin: 0 auto;
+                position: static !important; /* Reset absolute positioning */
             }
             .seat-card { border: 1px solid #94a3b8 !important; box-shadow: none !important; break-inside: avoid; }
             
+            /* Hide Title Banner in Print */
+            #print-banner { display: none !important; }
+
             /* Force Colors */
             .bg-blue-50 { background-color: #eff6ff !important; }
             .bg-green-500 { background-color: #22c55e !important; }
@@ -127,12 +133,13 @@
                     <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-names" checked onchange="app.toggleViewOption('showNames')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Names</span></label>
                     <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-tiers" checked onchange="app.toggleViewOption('showTiers')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Tiers</span></label>
                     <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-gender" checked onchange="app.toggleViewOption('showGender')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Gender</span></label>
-                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-scores" checked onchange="app.toggleViewOption('showScores')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Scores (Marks)</span></label>
+                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-scores" onchange="app.toggleViewOption('showScores')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Scores (Marks)</span></label>
                     
                     <div class="h-px bg-gray-200 my-2"></div>
-                    <div class="px-2 pb-1 text-xs font-bold text-gray-400">DATA & BG</div>
+                    <div class="px-2 pb-1 text-xs font-bold text-gray-400">DATA & EXPORT</div>
                     <label class="flex items-center px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm text-blue-600"><i data-lucide="image-plus" class="w-4 h-4 mr-2"></i> Set Floor Plan <input type="file" accept="image/*" class="hidden" onchange="app.handleBgUpload(this)"></label>
                     <button onclick="app.clearBg()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm text-red-600"><i data-lucide="trash-2" class="w-4 h-4 mr-2"></i> Remove BG</button>
+                    <button onclick="app.exportImage()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm text-indigo-600"><i data-lucide="image" class="w-4 h-4 mr-2"></i> Export Image (PNG)</button>
                     <button onclick="app.exportData()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm text-gray-700"><i data-lucide="download" class="w-4 h-4 mr-2"></i> Export Data (JSON)</button>
                     <label class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm text-gray-700"><i data-lucide="upload" class="w-4 h-4 mr-2"></i> Import Data <input type="file" class="hidden" accept=".json" onchange="app.importData(this)"></label>
                     
@@ -339,7 +346,7 @@
                         <button onclick="app.fitToScreen()" class="p-2 hover:bg-gray-100 rounded-full"><i data-lucide="maximize" class="w-5 h-5"></i></button>
                         <button onclick="app.zoom(0.1)" class="p-2 hover:bg-gray-100 rounded-full"><i data-lucide="zoom-in" class="w-5 h-5"></i></button>
                         <div class="w-px h-6 bg-gray-300 mx-1"></div>
-                        <button onclick="window.print()" class="p-2 hover:bg-gray-100 rounded-full text-gray-700" title="Print/PDF"><i data-lucide="printer" class="w-5 h-5"></i></button>
+                        <button onclick="app.exportImage()" class="p-2 hover:bg-gray-100 rounded-full text-indigo-700" title="Export Image"><i data-lucide="image" class="w-5 h-5"></i></button>
                         <div class="w-px h-6 bg-gray-300 mx-1"></div>
                         <button onclick="app.togglePresenterMode()" class="p-2 hover:bg-red-50 text-red-600 rounded-full font-bold text-xs uppercase tracking-wide">Exit</button>
                     </div>
@@ -349,7 +356,6 @@
             <!-- Canvas -->
             <div id="canvas-container" class="flex-1 overflow-hidden relative" onmousedown="app.handlePanStart(event)" onmousemove="app.handlePanMove(event)" onmouseup="app.handlePanEnd(event)" onmouseleave="app.handlePanEnd(event)">
                 <div id="bg-layer" class="absolute pointer-events-none opacity-50 z-0 bg-no-repeat bg-contain bg-center transition-all duration-300 origin-top-left" style="width: 100%; height: 100%; top: 0; left: 0;"></div>
-                <div class="hidden print:block w-full mb-6 text-center absolute top-0 w-full"><h1 class="text-2xl font-bold text-gray-900">Classroom Seating Plan</h1><p class="text-sm text-gray-500" id="print-date"></p></div>
                 
                 <div id="classroom-grid" class="absolute top-10 left-10 transition-transform duration-75 origin-top-left bg-white p-8 rounded-3xl border border-gray-200 shadow-xl print:shadow-none print:border-none print:p-0 flex flex-col gap-6 select-none z-10">
                     <div id="teacher-desk-area" class="w-full flex justify-center order-first">
@@ -402,7 +408,6 @@
                 this.applyBg();
                 this.pushHistory(true);
                 this.render();
-                document.getElementById('print-date').textContent = new Date().toLocaleDateString();
                 this.fitToScreen();
             }
 
@@ -428,12 +433,20 @@
                     canvas: document.getElementById('canvas-container')
                 };
                 this.updateInputs();
+                this.updateViewControls();
             }
 
             updateInputs() {
                 this.dom.rows.value = this.state.layout.rows;
                 this.dom.cols.value = this.state.layout.cols;
                 this.dom.gap.value = this.state.layout.gapCol;
+            }
+
+            updateViewControls() {
+                if (document.getElementById('show-names')) document.getElementById('show-names').checked = this.state.view.showNames;
+                if (document.getElementById('show-tiers')) document.getElementById('show-tiers').checked = this.state.view.showTiers;
+                if (document.getElementById('show-gender')) document.getElementById('show-gender').checked = this.state.view.showGender;
+                if (document.getElementById('show-scores')) document.getElementById('show-scores').checked = this.state.view.showScores;
             }
 
             bindEvents() {
@@ -663,11 +676,12 @@
             pushHistory(isInitial=false) { if(this.historyIndex<this.history.length-1)this.history=this.history.slice(0,this.historyIndex+1); this.history.push(JSON.stringify(this.state)); if(this.history.length>20)this.history.shift(); else this.historyIndex++; if(!isInitial)localStorage.setItem('sp_state',JSON.stringify(this.state)); this.updateHistoryButtons(); }
             undo() { if(this.historyIndex>0)this.restore(this.history[--this.historyIndex]); }
             redo() { if(this.historyIndex<this.history.length-1)this.restore(this.history[++this.historyIndex]); }
-            restore(json) { this.state=JSON.parse(json); this.updateInputs(); this.applyBg(); this.render(); this.updateHistoryButtons(); }
+            restore(json) { this.state=JSON.parse(json); this.updateInputs(); this.updateViewControls(); this.applyBg(); this.render(); this.updateHistoryButtons(); }
             updateHistoryButtons() { this.dom.undoBtn.disabled=this.historyIndex<=0; this.dom.undoBtn.style.opacity=this.dom.undoBtn.disabled?0.3:1; this.dom.redoBtn.disabled=this.historyIndex>=this.history.length-1; this.dom.redoBtn.style.opacity=this.dom.redoBtn.disabled?0.3:1; }
             saveState() { this.render(); this.pushHistory(); }
             
             addStudent() { const c=document.getElementById('newStudentClassNo').value.trim(); const n=document.getElementById('newStudentName').value.trim(); if(!n)return; this.state.students.push({id:'s_'+Date.now(), classNo:c, name:n, gender:document.getElementById('newStudentGender').value, tier:parseInt(document.getElementById('newStudentTier').value)||0, score:0, material:0}); document.getElementById('newStudentName').value=''; document.getElementById('newStudentClassNo').value=''; this.saveState(); this.setTab('list'); }
+            
             bulkAdd() { 
                 const r = document.getElementById('bulkInput').value; 
                 if(!r) return; 
@@ -679,15 +693,13 @@
                     let c='', n='', g='', t=0;
 
                     if (l.includes(',')) {
-                        // Standard CSV: ClassNo, Name, Gender, Tier
                         const parts = l.split(',').map(x => x.trim());
                         c = parts[0] || '';
-                        n = parts[1] || ''; // Name is second
+                        n = parts[1] || '';
                         const gRaw = parts[2] || '';
                         g = (gRaw && gRaw.toUpperCase().startsWith('F')) ? 'F' : (gRaw && gRaw.toUpperCase().startsWith('M') ? 'M' : '');
                         t = parseInt(parts[3]) || 0;
                     } else {
-                        // Smart Import: Just Name
                         n = l;
                     }
 
@@ -708,6 +720,7 @@
                 this.saveState(); 
                 this.setTab('list'); 
             }
+
             deleteStudent(id) { this.state.students=this.state.students.filter(s=>s.id!==id); Object.keys(this.state.assignments).forEach(k=>{if(this.state.assignments[k]===id)delete this.state.assignments[k]}); this.saveState(); }
             clearAssignments() { this.state.assignments={}; this.saveState(); }
             
@@ -719,8 +732,42 @@
             handleBgUpload(i) { const f=i.files[0]; if(!f)return; const r=new FileReader(); r.onload=(e)=>{this.state.bgImage=e.target.result; this.applyBg(); this.pushHistory();}; r.readAsDataURL(f); }
             clearBg() { this.state.bgImage=null; this.applyBg(); this.pushHistory(); }
             applyBg() { this.dom.bgLayer.style.backgroundImage=this.state.bgImage?`url(${this.state.bgImage})`:'none'; }
+            
+            exportImage() {
+                const element = document.getElementById('classroom-grid');
+                const originalTransform = element.style.transform;
+                element.style.transform = 'none'; // Temporarily reset transform for clean capture
+                
+                html2canvas(element, {
+                    backgroundColor: '#ffffff',
+                    scale: 2 // High resolution
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `seat_plan_${new Date().toISOString().slice(0,10)}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                    element.style.transform = originalTransform; // Restore view
+                });
+            }
+
             exportData() { const b=new Blob([JSON.stringify(this.state,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`seat_plan_${new Date().toISOString().slice(0,10)}.json`; a.click(); }
-            importData(i) { const f=i.files[0]; if(!f)return; const r=new FileReader(); r.onload=(e)=>{try{this.state=JSON.parse(e.target.result); this.pushHistory(true); this.applyBg(); }catch(e){alert('Invalid JSON');}}; r.readAsText(f); i.value=''; }
+            importData(i) { 
+                const f=i.files[0]; if(!f)return; 
+                const r=new FileReader(); 
+                r.onload=(e)=>{
+                    try {
+                        const d=JSON.parse(e.target.result); 
+                        this.state = d;
+                        this.updateInputs();
+                        this.updateViewControls();
+                        this.applyBg();
+                        this.render();
+                        this.pushHistory(true); 
+                    } catch(e) { alert('Invalid JSON'); }
+                }; 
+                r.readAsText(f); 
+                i.value=''; 
+            }
 
             handleDragStart(e,id,src,seat) { this.dragState={id,source:src,sourceSeat:seat}; e.dataTransfer.setData('text/plain',id); setTimeout(()=>e.target.classList.add('dragging'),0); }
             handleDragEnd(e) { e.target.classList.remove('dragging'); document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over')); }
