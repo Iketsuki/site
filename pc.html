@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Builder Lab: Build a Computer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Noto+Sans:wght@400;700&family=VT323&display=swap');
+        
+        body {
+            font-family: 'Noto Sans', sans-serif;
+            background-color: #f0f4f8;
+            user-select: none;
+        }
+
+        h1, h2, h3, .comic-font {
+            font-family: 'Comic Neue', cursive;
+        }
+
+        /* Bios Font */
+        .bios-text {
+            font-family: 'VT323', monospace;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e0; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0; 
+        }
+
+        /* Motherboard Pattern */
+        .pcb-bg {
+            background-color: #2d3748;
+            background-image: radial-gradient(#4a5568 2px, transparent 2px), radial-gradient(#4a5568 2px, transparent 2px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            border: 4px solid #1a202c;
+            border-radius: 12px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            cursor: help; /* Indicates clickable */
+            position: relative;
+        }
+        
+        .pcb-bg:hover::after {
+            content: "Click empty space for Motherboard Info";
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .pcb-bg:hover::after {
+            opacity: 1;
+        }
+
+        .component-slot {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .component-slot:hover {
+            filter: brightness(1.2);
+            transform: scale(1.05);
+            z-index: 50 !important;
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .glow-success {
+            animation: glowGreen 1s ease-in-out;
+        }
+
+        @keyframes glowGreen {
+            0% { box-shadow: 0 0 5px #48bb78; }
+            50% { box-shadow: 0 0 20px #48bb78, 0 0 10px #48bb78 inset; }
+            100% { box-shadow: 0 0 5px #48bb78; }
+        }
+
+        .draggable-item {
+            cursor: grab;
+        }
+        .draggable-item:active {
+            cursor: grabbing;
+        }
+        
+        /* Modal Animation */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 300ms, transform 300ms;
+        }
+
+        /* Screen turn on animation */
+        @keyframes screenOn {
+            0% { background-color: #000; }
+            100% { background-color: #1a202c; }
+        }
+        .screen-on {
+            animation: screenOn 0.5s forwards;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Header / Progress -->
+    <header class="bg-white shadow-md p-4 flex justify-between items-center z-10">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 text-white p-2 rounded-lg">
+                <i class="fas fa-microchip text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">PC Builder Lab</h1>
+                <p class="text-sm text-gray-500" id="phase-title">Phase 1: Disassembly</p>
+            </div>
+        </div>
+        
+        <!-- Progress Steps -->
+        <div class="hidden md:flex gap-2">
+            <div id="step-1" class="px-4 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-700 transition-colors">1. Disassemble</div>
+            <div id="step-2" class="px-4 py-1 rounded-full text-sm font-bold bg-gray-100 text-gray-400 transition-colors">2. Sort</div>
+            <div id="step-3" class="px-4 py-1 rounded-full text-sm font-bold bg-gray-100 text-gray-400 transition-colors">3. Build</div>
+        </div>
+
+        <button onclick="app.reset()" class="text-gray-400 hover:text-red-500 transition font-bold text-sm">
+            <i class="fas fa-redo"></i> RESET
+        </button>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 relative flex bg-gray-100 overflow-hidden">
+        
+        <!-- Sidebar (Assistant & Inventory) -->
+        <aside class="w-1/4 min-w-[320px] bg-white border-r border-gray-200 flex flex-col shadow-lg z-20">
+            <!-- Mentor Box -->
+            <div class="p-5 border-b border-gray-100 bg-blue-50">
+                <div class="flex items-start gap-3">
+                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher" alt="AI Mentor" class="w-14 h-14 rounded-full border-2 border-blue-200 bg-white">
+                    <div>
+                        <h3 class="font-bold text-blue-900 comic-font text-lg">Lab Mentor</h3>
+                        <p id="mentor-text" class="text-sm text-blue-800 mt-1 leading-relaxed">
+                            Welcome! Let's open the computer. Click on the parts inside to remove them.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory / Info Panel -->
+            <div class="flex-1 overflow-y-auto p-4 bg-slate-50">
+                <h3 class="font-bold text-gray-700 mb-3 flex items-center justify-between">
+                    <span id="sidebar-heading" class="comic-font text-lg"><i class="fas fa-box-open mr-2"></i> Inventory</span>
+                    <span id="inventory-count" class="text-xs bg-gray-200 px-2 py-1 rounded-full text-gray-600 hidden">0 items</span>
+                </h3>
+                
+                <!-- Dynamic Content: Inventory List -->
+                <div id="sidebar-content" class="space-y-3 pb-20">
+                    <p class="text-gray-400 text-center italic mt-10">Your inventory is empty.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Game Stage -->
+        <section class="flex-1 relative p-6 flex justify-center items-center overflow-auto bg-gray-100" id="game-stage">
+            <!-- Content Injected via JS -->
+        </section>
+
+    </main>
+
+    <!-- Component Info Modal (Overlay) -->
+    <div id="info-modal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 transform transition-all scale-100 border-t-4 border-blue-500 flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex items-center gap-4">
+                    <div id="modal-icon" class="w-14 h-14 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 text-3xl shadow-inner"></div>
+                    <div>
+                        <h2 id="modal-title" class="text-2xl font-bold text-gray-800 comic-font"></h2>
+                        <span id="modal-category" class="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded bg-gray-200 text-gray-600"></span>
+                    </div>
+                </div>
+                <button onclick="app.closeModal()" class="text-gray-400 hover:text-red-500 transition">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <div class="bg-blue-50 p-4 rounded-lg mb-4 flex-1 overflow-y-auto">
+                <h4 class="text-blue-800 font-bold text-sm mb-1">What does it do?</h4>
+                <p id="modal-desc" class="text-gray-700 text-base leading-relaxed"></p>
+            </div>
+            
+            <div id="modal-hint-box" class="bg-yellow-50 p-3 rounded-lg mb-4 hidden">
+                 <h4 class="text-yellow-800 font-bold text-xs mb-1"><i class="fas fa-lightbulb"></i> Hint</h4>
+                 <p id="modal-hint" class="text-sm text-yellow-800 italic"></p>
+            </div>
+
+            <div class="flex flex-col gap-2 mt-auto">
+                <!-- Image Search Button -->
+                <button id="modal-search-btn" class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 rounded-lg shadow-sm transition flex items-center justify-center gap-2">
+                    <i class="fas fa-search"></i> <span>See Real Photos</span>
+                </button>
+
+                <!-- Action Button (Remove/Install) -->
+                <button id="modal-action-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition-transform active:scale-95 flex items-center justify-center gap-2">
+                    Action
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Power Button (Hidden initially) -->
+    <div id="power-control" class="fixed bottom-8 right-8 hidden z-40">
+        <button onclick="app.powerOn()" class="bg-green-500 hover:bg-green-600 text-white w-20 h-20 rounded-full shadow-lg border-4 border-green-400 flex flex-col items-center justify-center transition-transform hover:scale-110 active:scale-95 group">
+            <i class="fas fa-power-off text-3xl mb-1 group-hover:animate-pulse"></i>
+            <span class="text-[10px] font-bold uppercase">Power On</span>
+        </button>
+    </div>
+
+    <script>
+        // --- Educational Data ---
+        const componentsData = {
+            motherboard: {
+                id: 'motherboard',
+                name: 'Motherboard',
+                fullName: 'Main Logic Board',
+                category: 'processing',
+                displayCategory: 'Backbone',
+                icon: 'fa-server',
+                color: 'bg-gray-800',
+                desc: 'The big green or black board that connects everything together. Think of it like a skeleton or nervous system. All parts plug into it so they can talk to each other.',
+                hint: 'It is the large plate in the background.',
+                scaffoldHint: 'Everything connects to this.',
+                w: 100, h: 100, x: 0, y: 0 // Conceptual size
+            },
+            cpu: {
+                id: 'cpu',
+                name: 'CPU',
+                fullName: 'Central Processing Unit',
+                category: 'processing',
+                icon: 'fa-microchip',
+                color: 'bg-blue-500',
+                desc: 'The "Brain" of the computer. It thinks, calculates, and runs programs.',
+                hint: 'It is a small square chip. It gets very hot, so it needs a fan on top.',
+                scaffoldHint: 'Look for the square socket in the middle of the motherboard.',
+                w: 12, h: 12, x: 44, y: 35
+            },
+            ram: {
+                id: 'ram',
+                name: 'RAM',
+                fullName: 'Random Access Memory',
+                category: 'storage', 
+                displayCategory: 'Storage (Short-term)',
+                icon: 'fa-memory',
+                color: 'bg-green-500',
+                desc: 'Short-term memory. It holds data only while the computer is ON. If you turn off the power, it forgets everything.',
+                hint: 'Long sticks that snap into slots next to the CPU.',
+                scaffoldHint: 'Find the long vertical slots next to the CPU.',
+                w: 4, h: 25, x: 60, y: 30
+            },
+            gpu: {
+                id: 'gpu',
+                name: 'GPU',
+                fullName: 'Graphics Processing Unit',
+                category: 'processing',
+                icon: 'fa-gamepad',
+                color: 'bg-purple-500',
+                desc: 'The "Graphics Card". It draws images, videos, and games on your screen.',
+                hint: 'It is a large card with its own fans.',
+                scaffoldHint: 'It goes into the long horizontal slot at the bottom.',
+                w: 35, h: 10, x: 30, y: 65
+            },
+            storage: {
+                id: 'storage',
+                name: 'Hard Drive (SSD)',
+                fullName: 'Solid State Drive',
+                category: 'storage',
+                displayCategory: 'Storage (Long-term)',
+                icon: 'fa-hdd',
+                color: 'bg-orange-500',
+                desc: 'Long-term memory. It saves your photos, games, and files forever, even when the power is off.',
+                hint: 'A rectangular box, usually plugged in with cables.',
+                scaffoldHint: 'Place it in the drive bay area (bottom right).',
+                w: 15, h: 20, x: 80, y: 60
+            },
+            fan: {
+                id: 'fan',
+                name: 'Cooling Fan',
+                fullName: 'CPU Cooler',
+                category: 'processing', 
+                displayCategory: 'Cooling',
+                icon: 'fa-fan',
+                color: 'bg-gray-600',
+                desc: 'Keeps the CPU cool. Without this, the computer brain would get too hot and break.',
+                hint: 'It sits directly on top of the CPU.',
+                scaffoldHint: 'It MUST go on top of the CPU.',
+                w: 14, h: 14, x: 43, y: 34
+            },
+            psu: {
+                id: 'psu',
+                name: 'Power Supply',
+                fullName: 'PSU',
+                category: 'processing', 
+                displayCategory: 'Power',
+                icon: 'fa-plug',
+                color: 'bg-yellow-600',
+                desc: 'Gives electricity to all parts of the computer.',
+                hint: 'A big box where you plug in the power cord.',
+                scaffoldHint: 'It goes in the bottom corner.',
+                w: 20, h: 20, x: 5, y: 75
+            }
+        };
+
+        const peripherals = [
+            { id: 'keyboard', name: 'Keyboard', category: 'input', icon: 'fa-keyboard', desc: 'You type letters and numbers INTO the computer.' },
+            { id: 'mouse', name: 'Mouse', category: 'input', icon: 'fa-mouse', desc: 'You move the cursor and click to send signals INTO the computer.' },
+            { id: 'monitor', name: 'Monitor', category: 'output', icon: 'fa-desktop', desc: 'It shows pictures and text coming OUT of the computer.' },
+            { id: 'printer', name: 'Printer', category: 'output', icon: 'fa-print', desc: 'It prints documents coming OUT of the computer onto paper.' },
+            { id: 'mic', name: 'Microphone', category: 'input', icon: 'fa-microphone', desc: 'It sends your voice INTO the computer.' },
+            { id: 'speakers', name: 'Speakers', category: 'output', icon: 'fa-volume-up', desc: 'Sound comes OUT of the computer through these.' }
+        ];
+
+        // --- App State & Logic ---
+        const app = {
+            phase: 1,
+            inventory: [],
+            pcState: { 
+                cpu: true, ram: true, gpu: true, storage: true, fan: true, psu: true
+            },
+            
+            init() {
+                this.renderPhase1();
+            },
+
+            reset() {
+                this.phase = 1;
+                this.inventory = [];
+                Object.keys(this.pcState).forEach(k => this.pcState[k] = true);
+                document.getElementById('power-control').classList.add('hidden');
+                this.updateProgressUI();
+                this.renderPhase1();
+            },
+
+            updateProgressUI() {
+                // Update Step Indicators
+                [1, 2, 3].forEach(i => {
+                    const el = document.getElementById(`step-${i}`);
+                    if (i === this.phase) {
+                        el.className = "px-4 py-1 rounded-full text-sm font-bold bg-blue-600 text-white transition-colors border-2 border-blue-600 shadow-md transform scale-105";
+                    } else if (i < this.phase) {
+                        el.className = "px-4 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700 transition-colors border border-green-200";
+                        el.innerHTML = `${i}. <i class="fas fa-check"></i>`;
+                    } else {
+                        el.className = "px-4 py-1 rounded-full text-sm font-bold bg-gray-200 text-gray-500 transition-colors";
+                        el.innerText = i + ". " + (i===1?"Disassemble":i===2?"Sort":"Build");
+                    }
+                });
+
+                const titles = [
+                    "Phase 1: Disassembly (Take Apart)",
+                    "Phase 2: Classification (Sort Parts)",
+                    "Phase 3: Assembly (Build It!)"
+                ];
+                document.getElementById('phase-title').innerText = titles[this.phase - 1];
+                
+                // Inventory Count
+                const countEl = document.getElementById('inventory-count');
+                if (this.inventory.length > 0) {
+                    countEl.innerText = `${this.inventory.length} items`;
+                    countEl.classList.remove('hidden');
+                } else {
+                    countEl.classList.add('hidden');
+                }
+            },
+
+            setMentor(text, isError = false) {
+                const el = document.getElementById('mentor-text');
+                el.innerText = text;
+                el.className = isError 
+                    ? "text-sm text-red-600 mt-1 leading-relaxed font-bold animate-pulse" 
+                    : "text-sm text-blue-800 mt-1 leading-relaxed";
+            },
+
+            // --- Modal System ---
+            openInfoModal(id, mode) {
+                // Robust lookup
+                let comp = componentsData[id];
+                if (!comp) {
+                    comp = peripherals.find(p => p.id === id);
+                }
+                if (!comp) {
+                    comp = this.inventory.find(i => i.id === id);
+                }
+                if (!comp) {
+                    console.error("Component not found:", id);
+                    return;
+                }
+                
+                const modal = document.getElementById('info-modal');
+                const title = document.getElementById('modal-title');
+                const cat = document.getElementById('modal-category');
+                const icon = document.getElementById('modal-icon');
+                const desc = document.getElementById('modal-desc');
+                const btn = document.getElementById('modal-action-btn');
+                const searchBtn = document.getElementById('modal-search-btn');
+                const hintBox = document.getElementById('modal-hint-box');
+                const hintText = document.getElementById('modal-hint');
+
+                title.innerText = comp.name; 
+                if (comp.fullName) title.innerHTML += ` <span class="text-sm text-gray-400 font-normal block">${comp.fullName}</span>`;
+                
+                cat.innerText = (comp.displayCategory || comp.category).toUpperCase();
+                icon.innerHTML = `<i class="fas ${comp.icon}"></i>`;
+                desc.innerText = comp.desc;
+
+                // Hint logic
+                if (comp.hint) {
+                    hintBox.classList.remove('hidden');
+                    hintText.innerText = comp.hint;
+                } else {
+                    hintBox.classList.add('hidden');
+                }
+
+                // Image Search Button Logic
+                searchBtn.onclick = () => {
+                    const query = encodeURIComponent((comp.fullName || comp.name) + " computer part");
+                    window.open(`https://www.google.com/search?tbm=isch&q=${query}`, '_blank');
+                };
+
+                // Action Button Logic
+                btn.classList.remove('hidden');
+                if (mode === 'uninstall') {
+                    btn.className = "w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg shadow-md flex items-center justify-center gap-2";
+                    btn.innerHTML = `<i class="fas fa-wrench"></i> <span>Remove Part</span>`;
+                    btn.onclick = () => this.uninstallComponent(comp.id);
+                } else if (mode === 'info-only') {
+                    btn.classList.add('hidden'); // Only show search button
+                }
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            },
+
+            closeModal() {
+                document.getElementById('info-modal').classList.add('hidden');
+                document.getElementById('info-modal').classList.remove('flex');
+            },
+
+            // --- Phase 1: Disassembly ---
+            renderPhase1() {
+                this.updateProgressUI();
+                this.setMentor("Let's take apart this computer! Click on the parts inside to remove them. Click the empty space to learn about the Motherboard.");
+                document.getElementById('sidebar-heading').innerHTML = `<i class="fas fa-toolbox mr-2"></i> Collected Parts`;
+                this.renderInventoryList();
+
+                const stage = document.getElementById('game-stage');
+                // Added click event to the container for Motherboard info
+                stage.innerHTML = `
+                    <div 
+                        onclick="app.openInfoModal('motherboard', 'info-only')"
+                        class="relative w-[340px] md:w-[500px] h-[500px] md:h-[600px] pcb-bg shadow-2xl transition-all duration-500" id="motherboard"
+                        title="Click background for Motherboard Info"
+                    >
+                        <div class="absolute top-2 left-2 text-gray-400 font-mono text-xs">ATX MOTHERBOARD MODEL-X</div>
+                        
+                        <!-- Info Icon for Mobo -->
+                        <div class="absolute top-2 right-2 text-white opacity-50 text-xs flex items-center gap-1">
+                            <i class="fas fa-info-circle"></i> Mainboard
+                        </div>
+
+                        ${this.renderInstalledComponents()}
+                    </div>
+                `;
+            },
+
+            renderInstalledComponents() {
+                let html = '';
+                const renderOrder = ['psu', 'storage', 'ram', 'gpu', 'cpu', 'fan']; 
+                
+                renderOrder.forEach(key => {
+                    if (this.pcState[key]) {
+                        const comp = componentsData[key];
+                        // Added event.stopPropagation() to prevent triggering Motherboard info
+                        html += `
+                            <button 
+                                onclick="event.stopPropagation(); app.clickComponentPhase1('${key}')"
+                                class="absolute component-slot flex flex-col items-center justify-center text-white font-bold shadow-md rounded-md hover:ring-2 ring-white cursor-pointer ${comp.color} z-[${key === 'fan' ? 20 : 10}]"
+                                style="width: ${comp.w}%; height: ${comp.h}%; left: ${comp.x}%; top: ${comp.y}%; z-index: ${key === 'fan' ? 20 : 10};"
+                                title="${comp.name}"
+                            >
+                                <i class="fas ${comp.icon} text-2xl mb-1 pointer-events-none"></i>
+                                <span class="text-[10px] text-center leading-tight hidden sm:block pointer-events-none">${comp.name}</span>
+                            </button>
+                        `;
+                    }
+                });
+                return html;
+            },
+
+            clickComponentPhase1(id) {
+                if (id === 'cpu' && this.pcState.fan) {
+                    this.setMentor("⚠️ You can't remove the CPU yet! The Cooling Fan is on top of it. Remove the Fan first.", true);
+                    const fanEl = document.querySelector(`button[title*="Cooling Fan"]`);
+                    fanEl.classList.add('shake');
+                    setTimeout(() => fanEl.classList.remove('shake'), 500);
+                    return;
+                }
+                this.openInfoModal(id, 'uninstall');
+            },
+
+            uninstallComponent(id) {
+                this.pcState[id] = false;
+                this.inventory.push(componentsData[id]);
+                this.closeModal();
+                
+                // Re-render
+                const board = document.getElementById('motherboard');
+                board.innerHTML = `
+                    <div class="absolute top-2 left-2 text-gray-400 font-mono text-xs">ATX MOTHERBOARD MODEL-X</div>
+                    <div class="absolute top-2 right-2 text-white opacity-50 text-xs flex items-center gap-1"><i class="fas fa-info-circle"></i> Mainboard</div>
+                    ${this.renderInstalledComponents()}
+                `;
+                this.renderInventoryList();
+
+                if (Object.values(this.pcState).every(val => val === false)) {
+                    this.setMentor("Great job! You removed everything. Get ready to sort them.");
+                    setTimeout(() => {
+                        this.startPhase2();
+                    }, 1500);
+                } else {
+                    this.setMentor(`You removed the ${componentsData[id].name}. What's next?`);
+                }
+            },
+
+            renderInventoryList() {
+                const container = document.getElementById('sidebar-content');
+                if (this.inventory.length === 0) {
+                    container.innerHTML = `<p class="text-gray-400 text-center italic mt-10 opacity-50"><i class="fas fa-inbox text-4xl mb-2"></i><br>Empty Case</p>`;
+                    return;
+                }
+                
+                container.innerHTML = this.inventory.map(item => `
+                    <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex items-center gap-3 animate-pulse-once group hover:shadow-md transition">
+                        <div class="w-10 h-10 rounded bg-blue-50 flex items-center justify-center text-blue-600">
+                            <i class="fas ${item.icon}"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-sm font-bold text-gray-800">${item.name}</div>
+                            <div class="text-xs text-gray-500 uppercase">${item.category}</div>
+                        </div>
+                    </div>
+                `).join('');
+                this.updateProgressUI();
+            },
+
+            // --- Phase 2: Classification ---
+            startPhase2() {
+                this.phase = 2;
+                this.updateProgressUI();
+                
+                this.inventory = [...this.inventory, ...peripherals];
+                this.inventory.sort(() => Math.random() - 0.5);
+
+                this.setMentor("We have a messy pile of parts! Drag them into the correct bins. \n\nTip: Click the 'i' button on a part to see what it does.");
+                document.getElementById('sidebar-heading').innerHTML = `<i class="fas fa-tasks mr-2"></i> Unsorted Parts`;
+                
+                this.renderPhase2();
+            },
+
+            renderPhase2() {
+                this.renderDraggableInventory();
+
+                const stage = document.getElementById('game-stage');
+                stage.innerHTML = `
+                    <div class="w-full h-full grid grid-cols-2 gap-4 max-w-4xl content-start">
+                        ${this.renderBin('input', 'INPUT (In)', 'bg-yellow-50 border-yellow-300', 'Sends data IN')}
+                        ${this.renderBin('processing', 'PROCESSING (Think)', 'bg-red-50 border-red-300', 'Does the work')}
+                        ${this.renderBin('output', 'OUTPUT (Out)', 'bg-blue-50 border-blue-300', 'Shows results')}
+                        ${this.renderBin('storage', 'STORAGE (Save)', 'bg-green-50 border-green-300', 'Saves data')}
+                    </div>
+                `;
+
+                this.setupBinListeners();
+            },
+
+            renderBin(id, label, colorClasses, hint) {
+                return `
+                    <div class="bin relative rounded-2xl border-4 border-dashed ${colorClasses} flex flex-col items-center justify-start p-4 transition-colors min-h-[200px]" data-category="${id}">
+                        <h3 class="font-bold text-lg text-gray-700 mb-1 pointer-events-none">${label}</h3>
+                        <p class="text-xs text-gray-500 mb-4 pointer-events-none italic">"${hint}"</p>
+                        <div class="bin-content w-full flex flex-wrap gap-2 justify-center pointer-events-none"></div>
+                    </div>
+                `;
+            },
+
+            renderDraggableInventory() {
+                const container = document.getElementById('sidebar-content');
+                
+                if (this.inventory.length === 0) {
+                    container.innerHTML = `<div class="text-center p-4 bg-green-100 text-green-800 rounded-xl border border-green-300 shadow-sm">
+                        <i class="fas fa-check-circle text-4xl mb-2"></i><br>
+                        <h3 class="font-bold">All Sorted!</h3>
+                        <p class="text-sm mb-3">You are ready to build.</p>
+                        <button onclick="app.startPhase3()" class="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 font-bold w-full shadow-lg transform hover:scale-105 transition">Start Building <i class="fas fa-arrow-right ml-2"></i></button>
+                    </div>`;
+                    return;
+                }
+
+                container.innerHTML = this.inventory.map(item => `
+                    <div 
+                        class="draggable-item bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500 mb-2 cursor-grab flex items-center gap-3 select-none relative group hover:bg-gray-50 transition" 
+                        draggable="true" 
+                        data-id="${item.id}"
+                    >
+                        <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+                            <i class="fas ${item.icon}"></i>
+                        </div>
+                        <span class="text-sm font-bold text-gray-700 flex-1">${item.name}</span>
+                        
+                        <button onclick="app.openInfoModal('${item.id}', 'info-only')" class="text-blue-400 hover:text-blue-600 p-2 z-10" title="More Info">
+                            <i class="fas fa-info-circle text-lg"></i>
+                        </button>
+                    </div>
+                `).join('');
+                
+                this.setupDraggableListeners();
+            },
+
+            setupBinListeners() {
+                const bins = document.querySelectorAll('.bin');
+                bins.forEach(bin => {
+                    bin.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        bin.classList.add('bg-white', 'scale-[1.02]', 'shadow-lg');
+                    });
+                    bin.addEventListener('dragleave', () => {
+                        bin.classList.remove('bg-white', 'scale-[1.02]', 'shadow-lg');
+                    });
+                    bin.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        bin.classList.remove('bg-white', 'scale-[1.02]', 'shadow-lg');
+                        const id = e.dataTransfer.getData('text/plain');
+                        this.handleDrop(id, bin.getAttribute('data-category'), bin);
+                    });
+                });
+            },
+
+            setupDraggableListeners() {
+                const draggables = document.querySelectorAll('.draggable-item');
+                draggables.forEach(draggable => {
+                    draggable.addEventListener('dragstart', (e) => {
+                        draggable.classList.add('opacity-50');
+                        e.dataTransfer.setData('text/plain', draggable.getAttribute('data-id'));
+                        e.dataTransfer.effectAllowed = 'move';
+                    });
+                    draggable.addEventListener('dragend', () => {
+                        draggable.classList.remove('opacity-50');
+                    });
+                });
+            },
+
+            handleDrop(itemId, binCategory, binElement) {
+                let item = this.inventory.find(i => i.id === itemId);
+                if (!item) {
+                    item = peripherals.find(p => p.id === itemId) || componentsData[itemId];
+                }
+                
+                if (!item) return;
+
+                let isCorrect = false;
+                if (item.category === binCategory) isCorrect = true;
+                if ((item.id === 'psu' || item.id === 'fan') && binCategory === 'processing') isCorrect = true;
+
+                if (isCorrect) {
+                    this.inventory = this.inventory.filter(i => i.id !== itemId);
+                    
+                    const binContent = binElement.querySelector('.bin-content');
+                    const pill = document.createElement('div');
+                    pill.className = "bg-white px-2 py-1 rounded-full text-xs font-bold shadow text-gray-700 flex items-center gap-1 border border-gray-100";
+                    pill.innerHTML = `<i class="fas ${item.icon}"></i> ${item.name}`;
+                    binContent.appendChild(pill);
+                    
+                    binElement.classList.add('glow-success');
+                    setTimeout(() => binElement.classList.remove('glow-success'), 1000);
+                    
+                    this.setMentor(`Correct! ${item.name} is for ${binCategory.toUpperCase()}.`);
+                    this.renderDraggableInventory();
+                } else {
+                    let hint = "Try again!";
+                    if (binCategory === 'input') hint = `${item.name} doesn't send info IN.`;
+                    if (binCategory === 'output') hint = `${item.name} doesn't show or play info OUT.`;
+                    if (binCategory === 'storage') hint = `${item.name} doesn't SAVE files.`;
+                    
+                    if (item.id === 'mouse' && binCategory !== 'input') hint = "You move the mouse to send signals INTO the computer.";
+                    if (item.id === 'monitor' && binCategory !== 'output') hint = "The monitor SHOWS you the pictures coming OUT.";
+
+                    this.setMentor(`⚠️ Oops! ${hint}`, true);
+                    binElement.classList.add('shake', 'border-red-400');
+                    setTimeout(() => binElement.classList.remove('shake', 'border-red-400'), 500);
+                }
+            },
+
+            // --- Phase 3: Assembly ---
+            startPhase3() {
+                this.phase = 3;
+                this.updateProgressUI();
+                
+                const buildParts = ['cpu', 'ram', 'gpu', 'storage', 'psu', 'fan'];
+                this.inventory = buildParts.map(id => componentsData[id]);
+                
+                Object.keys(this.pcState).forEach(k => this.pcState[k] = false);
+
+                this.setMentor("Time to build! I will tell you what to install. \n\nStep 1: Find the CPU (The Brain). Click it in the list.");
+                document.getElementById('sidebar-heading').innerText = "Build Parts";
+                
+                this.selectedPartId = null; 
+                this.renderPhase3();
+            },
+
+            renderPhase3() {
+                this.renderAssemblySidebar();
+                
+                const stage = document.getElementById('game-stage');
+                // Added motherboard info click here too
+                stage.innerHTML = `
+                    <div 
+                         onclick="app.openInfoModal('motherboard', 'info-only')"
+                         class="relative w-[340px] md:w-[500px] h-[500px] md:h-[600px] pcb-bg shadow-2xl" id="motherboard-assembly"
+                         title="Click background for Motherboard Info"
+                    >
+                        <div class="absolute top-2 left-2 text-gray-400 font-mono text-xs">ATX MOTHERBOARD MODEL-X</div>
+                         <div class="absolute top-2 right-2 text-white opacity-50 text-xs flex items-center gap-1"><i class="fas fa-info-circle"></i> Mainboard</div>
+                        
+                        <!-- Drop Zones -->
+                        ${this.renderDropZones()}
+                        
+                        <!-- Installed Parts Layer -->
+                        <div id="installed-layer" class="absolute inset-0 z-10 pointer-events-none"></div>
+                    </div>
+                `;
+                this.renderInstalledLayerPhase3();
+            },
+
+            renderAssemblySidebar() {
+                const container = document.getElementById('sidebar-content');
+                if (this.inventory.length === 0) {
+                     container.innerHTML = `<div class="text-center p-6 bg-blue-600 text-white rounded-xl shadow-lg animate-pulse-once">
+                        <i class="fas fa-check-double text-5xl mb-3 text-yellow-300"></i><br>
+                        <h2 class="text-2xl font-bold">Build Complete!</h2>
+                        <p class="mt-2 text-blue-100 text-sm">Great job engineer!</p>
+                        <div class="mt-4 p-2 bg-blue-700 rounded-lg text-xs">
+                            <i class="fas fa-arrow-right"></i> Press the Power Button on the screen to test it!
+                        </div>
+                    </div>`;
+                    this.setMentor("Computer Assembled! Now, press the green POWER BUTTON to turn it on!", false);
+                    document.getElementById('power-control').classList.remove('hidden');
+                    return;
+                }
+
+                container.innerHTML = this.inventory.map(item => `
+                    <div 
+                        class="relative cursor-pointer bg-white p-3 rounded-lg shadow-sm border border-gray-200 mb-2 flex items-center gap-3 transition-all hover:bg-blue-50 ${this.selectedPartId === item.id ? 'ring-2 ring-blue-500 bg-blue-50 scale-[1.02]' : ''}"
+                    >
+                        <div class="flex-1 flex items-center gap-3" onclick="app.selectAssemblyPart('${item.id}')">
+                            <i class="fas ${item.icon} text-gray-600 ${this.selectedPartId === item.id ? 'text-blue-600' : ''}"></i>
+                            <span class="text-sm font-bold text-gray-700">${item.name}</span>
+                        </div>
+
+                        <button onclick="app.openInfoModal('${item.id}', 'info-only')" class="text-gray-400 hover:text-blue-500 px-2">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </div>
+                `).join('');
+            },
+
+            selectAssemblyPart(id) {
+                this.selectedPartId = id;
+                this.renderAssemblySidebar(); 
+                
+                const part = componentsData[id];
+                this.setMentor(`Selected: ${part.name}. \nHint: ${part.scaffoldHint}`);
+                
+                document.querySelectorAll('.drop-zone').forEach(el => el.classList.remove('border-yellow-400', 'bg-yellow-100/30', 'animate-pulse'));
+                
+                const correctZone = document.getElementById(`zone-${id}`);
+                if (correctZone && !this.pcState[id]) {
+                     correctZone.classList.add('border-yellow-400', 'bg-yellow-100/30', 'animate-pulse');
+                }
+            },
+
+            renderDropZones() {
+                let html = '';
+                Object.values(componentsData).forEach(comp => {
+                    if (comp.id === 'motherboard') return; // Skip motherboard zone
+                    
+                    let visible = true;
+                    if (comp.id === 'fan' && !this.pcState.cpu) visible = false;
+
+                    if (!this.pcState[comp.id] && visible) {
+                         html += `
+                            <div 
+                                id="zone-${comp.id}"
+                                onclick="event.stopPropagation(); app.tryInstall('${comp.id}')"
+                                class="drop-zone absolute border-2 border-dashed border-gray-400 rounded hover:bg-white/20 cursor-pointer transition-all z-0"
+                                style="width: ${comp.w}%; height: ${comp.h}%; left: ${comp.x}%; top: ${comp.y}%;"
+                            >
+                                <span class="text-[10px] text-gray-500 absolute bottom-1 right-1 opacity-70 bg-white/80 px-1 rounded">${comp.name} SLOT</span>
+                            </div>
+                        `;
+                    }
+                });
+                return html;
+            },
+
+            tryInstall(zoneId) {
+                if (!this.selectedPartId) {
+                    this.setMentor("Please select a part from the list first!", true);
+                    return;
+                }
+
+                if (this.selectedPartId !== zoneId) {
+                    this.setMentor(`⚠️ That spot is for the ${componentsData[zoneId].name}, not the ${componentsData[this.selectedPartId].name}.`, true);
+                    const zone = document.getElementById(`zone-${zoneId}`);
+                    zone.classList.add('bg-red-500/30');
+                    setTimeout(() => zone.classList.remove('bg-red-500/30'), 300);
+                    return;
+                }
+
+                this.pcState[zoneId] = true;
+                this.inventory = this.inventory.filter(i => i.id !== zoneId);
+                this.selectedPartId = null;
+
+                this.renderAssemblySidebar();
+                
+                const board = document.getElementById('motherboard-assembly');
+                board.innerHTML = `
+                    <div class="absolute top-2 left-2 text-gray-400 font-mono text-xs">ATX MOTHERBOARD MODEL-X</div>
+                    <div class="absolute top-2 right-2 text-white opacity-50 text-xs flex items-center gap-1"><i class="fas fa-info-circle"></i> Mainboard</div>
+                    ${this.renderDropZones()}
+                    <div id="installed-layer" class="absolute inset-0 z-10 pointer-events-none"></div>
+                `;
+                this.renderInstalledLayerPhase3();
+
+                this.recommendNextStep();
+            },
+
+            renderInstalledLayerPhase3() {
+                const layer = document.getElementById('installed-layer');
+                let html = '';
+                const renderOrder = ['psu', 'storage', 'ram', 'gpu', 'cpu', 'fan']; 
+                
+                renderOrder.forEach(key => {
+                    if (this.pcState[key]) {
+                        const comp = componentsData[key];
+                        html += `
+                            <div 
+                                onclick="event.stopPropagation(); app.openInfoModal('${key}', 'info-only');"
+                                class="absolute flex flex-col items-center justify-center text-white font-bold shadow-md rounded-md ${comp.color} animate-enter pointer-events-auto cursor-help hover:ring-2 ring-white"
+                                style="width: ${comp.w}%; height: ${comp.h}%; left: ${comp.x}%; top: ${comp.y}%; z-index: ${key === 'fan' ? 20 : 10};"
+                                title="Click for Info: ${comp.name}"
+                            >
+                                <i class="fas ${comp.icon} text-xl"></i>
+                            </div>
+                        `;
+                    }
+                });
+                layer.innerHTML = html;
+            },
+
+            recommendNextStep() {
+                if (!this.pcState.cpu) {
+                    this.setMentor("Good start. Next, install the CPU (The Brain).");
+                } else if (!this.pcState.ram) {
+                    this.setMentor("CPU installed! Now give it some Short-term Memory (RAM).");
+                } else if (!this.pcState.fan) {
+                    this.setMentor("The CPU will get hot! Put the Fan on top of it.");
+                } else if (!this.pcState.gpu) {
+                    this.setMentor("Now let's add the Graphics Card (GPU) for gaming.");
+                } else if (!this.pcState.storage) {
+                    this.setMentor("We need somewhere to save files. Install the Hard Drive (Storage).");
+                } else if (!this.pcState.psu) {
+                    this.setMentor("Finally, the Power Supply to give it energy.");
+                } else {
+                    this.setMentor("All parts installed! Press the Power Button to test it!", false);
+                }
+            },
+
+            powerOn() {
+                const btn = document.querySelector('#power-control button');
+                const board = document.getElementById('motherboard-assembly');
+                
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin text-3xl"></i>`;
+                
+                // POST Sequence Simulation
+                setTimeout(() => {
+                    board.classList.add('screen-on');
+                    // Boot text
+                    board.innerHTML = `
+                        <div class="h-full w-full bg-black text-white p-4 font-mono text-sm z-50 relative overflow-hidden">
+                            <div id="bios-text">
+                                AMI BIOS (C) 2025 American Megatrends, Inc.<br>
+                                ASUS ROG STRIX Z790-E GAMING WIFI ACPI BIOS Revision 0803<br>
+                                CPU: Intel(R) Core(TM) i9-13900K CPU @ 3.00GHz<br>
+                                Speed: 3000MHz<br><br>
+                                DRAM Clock: 6000MHz<br>
+                                DRAM Status: <span class="text-green-400">OK</span><br>
+                                USB Devices: 1 Keyboard, 1 Mouse<br>
+                                Detect Drives... <span class="text-green-400">Done</span><br><br>
+                                <span class="animate-pulse">_</span>
+                            </div>
+                        </div>
+                    `;
+
+                    setTimeout(() => {
+                        // Success Screen
+                         board.innerHTML = `
+                        <div class="h-full flex flex-col items-center justify-center text-white z-50 relative animate-enter bg-blue-600">
+                            <i class="fas fa-desktop text-6xl mb-4 text-blue-200"></i>
+                            <h2 class="text-3xl font-bold">SYSTEM ONLINE</h2>
+                            <p class="mt-2">Boot Sequence Complete.</p>
+                            <div class="mt-4 px-4 py-2 bg-white/20 rounded">
+                                <i class="fas fa-check"></i> CPU OK<br>
+                                <i class="fas fa-check"></i> RAM OK<br>
+                                <i class="fas fa-check"></i> GPU OK
+                            </div>
+                            <button onclick="app.reset()" class="mt-8 bg-white text-blue-600 px-6 py-2 rounded-full font-bold shadow-lg hover:bg-gray-100">Play Again</button>
+                        </div>
+                    `;
+                    this.setMentor("It works! You built a working computer! 🎉");
+                    btn.classList.add('hidden');
+                    }, 2500);
+
+                }, 1000);
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .animate-enter { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+            @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+            .animate-pulse-once { animation: pulse 1s ease-in-out; }
+        `;
+        document.head.appendChild(style);
+
+    </script>
+</body>
+</html>
