@@ -39,24 +39,19 @@
 
         /* Print Styles */
         @media print {
-            @page { size: landscape; margin: 0.2cm; }
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white; }
-            .no-print { display: none !important; }
-            #main-content { margin: 0; padding: 0; height: auto; width: 100%; overflow: visible; background: white; }
-            #canvas-container { padding: 0; display: flex; align-items: flex-start; justify-content: center; transform: none !important; background: none; }
-            #classroom-grid { 
-                border: none; box-shadow: none; 
-                transform: scale(0.8) !important; /* Slight scale down to fit paper */
-                transform-origin: center top;
-                padding: 0; margin: 0 auto;
-                position: static !important; /* Reset absolute positioning */
+            @page { size: landscape; margin: 0; }
+            body { 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+                background: white; 
+                margin: 0; 
+                padding: 0;
             }
-            .seat-card { border: 1px solid #94a3b8 !important; box-shadow: none !important; break-inside: avoid; }
-            
-            /* Hide Title Banner in Print */
-            #print-banner { display: none !important; }
-
-            /* Force Colors */
+            .no-print { display: none !important; }
+            #main-content { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: visible; background: white; }
+            #canvas-container { padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; transform: none !important; background: none; width: 100%; height: 100%; }
+            #classroom-grid { border: none; box-shadow: none; transform: none !important; padding: 10px; margin: 0 auto; width: 98% !important; max-height: 98vh; position: static !important; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; }
+            .seat-card { border: 1px solid #94a3b8 !important; box-shadow: none !important; break-inside: avoid; page-break-inside: avoid; }
             .bg-blue-50 { background-color: #eff6ff !important; }
             .bg-green-500 { background-color: #22c55e !important; }
             .bg-yellow-500 { background-color: #eab308 !important; }
@@ -65,6 +60,9 @@
             .bg-purple-500 { background-color: #a855f7 !important; }
             .bg-orange-500 { background-color: #f97316 !important; }
             .bg-gray-400 { background-color: #9ca3af !important; }
+            .bg-pink-100 { background-color: #fce7f3 !important; }
+            .bg-sky-100 { background-color: #e0f2fe !important; }
+            .bg-gray-100 { background-color: #f3f4f6 !important; }
             #bg-layer { opacity: 0.2 !important; }
         }
 
@@ -77,19 +75,24 @@
             #mobile-overlay { display: none !important; }
         }
 
-        /* Confirm Action Animation */
+        /* Confirm Animation */
         .btn-confirm { background-color: #fee2e2; color: #dc2626; transform: scale(1.1); animation: pulse 0.5s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
         
         .fill-opt.active-pattern { background-color: #f3e8ff; border-color: #d8b4fe; ring: 2px solid #a855f7; }
 
-        /* Interaction Zones on Card */
-        .click-zone { position: absolute; width: 40%; height: 40%; z-index: 20; cursor: pointer; }
+        /* Interaction Zones */
+        .click-zone { position: absolute; width: 40%; height: 40%; z-index: 30; cursor: pointer; } 
         .click-zone:active { background-color: rgba(0,0,0,0.05); }
         .zone-tl { top: 0; left: 0; border-top-left-radius: 0.75rem; }
         .zone-tr { top: 0; right: 0; border-top-right-radius: 0.75rem; }
         .zone-bl { bottom: 0; left: 0; border-bottom-left-radius: 0.75rem; }
         .zone-br { bottom: 0; right: 0; border-bottom-right-radius: 0.75rem; }
+
+        /* Import Format Items */
+        .import-item { cursor: grab; user-select: none; }
+        .import-item:active { cursor: grabbing; }
+        .import-item.dragging-format { opacity: 0.5; border: 2px dashed #6366f1; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 h-screen flex flex-col overflow-hidden">
@@ -97,43 +100,32 @@
     <!-- Header -->
     <header class="bg-white border-b border-gray-200 px-3 py-2 md:px-4 md:py-3 flex items-center justify-between shrink-0 z-30 no-print">
         <div class="flex items-center gap-3">
-            <button onclick="app.toggleSidebar()" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md">
-                <i data-lucide="menu" class="w-6 h-6"></i>
-            </button>
-            <div class="hidden md:flex bg-indigo-600 text-white p-2 rounded-lg shadow-sm">
-                <i data-lucide="layout-grid" class="w-6 h-6"></i>
-            </div>
-            <div>
-                <h1 class="font-bold text-base md:text-lg text-gray-800 leading-tight">Seat Planner Pro</h1>
-            </div>
+            <button onclick="app.toggleSidebar()" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md"><i data-lucide="menu" class="w-6 h-6"></i></button>
+            <div class="hidden md:flex bg-indigo-600 text-white p-2 rounded-lg shadow-sm"><i data-lucide="layout-grid" class="w-6 h-6"></i></div>
+            <div><h1 class="font-bold text-base md:text-lg text-gray-800 leading-tight">Seat Planner Pro</h1></div>
         </div>
 
         <div class="flex items-center gap-1 md:gap-2">
-            <button onclick="app.togglePresenterMode()" class="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-md text-sm font-medium transition-colors border border-indigo-200">
-                <i data-lucide="presentation" class="w-4 h-4"></i> <span class="hidden xl:inline">Presenter</span>
-            </button>
-
+            <button onclick="app.togglePresenterMode()" class="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-md text-sm font-medium transition-colors border border-indigo-200"><i data-lucide="presentation" class="w-4 h-4"></i> <span class="hidden xl:inline">Presenter</span></button>
             <div class="hidden md:flex bg-gray-100 rounded-lg p-1 border border-gray-200 mr-2">
                 <button onclick="app.undo()" id="btn-undo" class="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-white rounded-md disabled:opacity-30"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
                 <button onclick="app.redo()" id="btn-redo" class="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-white rounded-md disabled:opacity-30"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
             </div>
-
             <!-- Settings -->
             <div class="relative">
-                <button onclick="app.toggleSettingsMenu()" class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md" id="settings-trigger">
-                    <i data-lucide="settings-2" class="w-4 h-4"></i>
-                </button>
+                <button onclick="app.toggleSettingsMenu()" class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md" id="settings-trigger"><i data-lucide="settings-2" class="w-4 h-4"></i></button>
                 <div id="settings-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-2">
                     <div class="text-xs font-semibold text-gray-500 uppercase px-2 py-1 mb-1">View Options</div>
                     <button onclick="app.togglePerspective()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded text-sm"><i data-lucide="arrow-down-up" class="w-4 h-4 mr-2 text-indigo-500"></i> <span id="perspective-label">Teacher View</span></button>
                     <button onclick="app.toggleDualMode()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded text-sm"><i data-lucide="flip-vertical" class="w-4 h-4 mr-2 text-orange-500"></i> <span id="dual-label">Single Mode</span></button>
-                    
                     <div class="h-px bg-gray-200 my-2"></div>
                     <div class="px-2 pb-1 text-xs font-bold text-gray-400">VISIBILITY</div>
                     <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-names" checked onchange="app.toggleViewOption('showNames')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Names</span></label>
                     <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-tiers" checked onchange="app.toggleViewOption('showTiers')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Tiers</span></label>
-                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-gender" checked onchange="app.toggleViewOption('showGender')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Gender</span></label>
+                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-gender" checked onchange="app.toggleViewOption('showGender')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Gender (Colors)</span></label>
                     <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-scores" onchange="app.toggleViewOption('showScores')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Scores (Marks)</span></label>
+                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-classNo" checked onchange="app.toggleViewOption('showClassNo')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Class No</span></label>
+                    <label class="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" id="show-role" checked onchange="app.toggleViewOption('showRole')" class="rounded text-blue-600 mr-2 text-xs"><span class="text-sm">Role</span></label>
                     
                     <div class="h-px bg-gray-200 my-2"></div>
                     <div class="px-2 pb-1 text-xs font-bold text-gray-400">DATA & EXPORT</div>
@@ -142,33 +134,24 @@
                     <button onclick="app.exportImage()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm text-indigo-600"><i data-lucide="image" class="w-4 h-4 mr-2"></i> Export Image (PNG)</button>
                     <button onclick="app.exportData()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm text-gray-700"><i data-lucide="download" class="w-4 h-4 mr-2"></i> Export Data (JSON)</button>
                     <label class="w-full text-left flex items-center px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer text-sm text-gray-700"><i data-lucide="upload" class="w-4 h-4 mr-2"></i> Import Data <input type="file" class="hidden" accept=".json" onchange="app.importData(this)"></label>
-                    
                     <div class="h-px bg-gray-200 my-2"></div>
                     <button onclick="app.deleteAllStudents()" class="w-full text-left flex items-center px-2 py-1.5 hover:bg-red-50 text-red-700 rounded cursor-pointer text-sm font-bold"><i data-lucide="user-x" class="w-4 h-4 mr-2"></i> Delete All Students</button>
                 </div>
             </div>
-
-            <button onclick="window.print()" class="flex items-center gap-2 px-3 py-2 bg-slate-800 text-white hover:bg-slate-900 rounded-md text-sm font-medium transition-colors ml-1">
-                <i data-lucide="printer" class="w-4 h-4"></i>
-            </button>
+            <button onclick="window.print()" class="flex items-center gap-2 px-3 py-2 bg-slate-800 text-white hover:bg-slate-900 rounded-md text-sm font-medium transition-colors ml-1"><i data-lucide="printer" class="w-4 h-4"></i></button>
         </div>
     </header>
 
     <div class="flex-1 flex overflow-hidden relative">
-        <!-- Sidebar -->
         <div id="mobile-overlay" onclick="app.toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden transition-opacity"></div>
         <aside id="sidebar" class="absolute lg:relative w-80 h-full bg-white border-r border-gray-200 flex flex-col shrink-0 z-50 shadow-2xl lg:shadow-none sidebar-closed no-print">
             <button onclick="app.toggleSidebar()" class="lg:hidden absolute top-2 right-2 p-2 text-gray-500"><i data-lucide="x" class="w-5 h-5"></i></button>
-
-            <!-- Tabs -->
             <div class="p-2 border-b border-gray-100 flex gap-1 mt-2 lg:mt-0">
                 <button onclick="app.setTab('list')" id="tab-list" class="flex-1 py-2 text-[10px] sm:text-xs font-medium rounded-md bg-blue-50 text-blue-700">List</button>
                 <button onclick="app.setTab('add')" id="tab-add" class="flex-1 py-2 text-[10px] sm:text-xs font-medium rounded-md text-gray-600 hover:bg-gray-50">Add</button>
                 <button onclick="app.setTab('fill')" id="tab-fill" class="flex-1 py-2 text-[10px] sm:text-xs font-medium rounded-md text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1"><i data-lucide="sparkles" class="w-3 h-3"></i> Fill</button>
                 <button onclick="app.setTab('remix')" id="tab-remix" class="flex-1 py-2 text-[10px] sm:text-xs font-medium rounded-md text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1"><i data-lucide="shuffle" class="w-3 h-3"></i> Remix</button>
             </div>
-
-            <!-- Stats -->
             <div class="grid grid-cols-3 border-b border-gray-100 bg-gray-50/50">
                 <div class="p-2 text-center border-r border-gray-100"><div class="text-[10px] text-gray-500 uppercase font-bold">Total</div><div class="text-base font-bold text-gray-800" id="stat-total">0</div></div>
                 <div class="p-2 text-center border-r border-gray-100"><div class="text-[10px] text-blue-500 uppercase font-bold">Boys</div><div class="text-base font-bold text-blue-600" id="stat-boys">0</div></div>
@@ -184,24 +167,19 @@
                     </div>
                     <div class="flex gap-2">
                         <select id="filterGender" onchange="app.renderSidebar()" class="flex-1 text-xs border border-gray-200 rounded p-1"><option value="all">All Genders</option><option value="M">Boys</option><option value="F">Girls</option></select>
-                        <select id="filterTier" onchange="app.renderSidebar()" class="flex-1 text-xs border border-gray-200 rounded p-1">
-                            <option value="all">All Tiers</option>
-                            <option value="1">Tier 1</option><option value="2">Tier 2</option><option value="3">Tier 3</option>
-                            <option value="4">Tier 4</option><option value="5">Tier 5</option><option value="6">Tier 6</option>
-                        </select>
+                        <select id="filterTier" onchange="app.renderSidebar()" class="flex-1 text-xs border border-gray-200 rounded p-1"><option value="all">All Tiers</option><option value="1">Tier 1</option><option value="2">Tier 2</option><option value="3">Tier 3</option><option value="4">Tier 4</option><option value="5">Tier 5</option><option value="6">Tier 6</option></select>
                     </div>
                     <div class="flex justify-between items-center text-xs text-gray-500">
                         <span>Sort:</span>
                         <div class="flex gap-1">
                             <button onclick="app.sortList('name')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">Name</button>
+                            <button onclick="app.sortList('classNo')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">No.</button>
                             <button onclick="app.sortList('tier')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">Tier</button>
                         </div>
                     </div>
                 </div>
                 <div id="student-list-container" class="flex-1 overflow-y-auto p-2 space-y-1.5 pb-20"></div>
-                <div id="drop-zone-sidebar" class="hidden absolute inset-2 border-2 border-red-400 border-dashed rounded-lg bg-red-50/90 z-20 flex-col items-center justify-center text-red-500 pointer-events-none">
-                    <i data-lucide="user-minus" class="w-8 h-8 mb-1"></i><span class="text-xs font-bold uppercase">Drop to Unseat</span>
-                </div>
+                <div id="drop-zone-sidebar" class="hidden absolute inset-2 border-2 border-red-400 border-dashed rounded-lg bg-red-50/90 z-20 flex-col items-center justify-center text-red-500 pointer-events-none"><i data-lucide="user-minus" class="w-8 h-8 mb-1"></i><span class="text-xs font-bold uppercase">Drop to Unseat</span></div>
             </div>
 
             <!-- Smart Fill Tab -->
@@ -217,16 +195,8 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Composition</label>
-                    <div class="mb-2">
-                        <select id="fill-strategy" onchange="app.updateFillStrategy()" class="w-full text-xs border rounded p-1.5">
-                            <option value="fill-all">Fill Whole Class</option>
-                            <option value="group">Group by Group</option>
-                        </select>
-                    </div>
-                    <div id="group-config" class="hidden bg-white p-2 rounded border mb-2">
-                        <div class="text-[10px] font-bold text-gray-400 mb-1">GROUP SIZE</div>
-                        <div class="flex gap-2 items-center text-xs"><input type="number" id="group-rows" class="w-12 border rounded p-1" placeholder="R" min="1" value="2"> x <input type="number" id="group-cols" class="w-12 border rounded p-1" placeholder="C" min="1" value="2"></div>
-                    </div>
+                    <div class="mb-2"><select id="fill-strategy" onchange="app.updateFillStrategy()" class="w-full text-xs border rounded p-1.5"><option value="fill-all">Fill Whole Class</option><option value="group">Group by Group</option></select></div>
+                    <div id="group-config" class="hidden bg-white p-2 rounded border mb-2"><div class="text-[10px] font-bold text-gray-400 mb-1">GROUP SIZE</div><div class="flex gap-2 items-center text-xs"><input type="number" id="group-rows" class="w-12 border rounded p-1" placeholder="R" min="1" value="2"> x <input type="number" id="group-cols" class="w-12 border rounded p-1" placeholder="C" min="1" value="2"></div></div>
                     <div class="bg-white p-2 rounded border">
                         <div class="text-[10px] font-bold text-gray-400 mb-1">LIMITS (MIN-MAX)</div>
                         <div class="space-y-1">
@@ -245,11 +215,10 @@
                 </div>
             </div>
 
-            <!-- Remix Tab (NEW) -->
+            <!-- Remix Tab -->
             <div id="view-remix" class="hidden flex-1 overflow-y-auto p-4 space-y-5 bg-slate-50/50">
                 <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                     <div class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2"><i data-lucide="filter" class="w-4 h-4 text-indigo-500"></i> Remix Criteria</div>
-                    
                     <div class="mb-4">
                         <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Tiers</label>
                         <div class="grid grid-cols-3 gap-2">
@@ -261,7 +230,6 @@
                             <label class="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" class="remix-tier rounded text-indigo-600" value="6"> <span class="w-2 h-2 rounded-full bg-orange-500"></span> T6</label>
                         </div>
                     </div>
-
                     <div class="mb-4">
                         <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Gender</label>
                         <div class="flex gap-2">
@@ -270,15 +238,11 @@
                             <label class="flex-1 border rounded-md p-2 text-xs text-center cursor-pointer hover:bg-gray-50"><input type="radio" name="remixGender" value="F" class="hidden peer"> <span class="peer-checked:font-bold peer-checked:text-indigo-600">Girls</span></label>
                         </div>
                     </div>
-
-                    <button onclick="app.remixSeats()" class="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold shadow hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
-                        <i data-lucide="shuffle" class="w-4 h-4"></i> Shuffle Selected
-                    </button>
-                    <p class="text-[10px] text-gray-400 mt-2 text-center">Swaps students matching criteria within their existing seats.</p>
+                    <button onclick="app.remixSeats()" class="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold shadow hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"><i data-lucide="shuffle" class="w-4 h-4"></i> Shuffle Selected</button>
                 </div>
             </div>
 
-            <!-- Add Tab -->
+            <!-- Add Tab (Smart Import) -->
             <div id="view-add" class="hidden flex-1 overflow-y-auto p-4 space-y-6">
                  <div class="space-y-3">
                     <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">New Student</div>
@@ -294,12 +258,39 @@
                             <option value="0">No Tier</option><option value="1">Tier 1</option><option value="2">Tier 2</option><option value="3">Tier 3</option><option value="4">Tier 4</option><option value="5">Tier 5</option><option value="6">Tier 6</option>
                         </select>
                     </div>
+                    <input type="text" id="newStudentRole" placeholder="Role (e.g. Leader)" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
                     <button onclick="app.addStudent()" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors flex justify-center items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Add</button>
                 </div>
                 <hr>
+                
+                <!-- Smart Import Section -->
                 <div class="space-y-3">
-                    <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">Bulk Import</div>
-                    <textarea id="bulkInput" rows="6" placeholder="Format 1: ClassNo, Name, Gender, Tier&#10;Format 2: Just Name (e.g. John Doe)" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md font-mono focus:ring-2 focus:ring-blue-500 outline-none text-xs"></textarea>
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">Smart Custom Import</div>
+                    
+                    <div class="bg-gray-50 border rounded-lg p-3">
+                        <div class="text-[10px] text-gray-500 font-bold mb-2">1. SELECT COLUMNS</div>
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="classNo" checked onchange="app.renderImportFormat()"> Class No</label>
+                            <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="name" checked onchange="app.renderImportFormat()"> Name</label>
+                            <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="gender" checked onchange="app.renderImportFormat()"> Gender</label>
+                            <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="tier" checked onchange="app.renderImportFormat()"> Tier</label>
+                            <label class="inline-flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" class="import-check rounded text-indigo-600" value="role" onchange="app.renderImportFormat()"> Role</label>
+                        </div>
+
+                        <div class="text-[10px] text-gray-500 font-bold mb-2">2. DELIMITER</div>
+                        <select id="import-delimiter" class="w-full text-xs border rounded p-1 mb-3">
+                            <option value=",">Comma (,)</option>
+                            <option value="\t">Tab</option>
+                            <option value=" ">Space</option>
+                            <option value=";">Semicolon (;)</option>
+                            <option value=":">Colon (:)</option>
+                        </select>
+
+                        <div class="text-[10px] text-gray-500 font-bold mb-2">3. DRAG TO REORDER FORMAT</div>
+                        <div id="import-format-container" class="flex gap-2 mb-3 p-2 bg-white rounded border border-gray-200 overflow-x-auto"></div>
+                    </div>
+
+                    <textarea id="bulkInput" rows="6" placeholder="Paste your data here..." class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md font-mono focus:ring-2 focus:ring-blue-500 outline-none text-xs"></textarea>
                     <button onclick="app.bulkAdd()" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-md text-sm font-medium transition-colors flex justify-center items-center gap-2"><i data-lucide="file-text" class="w-4 h-4"></i> Process List</button>
                 </div>
             </div>
@@ -310,7 +301,6 @@
             
             <!-- Toolbar -->
             <div id="toolbar" class="h-auto md:h-14 bg-white border-b border-gray-200 flex flex-wrap items-center justify-between px-2 py-2 md:px-4 shrink-0 shadow-sm z-10 no-print gap-2">
-                <!-- Grid Config -->
                 <div class="flex items-center gap-2 md:gap-4">
                     <div class="flex items-center gap-1 md:gap-2 text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded border border-gray-200">
                         <span class="text-xs font-semibold text-gray-500 uppercase">Grid</span>
@@ -323,12 +313,8 @@
                         <input type="number" id="gapInput" class="w-10 bg-transparent text-center focus:outline-none font-bold" min="0" max="15">
                     </div>
                 </div>
-
                 <div class="flex items-center gap-3">
-                     <!-- Unseat All (Icon Only, Double Click) -->
-                     <button id="btn-unseat-all" onclick="app.handleUnseatAllClick(this)" class="p-2 text-red-500 hover:bg-red-50 rounded transition-all" title="Double Click to Unseat All">
-                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                     </button>
+                     <button id="btn-unseat-all" onclick="app.handleUnseatAllClick(this)" class="p-2 text-red-500 hover:bg-red-50 rounded transition-all" title="Double Click to Unseat All"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                      <button onclick="app.fitToScreen()" class="p-2 text-gray-500 hover:bg-gray-100 rounded" title="Fit to Screen"><i data-lucide="maximize" class="w-5 h-5"></i></button>
                 </div>
             </div>
@@ -336,11 +322,7 @@
             <!-- Presenter Overlay Bar -->
             <div id="presenter-overlay" class="hidden absolute top-0 left-0 w-full p-4 justify-center z-50 pointer-events-none">
                 <div id="presenter-controls" class="bg-white/90 backdrop-blur shadow-xl rounded-full px-2 py-1 flex items-center gap-1 border border-gray-200 pointer-events-auto transition-all">
-                    <!-- Toggle Bar Visibility -->
-                    <button onclick="document.getElementById('presenter-inner').classList.toggle('hidden'); this.querySelector('svg').classList.toggle('rotate-180')" class="p-2 hover:bg-gray-100 rounded-full text-gray-500">
-                        <i data-lucide="chevron-left" class="w-5 h-5 transition-transform"></i>
-                    </button>
-                    
+                    <button onclick="document.getElementById('presenter-inner').classList.toggle('hidden'); this.querySelector('svg').classList.toggle('rotate-180')" class="p-2 hover:bg-gray-100 rounded-full text-gray-500"><i data-lucide="chevron-left" class="w-5 h-5 transition-transform"></i></button>
                     <div id="presenter-inner" class="flex items-center gap-2 pr-2">
                         <button onclick="app.zoom(-0.1)" class="p-2 hover:bg-gray-100 rounded-full"><i data-lucide="zoom-out" class="w-5 h-5"></i></button>
                         <button onclick="app.fitToScreen()" class="p-2 hover:bg-gray-100 rounded-full"><i data-lucide="maximize" class="w-5 h-5"></i></button>
@@ -356,21 +338,17 @@
             <!-- Canvas -->
             <div id="canvas-container" class="flex-1 overflow-hidden relative" onmousedown="app.handlePanStart(event)" onmousemove="app.handlePanMove(event)" onmouseup="app.handlePanEnd(event)" onmouseleave="app.handlePanEnd(event)">
                 <div id="bg-layer" class="absolute pointer-events-none opacity-50 z-0 bg-no-repeat bg-contain bg-center transition-all duration-300 origin-top-left" style="width: 100%; height: 100%; top: 0; left: 0;"></div>
-                
                 <div id="classroom-grid" class="absolute top-10 left-10 transition-transform duration-75 origin-top-left bg-white p-8 rounded-3xl border border-gray-200 shadow-xl print:shadow-none print:border-none print:p-0 flex flex-col gap-6 select-none z-10">
                     <div id="teacher-desk-area" class="w-full flex justify-center order-first">
-                        <div class="bg-indigo-600 print:bg-gray-800 text-white px-10 py-2 rounded-full shadow-lg print:shadow-none flex items-center gap-2 text-sm font-bold uppercase tracking-widest ring-4 ring-indigo-100 print:ring-0">
-                            <i data-lucide="monitor" class="w-5 h-5"></i> Teacher's Desk
-                        </div>
+                        <div class="bg-indigo-600 print:bg-gray-800 text-white px-10 py-2 rounded-full shadow-lg print:shadow-none flex items-center gap-2 text-sm font-bold uppercase tracking-widest ring-4 ring-indigo-100 print:ring-0"><i data-lucide="monitor" class="w-5 h-5"></i> Teacher's Desk</div>
                     </div>
                     <div id="grid-content" class="flex flex-col gap-4"></div>
                 </div>
             </div>
             
-            <!-- Bottom Zoom (Hidden in Presenter) -->
             <div id="bottom-zoom-controls" class="absolute bottom-6 right-6 flex bg-white rounded-lg shadow-lg border border-gray-200 p-1 no-print z-20">
-                <button onclick="app.adjustFontSize(-1)" class="p-2 hover:bg-gray-100 rounded text-gray-600" title="Font -"><i data-lucide="a-large-small" class="w-3 h-3"></i></button>
-                <button onclick="app.adjustFontSize(1)" class="p-2 hover:bg-gray-100 rounded text-gray-600" title="Font +"><i data-lucide="a-large-small" class="w-5 h-5"></i></button>
+                <button onclick="app.adjustFontSize(-1)" class="p-2 hover:bg-gray-100 rounded text-gray-600"><i data-lucide="a-large-small" class="w-3 h-3"></i></button>
+                <button onclick="app.adjustFontSize(1)" class="p-2 hover:bg-gray-100 rounded text-gray-600"><i data-lucide="a-large-small" class="w-5 h-5"></i></button>
                 <div class="w-px h-auto bg-gray-200 mx-1"></div>
                 <button onclick="app.zoom(-0.1)" class="p-2 hover:bg-gray-100 rounded text-gray-600"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
                 <span id="zoom-val" class="px-2 flex items-center text-xs font-mono text-gray-500 w-12 justify-center">100%</span>
@@ -389,7 +367,7 @@
                     layout: JSON.parse(localStorage.getItem('sp_layout')) || { rows: 5, cols: 6, gapCol: 0 },
                     assignments: JSON.parse(localStorage.getItem('sp_assignments')) || {},
                     bgImage: localStorage.getItem('sp_bgImage') || null,
-                    view: { showNames: true, showTiers: true, showGender: true, showScores: false, perspective: 'front', dualMode: false, fontSize: 14 }, 
+                    view: { showNames: true, showTiers: true, showGender: true, showScores: false, showClassNo: true, showRole: true, perspective: 'front', dualMode: false, fontSize: 14 }, 
                     pan: { x: 50, y: 50 },
                     zoom: 1
                 };
@@ -398,7 +376,7 @@
                 this.dragState = { id: null, source: null, sourceSeat: null };
                 this.panState = { active: false, startX: 0, startY: 0, initialPanX: 0, initialPanY: 0 };
                 this.TIER_COLORS = { 0: 'bg-gray-400', 1: 'bg-green-500', 2: 'bg-yellow-500', 3: 'bg-red-500', 4: 'bg-blue-500', 5: 'bg-purple-500', 6: 'bg-orange-500' };
-                
+                this.importFormat = ['classNo', 'name', 'gender', 'tier', 'role']; 
                 this.init();
             }
 
@@ -408,6 +386,7 @@
                 this.applyBg();
                 this.pushHistory(true);
                 this.render();
+                this.renderImportFormat(); 
                 this.fitToScreen();
             }
 
@@ -430,7 +409,8 @@
                     perspectiveLabel: document.getElementById('perspective-label'),
                     dualLabel: document.getElementById('dual-label'),
                     bgLayer: document.getElementById('bg-layer'),
-                    canvas: document.getElementById('canvas-container')
+                    canvas: document.getElementById('canvas-container'),
+                    importContainer: document.getElementById('import-format-container')
                 };
                 this.updateInputs();
                 this.updateViewControls();
@@ -447,6 +427,8 @@
                 if (document.getElementById('show-tiers')) document.getElementById('show-tiers').checked = this.state.view.showTiers;
                 if (document.getElementById('show-gender')) document.getElementById('show-gender').checked = this.state.view.showGender;
                 if (document.getElementById('show-scores')) document.getElementById('show-scores').checked = this.state.view.showScores;
+                if (document.getElementById('show-classNo')) document.getElementById('show-classNo').checked = this.state.view.showClassNo;
+                if (document.getElementById('show-role')) document.getElementById('show-role').checked = this.state.view.showRole;
             }
 
             bindEvents() {
@@ -471,79 +453,72 @@
                 this.dom.sidebar.addEventListener('drop', (e) => { e.preventDefault(); this.dom.dropZoneSidebar.classList.add('hidden'); if(this.dragState.source === 'grid') this.unseat(this.dragState.sourceSeat); });
             }
 
-            // --- Unseat All Double Click ---
-            handleUnseatAllClick(btn) {
-                if (btn.dataset.confirm === "true") {
-                    this.clearAssignments();
-                    btn.dataset.confirm = "false";
-                    btn.classList.remove('btn-confirm');
-                    btn.innerHTML = '<i data-lucide="trash-2" class="w-5 h-5"></i>';
-                    lucide.createIcons();
-                } else {
-                    btn.dataset.confirm = "true";
-                    btn.classList.add('btn-confirm');
-                    btn.innerHTML = '<i data-lucide="check" class="w-5 h-5"></i>';
-                    lucide.createIcons();
-                    setTimeout(() => {
-                        if(btn && btn.dataset.confirm === "true") {
-                            btn.dataset.confirm = "false";
-                            btn.classList.remove('btn-confirm');
-                            btn.innerHTML = '<i data-lucide="trash-2" class="w-5 h-5"></i>';
-                            lucide.createIcons();
+            // --- Custom Import Logic ---
+            renderImportFormat() {
+                const checks = Array.from(document.querySelectorAll('.import-check:checked')).map(c => c.value);
+                const newFormat = this.importFormat.filter(f => checks.includes(f));
+                checks.forEach(c => { if(!newFormat.includes(c)) newFormat.push(c); });
+                this.importFormat = newFormat;
+
+                const container = this.dom.importContainer;
+                container.innerHTML = '';
+                
+                this.importFormat.forEach((field, index) => {
+                    const el = document.createElement('div');
+                    el.className = 'import-item px-3 py-1 bg-indigo-50 border border-indigo-200 rounded text-xs font-bold text-indigo-700 flex items-center shrink-0';
+                    el.textContent = this.getFieldLabel(field);
+                    el.draggable = true;
+                    el.dataset.index = index;
+                    
+                    el.addEventListener('dragstart', (e) => { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', index); el.classList.add('dragging-format'); });
+                    el.addEventListener('dragend', () => el.classList.remove('dragging-format'));
+                    el.addEventListener('dragover', (e) => e.preventDefault());
+                    el.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                        const toIndex = index;
+                        if (fromIndex !== toIndex && !isNaN(fromIndex)) {
+                            const item = this.importFormat.splice(fromIndex, 1)[0];
+                            this.importFormat.splice(toIndex, 0, item);
+                            this.renderImportFormat();
                         }
-                    }, 2000);
-                }
+                    });
+                    container.appendChild(el);
+                });
             }
 
-            // --- Remix Functionality ---
+            getFieldLabel(f) { const labels = { classNo: 'Class No', name: 'Name', gender: 'Gender', tier: 'Tier', role: 'Role' }; return labels[f] || f; }
+
+            handleUnseatAllClick(btn) {
+                if (btn.dataset.confirm === "true") { this.clearAssignments(); btn.dataset.confirm = "false"; btn.classList.remove('btn-confirm'); btn.innerHTML = '<i data-lucide="trash-2" class="w-5 h-5"></i>'; lucide.createIcons(); }
+                else { btn.dataset.confirm = "true"; btn.classList.add('btn-confirm'); btn.innerHTML = '<i data-lucide="check" class="w-5 h-5"></i>'; lucide.createIcons(); setTimeout(() => { if(btn && btn.dataset.confirm === "true") { btn.dataset.confirm = "false"; btn.classList.remove('btn-confirm'); btn.innerHTML = '<i data-lucide="trash-2" class="w-5 h-5"></i>'; lucide.createIcons(); } }, 2000); }
+            }
+
             remixSeats() {
                 const checkedTiers = Array.from(document.querySelectorAll('.remix-tier:checked')).map(cb => parseInt(cb.value));
                 const genderFilter = document.querySelector('input[name="remixGender"]:checked').value;
-                
                 if (checkedTiers.length === 0) { alert("Please select at least one tier!"); return; }
-
                 const seatedIds = Object.values(this.state.assignments);
                 const studentsToRemix = [];
                 const seatsToRemix = [];
-
                 for (const [seatKey, studentId] of Object.entries(this.state.assignments)) {
                     const student = this.state.students.find(s => s.id === studentId);
                     if (student) {
                         const tier = student.tier || 0;
                         const tierMatch = checkedTiers.includes(tier);
                         const genderMatch = genderFilter === 'all' || student.gender === genderFilter;
-                        
-                        if (tierMatch && genderMatch) {
-                            studentsToRemix.push(student);
-                            seatsToRemix.push(seatKey);
-                        }
+                        if (tierMatch && genderMatch) { studentsToRemix.push(student); seatsToRemix.push(seatKey); }
                     }
                 }
-
-                if (studentsToRemix.length < 2) {
-                    alert("Not enough students to shuffle with current criteria!");
-                    return;
-                }
-
-                // Shuffle
+                if (studentsToRemix.length < 2) { alert("Not enough students to shuffle!"); return; }
                 studentsToRemix.sort(() => Math.random() - 0.5);
-
-                // Reassign
-                seatsToRemix.forEach((seatKey, index) => {
-                    this.state.assignments[seatKey] = studentsToRemix[index].id;
-                });
-
-                this.saveState();
-                this.render();
+                seatsToRemix.forEach((seatKey, index) => { this.state.assignments[seatKey] = studentsToRemix[index].id; });
+                this.saveState(); this.render();
             }
 
-            // --- Smart Fill ---
             setFillPattern(pat) {
                 this.fillSettings.pattern = pat;
-                document.querySelectorAll('.fill-opt').forEach(b => {
-                    if(b.dataset.pat === pat) b.classList.add('active-pattern', 'text-purple-700', 'ring-1', 'ring-purple-500', 'bg-purple-50');
-                    else b.classList.remove('active-pattern', 'text-purple-700', 'ring-1', 'ring-purple-500', 'bg-purple-50');
-                });
+                document.querySelectorAll('.fill-opt').forEach(b => { if(b.dataset.pat === pat) b.classList.add('active-pattern', 'text-purple-700', 'ring-1', 'ring-purple-500', 'bg-purple-50'); else b.classList.remove('active-pattern', 'text-purple-700', 'ring-1', 'ring-purple-500', 'bg-purple-50'); });
             }
 
             updateFillStrategy() {
@@ -556,30 +531,22 @@
                 const { rows, cols } = this.state.layout;
                 const pattern = this.fillSettings.pattern;
                 const strategy = document.getElementById('fill-strategy').value;
-                
                 const limits = {};
                 for(let i=1; i<=6; i++) {
                     const minV = parseInt(document.getElementById(`min-t${i}`).value);
                     const maxV = parseInt(document.getElementById(`max-t${i}`).value);
                     limits[i] = { min: isNaN(minV)?0:minV, max: isNaN(maxV)?Infinity:maxV };
                 }
-
                 const seatedIds = Object.values(this.state.assignments);
                 let unseated = this.state.students.filter(s => !seatedIds.includes(s.id)).sort(() => Math.random() - 0.5);
-
                 let groups = [];
                 if (strategy === 'group') {
                     const gR = parseInt(document.getElementById('group-rows').value) || rows;
                     const gC = parseInt(document.getElementById('group-cols').value) || cols;
-                    
                     for(let r=0; r<rows; r+=gR) {
                         for(let c=0; c<cols; c+=gC) {
                             let currentGroup = [];
-                            for(let rr=r; rr<Math.min(r+gR, rows); rr++) {
-                                for(let cc=c; cc<Math.min(c+gC, cols); cc++) {
-                                    currentGroup.push(`${rr}-${cc}`);
-                                }
-                            }
+                            for(let rr=r; rr<Math.min(r+gR, rows); rr++) for(let cc=c; cc<Math.min(c+gC, cols); cc++) currentGroup.push(`${rr}-${cc}`);
                             groups.push(currentGroup);
                         }
                     }
@@ -587,72 +554,29 @@
                     const gapCol = this.state.layout.gapCol;
                     if(gapCol > 0) {
                          let currentGroup = [];
-                         for(let c=0; c<cols; c++) {
-                            if(c > 0 && c % gapCol === 0) { groups.push(currentGroup); currentGroup = []; }
-                            for(let r=0; r<rows; r++) currentGroup.push(`${r}-${c}`);
-                        }
+                         for(let c=0; c<cols; c++) { if(c > 0 && c % gapCol === 0) { groups.push(currentGroup); currentGroup = []; } for(let r=0; r<rows; r++) currentGroup.push(`${r}-${c}`); }
                         groups.push(currentGroup);
                     } else {
-                        let all = [];
-                        for(let r=0; r<rows; r++) for(let c=0; c<cols; c++) all.push(`${r}-${c}`);
-                        groups.push(all);
+                        let all = []; for(let r=0; r<rows; r++) for(let c=0; c<cols; c++) all.push(`${r}-${c}`); groups.push(all);
                     }
                 }
-
-                if(pattern === 'row-back' || pattern === 'col-right') {
-                    groups.reverse();
-                    groups.forEach(g => g.reverse());
-                }
-                
-                if (pattern.startsWith('col')) {
-                    groups = groups.map(group => {
-                        return group.sort((a,b) => {
-                            const [r1,c1] = a.split('-').map(Number);
-                            const [r2,c2] = b.split('-').map(Number);
-                            return pattern === 'col-left' ? (c1 - c2 || r1 - r2) : (c2 - c1 || r1 - r2);
-                        });
-                    });
-                }
-
+                if(pattern === 'row-back' || pattern === 'col-right') { groups.reverse(); groups.forEach(g => g.reverse()); }
+                if (pattern.startsWith('col')) { groups = groups.map(group => group.sort((a,b) => { const [r1,c1] = a.split('-').map(Number); const [r2,c2] = b.split('-').map(Number); return pattern === 'col-left' ? (c1 - c2 || r1 - r2) : (c2 - c1 || r1 - r2); })); }
                 let targetGroups = groups;
-                if (action === 'next-group') {
-                    const idx = groups.findIndex(g => g.some(s => !this.state.assignments[s]));
-                    if (idx === -1) { alert("Classroom full!"); return; }
-                    targetGroups = [groups[idx]];
-                }
-
+                if (action === 'next-group') { const idx = groups.findIndex(g => g.some(s => !this.state.assignments[s])); if (idx === -1) { alert("Classroom full!"); return; } targetGroups = [groups[idx]]; }
                 targetGroups.forEach(group => {
                     const counts = {1:0,2:0,3:0,4:0,5:0,6:0,0:0};
-                    group.forEach(s => {
-                        const sid = this.state.assignments[s];
-                        if(sid) {
-                            const st = this.state.students.find(x => x.id === sid);
-                            if(st) counts[st.tier||0]++;
-                        }
-                    });
-
+                    group.forEach(s => { const sid=this.state.assignments[s]; if(sid) { const st=this.state.students.find(x => x.id === sid); if(st) counts[st.tier||0]++; } });
                     group.forEach(seat => {
                         if (!this.state.assignments[seat]) {
-                            const idx = unseated.findIndex(s => {
-                                const t = s.tier || 0;
-                                if(t === 0) return true; 
-                                return counts[t] < limits[t].max;
-                            });
-                            
-                            if (idx !== -1) {
-                                const student = unseated.splice(idx, 1)[0];
-                                this.state.assignments[seat] = student.id;
-                                counts[student.tier||0]++;
-                            }
+                            const idx = unseated.findIndex(s => { const t = s.tier || 0; if(t === 0) return true; return counts[t] < limits[t].max; });
+                            if (idx !== -1) { const student = unseated.splice(idx, 1)[0]; this.state.assignments[seat] = student.id; counts[student.tier||0]++; }
                         }
                     });
                 });
-
-                this.saveState();
-                this.render();
+                this.saveState(); this.render();
             }
 
-            // --- Basic Logic ---
             handlePanStart(e) { if(e.target.closest('.seat-zone')||e.target.closest('.draggable-item')) return; this.panState.active=true; this.panState.startX=e.clientX; this.panState.startY=e.clientY; this.panState.initialPanX=this.state.pan.x; this.panState.initialPanY=this.state.pan.y; this.dom.canvas.classList.add('panning'); }
             handlePanMove(e) { if(!this.panState.active)return; e.preventDefault(); const dx=e.clientX-this.panState.startX; const dy=e.clientY-this.panState.startY; this.state.pan.x=this.panState.initialPanX+dx; this.state.pan.y=this.panState.initialPanY+dy; this.applyTransform(); }
             handlePanEnd() { this.panState.active=false; this.dom.canvas.classList.remove('panning'); }
@@ -661,13 +585,10 @@
             
             handleDeleteClick(btn, id) {
                 if (btn.dataset.confirm === "true") this.deleteStudent(id);
-                else {
-                    btn.dataset.confirm = "true"; btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>'; btn.classList.add('btn-confirm'); lucide.createIcons();
-                    setTimeout(() => { if(document.body.contains(btn)) { btn.dataset.confirm = "false"; btn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i>'; btn.classList.remove('btn-confirm'); lucide.createIcons(); } }, 2000);
-                }
+                else { btn.dataset.confirm = "true"; btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>'; btn.classList.add('btn-confirm'); lucide.createIcons(); setTimeout(() => { if(document.body.contains(btn)) { btn.dataset.confirm = "false"; btn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i>'; btn.classList.remove('btn-confirm'); lucide.createIcons(); } }, 2000); }
             }
             
-            updateStudent(id, field, value) { const s=this.state.students.find(st=>st.id===id); if(s) { if(field==='tier') s.tier=parseInt(value); if(field==='gender') s.gender=value; this.saveState(); this.renderSidebar(); this.renderGrid(); } }
+            updateStudent(id, field, value) { const s=this.state.students.find(st=>st.id===id); if(s) { if(field==='tier') s.tier=parseInt(value); if(field==='gender') s.gender=value; if(field==='role') s.role=value; this.saveState(); this.renderSidebar(); this.renderGrid(); } }
             deleteAllStudents() { if(confirm("Delete ALL students?")) { this.state.students=[]; this.state.assignments={}; this.saveState(); this.render(); } }
             
             toggleSidebar() { this.dom.sidebar.classList.toggle('sidebar-closed'); this.dom.sidebar.classList.toggle('sidebar-open'); this.dom.mobileOverlay.classList.toggle('hidden'); }
@@ -680,36 +601,50 @@
             updateHistoryButtons() { this.dom.undoBtn.disabled=this.historyIndex<=0; this.dom.undoBtn.style.opacity=this.dom.undoBtn.disabled?0.3:1; this.dom.redoBtn.disabled=this.historyIndex>=this.history.length-1; this.dom.redoBtn.style.opacity=this.dom.redoBtn.disabled?0.3:1; }
             saveState() { this.render(); this.pushHistory(); }
             
-            addStudent() { const c=document.getElementById('newStudentClassNo').value.trim(); const n=document.getElementById('newStudentName').value.trim(); if(!n)return; this.state.students.push({id:'s_'+Date.now(), classNo:c, name:n, gender:document.getElementById('newStudentGender').value, tier:parseInt(document.getElementById('newStudentTier').value)||0, score:0, material:0}); document.getElementById('newStudentName').value=''; document.getElementById('newStudentClassNo').value=''; this.saveState(); this.setTab('list'); }
+            addStudent() { 
+                const c=document.getElementById('newStudentClassNo').value.trim(); const n=document.getElementById('newStudentName').value.trim(); const r=document.getElementById('newStudentRole').value.trim(); 
+                if(!n)return; 
+                this.state.students.push({id:'s_'+Date.now(), classNo:c, name:n, gender:document.getElementById('newStudentGender').value, tier:parseInt(document.getElementById('newStudentTier').value)||0, score:0, material:0, role:r}); 
+                document.getElementById('newStudentName').value=''; document.getElementById('newStudentClassNo').value=''; document.getElementById('newStudentRole').value='';
+                this.saveState(); this.setTab('list'); 
+            }
             
             bulkAdd() { 
                 const r = document.getElementById('bulkInput').value; 
+                const delimiter = document.getElementById('import-delimiter').value || ',';
                 if(!r) return; 
                 
                 r.split('\n').forEach(line => {
                     const l = line.trim();
                     if (!l) return;
+                    
+                    const data = {};
+                    let delimiterChar = delimiter === '\\t' ? '\t' : delimiter;
 
-                    let c='', n='', g='', t=0;
-
-                    if (l.includes(',')) {
-                        const parts = l.split(',').map(x => x.trim());
-                        c = parts[0] || '';
-                        n = parts[1] || '';
-                        const gRaw = parts[2] || '';
-                        g = (gRaw && gRaw.toUpperCase().startsWith('F')) ? 'F' : (gRaw && gRaw.toUpperCase().startsWith('M') ? 'M' : '');
-                        t = parseInt(parts[3]) || 0;
+                    if (l.includes(delimiterChar)) {
+                        const parts = l.split(delimiterChar).map(x => x.trim());
+                        this.importFormat.forEach((field, index) => {
+                            if (index < parts.length) {
+                                if (field === 'tier') data.tier = parseInt(parts[index]) || 0;
+                                else if (field === 'gender') {
+                                    const raw = parts[index].toUpperCase();
+                                    data.gender = raw.startsWith('F') ? 'F' : (raw.startsWith('M') ? 'M' : '');
+                                }
+                                else data[field] = parts[index];
+                            }
+                        });
                     } else {
-                        n = l;
+                        data.name = l; // Fallback to simple name
                     }
 
-                    if (n) {
+                    if (data.name) {
                         this.state.students.push({
                             id: 's_' + Math.random().toString(36).substr(2, 9), 
-                            classNo: c, 
-                            name: n, 
-                            gender: g, 
-                            tier: t, 
+                            classNo: data.classNo || '', 
+                            name: data.name, 
+                            gender: data.gender || '', 
+                            tier: data.tier || 0, 
+                            role: data.role || '',
                             score: 0, 
                             material: 0
                         });
@@ -736,17 +671,14 @@
             exportImage() {
                 const element = document.getElementById('classroom-grid');
                 const originalTransform = element.style.transform;
-                element.style.transform = 'none'; // Temporarily reset transform for clean capture
+                element.style.transform = 'none'; 
                 
-                html2canvas(element, {
-                    backgroundColor: '#ffffff',
-                    scale: 2 // High resolution
-                }).then(canvas => {
+                html2canvas(element, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
                     const link = document.createElement('a');
                     link.download = `seat_plan_${new Date().toISOString().slice(0,10)}.png`;
                     link.href = canvas.toDataURL();
                     link.click();
-                    element.style.transform = originalTransform; // Restore view
+                    element.style.transform = originalTransform; 
                 });
             }
 
@@ -775,7 +707,7 @@
             unseat(k) { delete this.state.assignments[k]; this.saveState(); }
 
             toggleSettingsMenu() { document.getElementById('settings-menu').classList.toggle('hidden'); }
-            toggleViewOption(k) { this.state.view[k]=!this.state.view[k]; this.renderGrid(); }
+            toggleViewOption(k) { this.state.view[k]=!this.state.view[k]; this.render(); }
             
             updateScore(id, type, val) {
                 const s = this.state.students.find(st => st.id === id);
@@ -784,24 +716,15 @@
                     if(type === 'score') s.score += val;
                     if(type === 'material') s.material = Math.max(0, s.material + val);
                     this.saveState();
-                    this.renderGrid();
+                    this.render(); 
                 }
             }
 
-            // --- Rendering ---
-            render() {
-                this.renderGrid();
-                this.renderSidebar();
-                this.updateStats();
-                lucide.createIcons();
-                this.dom.dualLabel.textContent = this.state.view.dualMode ? "Duo" : "Single";
-                this.applyTransform();
-                this.updateFillStrategy();
-            }
+            render() { this.renderGrid(); this.renderSidebar(); this.updateStats(); lucide.createIcons(); this.dom.dualLabel.textContent = this.state.view.dualMode ? "Duo" : "Single"; this.applyTransform(); this.updateFillStrategy(); }
 
             renderGrid() {
                 const { rows, cols, gapCol } = this.state.layout;
-                const { perspective, dualMode, fontSize, showScores } = this.state.view;
+                const { perspective, dualMode, fontSize, showScores, showClassNo, showRole, showTiers, showNames, showGender } = this.state.view;
                 const container = this.dom.gridContent;
                 container.innerHTML = '';
                 
@@ -826,7 +749,19 @@
                         const hClass = dualMode ? 'h-24 md:h-32 lg:h-40' : 'h-16 md:h-20 lg:h-24';
                         
                         const cell = document.createElement('div');
-                        cell.className = `seat-zone draggable-item seat-card relative w-20 md:w-28 lg:w-32 bg-white rounded-lg md:rounded-xl border-2 shadow-sm transition-colors flex flex-col items-center justify-center group ${hClass} ${s ? 'border-blue-200 bg-blue-50/50 hover:shadow-md cursor-grab active:cursor-grabbing' : 'border-slate-200 hover:border-blue-300'}`;
+                        let bgClass = 'bg-gray-50'; let borderClass = 'border-gray-200';
+
+                        if (s) {
+                            if (showGender) {
+                                if (s.gender === 'F') { bgClass = 'bg-pink-100'; borderClass = 'border-pink-200'; }
+                                else if (s.gender === 'M') { bgClass = 'bg-sky-100'; borderClass = 'border-sky-200'; }
+                                else { bgClass = 'bg-gray-100'; borderClass = 'border-gray-200'; }
+                            } else {
+                                bgClass = 'bg-gray-100'; borderClass = 'border-gray-200';
+                            }
+                        }
+
+                        cell.className = `seat-zone draggable-item seat-card relative w-20 md:w-28 lg:w-32 rounded-lg md:rounded-xl border-2 shadow-sm transition-colors flex flex-col items-center justify-center group ${hClass} ${bgClass} ${borderClass} ${s ? 'hover:shadow-md cursor-grab active:cursor-grabbing' : 'hover:border-blue-300'}`;
                         cell.dataset.r = r; cell.dataset.c = c;
                         
                         cell.ondragover = (e) => { e.preventDefault(); cell.classList.add('drag-over'); };
@@ -838,32 +773,22 @@
                             cell.ondragstart = (e) => this.handleDragStart(e, s.id, 'grid', key);
                             cell.ondragend = (e) => this.handleDragEnd(e);
                             const color = this.TIER_COLORS[s.tier] || this.TIER_COLORS[0];
-                            let gIcon = '';
-                            if (this.state.view.showGender) {
-                                if (s.gender === 'F') gIcon = `<i data-lucide="user" class="w-3 h-3 text-pink-400"></i>`;
-                                else if (s.gender === 'M') gIcon = `<i data-lucide="user" class="w-3 h-3 text-blue-400"></i>`;
-                                else gIcon = `<i data-lucide="user" class="w-3 h-3 text-gray-400"></i>`;
-                            }
+
+                            // Dynamic Font Scaling Logic
+                            const calculatedFontSize = Math.min(fontSize, fontSize * (12 / Math.max(12, s.name.length)));
 
                             let content = '';
-                            if (dualMode && this.state.view.showNames) content += `<div class="flex-1 flex items-center justify-center w-full border-b border-blue-100/50 rotate-180 select-none opacity-75 leading-tight px-1 overflow-hidden" style="font-size: ${fontSize}px;">${s.name}</div>`;
-                            if (this.state.view.showNames) content += `<div class="flex-1 flex items-center justify-center w-full px-1 text-center font-bold text-gray-800 leading-tight select-none overflow-hidden" style="font-size: ${fontSize}px;">${s.name}</div>`;
+                            if (dualMode && showNames) content += `<div class="flex-1 flex items-center justify-center w-full border-b border-gray-300/30 rotate-180 select-none opacity-75 leading-tight px-1 overflow-hidden" style="font-size: ${calculatedFontSize}px;">${s.name}</div>`;
+                            if (showNames) content += `<div class="flex-1 flex items-center justify-center w-full px-1 text-center font-bold text-gray-800 leading-tight select-none overflow-hidden" style="font-size: ${calculatedFontSize}px;">${s.name}</div>`;
 
-                            // Numeric Tier Dot
-                            const tierDot = this.state.view.showTiers && s.tier > 0 
-                                ? `<span class="w-4 h-4 rounded-full ${color} text-white text-[10px] flex items-center justify-center font-bold shadow-sm">${s.tier}</span>` 
-                                : '';
-                            
-                            // Class No
-                            const classNo = s.classNo ? `<div class="absolute top-1 left-1 text-[10px] font-bold text-gray-500">${s.classNo}</div>` : '';
+                            const tierDot = showTiers && s.tier > 0 ? `<span class="w-4 h-4 rounded-full ${color} text-white text-[10px] flex items-center justify-center font-bold shadow-sm flex-none leading-none">${s.tier}</span>` : '';
+                            const classNo = (showClassNo && s.classNo) ? `<div class="absolute top-1 left-1 text-[10px] font-bold text-gray-500">${s.classNo}</div>` : '';
+                            const roleBadge = (showRole && s.role) ? `<div class="absolute bottom-1 right-1 bg-gray-200 text-gray-700 text-[9px] px-1 rounded border border-gray-300 font-bold uppercase tracking-wider flex items-center justify-center leading-none" style="z-index: 10;">${s.role}</div>` : '';
 
-                            // Score Badges
                             const scoreBadge = (showScores && (s.score || 0) !== 0) ? `<div class="bg-green-100 text-green-700 text-[9px] px-1 rounded border border-green-200 font-bold">${s.score > 0 ? '+'+s.score : s.score}</div>` : '';
                             const materialBadge = (showScores && (s.material || 0) > 0) ? `<div class="bg-red-100 text-red-700 text-[9px] px-1 rounded border border-red-200 font-bold">! ${s.material}</div>` : '';
-                            
-                            const badges = (scoreBadge || materialBadge) ? `<div class="absolute top-1 right-1 flex flex-col items-end gap-0.5 pointer-events-none">${scoreBadge}${materialBadge}</div>` : '';
+                            const badges = (scoreBadge || materialBadge) ? `<div class="absolute top-1 right-1 flex flex-col items-end gap-0.5 pointer-events-none" style="z-index: 25;">${scoreBadge}${materialBadge}</div>` : '';
 
-                            // Click Zones (Invisible but active)
                             const clickZones = `
                                 <div class="click-zone zone-tl" onclick="app.updateScore('${s.id}', 'score', -1)" title="Score -1"></div>
                                 <div class="click-zone zone-tr" onclick="app.updateScore('${s.id}', 'score', 1)" title="Score +1"></div>
@@ -873,15 +798,7 @@
 
                             const unseatBtn = `<div onclick="event.stopPropagation(); app.unseat('${key}')" class="absolute -top-2 -right-2 bg-white rounded-full shadow border border-gray-200 p-0.5 cursor-pointer opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity z-50 no-print"><i data-lucide="x" class="w-3 h-3"></i></div>`;
 
-                            cell.innerHTML = `
-                                ${unseatBtn}
-                                ${clickZones}
-                                ${classNo}
-                                ${badges}
-                                ${content}
-                                <div class="absolute bottom-1 left-1 flex gap-1 pointer-events-none">${tierDot}</div>
-                                <div class="absolute bottom-1 right-1 pointer-events-none">${gIcon}</div>
-                            `;
+                            cell.innerHTML = `${unseatBtn}${clickZones}${classNo}${badges}${content}<div class="absolute bottom-1 left-1 flex gap-1 pointer-events-none items-center justify-center" style="z-index: 10;">${tierDot}</div>${roleBadge}`;
                         } else {
                             cell.innerHTML = `<span class="text-slate-200 text-[10px] font-black uppercase tracking-widest select-none pointer-events-none">Empty</span>`;
                         }
@@ -915,17 +832,15 @@
                     el.ondragstart = (e) => this.handleDragStart(e, s.id, 'sidebar', null);
                     el.ondragend = (e) => this.handleDragEnd(e);
                     
-                    const gVal = s.gender || "";
-                    
                     el.innerHTML = `
                         <i data-lucide="grip-vertical" class="w-4 h-4 text-gray-300"></i>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm font-medium text-gray-800 truncate">${s.classNo ? `<span class="font-bold text-gray-500 mr-1">${s.classNo}.</span>` : ''}${s.name}</div>
                             <div class="flex gap-1 mt-1">
                                 <select onchange="app.updateStudent('${s.id}', 'gender', this.value)" class="text-[10px] border rounded bg-gray-50 p-0.5">
-                                    <option value="" ${gVal===''?'selected':''}>-</option>
-                                    <option value="M" ${gVal==='M'?'selected':''}>Boy</option>
-                                    <option value="F" ${gVal==='F'?'selected':''}>Girl</option>
+                                    <option value="" ${s.gender===''?'selected':''}>-</option>
+                                    <option value="M" ${s.gender==='M'?'selected':''}>Boy</option>
+                                    <option value="F" ${s.gender==='F'?'selected':''}>Girl</option>
                                 </select>
                                 <select onchange="app.updateStudent('${s.id}', 'tier', this.value)" class="text-[10px] border rounded bg-gray-50 p-0.5">
                                     <option value="0" ${s.tier===0?'selected':''}>T -</option>
@@ -936,6 +851,7 @@
                                     <option value="5" ${s.tier===5?'selected':''}>T 5</option>
                                     <option value="6" ${s.tier===6?'selected':''}>T 6</option>
                                 </select>
+                                <input type="text" value="${s.role || ''}" placeholder="Role" onchange="app.updateStudent('${s.id}', 'role', this.value)" class="text-[10px] border rounded bg-gray-50 p-0.5 w-16" />
                             </div>
                         </div>
                         <button onclick="app.handleDeleteClick(this, '${s.id}')" class="text-gray-300 hover:text-red-500 transition-all duration-200"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -956,7 +872,9 @@
             sortList(by) {
                 if (by === 'name') this.state.students.sort((a,b) => a.name.localeCompare(b.name));
                 else if (by === 'tier') this.state.students.sort((a,b) => (a.tier||0) - (b.tier||0));
+                else if (by === 'classNo') this.state.students.sort((a,b) => a.classNo.localeCompare(b.classNo, undefined, {numeric: true, sensitivity: 'base'}));
                 this.renderSidebar();
+                lucide.createIcons();
             }
             
             setTab(t) {
