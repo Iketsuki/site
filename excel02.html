@@ -1,0 +1,884 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel 函數互動式學習表格</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f9ff;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239ee6ff' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .toy-block {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .toy-block::before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background-color: rgba(0,0,0,0.1);
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+        }
+        
+        .cell {
+            min-width: 100px;
+            height: 40px;
+            border: 1px solid #e2e8f0;
+            padding: 0;
+            position: relative;
+            background-color: white;
+            transition: all 0.2s;
+        }
+        
+        .cell:focus {
+            outline: 2px solid #3b82f6;
+            z-index: 10;
+        }
+        
+        .cell-input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding: 0 8px;
+            font-family: inherit;
+        }
+        
+        .cell-input:focus {
+            outline: none;
+        }
+        
+        .header-cell {
+            background-color: #dbeafe;
+            font-weight: bold;
+            text-align: center;
+            user-select: none;
+        }
+        
+        .row-header {
+            background-color: #dbeafe;
+            font-weight: bold;
+            text-align: center;
+            user-select: none;
+        }
+        
+        .formula-bar {
+            font-family: monospace;
+        }
+        
+        .function-btn {
+            transition: all 0.2s;
+        }
+        
+        .function-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .function-tooltip {
+            display: none;
+            position: absolute;
+            background-color: white;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 10px;
+            z-index: 100;
+            width: 300px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .function-btn:hover .function-tooltip {
+            display: block;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .bounce-animation {
+            animation: bounce 0.5s ease;
+        }
+        
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <header class="text-center mb-6">
+            <div class="flex justify-center mb-4">
+                <div class="inline-block relative">
+                    <svg class="w-16 h-16 text-green-500" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L5,8.09V15.91L12,19.85L19,15.91V8.09L12,4.15Z" />
+                    </svg>
+                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white font-bold text-xl">XL</div>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold text-blue-600 mb-2">Excel 函數互動式學習表格</h1>
+            <h2 class="text-2xl font-medium text-pink-500">Excel 函數遊樂場</h2>
+            <p class="text-gray-600 mt-2">在這個互動式表格中練習真實的 Excel 函數！</p>
+        </header>
+        
+        <div class="bg-white rounded-3xl shadow-xl p-4 md:p-6 mb-8 toy-block border-4 border-blue-400">
+            <!-- Function Toolbar -->
+            <div class="mb-4 overflow-x-auto custom-scrollbar">
+                <div class="flex space-x-2 pb-2">
+                    <button class="function-btn px-3 py-2 bg-green-100 text-green-700 border-2 border-green-300 rounded-xl font-medium text-sm md:text-base relative" onclick="insertFunction('SUM')">
+                        SUM (求和)
+                        <div class="function-tooltip left-0 top-full mt-2">
+                            <div class="font-bold text-blue-600">SUM(數字1, [數字2], ...)</div>
+                            <div class="text-sm mt-1">將一個範圍內的所有數字相加。</div>
+                            <div class="text-xs text-gray-500 mt-1">例如: =SUM(A1:A5)</div>
+                        </div>
+                    </button>
+                    <button class="function-btn px-3 py-2 bg-blue-100 text-blue-700 border-2 border-blue-300 rounded-xl font-medium text-sm md:text-base relative" onclick="insertFunction('AVERAGE')">
+                        AVERAGE (平均值)
+                        <div class="function-tooltip left-0 top-full mt-2">
+                            <div class="font-bold text-blue-600">AVERAGE(數字1, [數字2], ...)</div>
+                            <div class="text-sm mt-1">返回參數的平均值。</div>
+                            <div class="text-xs text-gray-500 mt-1">例如: =AVERAGE(B1:B5)</div>
+                        </div>
+                    </button>
+                    <button class="function-btn px-3 py-2 bg-purple-100 text-purple-700 border-2 border-purple-300 rounded-xl font-medium text-sm md:text-base relative" onclick="insertFunction('MAX')">
+                        MAX (最大值)
+                        <div class="function-tooltip left-0 top-full mt-2">
+                            <div class="font-bold text-blue-600">MAX(數字1, [數字2], ...)</div>
+                            <div class="text-sm mt-1">返回一組值中的最大值。</div>
+                            <div class="text-xs text-gray-500 mt-1">例如: =MAX(C1:C5)</div>
+                        </div>
+                    </button>
+                    <button class="function-btn px-3 py-2 bg-yellow-100 text-yellow-700 border-2 border-yellow-300 rounded-xl font-medium text-sm md:text-base relative" onclick="insertFunction('MIN')">
+                        MIN (最小值)
+                        <div class="function-tooltip left-0 top-full mt-2">
+                            <div class="font-bold text-blue-600">MIN(數字1, [數字2], ...)</div>
+                            <div class="text-sm mt-1">返回一組值中的最小值。</div>
+                            <div class="text-xs text-gray-500 mt-1">例如: =MIN(D1:D5)</div>
+                        </div>
+                    </button>
+                    <button class="function-btn px-3 py-2 bg-red-100 text-red-700 border-2 border-red-300 rounded-xl font-medium text-sm md:text-base relative" onclick="insertFunction('COUNT')">
+                        COUNT (計數)
+                        <div class="function-tooltip left-0 top-full mt-2">
+                            <div class="font-bold text-blue-600">COUNT(值1, [值2], ...)</div>
+                            <div class="text-sm mt-1">計算包含數字的單元格數量。</div>
+                            <div class="text-xs text-gray-500 mt-1">例如: =COUNT(A1:D5)</div>
+                        </div>
+                    </button>
+                    <button class="function-btn px-3 py-2 bg-indigo-100 text-indigo-700 border-2 border-indigo-300 rounded-xl font-medium text-sm md:text-base relative" onclick="insertFunction('IF')">
+                        IF (如果)
+                        <div class="function-tooltip left-0 top-full mt-2">
+                            <div class="font-bold text-blue-600">IF(邏輯測試, 如果為真的值, 如果為假的值)</div>
+                            <div class="text-sm mt-1">如果條件為真，返回一個值；如果為假，返回另一個值。</div>
+                            <div class="text-xs text-gray-500 mt-1">例如: =IF(A1>10,"大","小")</div>
+                        </div>
+                    </button>
+                    <button class="function-btn px-3 py-2 bg-pink-100 text-pink-700 border-2 border-pink-300 rounded-xl font-medium text-sm md:text-base relative" onclick="insertFunction('CONCATENATE')">
+                        CONCATENATE (合併)
+                        <div class="function-tooltip left-0 top-full mt-2">
+                            <div class="font-bold text-blue-600">CONCATENATE(文本1, [文本2], ...)</div>
+                            <div class="text-sm mt-1">將多個文本項合併為一個文本項。</div>
+                            <div class="text-xs text-gray-500 mt-1">例如: =CONCATENATE("你好 ",A1)</div>
+                        </div>
+                    </button>
+                    <button class="function-btn px-3 py-2 bg-orange-100 text-orange-700 border-2 border-orange-300 rounded-xl font-medium text-sm md:text-base relative" onclick="insertFunction('ROUND')">
+                        ROUND (四捨五入)
+                        <div class="function-tooltip left-0 top-full mt-2">
+                            <div class="font-bold text-blue-600">ROUND(數字, 小數位數)</div>
+                            <div class="text-sm mt-1">將數字四捨五入到指定的位數。</div>
+                            <div class="text-xs text-gray-500 mt-1">例如: =ROUND(A1,2)</div>
+                        </div>
+                    </button>
+                    <button class="function-btn px-3 py-2 bg-teal-100 text-teal-700 border-2 border-teal-300 rounded-xl font-medium text-sm md:text-base relative" onclick="insertFunction('XLOOKUP')">
+                        XLOOKUP (查詢)
+                        <div class="function-tooltip left-0 top-full mt-2">
+                            <div class="font-bold text-blue-600">XLOOKUP(查詢值, 查詢範圍, 返回範圍)</div>
+                            <div class="text-sm mt-1">搜索匹配項並返回相應的項目。</div>
+                            <div class="text-xs text-gray-500 mt-1">例如: =XLOOKUP(A1,B1:B5,C1:C5)</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Formula Bar -->
+            <div class="flex items-center mb-4 bg-gray-100 p-2 rounded-xl">
+                <div class="text-gray-700 font-bold mr-2">fx</div>
+                <input type="text" id="formula-bar" class="formula-bar flex-grow bg-white border-2 border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" placeholder="在此輸入公式...">
+                <button onclick="applyFormula()" class="ml-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">套用</button>
+            </div>
+            
+            <!-- Cell Reference Display -->
+            <div class="mb-4 bg-blue-50 p-2 rounded-xl border-2 border-blue-200 flex items-center">
+                <div class="text-blue-700 font-bold mr-2">已選擇:</div>
+                <div id="cell-reference" class="text-blue-800 font-mono">無</div>
+            </div>
+            
+            <!-- Spreadsheet Container -->
+            <div class="overflow-x-auto custom-scrollbar">
+                <table id="spreadsheet" class="border-collapse">
+                    <thead>
+                        <tr>
+                            <th class="header-cell w-12 h-10"></th>
+                            <th class="header-cell">A</th>
+                            <th class="header-cell">B</th>
+                            <th class="header-cell">C</th>
+                            <th class="header-cell">D</th>
+                            <th class="header-cell">E</th>
+                            <th class="header-cell">F</th>
+                            <th class="header-cell">G</th>
+                            <th class="header-cell">H</th>
+                        </tr>
+                    </thead>
+                    <tbody id="spreadsheet-body">
+                        <!-- Rows will be generated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Function Reference -->
+            <div class="mt-6 bg-yellow-50 p-4 rounded-xl border-2 border-yellow-200">
+                <h3 class="text-xl font-bold text-yellow-700 mb-2">函數幫助 🧸</h3>
+                <p class="text-gray-700">輸入以 = 開頭的公式（例如，=SUM(A1:A5)）。點擊函數按鈕可在游標位置插入該函數。</p>
+                <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="bg-white p-3 rounded-lg">
+                        <div class="font-bold text-blue-600">SUM, AVERAGE, MAX, MIN</div>
+                        <div class="text-sm">使用單元格範圍，如 A1:A5</div>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg">
+                        <div class="font-bold text-blue-600">IF</div>
+                        <div class="text-sm">比較運算符: >, <, =, >=, <=, <>  </div>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg">
+                        <div class="font-bold text-blue-600">XLOOKUP</div>
+                        <div class="text-sm">需要查詢值、查詢範圍、返回範圍</div>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg">
+                        <div class="font-bold text-blue-600">提示</div>
+                        <div class="text-sm">雙擊單元格可編輯其公式</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Examples Section -->
+        <div class="bg-white rounded-3xl shadow-xl p-6 mb-8 toy-block border-4 border-green-400">
+            <h3 class="text-2xl font-bold text-green-600 mb-4">試試這些例子！ 🎮</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
+                    <h4 class="text-lg font-bold text-blue-700 mb-2">基本數學</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                        <li>在 A1 到 A5 單元格中輸入數字</li>
+                        <li>在 A6 中，輸入: <span class="font-mono bg-white px-2 py-1 rounded">= SUM(A1:A5)</span></li>
+                        <li>在 A7 中，輸入: <span class="font-mono bg-white px-2 py-1 rounded">= AVERAGE(A1:A5)</span></li>
+                    </ol>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-xl border-2 border-purple-200">
+                    <h4 class="text-lg font-bold text-purple-700 mb-2">使用 IF</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                        <li>在 B1 單元格中輸入一個數字</li>
+                        <li>在 B2 中，輸入: <span class="font-mono bg-white px-2 py-1 rounded">= IF(B1>50,"通過","不通過")</span></li>
+                    </ol>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-xl border-2 border-yellow-200">
+                    <h4 class="text-lg font-bold text-yellow-700 mb-2">XLOOKUP 例子</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                        <li>在 C1:C3 中輸入 "蘋果", "香蕉", "櫻桃"</li>
+                        <li>在 D1:D3 中輸入 "紅色", "黃色", "紅色"</li>
+                        <li>在 E1 中，輸入: <span class="font-mono bg-white px-2 py-1 rounded">= XLOOKUP("香蕉",C1:C3,D1:D3)</span></li>
+                    </ol>
+                </div>
+                <div class="bg-pink-50 p-4 rounded-xl border-2 border-pink-200">
+                    <h4 class="text-lg font-bold text-pink-700 mb-2">文本函數</h4>
+                    <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                        <li>在 F1 中輸入你的名字</li>
+                        <li>在 F2 中，輸入: <span class="font-mono bg-white px-2 py-1 rounded">= CONCATENATE("你好，",F1,"！")</span></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Spreadsheet data structure
+        const spreadsheetData = {};
+        const formulaBar = document.getElementById('formula-bar');
+        const cellReference = document.getElementById('cell-reference');
+        let selectedCell = null;
+        
+        // Initialize the spreadsheet
+        function initSpreadsheet() {
+            const tbody = document.getElementById('spreadsheet-body');
+            tbody.innerHTML = '';
+            
+            // Create 10 rows
+            for (let i = 1; i <= 10; i++) {
+                const row = document.createElement('tr');
+                
+                // Row header
+                const rowHeader = document.createElement('td');
+                rowHeader.className = 'row-header w-12';
+                rowHeader.textContent = i;
+                row.appendChild(rowHeader);
+                
+                // Create cells A through H
+                for (let j = 0; j < 8; j++) {
+                    const cellId = String.fromCharCode(65 + j) + i;
+                    const cell = document.createElement('td');
+                    cell.className = 'cell';
+                    cell.id = cellId;
+                    cell.setAttribute('data-cell-id', cellId);
+                    
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'cell-input';
+                    input.setAttribute('data-cell-id', cellId);
+                    
+                    cell.appendChild(input);
+                    row.appendChild(cell);
+                    
+                    // Initialize cell data
+                    spreadsheetData[cellId] = {
+                        value: '',
+                        formula: '',
+                        displayValue: ''
+                    };
+                }
+                
+                tbody.appendChild(row);
+            }
+            
+            // Add event listeners
+            addCellEventListeners();
+        }
+        
+        // Add event listeners to cells
+        function addCellEventListeners() {
+            const cells = document.querySelectorAll('.cell-input');
+            
+            cells.forEach(input => {
+                // Select cell on click
+                input.addEventListener('click', function(e) {
+                    selectCell(e.target.getAttribute('data-cell-id'));
+                });
+                
+                // Update cell on blur
+                input.addEventListener('blur', function(e) {
+                    updateCellValue(e.target.getAttribute('data-cell-id'), e.target.value);
+                });
+                
+                // Handle key events
+                input.addEventListener('keydown', function(e) {
+                    const cellId = e.target.getAttribute('data-cell-id');
+                    
+                    // Enter key
+                    if (e.key === 'Enter') {
+                        updateCellValue(cellId, e.target.value);
+                        moveSelection('down');
+                        e.preventDefault();
+                    }
+                    
+                    // Arrow keys for navigation
+                    if (e.key === 'ArrowUp') {
+                        moveSelection('up');
+                        e.preventDefault();
+                    } else if (e.key === 'ArrowDown') {
+                        moveSelection('down');
+                        e.preventDefault();
+                    } else if (e.key === 'ArrowLeft') {
+                        moveSelection('left');
+                        e.preventDefault();
+                    } else if (e.key === 'ArrowRight') {
+                        moveSelection('right');
+                        e.preventDefault();
+                    }
+                });
+                
+                // Double click to edit formula
+                input.addEventListener('dblclick', function(e) {
+                    const cellId = e.target.getAttribute('data-cell-id');
+                    const cellData = spreadsheetData[cellId];
+                    
+                    if (cellData.formula) {
+                        e.target.value = cellData.formula;
+                    }
+                });
+            });
+        }
+        
+        // Select a cell
+        function selectCell(cellId) {
+            // Deselect previous cell
+            if (selectedCell) {
+                const prevCell = document.querySelector(`input[data-cell-id="${selectedCell}"]`);
+                if (prevCell) {
+                    prevCell.parentElement.classList.remove('bg-blue-50');
+                }
+            }
+            
+            selectedCell = cellId;
+            cellReference.textContent = cellId;
+            
+            // Highlight selected cell
+            const cell = document.querySelector(`input[data-cell-id="${cellId}"]`);
+            if (cell) {
+                cell.parentElement.classList.add('bg-blue-50');
+                
+                // Update formula bar
+                const cellData = spreadsheetData[cellId];
+                formulaBar.value = cellData.formula || cellData.value;
+                
+                // Focus the cell
+                cell.focus();
+            }
+        }
+        
+        // Move selection
+        function moveSelection(direction) {
+            if (!selectedCell) return;
+            
+            const col = selectedCell.charAt(0);
+            const row = parseInt(selectedCell.substring(1));
+            
+            let newCol = col;
+            let newRow = row;
+            
+            switch (direction) {
+                case 'up':
+                    newRow = Math.max(1, row - 1);
+                    break;
+                case 'down':
+                    newRow = Math.min(10, row + 1);
+                    break;
+                case 'left':
+                    newCol = String.fromCharCode(Math.max(65, col.charCodeAt(0) - 1));
+                    break;
+                case 'right':
+                    newCol = String.fromCharCode(Math.min(72, col.charCodeAt(0) + 1));
+                    break;
+            }
+            
+            const newCellId = newCol + newRow;
+            selectCell(newCellId);
+        }
+        
+        // Update cell value
+        function updateCellValue(cellId, value) {
+            const cellData = spreadsheetData[cellId];
+            const cell = document.querySelector(`input[data-cell-id="${cellId}"]`);
+            
+            if (value.startsWith('=')) {
+                // It's a formula
+                cellData.formula = value;
+                try {
+                    const result = evaluateFormula(value.substring(1), cellId);
+                    cellData.value = result;
+                    cellData.displayValue = result;
+                    cell.value = result;
+                } catch (error) {
+                    cellData.value = '#錯誤';
+                    cellData.displayValue = '#錯誤';
+                    cell.value = '#錯誤';
+                }
+            } else {
+                // It's a direct value
+                cellData.formula = '';
+                cellData.value = value;
+                cellData.displayValue = value;
+                cell.value = value;
+            }
+            
+            // Recalculate all formulas that might depend on this cell
+            recalculateAll();
+        }
+        
+        // Apply formula from formula bar
+        function applyFormula() {
+            if (!selectedCell) return;
+            
+            const formula = formulaBar.value;
+            updateCellValue(selectedCell, formula);
+        }
+        
+        // Insert function at cursor position in formula bar
+        function insertFunction(funcName) {
+            formulaBar.focus();
+            const startPos = formulaBar.selectionStart;
+            const endPos = formulaBar.selectionEnd;
+            const currentValue = formulaBar.value;
+            
+            // If formula bar is empty or doesn't start with =, add it
+            let newValue;
+            if (!currentValue.startsWith('=')) {
+                newValue = '=' + funcName + '()';
+                formulaBar.value = newValue;
+                formulaBar.setSelectionRange(newValue.length - 1, newValue.length - 1);
+            } else {
+                // Insert at cursor position
+                newValue = currentValue.substring(0, startPos) + funcName + '()' + currentValue.substring(endPos);
+                formulaBar.value = newValue;
+                formulaBar.setSelectionRange(startPos + funcName.length + 1, startPos + funcName.length + 1);
+            }
+            
+            // Add bounce animation to formula bar
+            formulaBar.classList.add('bounce-animation');
+            setTimeout(() => {
+                formulaBar.classList.remove('bounce-animation');
+            }, 500);
+        }
+        
+        // Recalculate all formulas
+        function recalculateAll() {
+            // We need to iterate multiple times to handle dependencies
+            for (let i = 0; i < 3; i++) {
+                for (const cellId in spreadsheetData) {
+                    const cellData = spreadsheetData[cellId];
+                    if (cellData.formula) {
+                        try {
+                            const result = evaluateFormula(cellData.formula.substring(1), cellId);
+                            cellData.value = result;
+                            cellData.displayValue = result;
+                            
+                            const cell = document.querySelector(`input[data-cell-id="${cellId}"]`);
+                            if (cell) {
+                                cell.value = result;
+                            }
+                        } catch (error) {
+                            // Ignore errors during recalculation
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Evaluate formula
+        function evaluateFormula(formula, currentCellId) {
+            // Handle common Excel functions
+            formula = formula.trim();
+            
+            // SUM function
+            if (formula.toUpperCase().startsWith('SUM(')) {
+                const range = extractRange(formula.substring(4, formula.length - 1));
+                return calculateSum(range);
+            }
+            
+            // AVERAGE function
+            if (formula.toUpperCase().startsWith('AVERAGE(')) {
+                const range = extractRange(formula.substring(8, formula.length - 1));
+                const sum = calculateSum(range);
+                const count = range.length;
+                return count > 0 ? (sum / count).toString() : '#DIV/0!';
+            }
+            
+            // MAX function
+            if (formula.toUpperCase().startsWith('MAX(')) {
+                const range = extractRange(formula.substring(4, formula.length - 1));
+                if (range.length === 0) return '#VALUE!';
+                
+                const numbers = range.map(cellId => {
+                    const val = spreadsheetData[cellId].value;
+                    return isNaN(parseFloat(val)) ? -Infinity : parseFloat(val);
+                });
+                
+                return Math.max(...numbers).toString();
+            }
+            
+            // MIN function
+            if (formula.toUpperCase().startsWith('MIN(')) {
+                const range = extractRange(formula.substring(4, formula.length - 1));
+                if (range.length === 0) return '#VALUE!';
+                
+                const numbers = range.map(cellId => {
+                    const val = spreadsheetData[cellId].value;
+                    return isNaN(parseFloat(val)) ? Infinity : parseFloat(val);
+                });
+                
+                return Math.min(...numbers).toString();
+            }
+            
+            // COUNT function
+            if (formula.toUpperCase().startsWith('COUNT(')) {
+                const range = extractRange(formula.substring(6, formula.length - 1));
+                const count = range.filter(cellId => {
+                    const val = spreadsheetData[cellId].value;
+                    return !isNaN(parseFloat(val)) && val !== '';
+                }).length;
+                
+                return count.toString();
+            }
+            
+            // IF function
+            if (formula.toUpperCase().startsWith('IF(')) {
+                // Extract the three parts of the IF function
+                const content = formula.substring(3, formula.length - 1);
+                const parts = splitByCommaOutsideQuotes(content);
+                
+                if (parts.length !== 3) return '#錯誤';
+                
+                const condition = evaluateCondition(parts[0]);
+                const trueValue = evaluateValue(parts[1]);
+                const falseValue = evaluateValue(parts[2]);
+                
+                return condition ? trueValue : falseValue;
+            }
+            
+            // CONCATENATE function
+            if (formula.toUpperCase().startsWith('CONCATENATE(')) {
+                const content = formula.substring(12, formula.length - 1);
+                const parts = splitByCommaOutsideQuotes(content);
+                
+                let result = '';
+                for (const part of parts) {
+                    result += evaluateValue(part);
+                }
+                
+                return result;
+            }
+            
+            // ROUND function
+            if (formula.toUpperCase().startsWith('ROUND(')) {
+                const content = formula.substring(6, formula.length - 1);
+                const parts = splitByCommaOutsideQuotes(content);
+                
+                if (parts.length !== 2) return '#錯誤';
+                
+                const number = parseFloat(evaluateValue(parts[0]));
+                const digits = parseInt(evaluateValue(parts[1]));
+                
+                if (isNaN(number) || isNaN(digits)) return '#VALUE!';
+                
+                return Number(Math.round(number + 'e' + digits) + 'e-' + digits).toString();
+            }
+            
+            // XLOOKUP function
+            if (formula.toUpperCase().startsWith('XLOOKUP(')) {
+                const content = formula.substring(8, formula.length - 1);
+                const parts = splitByCommaOutsideQuotes(content);
+                
+                if (parts.length < 3) return '#錯誤';
+                
+                const lookupValue = evaluateValue(parts[0]);
+                const lookupArray = extractRange(parts[1]);
+                const returnArray = extractRange(parts[2]);
+                
+                // Find the index of the lookup value in the lookup array
+                let foundIndex = -1;
+                for (let i = 0; i < lookupArray.length; i++) {
+                    const cellValue = spreadsheetData[lookupArray[i]].value;
+                    if (cellValue === lookupValue) {
+                        foundIndex = i;
+                        break;
+                    }
+                }
+                
+                if (foundIndex === -1) return '#N/A';
+                
+                // Return the corresponding value from the return array
+                if (foundIndex < returnArray.length) {
+                    return spreadsheetData[returnArray[foundIndex]].value;
+                } else {
+                    return '#REF!';
+                }
+            }
+            
+            // Direct cell reference
+            if (/^[A-H][1-9][0]?$/.test(formula)) {
+                // Check for circular reference
+                if (formula === currentCellId) return '#循環!';
+                
+                const cellData = spreadsheetData[formula];
+                return cellData ? cellData.value : '#REF!';
+            }
+            
+            // Simple arithmetic expressions
+            try {
+                // Replace cell references with their values
+                let expression = formula.replace(/[A-H][1-9][0]?/g, match => {
+                    // Check for circular reference
+                    if (match === currentCellId) throw new Error('Circular reference');
+                    
+                    const cellData = spreadsheetData[match];
+                    if (!cellData) return '0';
+                    
+                    const value = cellData.value;
+                    return isNaN(parseFloat(value)) ? '0' : value;
+                });
+                
+                // Evaluate the expression
+                const result = Function('"use strict"; return (' + expression + ')')();
+                return result.toString();
+            } catch (error) {
+                return '#錯誤';
+            }
+        }
+        
+        // Extract range of cells (e.g., A1:A5)
+        function extractRange(rangeStr) {
+            rangeStr = rangeStr.trim();
+            
+            // Check if it's a range with colon
+            if (rangeStr.includes(':')) {
+                const [start, end] = rangeStr.split(':');
+                
+                // Extract column and row
+                const startCol = start.charAt(0);
+                const startRow = parseInt(start.substring(1));
+                const endCol = end.charAt(0);
+                const endRow = parseInt(end.substring(1));
+                
+                // Generate all cells in the range
+                const cells = [];
+                for (let col = startCol.charCodeAt(0); col <= endCol.charCodeAt(0); col++) {
+                    for (let row = startRow; row <= endRow; row++) {
+                        cells.push(String.fromCharCode(col) + row);
+                    }
+                }
+                
+                return cells;
+            } else {
+                // It's a single cell or comma-separated list
+                return rangeStr.split(',').map(cell => cell.trim());
+            }
+        }
+        
+        // Calculate sum of values in a range
+        function calculateSum(range) {
+            let sum = 0;
+            
+            for (const cellId of range) {
+                const cellData = spreadsheetData[cellId];
+                if (cellData) {
+                    const value = parseFloat(cellData.value);
+                    if (!isNaN(value)) {
+                        sum += value;
+                    }
+                }
+            }
+            
+            return sum.toString();
+        }
+        
+        // Evaluate a condition (for IF function)
+        function evaluateCondition(condition) {
+            // Replace cell references with their values
+            condition = condition.replace(/[A-H][1-9][0]?/g, match => {
+                const cellData = spreadsheetData[match];
+                if (!cellData) return '0';
+                
+                const value = cellData.value;
+                return isNaN(parseFloat(value)) ? `"${value}"` : value;
+            });
+            
+            try {
+                return Function('"use strict"; return (' + condition + ')')();
+            } catch (error) {
+                return false;
+            }
+        }
+        
+        // Evaluate a value (could be a string, number, or cell reference)
+        function evaluateValue(value) {
+            value = value.trim();
+            
+            // Check if it's a string literal
+            if (value.startsWith('"') && value.endsWith('"')) {
+                return value.substring(1, value.length - 1);
+            }
+            
+            // Check if it's a cell reference
+            if (/^[A-H][1-9][0]?$/.test(value)) {
+                const cellData = spreadsheetData[value];
+                return cellData ? cellData.value : '';
+            }
+            
+            // Otherwise, it's a direct value or expression
+            try {
+                // Replace cell references with their values
+                let expression = value.replace(/[A-H][1-9][0]?/g, match => {
+                    const cellData = spreadsheetData[match];
+                    if (!cellData) return '0';
+                    
+                    const cellValue = cellData.value;
+                    return isNaN(parseFloat(cellValue)) ? `"${cellValue}"` : cellValue;
+                });
+                
+                // Check if it's a string after substitution
+                if (expression.startsWith('"') && expression.endsWith('"')) {
+                    return expression.substring(1, expression.length - 1);
+                }
+                
+                // Evaluate as expression
+                return Function('"use strict"; return (' + expression + ')')().toString();
+            } catch (error) {
+                return value;
+            }
+        }
+        
+        // Split by comma, but ignore commas inside quotes
+        function splitByCommaOutsideQuotes(str) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < str.length; i++) {
+                const char = str[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                    current += char;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current);
+            return result;
+        }
+        
+        // Initialize the spreadsheet when the page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            initSpreadsheet();
+            
+            // Add some sample data
+            updateCellValue('A1', '10');
+            updateCellValue('A2', '20');
+            updateCellValue('A3', '30');
+            updateCellValue('A4', '40');
+            updateCellValue('A5', '50');
+            
+            // Select cell A1 by default
+            selectCell('A1');
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9acc078414d78552',t:'MTc2NTUzMDAwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
