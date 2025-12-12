@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Excel Formula Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+        /* Cell Styling */
+        .excel-cell {
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+        .excel-cell:focus {
+            outline: 2px solid #10b981;
+            border-color: #10b981;
+            z-index: 10;
+        }
+
+        /* SVG Overlay Container */
+        #viz-container {
+            position: relative;
+            overflow: hidden;
+            min-height: 450px;
+        }
+        #svg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .viz-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Animation classes */
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 h-16 flex items-center px-6 shadow-sm shrink-0 z-20">
+        <div class="text-green-600 text-2xl mr-3"><i class="fa-solid fa-file-excel"></i></div>
+        <h1 class="text-xl font-bold tracking-tight">Formula<span class="text-green-600">Viz</span></h1>
+        <span class="ml-auto text-sm text-slate-500">Interactive SVG Visualizations</span>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col overflow-y-auto shrink-0 z-10">
+            <div class="p-4">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Functions</h2>
+                <div id="menu-container" class="space-y-6">
+                    <!-- Categories injected by JS -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Workspace -->
+        <main class="flex-1 flex flex-col overflow-hidden relative bg-slate-50">
+            
+            <!-- Formula Bar -->
+            <div class="bg-white border-b border-slate-200 p-4 flex items-center shrink-0">
+                <div class="font-serif italic text-slate-400 font-bold mr-3">fx</div>
+                <div id="formula-display" class="font-mono bg-slate-100 px-3 py-2 rounded w-full text-slate-700 border border-slate-200 truncate">
+                    Select a function...
+                </div>
+            </div>
+
+            <!-- Visualization Area -->
+            <div class="flex-1 overflow-y-auto p-6 relative" id="workspace">
+                <div id="viz-container" class="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+                    <svg id="svg-layer"></svg>
+                    <div id="viz-content" class="viz-content flex flex-col items-center justify-center min-h-[300px] w-full">
+                        <!-- Dynamic Content Here -->
+                        <div class="text-center text-slate-400">
+                            <i class="fa-solid fa-arrow-pointer text-4xl mb-4 opacity-50"></i>
+                            <p>Select a formula from the sidebar to begin.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description Panel -->
+                <div id="info-panel" class="mt-6 bg-blue-50 border border-blue-100 rounded-lg p-4 hidden">
+                    <h3 class="font-bold text-blue-800 mb-1" id="info-title">Title</h3>
+                    <div class="mb-2 font-mono text-xs text-slate-500 bg-slate-100 p-2 rounded border border-slate-200 break-all" id="info-syntax"></div>
+                    <p class="text-blue-600 text-sm" id="info-desc">Description</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+<script>
+/**
+ * DATA & CONFIGURATION
+ */
+const categories = {
+    "Mathematical": ["ROUND", "INT", "ABS", "SQRT", "MOD", "POWER", "RAND"],
+    "Logical": ["IF", "AND", "OR", "NOT", "IFERROR"],
+    "Text": ["LEN", "LEFT", "MID", "RIGHT", "FIND", "CONCAT", "UPPER", "LOWER", "TRIM"],
+    "Statistical": ["SUM", "AVERAGE", "COUNT", "MAX", "MIN", "COUNTIF", "SUMIF", "AVERAGEIF", "LARGE", "SMALL", "RANK"],
+    "Lookup": ["XLOOKUP", "VLOOKUP", "INDEX", "MATCH"]
+};
+
+const formulas = {
+    // --- MATHEMATICAL ---
+    "ROUND": {
+        desc: "Rounds a number to a specified number of digits.",
+        syntax: "=ROUND(number, num_digits)",
+        inputs: [
+            { label: "Number", type: "number", value: 3.14159, id: "num" },
+            { label: "Num Digits", type: "number", value: 2, id: "digits", min: 0, max: 5 }
+        ],
+        calc: (inputs) => {
+            const n = parseFloat(inputs.num);
+            const d = parseInt(inputs.digits);
+            return isNaN(n) ? "Error" : Number(Math.round(n + 'e' + d) + 'e-' + d);
+        },
+        type: "number_line"
+    },
+    "INT": {
+        desc: "Rounds a number down to the nearest integer.",
+        syntax: "=INT(number)",
+        inputs: [
+            { label: "Number", type: "number", value: 5.8, id: "num", step: 0.1 }
+        ],
+        calc: (inputs) => Math.floor(parseFloat(inputs.num)),
+        type: "number_line_floor"
+    },
+    "ABS": {
+        desc: "Returns the absolute value of a number (distance from zero).",
+        syntax: "=ABS(number)",
+        inputs: [{ label: "Number", type: "number", value: -4.5, id: "num", step: 0.5 }],
+        calc: (inputs) => Math.abs(parseFloat(inputs.num)),
+        type: "number_line_abs"
+    },
+    "SQRT": {
+        desc: "Returns the square root of a number.",
+        syntax: "=SQRT(number)",
+        inputs: [
+            { label: "Number", type: "number", value: 16, id: "num", min: 0 }
+        ],
+        calc: (inputs) => Math.sqrt(Math.max(0, parseFloat(inputs.num))).toFixed(2),
+        type: "square_visual"
+    },
+    "MOD": {
+        desc: "Returns the remainder after a number is divided by a divisor.",
+        syntax: "=MOD(number, divisor)",
+        inputs: [
+            { label: "Number", type: "number", value: 10, id: "num" },
+            { label: "Divisor", type: "number", value: 3, id: "div" }
+        ],
+        calc: (i) => i.num % i.div,
+        type: "simple_calc"
+    },
+    "POWER": {
+        desc: "Returns the result of a number raised to a power.",
+        syntax: "=POWER(number, power)",
+        inputs: [
+            { label: "Number", type: "number", value: 5, id: "num" },
+            { label: "Power", type: "number", value: 2, id: "pow" }
+        ],
+        calc: (i) => Math.pow(i.num, i.pow),
+        type: "simple_calc"
+    },
+    "RAND": {
+        desc: "Returns a random number between 0 and 1.",
+        syntax: "=RAND()",
+        inputs: [
+            { label: "Regenerate", type: "button", value: "Roll", id: "btn" }
+        ],
+        calc: () => Math.random().toFixed(4),
+        type: "random_visual"
+    },
+
+    // --- LOGICAL ---
+    "IF": {
+        desc: "Checks a condition, returns one value if True, another if False.",
+        syntax: "=IF(logical_test, value_if_true, [value_if_false])",
+        inputs: [
+            { label: "Score", type: "number", value: 75, id: "val" },
+            { label: "Condition", type: "static", value: "> 50" },
+            { label: "If True", type: "text", value: "Pass", id: "true_val" },
+            { label: "If False", type: "text", value: "Fail", id: "false_val" }
+        ],
+        calc: (i) => parseFloat(i.val) > 50 ? i.true_val : i.false_val,
+        type: "flowchart_if"
+    },
+    "AND": {
+        desc: "Returns TRUE if all arguments are TRUE.",
+        syntax: "=AND(logical1, [logical2], ...)",
+        inputs: [
+            { label: "Condition 1", type: "toggle", value: true, id: "c1" },
+            { label: "Condition 2", type: "toggle", value: false, id: "c2" }
+        ],
+        calc: (i) => i.c1 && i.c2,
+        type: "logic_gate"
+    },
+    "OR": {
+        desc: "Returns TRUE if any argument is TRUE.",
+        syntax: "=OR(logical1, [logical2], ...)",
+        inputs: [
+            { label: "Condition 1", type: "toggle", value: false, id: "c1" },
+            { label: "Condition 2", type: "toggle", value: false, id: "c2" }
+        ],
+        calc: (i) => i.c1 || i.c2,
+        type: "logic_gate"
+    },
+    "NOT": {
+        desc: "Reverses the logic of its argument.",
+        syntax: "=NOT(logical)",
+        inputs: [
+            { label: "Condition", type: "toggle", value: true, id: "c1" }
+        ],
+        calc: (i) => !i.c1,
+        type: "logic_gate_single"
+    },
+    "IFERROR": {
+        desc: "Returns a value you specify if a formula evaluates to an error; otherwise, returns the result of the formula.",
+        syntax: "=IFERROR(value, value_if_error)",
+        inputs: [
+            { label: "Value", type: "text", value: "#N/A", id: "val", width: "w-20" },
+            { label: "Value if Error", type: "text", value: "Not Found", id: "err_val" }
+        ],
+        calc: (i) => (i.val.startsWith("#") || i.val === "Error") ? i.err_val : i.val,
+        type: "simple_calc"
+    },
+
+    // --- TEXT ---
+    "LEN": {
+        desc: "Returns the number of characters in a text string.",
+        syntax: "=LEN(text)",
+        inputs: [ { label: "Text", type: "text", value: "Excel", id: "txt" } ],
+        calc: (i) => i.txt.length,
+        type: "text_blocks"
+    },
+    "LEFT": {
+        desc: "Returns the specified number of chars from the start of a text string.",
+        syntax: "=LEFT(text, [num_chars])",
+        inputs: [
+            { label: "Text", type: "text", value: "Formula", id: "txt" },
+            { label: "Num Chars", type: "number", value: 3, id: "num", min: 1 }
+        ],
+        calc: (i) => i.txt.substring(0, parseInt(i.num)),
+        type: "text_blocks"
+    },
+    "RIGHT": {
+        desc: "Returns the specified number of chars from the end of a text string.",
+        syntax: "=RIGHT(text, [num_chars])",
+        inputs: [
+            { label: "Text", type: "text", value: "Formula", id: "txt" },
+            { label: "Num Chars", type: "number", value: 3, id: "num", min: 1 }
+        ],
+        calc: (i) => i.txt.slice(-parseInt(i.num)),
+        type: "text_blocks"
+    },
+    "MID": {
+        desc: "Returns chars from the middle of a string, given a starting position and length.",
+        syntax: "=MID(text, start_num, num_chars)",
+        inputs: [
+            { label: "Text", type: "text", value: "Visualization", id: "txt" },
+            { label: "Start Num", type: "number", value: 6, id: "start", min: 1 },
+            { label: "Num Chars", type: "number", value: 5, id: "len", min: 1 }
+        ],
+        calc: (i) => i.txt.substr(parseInt(i.start)-1, parseInt(i.len)),
+        type: "text_blocks"
+    },
+    "FIND": {
+        desc: "Returns the starting position of one text string within another.",
+        syntax: "=FIND(find_text, within_text, [start_num])",
+        inputs: [
+            { label: "Find Text", type: "text", value: "m", id: "find" },
+            { label: "Within Text", type: "text", value: "Teamwork", id: "txt" }
+        ],
+        calc: (i) => {
+            const idx = i.txt.indexOf(i.find);
+            return idx === -1 ? "#VALUE!" : idx + 1;
+        },
+        type: "text_blocks_find"
+    },
+    "CONCAT": {
+        desc: "Joins two or more text strings into one string.",
+        syntax: "=CONCAT(text1, [text2], ...)",
+        inputs: [
+            { label: "Text 1", type: "text", value: "Hello", id: "t1" },
+            { label: "Text 2", type: "text", value: "World", id: "t2" }
+        ],
+        calc: (i) => i.t1 + i.t2,
+        type: "text_join"
+    },
+    "UPPER": {
+        desc: "Converts text to uppercase.",
+        syntax: "=UPPER(text)",
+        inputs: [{ label: "Text", type: "text", value: "excel", id: "txt" }],
+        calc: (i) => i.txt.toUpperCase(),
+        type: "text_blocks_case"
+    },
+    "LOWER": {
+        desc: "Converts text to lowercase.",
+        syntax: "=LOWER(text)",
+        inputs: [{ label: "Text", type: "text", value: "EXCEL", id: "txt" }],
+        calc: (i) => i.txt.toLowerCase(),
+        type: "text_blocks_case"
+    },
+    "TRIM": {
+        desc: "Removes all spaces from text except for single spaces between words.",
+        syntax: "=TRIM(text)",
+        inputs: [{ label: "Text", type: "text", value: "  Extra  Space  ", id: "txt", width: "w-48" }],
+        calc: (i) => i.txt.trim().replace(/\s+/g, ' '),
+        type: "text_blocks_case"
+    },
+
+
+    // --- STATISTICAL ---
+    "SUM": {
+        desc: "Adds all the numbers in a range of cells.",
+        syntax: "=SUM(number1, [number2], ...)",
+        data: [10, 20, 30, 40, 50],
+        calc: (data) => data.reduce((a, b) => a + b, 0),
+        type: "grid_agg"
+    },
+    "AVERAGE": {
+        desc: "Returns the average (arithmetic mean) of the arguments.",
+        syntax: "=AVERAGE(number1, [number2], ...)",
+        data: [10, 20, 30, 40, 50],
+        calc: (data) => data.reduce((a, b) => a + b, 0) / data.length,
+        type: "grid_agg"
+    },
+    "COUNT": {
+        desc: "Counts the number of cells that contain numbers.",
+        syntax: "=COUNT(value1, [value2], ...)",
+        data: [10, "A", 30, 40, "B"],
+        calc: (data) => data.filter(d => !isNaN(d)).length,
+        type: "grid_agg"
+    },
+    "MAX": {
+        desc: "Returns the largest value in a set of values.",
+        syntax: "=MAX(number1, [number2], ...)",
+        data: [4, 15, 92, 6, 35],
+        calc: (data) => Math.max(...data),
+        type: "grid_agg"
+    },
+    "MIN": {
+        desc: "Returns the smallest value in a set of values.",
+        syntax: "=MIN(number1, [number2], ...)",
+        data: [4, 15, 92, 6, 35],
+        calc: (data) => Math.min(...data),
+        type: "grid_agg"
+    },
+    "COUNTIF": {
+        desc: "Counts the number of cells within a range that meet the given condition.",
+        syntax: "=COUNTIF(range, criteria)",
+        data: [10, 25, 5, 30, 10],
+        inputs: [{ label: "Criteria", type: "static", value: "> 15" }],
+        calc: (i, data) => data.filter(d => d > 15).length,
+        type: "grid_cond"
+    },
+    "SUMIF": {
+        desc: "Adds the cells specified by a given condition or criteria.",
+        syntax: "=SUMIF(range, criteria, [sum_range])",
+        data: [10, 20, 30, 10, 50],
+        inputs: [{ label: "Criteria", type: "static", value: "> 20" }],
+        calc: (i, data) => data.filter(d => d > 20).reduce((a,b) => a+b, 0),
+        type: "grid_cond"
+    },
+    "AVERAGEIF": {
+        desc: "Finds average (arithmetic mean) for the cells specified by a given condition.",
+        syntax: "=AVERAGEIF(range, criteria, [average_range])",
+        data: [10, 20, 60, 10, 80],
+        inputs: [{ label: "Criteria", type: "static", value: "> 20" }],
+        calc: (i, data) => {
+            const valid = data.filter(d => d > 20);
+            return valid.length ? valid.reduce((a,b)=>a+b,0)/valid.length : 0;
+        },
+        type: "grid_cond"
+    },
+    "RANK": {
+        desc: "Returns the rank of a number in a list of numbers.",
+        syntax: "=RANK.EQ(number, ref, [order])",
+        data: [45, 20, 90, 60, 10],
+        inputs: [{ label: "Number", type: "static", value: 60 }], 
+        calc: (i, data) => {
+            const sorted = [...data].sort((a,b) => b-a);
+            return sorted.indexOf(60) + 1;
+        },
+        type: "rank_visual"
+    },
+    "LARGE": {
+        desc: "Returns the k-th largest value in a data set.",
+        syntax: "=LARGE(array, k)",
+        data: [10, 50, 20, 40, 30],
+        inputs: [{ label: "k", type: "number", value: 2, id: "k", min: 1, max: 5 }],
+        calc: (i, data) => [...data].sort((a,b) => b-a)[i.k - 1],
+        type: "rank_visual_k"
+    },
+    "SMALL": {
+        desc: "Returns the k-th smallest value in a data set.",
+        syntax: "=SMALL(array, k)",
+        data: [10, 50, 20, 40, 30],
+        inputs: [{ label: "k", type: "number", value: 2, id: "k", min: 1, max: 5 }],
+        calc: (i, data) => [...data].sort((a,b) => a-b)[i.k - 1],
+        type: "rank_visual_k"
+    },
+
+    // --- LOOKUP ---
+    "XLOOKUP": {
+        desc: "Searches a range or an array for a match and returns the corresponding item from a second range.",
+        syntax: "=XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])",
+        inputs: [
+            { label: "Lookup Value", type: "number", value: 9, id: "key", width: "w-20" },
+            { label: "If Not Found", type: "text", value: "Not Found", id: "not_found", width: "w-24" },
+            { label: "Match Mode", type: "select", value: "0", id: "match_mode", options: [
+                {val: "0", text: "0 - Exact match"},
+                {val: "-1", text: "-1 - Exact or next smaller"},
+                {val: "1", text: "1 - Exact or next larger"}
+            ]},
+            { label: "Search Mode", type: "select", value: "1", id: "search_mode", options: [
+                {val: "1", text: "1 - First to Last"},
+                {val: "-1", text: "-1 - Last to First"}
+            ]}
+        ],
+        data: [
+            {id: 3, name: "Low"},
+            {id: 7, name: "Medium"},
+            {id: 13, name: "High"},
+            {id: 7, name: "Medium (Copy)"}, 
+            {id: 20, name: "Max"}
+        ],
+        calc: (i, data) => {
+            const key = parseFloat(i.key);
+            const matchMode = parseInt(i.match_mode);
+            const searchMode = parseInt(i.search_mode);
+            const notFoundVal = i.not_found;
+
+            let indices = data.map((_, idx) => idx);
+            if (searchMode === -1) indices.reverse();
+
+            // 1. Exact Match First (Always priority in XLOOKUP unless pattern matching, which we ignore for now)
+            for (let idx of indices) {
+                if (data[idx].id === key) return data[idx].name;
+            }
+
+            // 2. If no exact match, check approximate modes
+            if (matchMode !== 0) {
+                let candidates = data.map(d => d.id);
+                let bestMatchVal = null;
+                
+                if (matchMode === -1) { // Exact or next smaller
+                     // Find largest value less than key
+                     const smaller = candidates.filter(v => v < key);
+                     if (smaller.length > 0) bestMatchVal = Math.max(...smaller);
+                } else if (matchMode === 1) { // Exact or next larger
+                     // Find smallest value greater than key
+                     const larger = candidates.filter(v => v > key);
+                     if (larger.length > 0) bestMatchVal = Math.min(...larger);
+                }
+
+                if (bestMatchVal !== null) {
+                    for (let idx of indices) {
+                        if (data[idx].id === bestMatchVal) return data[idx].name;
+                    }
+                }
+            }
+
+            return notFoundVal;
+        },
+        type: "lookup_visual_x"
+    },
+    "VLOOKUP": {
+        desc: "Looks for a value in the leftmost column and returns a value in the same row from a column you specify.",
+        syntax: "=VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup])",
+        inputs: [
+            { label: "Lookup Value", type: "text", value: "102", id: "key", width: "w-20" },
+            { label: "Col Index", type: "number", value: 2, id: "col_idx", min: 2, max: 2 }
+        ],
+        data: [
+            {id: "101", name: "Apple"},
+            {id: "102", name: "Banana"},
+            {id: "103", name: "Cherry"},
+            {id: "104", name: "Date"}
+        ],
+        calc: (i, data) => {
+            const match = data.find(row => row.id === i.key);
+            return match ? (i.col_idx == 2 ? match.name : match.id) : "#N/A";
+        },
+        type: "lookup_visual_v"
+    },
+    "MATCH": {
+        desc: "Returns the relative position of an item in an array that matches a specified value.",
+        syntax: "=MATCH(lookup_value, lookup_array, [match_type])",
+        data: ["Apple", "Banana", "Cherry", "Date", "Elderberry"],
+        inputs: [{ label: "Lookup Value", type: "text", value: "Cherry", id: "key", width: "w-24" }],
+        calc: (i, data) => {
+            const idx = data.indexOf(i.key);
+            return idx === -1 ? "#N/A" : idx + 1;
+        },
+        type: "rank_visual_match"
+    },
+    "INDEX": {
+        desc: "Returns the value of an element in a table or an array, selected by the row and column number indexes.",
+        syntax: "=INDEX(array, row_num, [column_num])",
+        inputs: [
+            { label: "Row Num", type: "number", value: 2, id: "row", min: 1, max: 3 },
+            { label: "Col Num", type: "number", value: 2, id: "col", min: 1, max: 3 }
+        ],
+        data: [
+            [10, 20, 30],
+            [40, 50, 60],
+            [70, 80, 90]
+        ],
+        calc: (i, data) => {
+            const r = i.row - 1;
+            const c = i.col - 1;
+            if (data[r] && data[r][c] !== undefined) return data[r][c];
+            return "#REF!";
+        },
+        type: "matrix_visual"
+    }
+};
+
+let currentFormula = "ROUND";
+let currentInputValues = {};
+let currentData = [];
+
+/**
+ * INIT & UI BUILDING
+ */
+function init() {
+    buildSidebar();
+    selectFormula("ROUND");
+}
+
+function buildSidebar() {
+    const container = document.getElementById("menu-container");
+    for (const [category, funcs] of Object.entries(categories)) {
+        const group = document.createElement("div");
+        group.innerHTML = `<h3 class="text-sm font-semibold text-slate-700 mb-2">${category}</h3>`;
+        const ul = document.createElement("div");
+        ul.className = "flex flex-col gap-1 mb-4";
+        
+        funcs.forEach(f => {
+            const btn = document.createElement("button");
+            btn.className = "text-left px-3 py-2 rounded text-sm text-slate-600 hover:bg-slate-100 hover:text-green-600 transition-colors formula-btn";
+            btn.dataset.formula = f;
+            btn.innerHTML = `<i class="fa-solid fa-function text-[10px] mr-2 opacity-50"></i> ${f}`;
+            btn.onclick = () => selectFormula(f);
+            ul.appendChild(btn);
+        });
+        group.appendChild(ul);
+        container.appendChild(group);
+    }
+}
+
+function selectFormula(name) {
+    currentFormula = name;
+    const config = formulas[name];
+    
+    // Update UI Highlights
+    document.querySelectorAll('.formula-btn').forEach(b => {
+        if(b.dataset.formula === name) b.classList.add("bg-green-50", "text-green-700", "font-bold");
+        else b.classList.remove("bg-green-50", "text-green-700", "font-bold");
+    });
+
+    // Set Info
+    document.getElementById("info-title").textContent = name;
+    document.getElementById("info-desc").textContent = config.desc;
+    document.getElementById("info-syntax").textContent = config.syntax || "";
+    document.getElementById("info-panel").classList.remove("hidden");
+
+    // Initialize State
+    currentInputValues = {};
+    if (config.inputs) {
+        config.inputs.forEach(inp => {
+            if(inp.id) currentInputValues[inp.id] = inp.value;
+        });
+    }
+    
+    // Initialize Data (deep copy to allow edits if we added that later)
+    if (config.data) {
+        currentData = JSON.parse(JSON.stringify(config.data));
+    }
+
+    updateFormulaDisplay();
+    renderWorkspace();
+}
+
+function updateInput(id, value) {
+    currentInputValues[id] = value;
+    updateFormulaDisplay();
+    renderWorkspace();
+}
+
+function updateFormulaDisplay() {
+    const config = formulas[currentFormula];
+    let text = `=${currentFormula}(`;
+    
+    if (config.inputs) {
+        const args = config.inputs.filter(i => i.type !== 'static').map(i => {
+            if (i.type === 'text' || i.type === 'select') {
+                let val = currentInputValues[i.id];
+                // For select, if value is numeric string, don't quote unless needed
+                return isNaN(val) ? `"${val}"` : val;
+            }
+            if (i.type === 'toggle') return currentInputValues[i.id] ? "TRUE" : "FALSE";
+            return currentInputValues[i.id];
+        });
+        
+        // --- SPECIAL CASE FORMATTING ---
+        if (currentFormula === "IF") {
+            text += `${currentInputValues.val}>50, "${currentInputValues.true_val}", "${currentInputValues.false_val}"`;
+        }
+        else if (["SUM", "AVERAGE", "COUNT", "MAX", "MIN", "RANK", "LARGE", "SMALL"].includes(currentFormula)) {
+             text += "A1:A5";
+             if (args.length > 0) text += ", " + args.join(", ");
+             else if (currentFormula === "RANK") text += ", 60"; 
+        } 
+        else if (["COUNTIF", "SUMIF", "AVERAGEIF"].includes(currentFormula)) {
+            text += "A1:A5, \">" + (currentFormula === "COUNTIF" ? "15" : "20") + "\"";
+        } 
+        else if (currentFormula === "XLOOKUP") {
+            text += `${currentInputValues.key}, A1:A5, B1:B5`;
+            if(currentInputValues.not_found) text += `, "${currentInputValues.not_found}"`;
+            if(currentInputValues.match_mode != 0) text += `, ${currentInputValues.match_mode}`;
+            if(currentInputValues.search_mode != 1) text += `, ${currentInputValues.search_mode}`;
+        } 
+        else if (currentFormula === "VLOOKUP") {
+            text += `"${currentInputValues.key}", A1:B4, ${currentInputValues.col_idx}, FALSE`;
+        }
+        else if (currentFormula === "MATCH") {
+            text += `"${currentInputValues.key}", A1:A5, 0`;
+        }
+        else if (currentFormula === "INDEX") {
+            text += `A1:C3, ${currentInputValues.row}, ${currentInputValues.col}`;
+        }
+        else {
+            text += args.join(", ");
+        }
+    } else if (config.data) {
+        text += "A1:A5";
+    }
+
+    text += ")";
+    document.getElementById("formula-display").textContent = text;
+}
+
+/**
+ * RENDERING LOGIC
+ */
+function renderWorkspace() {
+    const container = document.getElementById("viz-content");
+    const svg = document.getElementById("svg-layer");
+    container.innerHTML = "";
+    svg.innerHTML = ""; // Clear previous SVG
+    
+    const config = formulas[currentFormula];
+    let result = "";
+
+    try {
+        if (config.calc) {
+            // Flexible arg passing
+            if (config.inputs && config.data) result = config.calc(currentInputValues, currentData);
+            else if (config.data) result = config.calc(currentData, currentInputValues);
+            else result = config.calc(currentInputValues);
+        }
+    } catch(e) { console.error(e); result = "Error"; }
+
+    // 1. Render Controls/Inputs
+    const controlsDiv = document.createElement("div");
+    controlsDiv.className = "flex gap-6 mb-8 items-end flex-wrap justify-center z-10";
+    
+    if (config.inputs) {
+        config.inputs.forEach(inp => {
+            if (inp.type === 'static') return;
+            
+            const wrap = document.createElement("div");
+            wrap.className = "flex flex-col";
+            const label = document.createElement("label");
+            label.className = "text-xs font-bold text-slate-400 mb-1 uppercase";
+            label.textContent = inp.label;
+            wrap.appendChild(label);
+
+            let inputEl;
+            if (inp.type === 'toggle') {
+                inputEl = document.createElement("button");
+                const isOn = currentInputValues[inp.id];
+                inputEl.className = `w-16 h-8 rounded-full relative transition-colors ${isOn ? 'bg-green-500' : 'bg-slate-300'}`;
+                inputEl.innerHTML = `<div class="absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${isOn ? 'left-9' : 'left-1'}"></div>`;
+                inputEl.onclick = () => updateInput(inp.id, !isOn);
+            } else if (inp.type === 'button') {
+                 inputEl = document.createElement("button");
+                 inputEl.className = "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 active:scale-95 transition";
+                 inputEl.textContent = inp.value;
+                 inputEl.onclick = () => renderWorkspace(); // Force re-render/re-calc
+            } else if (inp.type === 'select') {
+                inputEl = document.createElement("select");
+                inputEl.className = `border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 shadow-sm bg-white ${inp.width || 'w-32'}`;
+                inp.options.forEach(opt => {
+                    const option = document.createElement("option");
+                    option.value = opt.val;
+                    option.textContent = opt.text;
+                    if(opt.val == currentInputValues[inp.id]) option.selected = true;
+                    inputEl.appendChild(option);
+                });
+                inputEl.onchange = (e) => updateInput(inp.id, e.target.value);
+            } else {
+                inputEl = document.createElement("input");
+                inputEl.type = inp.type === 'number' ? 'number' : 'text';
+                inputEl.value = currentInputValues[inp.id];
+                inputEl.className = `border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-green-500 shadow-sm ${inp.width || 'w-32'}`;
+                if(inp.min) inputEl.min = inp.min;
+                if(inp.max) inputEl.max = inp.max;
+                if(inp.step) inputEl.step = inp.step;
+                inputEl.id = `input-${inp.id}`; // ID for SVG targeting
+                inputEl.oninput = (e) => updateInput(inp.id, e.target.value);
+            }
+            
+            wrap.appendChild(inputEl);
+            controlsDiv.appendChild(wrap);
+        });
+    }
+    container.appendChild(controlsDiv);
+
+    // 2. Render Specific Visualization (Grid, Blocks, etc)
+    const vizDiv = document.createElement("div");
+    vizDiv.className = "relative w-full flex justify-center items-center mb-8 z-10";
+    vizDiv.id = "viz-stage";
+    container.appendChild(vizDiv);
+
+    // 3. Result Box
+    const resDiv = document.createElement("div");
+    resDiv.className = "flex flex-col items-center z-10";
+    resDiv.innerHTML = `
+        <span class="text-xs font-bold text-slate-400 mb-1">RESULT</span>
+        <div id="result-box" class="bg-slate-800 text-white text-2xl font-mono px-6 py-3 rounded-lg shadow-lg transform transition-all border-2 border-slate-600">
+            ${result}
+        </div>
+    `;
+    container.appendChild(resDiv);
+
+    // --- DRAWING HANDLERS ---
+    setTimeout(() => {
+        const stage = document.getElementById("viz-stage");
+        const resBox = document.getElementById("result-box");
+        const type = config.type;
+
+        if (type.includes("text_blocks")) drawTextBlocks(stage, config, currentInputValues, svg);
+        else if (type === "text_join") drawTextJoin(stage, currentInputValues, svg);
+        else if (type.startsWith("grid")) drawGrid(stage, config, currentData, svg, resBox);
+        else if (type === "lookup_visual_x") drawXLookup(stage, currentData, currentInputValues, result, svg, resBox);
+        else if (type.includes("lookup")) drawLookup(stage, currentData, currentInputValues, svg, resBox, type);
+        else if (type.includes("number_line")) drawNumberLine(stage, result, currentInputValues, svg, resBox, type);
+        else if (type.includes("logic_gate")) drawLogic(stage, config, currentInputValues, result, svg, resBox);
+        else if (type === "flowchart_if") drawIf(stage, currentInputValues, result, svg, resBox);
+        else if (type === "square_visual") drawSquare(stage, currentInputValues, result);
+        else if (type.includes("rank_visual")) drawRank(stage, currentData, result, svg, resBox, currentInputValues, type);
+        else if (type === "random_visual" || type === "simple_calc") drawSimple(stage, result);
+        else if (type === "matrix_visual") drawMatrix(stage, currentData, currentInputValues, svg, resBox);
+    }, 10);
+}
+
+/**
+ * SVG & DRAWING HELPERS
+ */
+function createSVGElement(tag, attrs) {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    return el;
+}
+
+function getCenter(el) {
+    const rect = el.getBoundingClientRect();
+    const container = document.getElementById("viz-container").getBoundingClientRect();
+    return {
+        x: rect.left + rect.width / 2 - container.left,
+        y: rect.top + rect.height / 2 - container.top,
+        w: rect.width,
+        h: rect.height,
+        top: rect.top - container.top,
+        bottom: rect.bottom - container.top,
+        left: rect.left - container.left,
+        right: rect.right - container.left
+    };
+}
+
+function drawArrow(svg, x1, y1, x2, y2, color = "#cbd5e1") {
+    const path = createSVGElement("path", {
+        d: `M${x1},${y1} C${x1},${(y1+y2)/2} ${x2},${(y1+y2)/2} ${x2},${y2}`,
+        fill: "none",
+        stroke: color,
+        "stroke-width": "2",
+        "marker-end": "url(#arrowhead)"
+    });
+    svg.appendChild(path);
+    
+    if(!document.getElementById('arrowhead')) {
+        const defs = createSVGElement("defs", {});
+        const marker = createSVGElement("marker", {
+            id: "arrowhead", markerWidth: "10", markerHeight: "7", 
+            refX: "9", refY: "3.5", orient: "auto"
+        });
+        const poly = createSVGElement("polygon", { points: "0 0, 10 3.5, 0 7", fill: "#cbd5e1" });
+        marker.appendChild(poly);
+        defs.appendChild(marker);
+        svg.prepend(defs);
+    }
+}
+
+function drawConnector(svg, el1, el2, color="#94a3b8") {
+    if(!el1 || !el2) return;
+    const p1 = getCenter(el1);
+    const p2 = getCenter(el2);
+    drawArrow(svg, p1.x, p1.bottom, p2.x, p2.top, color);
+}
+
+// --- SPECIFIC VISUALIZATIONS ---
+
+function drawTextBlocks(stage, config, inputs, svg) {
+    const str = inputs.txt;
+    const chars = str.split("");
+    const wrapper = document.createElement("div");
+    wrapper.className = "flex gap-1";
+    
+    let start = 0, len = 0;
+    if(currentFormula === "LEFT") { len = parseInt(inputs.num); }
+    else if(currentFormula === "RIGHT") { start = str.length - parseInt(inputs.num); len = parseInt(inputs.num); }
+    else if(currentFormula === "MID") { start = parseInt(inputs.start)-1; len = parseInt(inputs.len); }
+    else if(currentFormula === "UPPER" || currentFormula === "LOWER" || currentFormula === "TRIM") { start = 0; len = str.length; }
+    
+    chars.forEach((char, idx) => {
+        const box = document.createElement("div");
+        box.className = "w-10 h-10 flex flex-col items-center justify-center border rounded bg-white shadow-sm relative";
+        box.innerHTML = `<span class="font-bold text-lg">${char === ' ' ? '&nbsp;' : char}</span><span class="text-[10px] text-slate-400 absolute -top-4">${idx + 1}</span>`;
+        
+        let isTarget = false;
+        if(currentFormula === "LEN") isTarget = true;
+        else if(currentFormula === "FIND") {
+             const foundIdx = str.indexOf(inputs.find);
+             if (foundIdx !== -1 && idx >= foundIdx && idx < foundIdx + inputs.find.length) isTarget = true;
+        }
+        else if (idx >= start && idx < start + len) isTarget = true;
+
+        if(isTarget) box.classList.add("border-green-500", "bg-green-50", "text-green-700", "scale-110", "z-10");
+        else box.classList.add("border-slate-200", "text-slate-300");
+        
+        wrapper.appendChild(box);
+    });
+    stage.appendChild(wrapper);
+}
+
+function drawTextJoin(stage, inputs, svg) {
+    const container = document.createElement("div");
+    container.className = "flex items-center gap-8";
+    const b1 = document.createElement("div");
+    b1.className = "bg-blue-50 border border-blue-300 px-4 py-2 rounded text-blue-800";
+    b1.textContent = inputs.t1;
+    const plus = document.createElement("div");
+    plus.className = "text-slate-300 font-bold";
+    plus.innerHTML = "<i class='fa-solid fa-plus'></i>";
+    const b2 = document.createElement("div");
+    b2.className = "bg-blue-50 border border-blue-300 px-4 py-2 rounded text-blue-800";
+    b2.textContent = inputs.t2;
+    container.appendChild(b1);
+    container.appendChild(plus);
+    container.appendChild(b2);
+    stage.appendChild(container);
+    const resBox = document.getElementById("result-box");
+    setTimeout(() => {
+        drawConnector(svg, b1, resBox, "#60a5fa");
+        drawConnector(svg, b2, resBox, "#60a5fa");
+    }, 10);
+}
+
+function drawGrid(stage, config, data, svg, resBox) {
+    const grid = document.createElement("div");
+    grid.className = "grid grid-cols-[30px_80px] gap-1 bg-slate-100 p-2 rounded border border-slate-300";
+    grid.innerHTML += `<div class='text-center text-xs text-slate-400'></div><div class='text-center text-xs font-bold bg-slate-200 rounded'>A</div>`;
+    const relevantCells = [];
+    data.forEach((val, i) => {
+        grid.innerHTML += `<div class='flex items-center justify-center text-xs font-bold text-slate-400'>${i+1}</div>`;
+        const cell = document.createElement("div");
+        cell.className = "bg-white border border-slate-200 h-8 flex items-center justify-center text-sm rounded";
+        cell.textContent = val;
+        cell.id = `cell-${i}`;
+        let active = false;
+        if (config.type === "grid_agg") active = !isNaN(val) || currentFormula === "COUNT"; 
+        if (config.type === "grid_cond") {
+             const threshold = parseInt(config.inputs[0].value.replace(/\D/g,''));
+             if(val > threshold) active = true;
+        }
+        if(currentFormula === "MAX" && val !== Math.max(...data.filter(n=>typeof n==='number'))) active = false;
+        if(currentFormula === "MIN" && val !== Math.min(...data.filter(n=>typeof n==='number'))) active = false;
+        if(active) {
+            cell.classList.add("bg-blue-50", "border-blue-400", "text-blue-700", "font-bold");
+            relevantCells.push(cell);
+        } else {
+            cell.classList.add("opacity-60");
+        }
+        grid.appendChild(cell);
+    });
+    stage.appendChild(grid);
+    relevantCells.forEach(cell => {
+        const p1 = getCenter(cell);
+        const p2 = getCenter(resBox);
+        const path = createSVGElement("path", {
+            d: `M${p1.right},${p1.y} Q${p1.right + 40},${p1.y} ${p2.x},${p2.top - 10}`,
+            fill: "none", stroke: "#60a5fa", "stroke-width": "1.5", "opacity": "0.5"
+        });
+        svg.appendChild(path);
+    });
+}
+
+function drawLookup(stage, data, inputs, svg, resBox, type) {
+    const container = document.createElement("div");
+    container.className = "flex gap-12 items-start";
+    const cols = type === "lookup_visual_v" ? "grid-cols-[40px_80px_80px]" : "grid-cols-[40px_80px_80px]";
+    const table = document.createElement("div");
+    table.className = `grid ${cols} gap-1 bg-slate-100 p-2 rounded border`;
+    table.innerHTML = `<div></div><div class='text-xs font-bold text-center bg-slate-200'>A</div><div class='text-xs font-bold text-center bg-slate-200'>B</div>`;
+    let matchRowEl = null;
+    let targetEl = null;
+    data.forEach((row, i) => {
+        table.innerHTML += `<div class='text-center text-xs text-slate-400 pt-2'>${i+1}</div>`;
+        const idCell = document.createElement("div");
+        idCell.className = "bg-white border h-8 flex items-center justify-center text-sm";
+        idCell.textContent = row.id;
+        const nameCell = document.createElement("div");
+        nameCell.className = "bg-white border h-8 flex items-center justify-center text-sm";
+        nameCell.textContent = row.name;
+        if(row.id === inputs.key) {
+            idCell.classList.add("bg-yellow-100", "border-yellow-500");
+            if (type === "lookup_visual_v" && inputs.col_idx == 2) {
+                nameCell.classList.add("bg-green-100", "border-green-500");
+                targetEl = nameCell;
+            } else if (type === "lookup_visual") {
+                nameCell.classList.add("bg-green-100", "border-green-500");
+                targetEl = nameCell;
+            }
+            matchRowEl = idCell;
+        }
+        table.appendChild(idCell);
+        table.appendChild(nameCell);
+    });
+    container.appendChild(table);
+    stage.appendChild(container);
+    if(matchRowEl) {
+        const inp = document.getElementById("input-key");
+        if(inp) drawConnector(svg, inp, matchRowEl, "#eab308");
+        if(targetEl) {
+            const p1 = getCenter(matchRowEl);
+            const p2 = getCenter(targetEl);
+            drawArrow(svg, p1.right, p1.y, p2.left, p2.y, "#22c55e");
+            drawConnector(svg, targetEl, resBox, "#22c55e");
+        }
+    }
+}
+
+function drawXLookup(stage, data, inputs, result, svg, resBox) {
+    const container = document.createElement("div");
+    container.className = "flex gap-8 items-start";
+    
+    // Grid Layout
+    const table = document.createElement("div");
+    table.className = `grid grid-cols-[40px_80px_100px] gap-1 bg-slate-100 p-2 rounded border`;
+    table.innerHTML = `<div></div><div class='text-xs font-bold text-center bg-slate-200'>A (ID)</div><div class='text-xs font-bold text-center bg-slate-200'>B (Val)</div>`;
+
+    // Need to find which element effectively was matched
+    // We can re-run a lightweight find logic here to identify the index
+    const key = parseFloat(inputs.key);
+    const matchMode = parseInt(inputs.match_mode);
+    const searchMode = parseInt(inputs.search_mode);
+    
+    let matchedIndex = -1;
+    let indices = data.map((_, idx) => idx);
+    if (searchMode === -1) indices.reverse();
+
+    // Exact
+    for (let idx of indices) {
+        if (data[idx].id === key) { matchedIndex = idx; break; }
+    }
+    // Approximate
+    if (matchedIndex === -1 && matchMode !== 0) {
+         let candidates = data.map(d => d.id);
+         let bestVal = null;
+         if (matchMode === -1) {
+             const smaller = candidates.filter(v => v < key);
+             if (smaller.length > 0) bestVal = Math.max(...smaller);
+         } else {
+             const larger = candidates.filter(v => v > key);
+             if (larger.length > 0) bestVal = Math.min(...larger);
+         }
+         if (bestVal !== null) {
+             for (let idx of indices) {
+                 if (data[idx].id === bestVal) { matchedIndex = idx; break; }
+             }
+         }
+    }
+
+    let targetEl = null;
+
+    // Render Rows
+    data.forEach((row, i) => {
+        table.innerHTML += `<div class='text-center text-xs text-slate-400 pt-2'>${i+1}</div>`;
+        
+        const idCell = document.createElement("div");
+        idCell.className = "bg-white border h-8 flex items-center justify-center text-sm";
+        idCell.textContent = row.id;
+        
+        const nameCell = document.createElement("div");
+        nameCell.className = "bg-white border h-8 flex items-center justify-center text-sm";
+        nameCell.textContent = row.name;
+
+        // Visuals for scanning
+        if (i === matchedIndex) {
+            idCell.classList.add("bg-green-100", "border-green-500", "font-bold");
+            nameCell.classList.add("bg-green-100", "border-green-500", "font-bold");
+            targetEl = nameCell;
+        } else {
+             // Dim others slightly to show search focus?
+             // Optional: show search direction arrows on side
+        }
+
+        table.appendChild(idCell);
+        table.appendChild(nameCell);
+    });
+
+    // Add visual search indicator
+    const searchArrow = document.createElement("div");
+    searchArrow.className = "flex flex-col justify-center items-center ml-2 text-slate-400 text-xs";
+    if (searchMode === 1) {
+        searchArrow.innerHTML = `<i class="fa-solid fa-arrow-down-long text-2xl mb-1"></i> Search`;
+    } else {
+        searchArrow.innerHTML = `Search <i class="fa-solid fa-arrow-up-long text-2xl mt-1"></i>`;
+    }
+
+    container.appendChild(table);
+    container.appendChild(searchArrow);
+    stage.appendChild(container);
+
+    if(targetEl) {
+        drawConnector(svg, targetEl, resBox, "#22c55e");
+    }
+}
+
+
+function drawMatrix(stage, data, inputs, svg, resBox) {
+    const grid = document.createElement("div");
+    grid.className = "grid grid-cols-[30px_repeat(3,50px)] gap-1 bg-slate-100 p-2 rounded border";
+    grid.innerHTML = `<div></div>` + [1,2,3].map(c=>`<div class='text-xs font-bold bg-slate-200 text-center'>${String.fromCharCode(64+c)}</div>`).join("");
+    data.forEach((row, r) => {
+        grid.innerHTML += `<div class='text-xs font-bold text-slate-400 text-center pt-2'>${r+1}</div>`;
+        row.forEach((val, c) => {
+            const cell = document.createElement("div");
+            cell.className = "bg-white border h-8 flex items-center justify-center text-sm";
+            cell.textContent = val;
+            if (r + 1 === parseInt(inputs.row)) cell.classList.add("bg-yellow-50");
+            if (c + 1 === parseInt(inputs.col)) cell.classList.add("bg-yellow-50");
+            if (r + 1 === parseInt(inputs.row) && c + 1 === parseInt(inputs.col)) {
+                cell.className = "bg-green-100 border-green-500 h-8 flex items-center justify-center text-sm font-bold border-2";
+                setTimeout(() => drawConnector(svg, cell, resBox, "#22c55e"), 10);
+            }
+            grid.appendChild(cell);
+        });
+    });
+    stage.appendChild(grid);
+}
+
+function drawNumberLine(stage, result, inputs, svg, resBox, type) {
+    const w = 400;
+    const h = 60;
+    let num = parseFloat(inputs.num);
+    const isAbs = type === "number_line_abs";
+    let min = Math.floor(Math.min(num, isAbs ? -num : num)) - 1;
+    let max = Math.ceil(Math.max(num, isAbs ? num : num)) + 1;
+    if(isAbs) { min = Math.min(-5, min); max = Math.max(5, max); }
+    const range = max - min;
+    const canvas = document.createElement("div");
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+    canvas.className = "relative border-b-2 border-slate-300 mt-8";
+    for(let i = 0; i <= range; i++) {
+        const val = min + i;
+        const left = (i / range) * 100;
+        const tick = document.createElement("div");
+        tick.className = `absolute bottom-0 w-px bg-slate-400 ${val === 0 ? 'h-4 bg-slate-600 w-0.5' : 'h-2'}`;
+        tick.style.left = `${left}%`;
+        if(i % 1 === 0) { 
+            const label = document.createElement("div");
+            label.className = "absolute top-4 text-xs text-slate-500 transform -translate-x-1/2";
+            label.style.left = `${left}%`;
+            label.textContent = val;
+            canvas.appendChild(label);
+        }
+        canvas.appendChild(tick);
+    }
+    const pct = (num - min) / range * 100;
+    const dot = document.createElement("div");
+    dot.className = "absolute -bottom-1.5 w-3 h-3 bg-blue-500 rounded-full shadow z-10";
+    dot.style.left = `calc(${pct}% - 6px)`;
+    canvas.appendChild(dot);
+    const resPct = (result - min) / range * 100;
+    const resDot = document.createElement("div");
+    resDot.className = "absolute -bottom-2 w-4 h-4 border-2 border-green-500 rounded-full z-0 animate-pulse";
+    resDot.style.left = `calc(${resPct}% - 8px)`;
+    canvas.appendChild(resDot);
+    stage.appendChild(canvas);
+}
+
+function drawLogic(stage, config, inputs, result, svg, resBox) {
+    const container = document.createElement("div");
+    container.className = "flex flex-col gap-2 items-center justify-center border-2 rounded-lg p-6";
+    const gateName = config.type === "logic_gate_single" ? "NOT" : currentFormula;
+    container.className += result ? " border-green-200 bg-green-50" : " border-red-200 bg-red-50";
+    container.innerHTML = `<div class="font-bold text-xl ${result ? 'text-green-600':'text-red-600'}">${gateName}</div>`;
+    stage.appendChild(container);
+}
+
+function drawIf(stage, inputs, result, svg, resBox) {
+    const container = document.createElement("div");
+    container.className = "relative w-64 h-32 flex justify-center";
+    const diamond = document.createElement("div");
+    diamond.className = "w-20 h-20 bg-yellow-100 border-2 border-yellow-400 rotate-45 flex items-center justify-center absolute top-0";
+    const text = document.createElement("div");
+    text.className = "-rotate-45 text-xs font-bold text-center";
+    text.innerHTML = `${inputs.val} <br> ${inputs.val > 50 ? '>' : 'Not >'} 50`;
+    diamond.appendChild(text);
+    const truePath = document.createElement("div");
+    truePath.className = `absolute top-24 left-0 px-3 py-1 rounded text-sm ${inputs.val > 50 ? 'bg-green-500 text-white shadow-lg scale-110' : 'bg-slate-200 opacity-50'}`;
+    truePath.textContent = inputs.true_val;
+    const falsePath = document.createElement("div");
+    falsePath.className = `absolute top-24 right-0 px-3 py-1 rounded text-sm ${inputs.val <= 50 ? 'bg-red-500 text-white shadow-lg scale-110' : 'bg-slate-200 opacity-50'}`;
+    falsePath.textContent = inputs.false_val;
+    container.appendChild(diamond);
+    container.appendChild(truePath);
+    container.appendChild(falsePath);
+    stage.appendChild(container);
+    const p1 = getCenter(diamond);
+    const p2 = getCenter(truePath);
+    const p3 = getCenter(falsePath);
+    setTimeout(() => {
+        drawArrow(svg, p1.x, p1.y + 30, p2.x, p2.top, inputs.val > 50 ? "#22c55e" : "#e2e8f0");
+        drawArrow(svg, p1.x, p1.y + 30, p3.x, p3.top, inputs.val <= 50 ? "#ef4444" : "#e2e8f0");
+    }, 0);
+}
+
+function drawSquare(stage, inputs, result) {
+    const side = parseFloat(result);
+    const area = parseFloat(inputs.num);
+    const px = Math.min(side * 20, 150); 
+    const sq = document.createElement("div");
+    sq.style.width = `${px}px`;
+    sq.style.height = `${px}px`;
+    sq.className = "bg-purple-100 border-2 border-purple-500 flex items-center justify-center relative transition-all duration-500";
+    sq.innerHTML = `<span class="text-purple-800 font-bold">Area<br>${area}</span>`;
+    stage.appendChild(sq);
+}
+
+function drawSimple(stage, result) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "text-6xl font-mono text-indigo-600 animate-bounce";
+    wrapper.textContent = result;
+    stage.appendChild(wrapper);
+}
+
+function drawRank(stage, data, result, svg, resBox, inputs, type) {
+    const container = document.createElement("div");
+    container.className = "flex flex-col gap-1 w-48";
+    let sorted = [...data];
+    if (type !== "rank_visual_match") {
+        sorted = type === "rank_visual_k" && currentFormula === "SMALL" 
+            ? sorted.sort((a,b) => a-b) 
+            : sorted.sort((a,b) => b-a);
+    }
+    sorted.forEach((val, idx) => {
+        const row = document.createElement("div");
+        let isTarget = false;
+        if (currentFormula === "RANK") isTarget = val === 60;
+        else if (currentFormula === "MATCH") isTarget = val === inputs.key;
+        else if (currentFormula === "LARGE" || currentFormula === "SMALL") isTarget = (idx + 1) === parseInt(inputs.k);
+        row.className = `flex justify-between px-3 py-2 rounded border ${isTarget ? 'bg-yellow-50 border-yellow-400 z-10' : 'bg-white border-slate-200'}`;
+        row.innerHTML = `
+            <span class="font-bold text-slate-400">#${idx+1}</span>
+            <span class="${isTarget ? 'font-bold text-slate-800' : 'text-slate-500'}">${val}</span>
+        `;
+        container.appendChild(row);
+        if(isTarget) setTimeout(() => drawConnector(svg, row, resBox, "#eab308"), 10);
+    });
+    stage.appendChild(container);
+}
+
+// Start
+init();
+
+</script>
+</body>
+</html>
