@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Mastery: Visual & Applied Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+        
+        /* --- Shared Utils --- */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* --- Visualizer Specifics --- */
+        .viz-cell { transition: all 0.2s; border: 1px solid #e2e8f0; }
+        #viz-container { position: relative; overflow: hidden; min-height: 400px; }
+        #svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+        .viz-content { position: relative; z-index: 1; }
+
+        /* --- Spreadsheet Specifics --- */
+        .sheet-container {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239ee6ff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .sheet-cell {
+            min-width: 80px; height: 32px;
+            border: 1px solid #e2e8f0; position: relative;
+            background-color: white; font-size: 14px;
+        }
+        .sheet-cell:focus-within { outline: 2px solid #3b82f6; z-index: 10; }
+        .sheet-input {
+            width: 100%; height: 100%; border: none; padding: 0 4px;
+            font-family: inherit; outline: none; text-align: right;
+        }
+        .sheet-header { background-color: #f1f5f9; font-weight: 600; text-align: center; color: #64748b; font-size: 12px; }
+        
+        /* --- Scaffolding Connection --- */
+        .bridge-connector {
+            border-left: 2px dashed #cbd5e1;
+            margin-left: 20px;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <nav class="bg-white border-b border-slate-200 h-16 flex items-center px-6 sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center gap-2 mr-8">
+            <div class="bg-green-600 text-white w-8 h-8 rounded flex items-center justify-center font-bold">XL</div>
+            <h1 class="text-lg font-bold tracking-tight">Excel<span class="text-green-600">Edu</span></h1>
+        </div>
+        <div class="hidden md:flex space-x-6 text-sm font-medium text-slate-500">
+            <a href="#stage-1" class="hover:text-green-600 transition-colors">1. Conceptual Model</a>
+            <a href="#stage-2" class="hover:text-blue-600 transition-colors">2. Application Playground</a>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <aside class="lg:col-span-3 space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sticky top-24">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Topic Selector</h2>
+                <div id="viz-menu-container" class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                    </div>
+            </div>
+        </aside>
+
+        <main class="lg:col-span-9 space-y-12">
+            
+            <section id="stage-1" class="scroll-mt-24">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="bg-green-100 text-green-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</div>
+                    <h2 class="text-2xl font-bold text-slate-800">Visualizer <span class="text-slate-400 text-lg font-normal">| See how it works</span></h2>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-50 border-b border-slate-200 p-4 flex items-center">
+                        <div class="font-serif italic text-slate-400 font-bold mr-3">fx</div>
+                        <div id="viz-formula-display" class="font-mono bg-white px-3 py-2 rounded w-full text-slate-700 border border-slate-200 shadow-sm text-sm">
+                            Select a function...
+                        </div>
+                    </div>
+
+                    <div class="relative bg-white p-8" id="viz-workspace">
+                        <div id="viz-container">
+                            <svg id="svg-layer"></svg>
+                            <div id="viz-content" class="viz-content flex flex-col items-center justify-center min-h-[300px] w-full">
+                                </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 border-t border-blue-100 p-4">
+                        <h3 class="font-bold text-blue-800 mb-1" id="viz-info-title">Welcome</h3>
+                        <p class="text-blue-600 text-sm" id="viz-info-desc">Select a function from the sidebar to visualize its logic.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="flex flex-col items-center justify-center py-4 text-center space-y-2 opacity-50 hover:opacity-100 transition-opacity">
+                <div class="h-8 w-px bg-slate-300"></div>
+                <div class="bg-white px-4 py-1 rounded-full border border-slate-200 text-xs font-semibold text-slate-500 shadow-sm">
+                    Now try it yourself below
+                </div>
+                <div class="h-8 w-px bg-slate-300"></div>
+            </div>
+
+            <section id="stage-2" class="scroll-mt-24">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-blue-100 text-blue-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">2</div>
+                        <h2 class="text-2xl font-bold text-slate-800">Playground <span class="text-slate-400 text-lg font-normal">| Apply your knowledge</span></h2>
+                    </div>
+                    <div id="scaffold-hint" class="hidden md:flex bg-yellow-50 text-yellow-800 px-4 py-2 rounded-lg text-sm border border-yellow-200 items-center gap-2 animate-pulse">
+                        <i class="fa-regular fa-lightbulb"></i>
+                        <span id="scaffold-msg">Select a function above to see a challenge here.</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-1 sheet-container overflow-hidden">
+                    
+                    <div class="flex gap-2 p-2 bg-slate-50 border-b border-slate-200 overflow-x-auto">
+                        <button onclick="sheetInsert('SUM')" class="px-3 py-1 bg-white border border-slate-200 rounded text-xs font-semibold hover:bg-green-50 hover:text-green-600 transition-colors">SUM</button>
+                        <button onclick="sheetInsert('AVERAGE')" class="px-3 py-1 bg-white border border-slate-200 rounded text-xs font-semibold hover:bg-blue-50 hover:text-blue-600 transition-colors">AVERAGE</button>
+                        <button onclick="sheetInsert('MAX')" class="px-3 py-1 bg-white border border-slate-200 rounded text-xs font-semibold hover:bg-purple-50 hover:text-purple-600 transition-colors">MAX</button>
+                        <button onclick="sheetInsert('MIN')" class="px-3 py-1 bg-white border border-slate-200 rounded text-xs font-semibold hover:bg-yellow-50 hover:text-yellow-600 transition-colors">MIN</button>
+                        <button onclick="sheetInsert('IF')" class="px-3 py-1 bg-white border border-slate-200 rounded text-xs font-semibold hover:bg-indigo-50 hover:text-indigo-600 transition-colors">IF</button>
+                        <button onclick="sheetInsert('COUNT')" class="px-3 py-1 bg-white border border-slate-200 rounded text-xs font-semibold hover:bg-red-50 hover:text-red-600 transition-colors">COUNT</button>
+                    </div>
+
+                    <div class="flex items-center gap-2 p-2 bg-white border-b border-slate-200">
+                        <div class="text-slate-400 font-bold text-xs w-8 text-center" id="active-cell-id">A1</div>
+                        <div class="h-4 w-px bg-slate-200"></div>
+                        <input type="text" id="sheet-formula-input" class="flex-1 text-sm font-mono outline-none text-slate-700" placeholder="Enter value or formula (e.g. =SUM(A1:A3))">
+                    </div>
+
+                    <div class="overflow-x-auto relative" style="max-height: 500px;">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="w-10 h-8 bg-slate-100 border border-slate-200 sticky top-0 left-0 z-20"></th>
+                                    <th class="sheet-header w-24 sticky top-0 z-10">A</th>
+                                    <th class="sheet-header w-24 sticky top-0 z-10">B</th>
+                                    <th class="sheet-header w-24 sticky top-0 z-10">C</th>
+                                    <th class="sheet-header w-24 sticky top-0 z-10">D</th>
+                                    <th class="sheet-header w-24 sticky top-0 z-10">E</th>
+                                    <th class="sheet-header w-24 sticky top-0 z-10">F</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sheet-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        /**
+         * ==========================================
+         * PART 1: VISUALIZER LOGIC (Concept Model)
+         * ==========================================
+         */
+        
+        // Configuration
+        const vizCategories = {
+            "Math": ["ROUND", "INT", "ABS", "SQRT", "MOD", "POWER"],
+            "Logical": ["IF", "AND", "OR", "NOT"],
+            "Text": ["LEN", "LEFT", "MID", "RIGHT", "UPPER", "LOWER"],
+            "Stats": ["SUM", "AVERAGE", "COUNT", "MAX", "MIN"]
+        };
+
+        const vizFormulas = {
+            // Math
+            "ROUND": { desc: "Rounds a number to specified digits.", syntax: "=ROUND(number, digits)", inputs: [{l:"Number",v:3.14159,id:"n"},{l:"Digits",v:2,id:"d",min:0}], calc:(i)=>Number(Math.round(i.n+'e'+i.d)+'e-'+i.d), type:"num" },
+            "INT": { desc: "Rounds a number down to nearest integer.", syntax: "=INT(number)", inputs: [{l:"Number",v:5.8,id:"n"}], calc:(i)=>Math.floor(i.n), type:"num" },
+            "ABS": { desc: "Returns the absolute value.", syntax: "=ABS(number)", inputs: [{l:"Number",v:-10,id:"n"}], calc:(i)=>Math.abs(i.n), type:"num" },
+            "SQRT": { desc: "Returns the square root.", syntax: "=SQRT(number)", inputs: [{l:"Number",v:16,id:"n"}], calc:(i)=>Math.sqrt(Math.max(0,i.n)).toFixed(2), type:"num" },
+            "MOD": { desc: "Returns remainder of division.", syntax: "=MOD(num, div)", inputs: [{l:"Num",v:10,id:"n"},{l:"Div",v:3,id:"d"}], calc:(i)=>i.n%i.d, type:"calc" },
+            "POWER": { desc: "Returns number raised to power.", syntax: "=POWER(num, pow)", inputs: [{l:"Num",v:2,id:"n"},{l:"Pow",v:3,id:"p"}], calc:(i)=>Math.pow(i.n,i.p), type:"calc" },
+            
+            // Logical
+            "IF": { desc: "Checks condition, returns True/False value.", syntax: "=IF(test, true_val, false_val)", inputs: [{l:"Score",v:75,id:"v"}, {l:"Condition",type:"static",v:"> 50"}, {l:"True",v:"Pass",id:"t"}, {l:"False",v:"Fail",id:"f"}], calc:(i)=>i.v>50?i.t:i.f, type:"flow" },
+            "AND": { desc: "TRUE if all arguments are TRUE.", syntax: "=AND(log1, log2)", inputs: [{l:"A",type:"toggle",v:true,id:"a"},{l:"B",type:"toggle",v:false,id:"b"}], calc:(i)=>i.a&&i.b, type:"gate" },
+            "OR": { desc: "TRUE if any argument is TRUE.", syntax: "=OR(log1, log2)", inputs: [{l:"A",type:"toggle",v:false,id:"a"},{l:"B",type:"toggle",v:false,id:"b"}], calc:(i)=>i.a||i.b, type:"gate" },
+            "NOT": { desc: "Reverses logic.", syntax: "=NOT(logical)", inputs: [{l:"A",type:"toggle",v:true,id:"a"}], calc:(i)=>!i.a, type:"gate_s" },
+
+            // Text
+            "LEN": { desc: "Returns character count.", syntax: "=LEN(text)", inputs:[{l:"Text",v:"Excel",id:"t"}], calc:(i)=>i.t.length, type:"txt_blocks" },
+            "LEFT": { desc: "Chars from start.", syntax: "=LEFT(text, n)", inputs:[{l:"Text",v:"Formula",id:"t"},{l:"n",v:3,id:"n"}], calc:(i)=>i.t.substring(0,i.n), type:"txt_blocks" },
+            "RIGHT": { desc: "Chars from end.", syntax: "=RIGHT(text, n)", inputs:[{l:"Text",v:"Formula",id:"t"},{l:"n",v:3,id:"n"}], calc:(i)=>i.t.slice(-i.n), type:"txt_blocks" },
+            "MID": { desc: "Chars from middle.", syntax: "=MID(text, start, n)", inputs:[{l:"Text",v:"Visual",id:"t"},{l:"Start",v:3,id:"s"},{l:"n",v:2,id:"n"}], calc:(i)=>i.t.substr(i.s-1,i.n), type:"txt_blocks" },
+            "UPPER": { desc: "To uppercase.", syntax: "=UPPER(text)", inputs:[{l:"Text",v:"hello",id:"t"}], calc:(i)=>i.t.toUpperCase(), type:"txt_blocks" },
+            "LOWER": { desc: "To lowercase.", syntax: "=LOWER(text)", inputs:[{l:"Text",v:"HELLO",id:"t"}], calc:(i)=>i.t.toLowerCase(), type:"txt_blocks" },
+
+            // Stats
+            "SUM": { desc: "Adds numbers.", syntax: "=SUM(range)", data:[10,20,30,40,50], calc:(d)=>d.reduce((a,b)=>a+b,0), type:"grid" },
+            "AVERAGE": { desc: "Average of numbers.", syntax: "=AVERAGE(range)", data:[10,20,30,40,50], calc:(d)=>d.reduce((a,b)=>a+b,0)/d.length, type:"grid" },
+            "MAX": { desc: "Largest value.", syntax: "=MAX(range)", data:[5,12,8,25,3], calc:(d)=>Math.max(...d), type:"grid" },
+            "MIN": { desc: "Smallest value.", syntax: "=MIN(range)", data:[5,12,8,25,3], calc:(d)=>Math.min(...d), type:"grid" },
+            "COUNT": { desc: "Count numbers.", syntax: "=COUNT(range)", data:[10,"A",20,"B",30], calc:(d)=>d.filter(x=>typeof x==='number').length, type:"grid" }
+        };
+
+        let currentVizFormula = "SUM";
+        let vizInputValues = {};
+
+        function initViz() {
+            const menu = document.getElementById("viz-menu-container");
+            for(const [cat, funcs] of Object.entries(vizCategories)){
+                const group = document.createElement("div");
+                group.innerHTML = `<h3 class="text-xs font-bold text-slate-500 mb-2 mt-4 uppercase">${cat}</h3>`;
+                const list = document.createElement("div");
+                list.className = "flex flex-col gap-1";
+                funcs.forEach(f => {
+                    const btn = document.createElement("button");
+                    btn.className = "text-left px-3 py-2 rounded text-sm text-slate-600 hover:bg-green-50 hover:text-green-700 transition-colors viz-btn";
+                    btn.dataset.f = f;
+                    btn.textContent = f;
+                    btn.onclick = () => selectViz(f);
+                    list.appendChild(btn);
+                });
+                group.appendChild(list);
+                menu.appendChild(group);
+            }
+            selectViz("SUM");
+        }
+
+        function selectViz(name) {
+            currentVizFormula = name;
+            // Update UI
+            document.querySelectorAll('.viz-btn').forEach(b => {
+                b.className = b.dataset.f === name 
+                    ? "text-left px-3 py-2 rounded text-sm font-bold bg-green-100 text-green-800 border-l-4 border-green-500 viz-btn"
+                    : "text-left px-3 py-2 rounded text-sm text-slate-600 hover:bg-slate-100 transition-colors viz-btn";
+            });
+
+            const conf = vizFormulas[name];
+            document.getElementById("viz-info-title").textContent = name;
+            document.getElementById("viz-info-desc").textContent = conf.desc;
+            
+            // Build Inputs
+            vizInputValues = {};
+            if(conf.inputs) conf.inputs.forEach(i => { if(i.type !== 'static') vizInputValues[i.id] = i.v; });
+            
+            updateScaffolding(name, conf);
+            renderViz();
+        }
+
+        function updateScaffolding(name, conf) {
+            const hintBox = document.getElementById("scaffold-msg");
+            const sheet = document.getElementById("scaffold-hint");
+            sheet.classList.remove("hidden");
+            
+            let challenge = "";
+            if(conf.type === "grid") challenge = `Try calculating the ${name} of cells A1:A5 below!`;
+            else if(conf.type === "txt_blocks") challenge = `Type a word in A1 and try =${name}(A1) in B1.`;
+            else if(conf.type === "calc" || conf.type === "num") challenge = `Test =${name}(10) in the spreadsheet to see the result.`;
+            else if(name === "IF") challenge = `Try =IF(A1>10, "Big", "Small") in the sheet.`;
+            else challenge = `Practice using ${name} in the grid below.`;
+            
+            hintBox.textContent = challenge;
+        }
+
+        function renderViz() {
+            const container = document.getElementById("viz-content");
+            const svg = document.getElementById("svg-layer");
+            const formulaDisplay = document.getElementById("viz-formula-display");
+            container.innerHTML = "";
+            svg.innerHTML = "";
+
+            const conf = vizFormulas[currentVizFormula];
+            
+            // Calculate Result
+            let result;
+            try {
+                if(conf.data) result = conf.calc(conf.data);
+                else result = conf.calc(vizInputValues);
+            } catch(e) { result = "Err"; }
+
+            // 1. Controls
+            const controls = document.createElement("div");
+            controls.className = "flex gap-4 mb-8 flex-wrap justify-center";
+            
+            if(conf.inputs) {
+                conf.inputs.forEach(inp => {
+                    if(inp.type === 'static') return;
+                    const wrap = document.createElement("div");
+                    wrap.className = "flex flex-col";
+                    const label = document.createElement("label");
+                    label.className = "text-xs font-bold text-slate-400 mb-1";
+                    label.textContent = inp.l;
+                    
+                    let inputEl;
+                    if(inp.type === 'toggle') {
+                        inputEl = document.createElement("button");
+                        inputEl.className = `px-3 py-1 rounded text-sm font-bold ${vizInputValues[inp.id] ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-500'}`;
+                        inputEl.textContent = vizInputValues[inp.id] ? "TRUE" : "FALSE";
+                        inputEl.onclick = () => { 
+                            vizInputValues[inp.id] = !vizInputValues[inp.id]; 
+                            renderViz(); 
+                        };
+                    } else {
+                        inputEl = document.createElement("input");
+                        inputEl.type = inp.type === 'number' ? 'number' : 'text';
+                        inputEl.className = "border border-slate-300 rounded px-2 py-1 text-sm w-24";
+                        inputEl.value = vizInputValues[inp.id];
+                        inputEl.oninput = (e) => {
+                            vizInputValues[inp.id] = inp.type==='number' ? parseFloat(e.target.value) : e.target.value;
+                            renderViz();
+                        }
+                    }
+                    wrap.appendChild(label);
+                    wrap.appendChild(inputEl);
+                    controls.appendChild(wrap);
+                });
+            }
+            container.appendChild(controls);
+
+            // 2. Visualization Area
+            const stage = document.createElement("div");
+            stage.className = "relative mb-6";
+            container.appendChild(stage);
+
+            // 3. Result
+            const resBox = document.createElement("div");
+            resBox.className = "bg-slate-800 text-white px-6 py-3 rounded-lg text-xl font-mono shadow-lg z-10";
+            resBox.textContent = typeof result === 'number' && !Number.isInteger(result) ? result.toFixed(2) : result;
+            container.appendChild(resBox);
+
+            // Formula Text Update
+            let fText = conf.syntax.split('(')[0] + "(";
+            if(conf.data) fText += "range";
+            else if(conf.inputs) {
+                fText += conf.inputs.filter(i=>i.type!=='static').map(i => {
+                    const v = vizInputValues[i.id];
+                    return typeof v === 'string' ? `"${v}"` : v;
+                }).join(", ");
+            }
+            fText += ")";
+            formulaDisplay.textContent = fText;
+
+            // --- Drawing Logic ---
+            setTimeout(() => {
+                if(conf.type === "grid") drawVizGrid(stage, conf.data, result, svg, resBox);
+                else if(conf.type === "txt_blocks") drawVizText(stage, vizInputValues, result, conf);
+                else if(conf.type === "flow") drawVizFlow(stage, vizInputValues);
+            }, 0);
+        }
+
+        function drawVizGrid(stage, data, result, svg, resBox) {
+            const grid = document.createElement("div");
+            grid.className = "grid grid-cols-5 gap-1";
+            data.forEach((val, i) => {
+                const cell = document.createElement("div");
+                cell.className = "w-12 h-12 flex items-center justify-center border border-slate-300 rounded bg-white font-mono text-sm shadow-sm";
+                cell.textContent = val;
+                if(currentVizFormula === "COUNT" && typeof val !== 'number') cell.classList.add("opacity-50", "bg-slate-100");
+                else if(currentVizFormula === "MAX" && val === Math.max(...data.filter(n=>typeof n==='number'))) cell.classList.add("bg-green-100", "border-green-500", "font-bold");
+                else if(currentVizFormula === "MIN" && val === Math.min(...data.filter(n=>typeof n==='number'))) cell.classList.add("bg-yellow-100", "border-yellow-500", "font-bold");
+                else cell.classList.add("bg-blue-50", "text-blue-700");
+                grid.appendChild(cell);
+            });
+            stage.appendChild(grid);
+        }
+
+        function drawVizText(stage, inputs, result, conf) {
+            const str = inputs.t;
+            const chars = str.split("");
+            const wrap = document.createElement("div");
+            wrap.className = "flex gap-1";
+            
+            let start=0, len=0;
+            if(currentVizFormula==="LEFT") len=inputs.n;
+            else if(currentVizFormula==="RIGHT") { start=str.length-inputs.n; len=inputs.n; }
+            else if(currentVizFormula==="MID") { start=inputs.s-1; len=inputs.n; }
+            else { start=0; len=str.length; }
+
+            chars.forEach((c,i) => {
+                const box = document.createElement("div");
+                box.className = "w-10 h-10 flex flex-col items-center justify-center border rounded bg-white shadow-sm relative font-mono";
+                box.innerHTML = `<span class="text-xs text-slate-300 absolute top-0.5 right-1">${i+1}</span>${c}`;
+                
+                if(i >= start && i < start + len) {
+                    box.classList.add("border-green-500", "bg-green-50", "text-green-700", "font-bold", "transform", "-translate-y-1");
+                }
+                wrap.appendChild(box);
+            });
+            stage.appendChild(wrap);
+        }
+
+        function drawVizFlow(stage, inputs) {
+            const d = document.createElement("div");
+            d.innerHTML = `
+                <div class="flex flex-col items-center gap-2">
+                    <div class="bg-white border rounded px-4 py-2 shadow-sm">Val: ${inputs.v}</div>
+                    <div class="text-slate-300">↓</div>
+                    <div class="bg-yellow-50 border border-yellow-300 rounded px-4 py-4 rotate-45 w-24 h-24 flex items-center justify-center shadow-sm">
+                        <div class="-rotate-45 text-center text-xs font-bold text-yellow-800">Is > 50?</div>
+                    </div>
+                    <div class="flex justify-between w-64 mt-2">
+                        <div class="text-center w-1/2 ${inputs.v>50?'opacity-100':'opacity-30'}">
+                            <div class="text-green-600 font-bold text-xs">TRUE</div>
+                            <div class="bg-green-100 border border-green-300 p-2 rounded mt-1 text-green-800 font-bold">${inputs.t}</div>
+                        </div>
+                        <div class="text-center w-1/2 ${inputs.v<=50?'opacity-100':'opacity-30'}">
+                            <div class="text-red-600 font-bold text-xs">FALSE</div>
+                            <div class="bg-red-100 border border-red-300 p-2 rounded mt-1 text-red-800 font-bold">${inputs.f}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            stage.appendChild(d);
+        }
+
+
+        /**
+         * ==========================================
+         * PART 2: SPREADSHEET LOGIC (Application Model)
+         * ==========================================
+         */
+        
+        const sheetState = {}; // Store { "A1": {val, form} }
+        let selectedCellId = null;
+
+        function initSheet() {
+            const tbody = document.getElementById("sheet-body");
+            tbody.innerHTML = "";
+            
+            // Generate Grid: 10 Rows
+            for(let r=1; r<=10; r++) {
+                const tr = document.createElement("tr");
+                // Row Header
+                tr.innerHTML = `<td class="bg-slate-50 border border-slate-200 text-center text-xs font-semibold text-slate-500">${r}</td>`;
+                
+                // Columns A-F
+                ['A','B','C','D','E','F'].forEach(c => {
+                    const id = c + r;
+                    const td = document.createElement("td");
+                    td.className = "sheet-cell";
+                    td.onclick = () => selectSheetCell(id);
+                    
+                    const inp = document.createElement("input");
+                    inp.className = "sheet-input";
+                    inp.id = `input-${id}`;
+                    inp.dataset.id = id;
+                    
+                    // Init State
+                    sheetState[id] = { value: "", formula: "" };
+                    
+                    // Events
+                    inp.onfocus = () => selectSheetCell(id);
+                    inp.onblur = (e) => updateSheetCell(id, e.target.value);
+                    inp.onkeydown = (e) => {
+                        if(e.key === "Enter") {
+                            updateSheetCell(id, e.target.value);
+                            // Simple move down
+                            const nextId = c + (r+1);
+                            const nextEl = document.getElementById(`input-${nextId}`);
+                            if(nextEl) nextEl.focus();
+                        }
+                    };
+
+                    td.appendChild(inp);
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            }
+            
+            // Pre-fill some data
+            updateSheetCell("A1", "10");
+            updateSheetCell("A2", "20");
+            updateSheetCell("A3", "50");
+            updateSheetCell("A4", "5");
+            updateSheetCell("A5", "100");
+        }
+
+        function selectSheetCell(id) {
+            selectedCellId = id;
+            const input = document.getElementById(`input-${id}`);
+            const formulaBar = document.getElementById("sheet-formula-input");
+            const indicator = document.getElementById("active-cell-id");
+            
+            indicator.textContent = id;
+            // Formula bar shows formula if exists, else value
+            formulaBar.value = sheetState[id].formula || sheetState[id].value;
+            
+            // Highlight headers (Simple CSS class toggle could be added here)
+        }
+
+        // Connect Formula Bar to Cell
+        document.getElementById("sheet-formula-input").addEventListener("keydown", (e) => {
+            if(e.key === "Enter" && selectedCellId) {
+                const val = e.target.value;
+                const cellInp = document.getElementById(`input-${selectedCellId}`);
+                cellInp.value = val; // Visual update triggers blur-like logic?
+                updateSheetCell(selectedCellId, val);
+                cellInp.focus();
+            }
+        });
+
+        function updateSheetCell(id, content) {
+            const data = sheetState[id];
+            
+            if(content.startsWith("=")) {
+                data.formula = content;
+                data.value = evaluateSheetFormula(content.substring(1));
+            } else {
+                data.formula = "";
+                data.value = isNaN(Number(content)) ? content : Number(content);
+            }
+
+            // Update UI
+            const el = document.getElementById(`input-${id}`);
+            if(document.activeElement !== el) {
+                el.value = data.value;
+            } else if(data.formula) {
+                // If active, keep formula? No, standard excel shows val in cell, formula in bar
+                // but for simplicity, let's show value in cell on blur
+            }
+            
+            // Render value
+            el.value = data.value;
+
+            // Re-calc dependency? (Simplified: Just re-calc everything brute force)
+            recalcAll();
+        }
+
+        function recalcAll() {
+            // Very naive recalculation loop
+            Object.keys(sheetState).forEach(id => {
+                if(sheetState[id].formula) {
+                    sheetState[id].value = evaluateSheetFormula(sheetState[id].formula.substring(1));
+                    const el = document.getElementById(`input-${id}`);
+                    if(document.activeElement !== el) el.value = sheetState[id].value;
+                }
+            });
+        }
+
+        function evaluateSheetFormula(f) {
+            f = f.toUpperCase();
+            
+            // Helper: Get Range Values
+            const getRange = (rStr) => {
+                const parts = rStr.split(":");
+                if(parts.length !== 2) return [getVal(parts[0])];
+                const c1 = parts[0].charAt(0), r1 = parseInt(parts[0].slice(1));
+                const c2 = parts[1].charAt(0), r2 = parseInt(parts[1].slice(1));
+                let vals = [];
+                for(let r=r1; r<=r2; r++) {
+                    vals.push(getVal(c1+r));
+                }
+                return vals;
+            };
+            
+            const getVal = (ref) => {
+                const v = sheetState[ref] ? sheetState[ref].value : 0;
+                return isNaN(Number(v)) ? 0 : Number(v);
+            };
+
+            try {
+                if(f.startsWith("SUM(")) {
+                    const inner = f.match(/\((.*)\)/)[1];
+                    return getRange(inner).reduce((a,b)=>a+b,0);
+                }
+                if(f.startsWith("AVERAGE(")) {
+                    const inner = f.match(/\((.*)\)/)[1];
+                    const arr = getRange(inner);
+                    return arr.reduce((a,b)=>a+b,0) / arr.length;
+                }
+                if(f.startsWith("MAX(")) {
+                    const inner = f.match(/\((.*)\)/)[1];
+                    return Math.max(...getRange(inner));
+                }
+                if(f.startsWith("MIN(")) {
+                    const inner = f.match(/\((.*)\)/)[1];
+                    return Math.min(...getRange(inner));
+                }
+                if(f.startsWith("COUNT(")) {
+                    const inner = f.match(/\((.*)\)/)[1];
+                    // In this simple model, we just count non-empty
+                    return getRange(inner).length;
+                }
+                // Direct Ref
+                if(sheetState[f]) return sheetState[f].value;
+                
+                return "ERR";
+            } catch(e) {
+                return "#ERR";
+            }
+        }
+
+        function sheetInsert(func) {
+            const bar = document.getElementById("sheet-formula-input");
+            bar.value = `=${func}()`;
+            bar.focus();
+            // Move cursor inside parens
+            const len = bar.value.length - 1;
+            bar.setSelectionRange(len, len);
+        }
+
+        // --- Init ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initViz();
+            initSheet();
+        });
+
+    </script>
+</body>
+</html>
