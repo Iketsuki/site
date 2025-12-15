@@ -15,7 +15,6 @@
             overflow-x: hidden;
         }
         
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
@@ -29,7 +28,7 @@
         }
 
         canvas {
-            image-rendering: pixelated; /* Sharp rendering for grid */
+            image-rendering: pixelated; 
             cursor: pointer;
             touch-action: none;
         }
@@ -95,23 +94,28 @@
             border-radius: 2px;
         }
 
-        /* Animations */
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
-            50% { box-shadow: 0 0 25px rgba(56, 189, 248, 0.5); }
-        }
-        .animate-glow { animation: pulse-glow 2s infinite; }
-        
         .grid-overlay {
             background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
             background-size: 20px 20px;
         }
 
-        /* Summary Modal */
         .summary-overlay {
             background: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(5px);
+        }
+
+        /* Bonk Animation Class */
+        .bonk-anim {
+            animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+            fill: #ef4444 !important; 
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
         }
     </style>
 </head>
@@ -145,7 +149,6 @@
         <div class="space-y-3">
             <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Select Reasoning Level</h2>
             
-            <!-- Level 1: Skill -->
             <button onclick="app.setMode('skill')" id="btn-skill" class="btn w-full p-3 rounded-xl border border-slate-600 hover:bg-slate-700 text-left transition-colors group">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-lg bg-green-500/20 text-green-400 flex items-center justify-center text-xl">
@@ -158,7 +161,6 @@
                 </div>
             </button>
 
-            <!-- Level 2: Rule -->
             <button onclick="app.setMode('rule')" id="btn-rule" class="btn w-full p-3 rounded-xl border border-slate-600 hover:bg-slate-700 text-left transition-colors group">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-lg bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-xl">
@@ -171,7 +173,6 @@
                 </div>
             </button>
 
-            <!-- Level 3: Knowledge -->
             <button onclick="app.setMode('knowledge')" id="btn-knowledge" class="btn w-full p-3 rounded-xl border-2 border-blue-500 bg-blue-500/10 text-left transition-colors group relative overflow-hidden">
                 <div class="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition-colors"></div>
                 <div class="flex items-center gap-3 relative z-10">
@@ -200,13 +201,7 @@
                         <label for="check-survival" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
                     </div>
                 </label>
-                <label class="flex items-center justify-between cursor-pointer">
-                    <span class="text-sm text-slate-300 font-bold">Hyperactive</span>
-                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                        <input type="checkbox" id="check-hyper" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-600"/>
-                        <label for="check-hyper" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
-                    </div>
-                </label>
+                <p class="text-[10px] text-slate-400 mt-1 leading-tight">If OFF, robot will randomly bonk into walls.</p>
             </div>
 
             <div id="tweaks-rule" class="space-y-4 hidden">
@@ -230,9 +225,10 @@
                 <div>
                     <div class="flex justify-between items-center mb-1">
                         <span class="text-sm text-slate-300 font-bold">Training Time</span>
-                        <span id="episodes-val" class="text-xs text-blue-400 font-mono">1500 eps</span>
+                        <span id="episodes-val" class="text-xs text-blue-400 font-mono">200 eps</span>
                     </div>
-                    <input type="range" id="slider-episodes" min="100" max="5000" step="100" value="1500" oninput="document.getElementById('episodes-val').innerText = this.value + ' eps'">
+                    <input type="range" id="slider-episodes" min="100" max="5000" step="100" value="200" oninput="document.getElementById('episodes-val').innerText = this.value + ' eps'">
+                    <p class="text-[10px] text-slate-400 mt-1 leading-tight">Low eps = dumb bot. High eps = genius bot.</p>
                 </div>
                 <label class="flex items-center justify-between cursor-pointer">
                     <span class="text-sm text-slate-300 font-bold">Hate Mud</span>
@@ -241,6 +237,8 @@
                         <label for="check-hate-mud" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
                     </div>
                 </label>
+                <p class="text-[10px] text-slate-400 mt-1 leading-tight">If OFF, robot will walk straight through mud (shortest path).</p>
+                
                 <label class="flex items-center justify-between cursor-pointer">
                     <span class="text-sm text-slate-300 font-bold">Hate Walls</span>
                     <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
@@ -248,6 +246,7 @@
                         <label for="check-hate-walls" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-600 cursor-pointer"></label>
                     </div>
                 </label>
+                <p class="text-[10px] text-slate-400 mt-1 leading-tight">If OFF, robot will be careless and bump into things.</p>
             </div>
         </div>
 
@@ -302,7 +301,7 @@
                 <div class="mb-3 px-1">
                      <div class="flex justify-between text-xs mb-1 text-slate-400">
                         <span>Speed</span>
-                        <span id="speed-val">1x</span>
+                        <span id="speed-val">5x</span>
                     </div>
                     <input type="range" id="sim-speed" min="1" max="10" step="1" value="5" 
                            oninput="app.setSpeed(this.value)">
@@ -416,11 +415,12 @@
                 
                 this.isRunning = false;
                 this.isPaused = false;
-                this.simulationTimeout = null; // Changed to timeout for dynamic speed
-                this.simSpeed = 5; // 1 to 10
+                this.simulationTimeout = null; 
+                this.simSpeed = 5; 
                 
                 this.qTable = {}; 
                 this.isTrained = false;
+                this.bonk = false; // For animation
                 
                 this.steps = 0;
                 this.totalReward = 0;
@@ -451,35 +451,28 @@
                 this.goalPos = {x:13, y:7};
 
                 if (type === 'open') {
-                    // Just open field, maybe a few random blocks
                     this.updateStatus('Level: Open Field', 'text-blue-300');
-                    this.setMode('skill'); // Recommend skill mode
+                    this.setMode('skill');
                 } 
                 else if (type === 'trap') {
-                    // A U-shape trap
                     this.updateStatus('Level: The Trap', 'text-yellow-300');
                     for(let i=0; i<8; i++) {
-                        this.grid[3+i][8] = 1; // Vertical wall
+                        this.grid[3+i][8] = 1; 
                     }
-                    // Wings
                     this.grid[3][7] = 1; this.grid[3][6] = 1;
                     this.grid[10][7] = 1; this.grid[10][6] = 1;
-                    this.setMode('rule'); // Recommend rule mode
+                    this.setMode('rule'); 
                 } 
                 else if (type === 'mud') {
-                    // Two paths: Straight through mud, or around
                     this.updateStatus('Level: Muddy Choice', 'text-amber-500');
-                    // Wall separating paths
                     for(let x=3; x<12; x++) this.grid[5][x] = 1; 
                     for(let x=3; x<12; x++) this.grid[9][x] = 1;
-                    
-                    // Middle path (Muddy)
                     for(let x=2; x<13; x++) {
                          this.grid[7][x] = 2; 
                          this.grid[6][x] = 2;
                          this.grid[8][x] = 2;
                     }
-                    this.setMode('knowledge'); // Recommend knowledge
+                    this.setMode('knowledge'); 
                 }
 
                 this.agentPos = { ...this.startPos };
@@ -487,14 +480,12 @@
                 this.draw();
             }
 
-            // --- Simulation Speed ---
             setSpeed(val) {
                 this.simSpeed = parseInt(val);
                 document.getElementById('speed-val').innerText = val + 'x';
             }
 
             getDelay() {
-                // Map 1-10 to delay. 1=1000ms, 10=50ms
                 return 1000 - (this.simSpeed * 95); 
             }
 
@@ -507,17 +498,13 @@
                     for(let x=0; x<GRID_SIZE; x++) {
                         let type = this.grid[y][x];
                         let color = COLORS.empty;
-                        
                         if (type === 1) color = COLORS.wall;
                         if (type === 2) color = COLORS.mud;
                         if (x === this.startPos.x && y === this.startPos.y) color = COLORS.start;
                         if (x === this.goalPos.x && y === this.goalPos.y) color = COLORS.goal;
-
                         this.ctx.fillStyle = color;
-                        
                         let gap = 2;
                         this.ctx.fillRect(x*CELL_SIZE + gap, y*CELL_SIZE + gap, CELL_SIZE - gap*2, CELL_SIZE - gap*2);
-
                         if(type === 2) {
                             this.ctx.fillStyle = 'rgba(255,255,255,0.1)';
                             this.ctx.font = '20px Arial';
@@ -525,7 +512,6 @@
                             this.ctx.textBaseline = 'middle';
                             this.ctx.fillText('🐌', x*CELL_SIZE + CELL_SIZE/2, y*CELL_SIZE + CELL_SIZE/2);
                         }
-
                         if (this.mode === 'knowledge' && this.isTrained && type !== 1) {
                             this.drawQArrows(x, y);
                         }
@@ -540,20 +526,13 @@
                     this.ctx.lineJoin = 'round';
                     this.ctx.lineCap = 'round';
                     this.ctx.globalAlpha = 0.6; 
-
                     const startX = this.path[0].x * CELL_SIZE + CELL_SIZE/2;
                     const startY = this.path[0].y * CELL_SIZE + CELL_SIZE/2;
                     this.ctx.moveTo(startX, startY);
-
                     for(let i=1; i<this.path.length; i++) {
-                        const px = this.path[i].x * CELL_SIZE + CELL_SIZE/2;
-                        const py = this.path[i].y * CELL_SIZE + CELL_SIZE/2;
-                        this.ctx.lineTo(px, py);
+                        this.ctx.lineTo(this.path[i].x * CELL_SIZE + CELL_SIZE/2, this.path[i].y * CELL_SIZE + CELL_SIZE/2);
                     }
-                    const currX = this.agentPos.x * CELL_SIZE + CELL_SIZE/2;
-                    const currY = this.agentPos.y * CELL_SIZE + CELL_SIZE/2;
-                    this.ctx.lineTo(currX, currY);
-
+                    this.ctx.lineTo(this.agentPos.x * CELL_SIZE + CELL_SIZE/2, this.agentPos.y * CELL_SIZE + CELL_SIZE/2);
                     this.ctx.stroke();
                     this.ctx.globalAlpha = 1.0;
                 }
@@ -562,7 +541,13 @@
                 const ax = this.agentPos.x * CELL_SIZE + CELL_SIZE/2;
                 const ay = this.agentPos.y * CELL_SIZE + CELL_SIZE/2;
                 
-                this.ctx.fillStyle = COLORS.agent;
+                // Visual feedback for Bonk
+                if (this.bonk) {
+                    this.ctx.fillStyle = '#ef4444'; // Red
+                } else {
+                    this.ctx.fillStyle = COLORS.agent;
+                }
+                
                 this.ctx.beginPath();
                 this.ctx.arc(ax, ay, CELL_SIZE/3, 0, Math.PI*2);
                 this.ctx.fill();
@@ -588,7 +573,6 @@
                         bestAct = a;
                     }
                 }
-
                 if (bestVal > -999) {
                     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
                     this.ctx.font = '12px Arial';
@@ -603,20 +587,25 @@
                 }
             }
 
-            // --- Agents Logic (Unchanged core logic) ---
+            // --- Agents Logic ---
             getSkillAction() {
                 const survival = document.getElementById('check-survival').checked;
-                const hyperactive = document.getElementById('check-hyper').checked;
                 const moves = ['up', 'down', 'left', 'right'];
                 
-                if (hyperactive && Math.random() < 0.5) return moves[Math.floor(Math.random() * moves.length)];
-                const validMoves = moves.filter(m => {
-                    const next = this.getNextPos(this.agentPos.x, this.agentPos.y, m);
-                    return !this.isWall(next.x, next.y);
-                });
-                if (survival && validMoves.length > 0) return validMoves[Math.floor(Math.random() * validMoves.length)];
-                if (validMoves.length > 0 && Math.random() > 0.2) return validMoves[Math.floor(Math.random() * validMoves.length)];
-                return moves[Math.floor(Math.random() * moves.length)];
+                // Default: Dumb random walk (hits walls)
+                let choice = moves[Math.floor(Math.random() * moves.length)];
+                
+                // Tweak: Survival Instinct filters out walls
+                if (survival) {
+                    const validMoves = moves.filter(m => {
+                        const next = this.getNextPos(this.agentPos.x, this.agentPos.y, m);
+                        return !this.isWall(next.x, next.y);
+                    });
+                    if (validMoves.length > 0) {
+                        choice = validMoves[Math.floor(Math.random() * validMoves.length)];
+                    }
+                }
+                return choice;
             }
 
             getRuleAction() {
@@ -626,16 +615,22 @@
                 let bestMove = moves[0];
                 let minCost = Infinity;
                 moves.sort(() => Math.random() - 0.5);
+                
                 let stuck = true;
                 for (let m of moves) {
                     const next = this.getNextPos(this.agentPos.x, this.agentPos.y, m);
+                    // Rule bot sees walls naturally
                     if (this.isWall(next.x, next.y)) continue;
+                    
                     if (noBack && next.x === this.prevPos.x && next.y === this.prevPos.y) {
                          if (moves.length > 1) continue; 
                     }
                     stuck = false;
                     let cost = Math.abs(next.x - this.goalPos.x) + Math.abs(next.y - this.goalPos.y);
+                    
+                    // Tweak: Fear Mud
                     if (fearMud && this.grid[next.y][next.x] === 2) cost += 10;
+                    
                     if (cost < minCost) { minCost = cost; bestMove = m; }
                 }
                 if (stuck) return moves[Math.floor(Math.random()*4)];
@@ -644,6 +639,13 @@
 
             getKnowledgeAction() {
                 if (!this.isTrained) return 'stop';
+                
+                // Carelessness Factor: If not hating walls, add random chance to slip
+                const hateWalls = document.getElementById('check-hate-walls').checked;
+                if (!hateWalls && Math.random() < 0.1) {
+                    return this.getSkillAction();
+                }
+
                 const key = `${this.agentPos.x},${this.agentPos.y}`;
                 const actions = this.qTable[key];
                 if (!actions) return this.getSkillAction();
@@ -658,12 +660,17 @@
             // --- Training ---
             async trainAgent() {
                 this.isTrained = false;
-                const episodes = parseInt(document.getElementById('slider-episodes').value) || 1500;
+                const episodes = parseInt(document.getElementById('slider-episodes').value) || 200;
                 const alpha = 0.5, gamma = 0.9, epsilon = 0.1;
+                
+                // FORCE READ DOM ELEMENTS
                 const hateMud = document.getElementById('check-hate-mud').checked;
                 const hateWalls = document.getElementById('check-hate-walls').checked;
-                const mudPenalty = hateMud ? -50 : -5;
-                const wallPenalty = hateWalls ? -50 : -5;
+                
+                // KEY CHANGE: Non-hated mud = 0 (same as normal ground)
+                const mudPenalty = hateMud ? -50 : 0;
+                // KEY CHANGE: Non-hated walls = -2 (low penalty)
+                const wallPenalty = hateWalls ? -50 : -2;
 
                 this.qTable = {}; 
                 for(let y=0; y<GRID_SIZE; y++) {
@@ -759,10 +766,7 @@
 
             runStepLoop() {
                 if (!this.isRunning) return;
-                
                 this.simulationStep();
-                
-                // Use Timeout for variable speed support
                 if (this.isRunning && !this.isPaused) {
                     this.simulationTimeout = setTimeout(() => this.runStepLoop(), this.getDelay());
                 }
@@ -792,6 +796,7 @@
                 clearTimeout(this.simulationTimeout);
                 this.agentPos = { ...this.startPos };
                 this.path = []; 
+                this.bonk = false;
                 this.draw();
                 this.updateUIForRun(false);
                 this.updateStatus('Reset - Ready', 'text-slate-300');
@@ -809,8 +814,10 @@
                 const next = this.getNextPos(this.agentPos.x, this.agentPos.y, action);
                 this.path.push({ ...this.agentPos });
 
+                this.bonk = false;
                 if (this.isWall(next.x, next.y)) {
                     this.totalReward -= 5; 
+                    this.bonk = true; // Trigger bonk visual
                 } else {
                     this.prevPos = { ...this.agentPos };
                     this.agentPos = next;
@@ -834,7 +841,6 @@
                 this.isRunning = false;
                 clearTimeout(this.simulationTimeout);
                 this.updateUIForRun(false);
-                
                 if (success) {
                     this.totalReward += 100;
                     this.updateStatus('Goal Reached!', 'text-emerald-400');
@@ -847,13 +853,11 @@
                 this.updateStatsUI();
             }
 
-            // --- Summary / Scaffolding Feedback ---
             showSummary(success) {
                 const modal = document.getElementById('summary-modal');
                 const title = document.getElementById('summary-title');
                 const text = document.getElementById('summary-text');
                 const icon = document.getElementById('summary-icon');
-
                 modal.classList.remove('hidden');
 
                 if (this.mode === 'skill') {
@@ -897,7 +901,6 @@
                 const btnRun = document.getElementById('btn-run');
                 const btnGroup = document.getElementById('btn-group-active');
                 const btnPause = document.getElementById('btn-pause');
-
                 if (active) {
                     btnRun.classList.add('hidden');
                     btnGroup.classList.remove('hidden');
