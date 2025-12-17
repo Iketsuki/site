@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Congruent & Similar Triangles Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            touch-action: none;
+            overflow: hidden;
+            background-color: #f1f5f9;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            cursor: grab;
+        }
+        .canvas-container:active { cursor: grabbing; }
+        
+        canvas { display: block; }
+
+        .control-panel {
+            backdrop-filter: blur(16px);
+            background-color: rgba(255, 255, 255, 0.9);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 10px 0 30px rgba(0,0,0,0.05);
+        }
+        .hidden-panel { transform: translateX(-100%); }
+
+        .toggle-btn {
+            position: absolute;
+            left: 100%;
+            top: 1rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-left: none;
+            padding: 0.75rem 0.5rem;
+            border-radius: 0 0.75rem 0.75rem 0;
+            cursor: pointer;
+            z-index: 50;
+        }
+
+        .section-header {
+            @apply flex items-center justify-between py-2 cursor-pointer border-b border-slate-100 mb-2;
+        }
+
+        .btn-tool {
+            @apply cursor-pointer transition-all px-3 py-1.5 rounded-md text-[10px] border border-slate-200 bg-white hover:bg-slate-50 font-bold uppercase text-slate-600;
+        }
+        .btn-active-blue { @apply bg-blue-600 text-white border-blue-700 hover:bg-blue-700; }
+        .btn-active-red { @apply bg-red-600 text-white border-red-700 hover:bg-red-700; }
+
+        details summary::-webkit-details-marker { display: none; }
+        input[type=range] { @apply accent-blue-600; }
+    </style>
+</head>
+<body>
+
+<div class="canvas-container" id="container">
+    <canvas id="geometryCanvas"></canvas>
+
+    <div id="sidebar" class="control-panel fixed left-0 top-0 h-full w-72 z-40 p-5 overflow-y-auto border-r border-slate-200">
+        <button onclick="toggleSidebar()" class="toggle-btn shadow-md">
+            <svg id="toggleIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+
+        <div class="mb-6 flex items-center justify-between">
+            <h1 class="text-lg font-bold text-slate-800">Triangle Lab</h1>
+            <button onclick="resetAll()" class="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100 font-bold uppercase hover:bg-red-100">Reset</button>
+        </div>
+
+        <div class="space-y-4">
+            <details open class="group">
+                <summary class="section-header">
+                    <h2 class="text-xs font-bold uppercase text-slate-500">Geometric Constraints</h2>
+                    <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                </summary>
+                <div class="pt-2 space-y-4">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Lock Side Lengths</p>
+                        <div class="flex gap-2 flex-wrap">
+                            <button id="lockSide0" onclick="toggleConstraint('sides', 0)" class="btn-tool">S1 (AB) 🔓</button>
+                            <button id="lockSide1" onclick="toggleConstraint('sides', 1)" class="btn-tool">S2 (BC) 🔓</button>
+                            <button id="lockSide2" onclick="toggleConstraint('sides', 2)" class="btn-tool">S3 (CA) 🔓</button>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Lock Internal Angles</p>
+                        <div class="flex gap-2 flex-wrap">
+                            <button id="lockAngle0" onclick="toggleConstraint('angles', 0)" class="btn-tool">∠A 🔓</button>
+                            <button id="lockAngle1" onclick="toggleConstraint('angles', 1)" class="btn-tool">∠B 🔓</button>
+                            <button id="lockAngle2" onclick="toggleConstraint('angles', 2)" class="btn-tool">∠C 🔓</button>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <details open class="group">
+                <summary class="section-header">
+                    <h2 class="text-xs font-bold uppercase text-slate-500">Linkage & Proportions</h2>
+                    <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                </summary>
+                <div class="pt-2 space-y-4">
+                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                        <span class="text-xs font-bold text-slate-600">Sync Link</span>
+                        <button id="lockBtn" onclick="toggleLock()" class="px-3 py-1 bg-green-600 text-white rounded text-[10px] font-bold uppercase">Linked</button>
+                    </div>
+                    <div id="ratioControls">
+                        <h3 class="text-[10px] font-bold text-slate-400 uppercase mb-1">Scale: <span id="scaleVal" class="text-blue-600">1.0</span>x</h3>
+                        <input type="range" id="scaleSlider" min="0.2" max="3.0" step="0.1" value="1" class="w-full" oninput="updateScale(this.value)">
+                    </div>
+                </div>
+            </details>
+
+            <details open class="group">
+                <summary class="section-header">
+                    <h2 class="text-xs font-bold uppercase text-slate-500">Visuals</h2>
+                    <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                </summary>
+                <div class="pt-2 grid grid-cols-2 gap-2">
+                    <button id="side0" onclick="toggleLabel('sides', 0)" class="btn-tool">Side AB</button>
+                    <button id="side1" onclick="toggleLabel('sides', 1)" class="btn-tool">Side BC</button>
+                    <button id="side2" onclick="toggleLabel('sides', 2)" class="btn-tool">Side CA</button>
+                    <button id="angle0" onclick="toggleLabel('angles', 0)" class="btn-tool">Angle A</button>
+                    <button id="angle1" onclick="toggleLabel('angles', 1)" class="btn-tool">Angle B</button>
+                    <button id="angle2" onclick="toggleLabel('angles', 2)" class="btn-tool">Angle C</button>
+                </div>
+            </details>
+
+            <details class="group">
+                <summary class="section-header">
+                    <h2 class="text-xs font-bold uppercase text-slate-500">Settings</h2>
+                    <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                </summary>
+                <div class="pt-2 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[10px] text-slate-400 uppercase font-bold">Labels On</label>
+                        <input type="checkbox" id="showNames" checked onchange="draw()" class="w-4 h-4 text-blue-600">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="name1" value="ABC" maxlength="3" class="p-2 border rounded text-center uppercase text-sm" oninput="updateNames()">
+                        <input type="text" id="name2" value="DEF" maxlength="3" class="p-2 border rounded text-center uppercase text-sm" oninput="updateNames()">
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <div class="fixed top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur px-6 py-2 rounded-full shadow-xl border border-white z-10 pointer-events-none" id="statusBox">
+        <div id="statusIndicator" class="text-sm font-bold flex items-center gap-2"></div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('geometryCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+    
+    let width, height;
+    let sidebarOpen = true;
+    let view = { x: 0, y: 0, zoom: 1 };
+    let isLocked = true;
+    let scaleFactor = 1.0;
+    let names = ["ABC", "DEF"];
+    let p2Offset = { x: 400, y: 0 };
+
+    let visibleElements = { sides: [false, false, false], angles: [false, false, false] };
+    let constraints = { sides: [false, false, false], angles: [false, false, false] };
+    let fixedValues = { sides: [0,0,0], angles: [0,0,0] };
+
+    let p1 = [{ x: 250, y: 200 }, { x: 200, y: 400 }, { x: 400, y: 400 }];
+    let p2 = [{ x: 650, y: 200 }, { x: 600, y: 400 }, { x: 800, y: 400 }];
+
+    let dragData = { type: null, index: null, startX: 0, startY: 0, initialP1: [] };
+
+    function resize() {
+        width = container.clientWidth;
+        height = container.clientHeight;
+        canvas.width = width;
+        canvas.height = height;
+        draw();
+    }
+
+    function toggleSidebar() {
+        sidebarOpen = !sidebarOpen;
+        document.getElementById('sidebar').classList.toggle('hidden-panel');
+        document.getElementById('toggleIcon').innerHTML = sidebarOpen ? 
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />' :
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />';
+    }
+
+    function toggleConstraint(type, index) {
+        constraints[type][index] = !constraints[type][index];
+        const btn = document.getElementById(`lock${type.charAt(0).toUpperCase() + type.slice(1, -1)}${index}`);
+        
+        if (constraints[type][index]) {
+            btn.classList.add('btn-active-red');
+            btn.innerText = (type === 'sides' ? 'S' : '∠') + (index + 1) + ' 🔒';
+            updateFixedValues();
+        } else {
+            btn.classList.remove('btn-active-red');
+            btn.innerText = (type === 'sides' ? 'S' : '∠') + (index + 1) + ' 🔓';
+        }
+        draw();
+    }
+
+    function updateFixedValues() {
+        for(let i=0; i<3; i++) {
+            fixedValues.sides[i] = getDistance(p1[i], p1[(i+1)%3]);
+            fixedValues.angles[i] = getAngleDegree(p1[i], p1[(i+1)%3], p1[(i+2)%3]);
+        }
+    }
+
+    function toggleLabel(type, index) {
+        visibleElements[type][index] = !visibleElements[type][index];
+        document.getElementById(`${type.slice(0, -1)}${index}`).classList.toggle('btn-active-blue');
+        draw();
+    }
+
+    function toggleLock() {
+        isLocked = !isLocked;
+        const btn = document.getElementById('lockBtn');
+        btn.innerText = isLocked ? "Locked" : "Unlocked";
+        btn.className = isLocked ? "px-3 py-1 bg-green-600 text-white rounded text-[10px] font-bold uppercase" : "px-3 py-1 bg-orange-600 text-white rounded text-[10px] font-bold uppercase";
+        if (isLocked) syncTriangles();
+        updateStatus();
+        draw();
+    }
+
+    function resetAll() {
+        view = { x: 0, y: 0, zoom: 1 };
+        isLocked = true;
+        scaleFactor = 1.0;
+        p1 = [{ x: 250, y: 200 }, { x: 200, y: 400 }, { x: 400, y: 400 }];
+        p2Offset = { x: 400, y: 0 };
+        constraints = { sides: [false, false, false], angles: [false, false, false] };
+        visibleElements = { sides: [false, false, false], angles: [false, false, false] };
+        document.querySelectorAll('.btn-tool').forEach(el => {
+            el.classList.remove('btn-active-red', 'btn-active-blue');
+            if(el.id.includes('lock')) el.innerText = el.innerText.replace('🔒', '🔓');
+        });
+        document.getElementById('scaleSlider').value = 1;
+        updateScale(1);
+        updateStatus();
+        draw();
+    }
+
+    function syncTriangles() {
+        if (!isLocked) return;
+        const c1 = getCenter(p1);
+        p2 = p1.map(p => ({
+            x: (p.x - c1.x) * scaleFactor + c1.x + p2Offset.x,
+            y: (p.y - c1.y) * scaleFactor + c1.y + p2Offset.y
+        }));
+    }
+
+    function updateScale(val) {
+        scaleFactor = parseFloat(val);
+        document.getElementById('scaleVal').innerText = scaleFactor.toFixed(1);
+        syncTriangles();
+        updateStatus();
+        draw();
+    }
+
+    function updateNames() {
+        names[0] = document.getElementById('name1').value.toUpperCase() || "ABC";
+        names[1] = document.getElementById('name2').value.toUpperCase() || "DEF";
+        draw();
+    }
+
+    function getCenter(pts) {
+        return { x: (pts[0].x + pts[1].x + pts[2].x) / 3, y: (pts[0].y + pts[1].y + pts[2].y) / 3 };
+    }
+
+    function getDistance(a, b) { return Math.sqrt((b.x-a.x)**2 + (b.y-a.y)**2); }
+
+    function getAngleDegree(p, next, prev) {
+        const a = getDistance(next, prev);
+        const b = getDistance(p, prev);
+        const c = getDistance(p, next);
+        const cos = (b*b + c*c - a*a) / (2*b*c);
+        return Math.acos(Math.max(-1, Math.min(1, cos))) * 180 / Math.PI;
+    }
+
+    function solveConstraints(index, mousePos) {
+        const nextIdx = (index + 1) % 3;
+        const prevIdx = (index + 2) % 3;
+
+        if (constraints.sides.every(v => v)) {
+            const dx = mousePos.x - dragData.initialP1[index].x;
+            const dy = mousePos.y - dragData.initialP1[index].y;
+            p1 = dragData.initialP1.map(p => ({ x: p.x + dx, y: p.y + dy }));
+            return;
+        }
+
+        if (constraints.angles.every(v => v)) {
+            const center = getCenter(p1);
+            const d_old = getDistance(center, dragData.initialP1[index]);
+            const d_new = getDistance(center, mousePos);
+            const s = d_new / d_old;
+            if (s > 0.05) {
+                p1 = dragData.initialP1.map(p => ({
+                    x: center.x + (p.x - center.x) * s,
+                    y: center.y + (p.y - center.y) * s
+                }));
+            }
+            return;
+        }
+
+        let target = { ...mousePos };
+
+        // Locked side AB is index 0. Vertex A is index 0, B is index 1.
+        // Side 0 = p0-p1, Side 1 = p1-p2, Side 2 = p2-p0.
+        
+        // Circular Constraint: If current vertex is connected to a locked side
+        // If current is p[index], check side index-1 (p_prev to p_curr)
+        if (constraints.sides[prevIdx]) {
+            const center = p1[prevIdx];
+            const r = fixedValues.sides[prevIdx];
+            const ang = Math.atan2(target.y - center.y, target.x - center.x);
+            target.x = center.x + r * Math.cos(ang);
+            target.y = center.y + r * Math.sin(ang);
+        }
+
+        // If current is p[index], check side index (p_curr to p_next)
+        if (constraints.sides[index]) {
+            const center = p1[nextIdx];
+            const r = fixedValues.sides[index];
+            const ang = Math.atan2(target.y - center.y, target.x - center.x);
+            target.x = center.x + r * Math.cos(ang);
+            target.y = center.y + r * Math.sin(ang);
+        }
+
+        // Linear (Ray) Constraint: If an adjacent angle is locked
+        if (constraints.angles[prevIdx]) {
+            const origin = p1[prevIdx];
+            const anchor = p1[nextIdx];
+            const base = Math.atan2(anchor.y - origin.y, anchor.x - origin.x);
+            const targetAng = base - (fixedValues.angles[prevIdx] * Math.PI / 180);
+            const dist = getDistance(origin, target);
+            target.x = origin.x + dist * Math.cos(targetAng);
+            target.y = origin.y + dist * Math.sin(targetAng);
+        }
+
+        if (constraints.angles[nextIdx]) {
+            const origin = p1[nextIdx];
+            const anchor = p1[prevIdx];
+            const base = Math.atan2(anchor.y - origin.y, anchor.x - origin.x);
+            const targetAng = base + (fixedValues.angles[nextIdx] * Math.PI / 180);
+            const dist = getDistance(origin, target);
+            target.x = origin.x + dist * Math.cos(targetAng);
+            target.y = origin.y + dist * Math.sin(targetAng);
+        }
+
+        p1[index] = target;
+    }
+
+    function drawLabel(text, x, y, bgColor, textColor, isLocked) {
+        ctx.font = "bold 11px sans-serif";
+        const displayText = (isLocked ? "🔒 " : "") + text;
+        const tw = ctx.measureText(displayText).width;
+        ctx.fillStyle = isLocked ? "#334155" : bgColor;
+        ctx.beginPath(); ctx.roundRect(x - tw/2 - 6, y - 11, tw + 12, 22, 6); ctx.fill();
+        ctx.fillStyle = isLocked ? "white" : textColor;
+        ctx.textAlign = "center"; ctx.fillText(displayText, x, y + 5);
+    }
+
+    function drawTriangle(pts, name, color, isSecondary) {
+        const s_pts = pts.map(p => worldToScreen(p.x, p.y));
+        ctx.beginPath();
+        ctx.moveTo(s_pts[0].x, s_pts[0].y);
+        ctx.lineTo(s_pts[1].x, s_pts[1].y);
+        ctx.lineTo(s_pts[2].x, s_pts[2].y);
+        ctx.closePath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3 * view.zoom;
+        ctx.stroke();
+        ctx.fillStyle = color + "10";
+        ctx.fill();
+
+        const showLabels = document.getElementById('showNames')?.checked ?? true;
+
+        s_pts.forEach((p, i) => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, (isSecondary ? 4 : 7) * view.zoom, 0, Math.PI*2);
+            ctx.fillStyle = isSecondary ? color : "white";
+            ctx.fill();
+            if(!isSecondary) { ctx.strokeStyle = color; ctx.lineWidth = 2 * view.zoom; ctx.stroke(); }
+
+            if (showLabels) {
+                ctx.font = `bold ${14 * view.zoom}px sans-serif`;
+                ctx.fillStyle = "#475569"; ctx.textAlign = "center";
+                ctx.fillText(name[i], p.x, p.y - 12 * view.zoom);
+            }
+
+            if (visibleElements.angles[i]) {
+                const val = getAngleDegree(pts[i], pts[(i+1)%3], pts[(i+2)%3]).toFixed(1);
+                const mid = { x: (p.x + (s_pts[(i+1)%3].x + s_pts[(i+2)%3].x)/2)/2, y: (p.y + (s_pts[(i+1)%3].y + s_pts[(i+2)%3].y)/2)/2 };
+                const dx = mid.x - p.x, dy = mid.y - p.y, d = Math.sqrt(dx*dx + dy*dy) || 1;
+                drawLabel(val + "°", p.x + (dx/d)*35*view.zoom, p.y + (dy/d)*35*view.zoom, "#fee2e2", "#ef4444", constraints.angles[i]);
+            }
+
+            if (visibleElements.sides[i]) {
+                const next = s_pts[(i+1)%3];
+                const mx = (p.x + next.x)/2, my = (p.y + next.y)/2;
+                const len = (getDistance(pts[i], pts[(i+1)%3]) / 20).toFixed(1);
+                const dx = next.x - p.x, dy = next.y - p.y, dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                drawLabel(len, mx + (-dy/dist)*22*view.zoom, my + (dx/dist)*22*view.zoom, "#dcfce7", "#16a34a", constraints.sides[i]);
+            }
+        });
+    }
+
+    function screenToWorld(x, y) { return { x: x / view.zoom - view.x, y: y / view.zoom - view.y }; }
+    function worldToScreen(x, y) { return { x: (x + view.x) * view.zoom, y: (y + view.y) * view.zoom }; }
+
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+        ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 0.5;
+        const step = 50 * view.zoom;
+        for(let x=(view.x*view.zoom)%step; x<width; x+=step) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,height); ctx.stroke(); }
+        for(let y=(view.y*view.zoom)%step; y<height; y+=step) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(width,y); ctx.stroke(); }
+        drawTriangle(p1, names[0], "#2563eb", false);
+        drawTriangle(p2, names[1], "#7c3aed", true);
+    }
+
+    function updateStatus() {
+        const ind = document.getElementById('statusIndicator');
+        const mode = isLocked ? (Math.abs(scaleFactor - 1) < 0.01 ? "Congruent" : "Similar") : "Independent";
+        const color = isLocked ? (mode === "Congruent" ? "bg-green-500" : "bg-blue-500") : "bg-orange-500";
+        ind.innerHTML = `<span class="w-3 h-3 rounded-full ${color}"></span> <span class="uppercase tracking-tight text-slate-700">${mode}</span>`;
+    }
+
+    container.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const worldPos = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+        updateFixedValues();
+
+        for(let i=0; i<3; i++) {
+            if (getDistance(worldPos, p1[i]) < 20/view.zoom) {
+                dragData = { type: 'p1', index: i, initialP1: JSON.parse(JSON.stringify(p1)) };
+                return;
+            }
+        }
+        
+        const c2 = getCenter(p2);
+        if (getDistance(worldPos, c2) < 40/view.zoom) {
+            dragData = { type: 'p2-move', startX: worldPos.x - c2.x, startY: worldPos.y - c2.y };
+            return;
+        }
+
+        if (!isLocked) {
+            for(let i=0; i<3; i++) {
+                if (getDistance(worldPos, p2[i]) < 20/view.zoom) {
+                    dragData = { type: 'p2', index: i }; return;
+                }
+            }
+        }
+        
+        if (e.button === 2 || e.altKey) {
+            dragData = { type: 'pan', startX: e.clientX, startY: e.clientY, origX: view.x, origY: view.y };
+        }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const worldPos = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+
+        if (dragData.type === 'p1') {
+            solveConstraints(dragData.index, worldPos);
+            if(isLocked) syncTriangles();
+            draw();
+        } else if (dragData.type === 'p2') {
+            p2[dragData.index] = worldPos; draw();
+        } else if (dragData.type === 'p2-move') {
+            const c2 = getCenter(p2);
+            const dx = worldPos.x - c2.x - dragData.startX;
+            const dy = worldPos.y - c2.y - dragData.startY;
+            p2.forEach(p => { p.x += dx; p.y += dy; });
+            if (isLocked) {
+                const c1 = getCenter(p1);
+                const curC2 = getCenter(p2);
+                p2Offset = { x: curC2.x - c1.x, y: curC2.y - c1.y };
+            }
+            draw();
+        } else if (dragData.type === 'pan') {
+            view.x = dragData.origX + (e.clientX - dragData.startX) / view.zoom;
+            view.y = dragData.origY + (e.clientY - dragData.startY) / view.zoom;
+            draw();
+        }
+    });
+
+    window.addEventListener('mouseup', () => dragData.type = null);
+    container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+        const before = screenToWorld(mouseX, mouseY);
+        view.zoom *= Math.pow(1.1, -e.deltaY / 100);
+        view.zoom = Math.max(0.1, Math.min(10, view.zoom));
+        const after = screenToWorld(mouseX, mouseY);
+        view.x += (after.x - before.x); view.y += (after.y - before.y);
+        draw();
+    }, { passive: false });
+
+    window.addEventListener('contextmenu', e => e.preventDefault());
+    window.addEventListener('resize', resize);
+    resize(); updateStatus();
+</script>
+
+</body>
+</html>
