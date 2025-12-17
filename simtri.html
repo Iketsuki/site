@@ -47,19 +47,16 @@
             @apply flex items-center justify-between py-2 cursor-pointer border-b border-slate-100 mb-2;
         }
 
-        /* Improved Button Styling */
         .toggle-chip {
             @apply flex-1 py-2 text-[11px] font-black rounded-lg transition-all uppercase text-center cursor-pointer select-none shadow-sm active:scale-95 text-white flex items-center justify-center gap-1;
         }
         
-        /* Active (Locked/Visible) - Professional Green */
         .toggle-chip.active { 
             background: linear-gradient(to bottom, #16a34a, #15803d);
             box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
             border: 1px solid #14532d;
         }
         
-        /* Inactive (Unlocked/Hidden) - Professional Red/Slate Mix */
         .toggle-chip.inactive { 
             background: linear-gradient(to bottom, #ef4444, #dc2626);
             box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
@@ -100,7 +97,6 @@
         </div>
 
         <div class="space-y-6">
-            <!-- Settings & Naming -->
             <details class="group">
                 <summary class="section-header">
                     <h2 class="text-xs font-black uppercase text-slate-400">Settings & Naming</h2>
@@ -130,7 +126,6 @@
                 </div>
             </details>
 
-            <!-- Constraints Section -->
             <details open class="group">
                 <summary class="section-header">
                     <h2 class="text-xs font-black uppercase text-slate-400">Linked Constraints</h2>
@@ -160,7 +155,6 @@
                 </div>
             </details>
 
-            <!-- Transformations -->
             <details open class="group">
                 <summary class="section-header">
                     <h2 class="text-xs font-black uppercase text-slate-400">Transformations</h2>
@@ -185,7 +179,6 @@
                 </div>
             </details>
 
-            <!-- Visuals Section -->
             <details open class="group">
                 <summary class="section-header">
                     <h2 class="text-xs font-black uppercase text-slate-400">Visuals</h2>
@@ -237,14 +230,14 @@
     let triangleNames = [["A", "B", "C"], ["D", "E", "F"]];
     let p2Offset = { x: 400, y: 0 };
 
-    let visibleElements = { sides: [false, false, false], angles: [false, false, false] };
+    let visibleElements = { sides: [true, true, true], angles: [true, true, true] };
     let constraints = { sides: [false, false, false], angles: [false, false, false] };
-    let fixedValues = { sides: [0,0,0], angles: [0,0,0] };
+    let fixedValues = { sides: [0,0,0], angles: [0,0,0], winding: 1 };
 
     let p1 = [{ x: 250, y: 200 }, { x: 200, y: 400 }, { x: 400, y: 400 }];
     let p2 = [{ x: 650, y: 200 }, { x: 600, y: 400 }, { x: 800, y: 400 }];
 
-    let dragData = { type: null, index: null, startX: 0, startY: 0, initialP1: [], initialScale: 1.0 };
+    let dragData = { type: null, index: null, startX: 0, startY: 0, initialPts: [], initialScale: 1.0 };
 
     function resize() {
         width = container.clientWidth;
@@ -309,11 +302,8 @@
                 const val = (prefix === 'c' ? constraints : visibleElements)[type + 's'][i];
                 const chip = document.createElement('div');
                 chip.className = `toggle-chip ${val ? 'active' : 'inactive'}`;
-                
-                // Add icon for constraints
                 const icon = prefix === 'c' ? (val ? '🔒' : '🔓') : '';
                 chip.innerHTML = `<span>${icon}</span> ${label}`;
-                
                 chip.onclick = () => toggleElement(prefix, type, i);
                 container.appendChild(chip);
             }
@@ -331,11 +321,9 @@
             if (axis === 'h') return { x: c2.x - (p.x - c2.x), y: p.y };
             return { x: p.x, y: c2.y - (p.y - c2.y) };
         });
-        if (isLocked) {
-            const c1 = getCenter(p1);
-            const curC2 = getCenter(p2);
-            p2Offset = { x: curC2.x - c1.x, y: curC2.y - c1.y };
-        }
+        const c1 = getCenter(p1);
+        const curC2 = getCenter(p2);
+        p2Offset = { x: curC2.x - c1.x, y: curC2.y - c1.y };
         draw();
     }
 
@@ -344,14 +332,17 @@
             fixedValues.sides[i] = getDistance(p1[i], p1[(i+1)%3]);
             fixedValues.angles[i] = getAngleDegree(p1[i], p1[(i+1)%3], p1[(i+2)%3]);
         }
+        fixedValues.winding = Math.sign((p1[1].x - p1[0].x) * (p1[2].y - p1[0].y) - (p1[1].y - p1[0].y) * (p1[2].x - p1[0].x));
     }
 
     function toggleLock() {
         isLocked = !isLocked;
         const btn = document.getElementById('lockBtn');
         btn.innerText = isLocked ? "Linked" : "Independent";
-        btn.className = isLocked ? "px-3 py-1.5 bg-green-600 text-white rounded-lg text-[10px] font-black uppercase shadow-md active:scale-95" : "px-3 py-1.5 bg-orange-600 text-white rounded-lg text-[10px] font-black uppercase shadow-md active:scale-95";
-        if (isLocked) syncTriangles();
+        btn.className = isLocked ? "px-3 py-1.5 bg-green-600 text-white rounded-lg text-[10px] font-black uppercase shadow-md transition-all active:scale-95" : "px-3 py-1.5 bg-orange-600 text-white rounded-lg text-[10px] font-black uppercase shadow-md transition-all active:scale-95";
+        if (isLocked) {
+            syncTriangles();
+        }
         updateStatus();
         draw();
     }
@@ -364,16 +355,13 @@
         p2Offset = { x: 400, y: 0 };
         p2Rotation = 0;
         triangleNames = [["A", "B", "C"], ["D", "E", "F"]];
-        
-        visibleElements = { sides: [false, false, false], angles: [false, false, false] };
+        visibleElements = { sides: [true, true, true], angles: [true, true, true] };
         constraints = { sides: [false, false, false], angles: [false, false, false] };
-
         document.getElementById('nameTri1').value = "ABC";
         document.getElementById('nameTri2').value = "DEF";
         document.getElementById('scaleSlider').value = 1;
         document.getElementById('fontSlider').value = 14;
         fontSize = 14;
-        
         renderControlChips();
         updateFixedValues();
         updateScale(1);
@@ -381,7 +369,6 @@
     }
 
     function syncTriangles() {
-        if (!isLocked) return;
         const c1 = getCenter(p1);
         p2 = p1.map(p => {
             let dx = (p.x - c1.x);
@@ -399,7 +386,7 @@
         scaleFactor = parseFloat(val);
         document.getElementById('scaleVal').innerText = scaleFactor.toFixed(2);
         document.getElementById('scaleSlider').value = scaleFactor;
-        syncTriangles();
+        syncTriangles(); 
         updateStatus();
         draw();
     }
@@ -419,40 +406,51 @@
     }
 
     function solveConstraints(index, mousePos, targetTriangle) {
+        // If specific angle is locked, vertex is frozen
+        if (constraints.angles[index]) return;
+
         const nextIdx = (index + 1) % 3;
         const prevIdx = (index + 2) % 3;
         const pts = targetTriangle === 1 ? p1 : p2;
 
-        if (constraints.sides.every(v => v)) {
-            const dx = mousePos.x - dragData.initialPts[index].x;
-            const dy = mousePos.y - dragData.initialPts[index].y;
-            pts.forEach((p, i) => {
-                p.x = dragData.initialPts[i].x + dx;
-                p.y = dragData.initialPts[i].y + dy;
-            });
-            return;
-        }
+        const lockedAnglesCount = constraints.angles.filter(v => v).length;
+        const isSSS = constraints.sides.every(v => v);
+        const isAA = lockedAnglesCount >= 2; // Rule: 2 angles fixed = AAA fixed
 
-        if (constraints.angles.every(v => v)) {
-            const center = getCenter(pts);
-            const d_old = getDistance(center, dragData.initialPts[index]);
-            const d_new = getDistance(center, mousePos);
+        // Rule: If AA/AAA or SSS fixed, Triangle 2 can only zoom/scale and turn
+        if (targetTriangle === 2 && (isSSS || isAA)) {
+            const c2 = getCenter(pts);
+            
+            // Handle Scale (Zoom)
+            const d_old = getDistance(c2, dragData.initialPts[index]);
+            const d_new = getDistance(c2, mousePos);
             const s = d_new / d_old;
+            
+            // Handle Rotation (Turn)
+            const ang_old = Math.atan2(dragData.initialPts[index].y - c2.y, dragData.initialPts[index].x - c2.x);
+            const ang_new = Math.atan2(mousePos.y - c2.y, mousePos.x - c2.x);
+            const d_ang = ang_new - ang_old;
+
             if (s > 0.05) {
-                pts.forEach((p, i) => {
-                    p.x = center.x + (dragData.initialPts[i].x - center.x) * s;
-                    p.y = center.y + (dragData.initialPts[i].y - center.y) * s;
-                });
+                scaleFactor = dragData.initialScale * s;
+                p2Rotation = dragData.initialRotation + d_ang;
+                updateScale(scaleFactor);
             }
             return;
         }
 
+        if (isSSS || (targetTriangle === 1 && isAA)) {
+            // SSS or AA disables distortion on P1. 
+            // In SSS mode, only the whole triangle moves if dragged, but here we just block individual vertex distortion.
+            return;
+        }
+
         let target = { ...mousePos };
-        const sf = (targetTriangle === 2 ? scaleFactor : 1);
+        const localScale = (targetTriangle === 2 ? scaleFactor : 1);
 
         if (constraints.sides[prevIdx]) {
             const center = pts[prevIdx];
-            const r = fixedValues.sides[prevIdx] * sf;
+            const r = fixedValues.sides[prevIdx] * localScale;
             const ang = Math.atan2(target.y - center.y, target.x - center.x);
             target.x = center.x + r * Math.cos(ang);
             target.y = center.y + r * Math.sin(ang);
@@ -460,7 +458,7 @@
 
         if (constraints.sides[index]) {
             const center = pts[nextIdx];
-            const r = fixedValues.sides[index] * sf;
+            const r = fixedValues.sides[index] * localScale;
             const ang = Math.atan2(target.y - center.y, target.x - center.x);
             target.x = center.x + r * Math.cos(ang);
             target.y = center.y + r * Math.sin(ang);
@@ -470,7 +468,7 @@
             const origin = pts[prevIdx];
             const anchor = pts[nextIdx];
             const base = Math.atan2(anchor.y - origin.y, anchor.x - origin.x);
-            const targetAng = base - (fixedValues.angles[prevIdx] * Math.PI / 180);
+            const targetAng = base - (fixedValues.angles[prevIdx] * Math.PI / 180) * fixedValues.winding;
             const dist = getDistance(origin, target);
             target.x = origin.x + dist * Math.cos(targetAng);
             target.y = origin.y + dist * Math.sin(targetAng);
@@ -480,7 +478,7 @@
             const origin = pts[nextIdx];
             const anchor = pts[prevIdx];
             const base = Math.atan2(anchor.y - origin.y, anchor.x - origin.x);
-            const targetAng = base + (fixedValues.angles[nextIdx] * Math.PI / 180);
+            const targetAng = base + (fixedValues.angles[nextIdx] * Math.PI / 180) * fixedValues.winding;
             const dist = getDistance(origin, target);
             target.x = origin.x + dist * Math.cos(targetAng);
             target.y = origin.y + dist * Math.sin(targetAng);
@@ -542,14 +540,15 @@
         }
 
         s_pts.forEach((p, i) => {
+            const isVertexLocked = constraints.angles[i];
             ctx.beginPath();
             ctx.arc(p.x, p.y, (isSecondary ? 6 : 7) * view.zoom, 0, Math.PI*2);
-            ctx.fillStyle = "white";
+            ctx.fillStyle = isVertexLocked ? "#334155" : "white";
             ctx.fill();
             ctx.strokeStyle = color; ctx.lineWidth = 2 * view.zoom; ctx.stroke();
 
             ctx.font = `bold ${fontSize * view.zoom}px sans-serif`;
-            ctx.fillStyle = "#1e293b"; ctx.textAlign = "center";
+            ctx.fillStyle = isVertexLocked ? "#334155" : "#1e293b"; ctx.textAlign = "center";
             ctx.fillText(names[i] || "", p.x, p.y - 12 * view.zoom);
 
             if (visibleElements.angles[i]) {
@@ -584,8 +583,19 @@
 
     function updateStatus() {
         const ind = document.getElementById('statusIndicator');
-        const mode = isLocked ? (Math.abs(scaleFactor - 1) < 0.01 ? "Congruent" : "Similar") : "Independent";
-        const color = isLocked ? (mode === "Congruent" ? "bg-green-500" : "bg-blue-500") : "bg-orange-500";
+        let mode = "Independent";
+        let color = "bg-orange-500";
+
+        if (isLocked) {
+            if (Math.abs(scaleFactor - 1) < 0.001) {
+                mode = "Congruent";
+                color = "bg-green-500";
+            } else {
+                mode = "Similar";
+                color = "bg-blue-500";
+            }
+        }
+        
         ind.innerHTML = `<span class="w-4 h-4 rounded-full ${color} shadow-sm border border-white"></span> <span class="uppercase tracking-tight text-slate-800 font-black text-[12px]">${mode}</span>`;
     }
 
@@ -618,16 +628,13 @@
 
         for(let i=0; i<3; i++) {
             if (getDistance(worldPos, p2[i]) < 20/view.zoom) {
-                if (isLocked) {
-                    dragData = { 
-                        type: 'p2-scale', 
-                        index: i, 
-                        initialScale: scaleFactor,
-                        initialDist: getDistance(c2, p2[i])
-                    };
-                } else {
-                    dragData = { type: 'p2', index: i, initialPts: JSON.parse(JSON.stringify(p2)) };
-                }
+                dragData = { 
+                    type: 'p2', 
+                    index: i, 
+                    initialPts: JSON.parse(JSON.stringify(p2)),
+                    initialScale: scaleFactor,
+                    initialRotation: p2Rotation
+                };
                 return;
             }
         }
@@ -648,48 +655,31 @@
 
         if (dragData.type === 'p1') {
             solveConstraints(dragData.index, worldPos, 1);
-            if(isLocked) syncTriangles();
+            syncTriangles(); 
             draw();
         } else if (dragData.type === 'p2') {
             solveConstraints(dragData.index, worldPos, 2);
+            if (!isLocked) {
+                const c1 = getCenter(p1);
+                const c2 = getCenter(p2);
+                p2Offset = { x: c2.x - c1.x, y: c2.y - c1.y };
+            }
             draw();
         } else if (dragData.type === 'p2-rotate') {
             const c2 = getCenter(p2);
             const currentMouseAngle = Math.atan2(worldPos.y - c2.y, worldPos.x - c2.x);
             const delta = currentMouseAngle - dragData.initialAngle;
-            
-            // Apply rigid rotation to p2
-            p2 = dragData.initialP2.map(p => {
-                const dx = p.x - c2.x;
-                const dy = p.y - c2.y;
-                return {
-                    x: c2.x + dx * Math.cos(delta) - dy * Math.sin(delta),
-                    y: c2.y + dx * Math.sin(delta) + dy * Math.cos(delta)
-                };
-            });
-            
             p2Rotation = dragData.initialRotation + delta;
-            
-            if (isLocked) {
-                const c1 = getCenter(p1);
-                p2Offset = { x: c2.x - c1.x, y: c2.y - c1.y };
-            }
+            syncTriangles();
             draw();
-        } else if (dragData.type === 'p2-scale') {
-            const c2 = getCenter(p2);
-            const currentDist = getDistance(c2, worldPos);
-            const newScale = (currentDist / dragData.initialDist) * dragData.initialScale;
-            updateScale(Math.max(0.1, Math.min(5, newScale)));
         } else if (dragData.type === 'p2-move') {
             const c2 = getCenter(p2);
             const dx = worldPos.x - c2.x - dragData.startX;
             const dy = worldPos.y - c2.y - dragData.startY;
             p2.forEach(p => { p.x += dx; p.y += dy; });
-            if (isLocked) {
-                const c1 = getCenter(p1);
-                const curC2 = getCenter(p2);
-                p2Offset = { x: curC2.x - c1.x, y: curC2.y - c1.y };
-            }
+            const c1 = getCenter(p1);
+            const curC2 = getCenter(p2);
+            p2Offset = { x: curC2.x - c1.x, y: curC2.y - c1.y };
             draw();
         } else if (dragData.type === 'pan') {
             view.x = dragData.origX + (e.clientX - dragData.startX) / view.zoom;
@@ -715,6 +705,7 @@
     window.addEventListener('resize', resize);
     
     renderControlChips();
+    updateFixedValues();
     resize(); 
     updateStatus();
 </script>
