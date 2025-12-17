@@ -47,14 +47,26 @@
             @apply flex items-center justify-between py-2 cursor-pointer border-b border-slate-100 mb-2;
         }
 
-        .btn-tool {
-            @apply cursor-pointer transition-all px-3 py-1.5 rounded-md text-[10px] border border-slate-200 bg-white hover:bg-slate-50 font-bold uppercase text-slate-600;
+        .toggle-chip {
+            @apply flex-1 py-1.5 text-[10px] font-bold rounded transition-all uppercase text-center cursor-pointer select-none shadow-sm active:scale-95;
         }
-        .btn-active-blue { @apply bg-blue-600 text-white border-blue-700 hover:bg-blue-700; }
-        .btn-active-red { @apply bg-red-600 text-white border-red-700 hover:bg-red-700; }
+        .toggle-chip.active { @apply bg-green-600 text-white; }
+        .toggle-chip.inactive { @apply bg-red-600 text-white; }
+
+        .bulk-btn {
+            @apply text-[9px] px-2 py-0.5 rounded bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold uppercase transition-colors;
+        }
 
         details summary::-webkit-details-marker { display: none; }
         input[type=range] { @apply accent-blue-600; }
+        
+        .action-btn {
+            @apply px-3 py-1.5 bg-white border border-slate-200 rounded text-[10px] font-bold uppercase hover:bg-slate-50 transition-colors shadow-sm;
+        }
+        
+        .name-group-input {
+            @apply w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-xs font-bold uppercase tracking-[0.5em] focus:ring-1 focus:ring-blue-400 focus:outline-none text-center;
+        }
     </style>
 </head>
 <body>
@@ -71,80 +83,121 @@
 
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-lg font-bold text-slate-800">Triangle Lab</h1>
-            <button onclick="resetAll()" class="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100 font-bold uppercase hover:bg-red-100">Reset</button>
+            <button onclick="resetAll()" class="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100 font-bold uppercase hover:bg-red-100 transition-colors">Reset</button>
         </div>
 
         <div class="space-y-4">
-            <details open class="group">
+            <!-- Appearance Section -->
+            <details class="group">
                 <summary class="section-header">
-                    <h2 class="text-xs font-bold uppercase text-slate-500">Geometric Constraints</h2>
+                    <h2 class="text-xs font-bold uppercase text-slate-500">Settings & Naming</h2>
                     <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                 </summary>
                 <div class="pt-2 space-y-4">
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Lock Side Lengths</p>
-                        <div class="flex gap-2 flex-wrap">
-                            <button id="lockSide0" onclick="toggleConstraint('sides', 0)" class="btn-tool">S1 (AB) 🔓</button>
-                            <button id="lockSide1" onclick="toggleConstraint('sides', 1)" class="btn-tool">S2 (BC) 🔓</button>
-                            <button id="lockSide2" onclick="toggleConstraint('sides', 2)" class="btn-tool">S3 (CA) 🔓</button>
+                        <div class="flex justify-between items-center mb-1">
+                            <h3 class="text-[10px] font-bold text-slate-400 uppercase">Label Font Size</h3>
+                            <span id="fontVal" class="text-xs font-bold text-blue-600">14</span>
                         </div>
+                        <input type="range" id="fontSlider" min="10" max="24" step="1" value="14" class="w-full" oninput="updateFontSize(this.value)">
                     </div>
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Lock Internal Angles</p>
-                        <div class="flex gap-2 flex-wrap">
-                            <button id="lockAngle0" onclick="toggleConstraint('angles', 0)" class="btn-tool">∠A 🔓</button>
-                            <button id="lockAngle1" onclick="toggleConstraint('angles', 1)" class="btn-tool">∠B 🔓</button>
-                            <button id="lockAngle2" onclick="toggleConstraint('angles', 2)" class="btn-tool">∠C 🔓</button>
+                        <h3 class="text-[10px] font-bold text-slate-400 uppercase mb-2">Triangle Names</h3>
+                        <div class="space-y-2">
+                            <div class="flex flex-col gap-1">
+                                <span class="text-[9px] font-bold text-blue-600 uppercase ml-1">Triangle 1</span>
+                                <input type="text" id="nameTri1" maxlength="3" value="ABC" oninput="updateFullNames(0, this.value)" class="name-group-input">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <span class="text-[9px] font-bold text-purple-600 uppercase ml-1">Triangle 2</span>
+                                <input type="text" id="nameTri2" maxlength="3" value="DEF" oninput="updateFullNames(1, this.value)" class="name-group-input">
+                            </div>
                         </div>
                     </div>
                 </div>
             </details>
 
+            <!-- Constraints Section -->
             <details open class="group">
                 <summary class="section-header">
-                    <h2 class="text-xs font-bold uppercase text-slate-500">Linkage & Proportions</h2>
+                    <h2 class="text-xs font-bold uppercase text-slate-500">Linked Constraints</h2>
                     <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                 </summary>
                 <div class="pt-2 space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Lock Sides</p>
+                            <div class="flex gap-1">
+                                <button onclick="bulkSet('c', 'side', true)" class="bulk-btn">All</button>
+                                <button onclick="bulkSet('c', 'side', false)" class="bulk-btn">None</button>
+                            </div>
+                        </div>
+                        <div class="flex gap-2" id="c-side-container"></div>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Lock Angles</p>
+                            <div class="flex gap-1">
+                                <button onclick="bulkSet('c', 'angle', true)" class="bulk-btn">All</button>
+                                <button onclick="bulkSet('c', 'angle', false)" class="bulk-btn">None</button>
+                            </div>
+                        </div>
+                        <div class="flex gap-2" id="c-angle-container"></div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- DEF Controls -->
+            <details open class="group">
+                <summary class="section-header">
+                    <h2 class="text-xs font-bold uppercase text-slate-500">Transformations</h2>
+                    <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                </summary>
+                <div class="pt-2 space-y-3">
+                    <div class="flex gap-2">
+                        <button onclick="flipDEF('h')" class="action-btn flex-1">Flip H</button>
+                        <button onclick="flipDEF('v')" class="action-btn flex-1">Flip V</button>
+                    </div>
                     <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
-                        <span class="text-xs font-bold text-slate-600">Sync Link</span>
-                        <button id="lockBtn" onclick="toggleLock()" class="px-3 py-1 bg-green-600 text-white rounded text-[10px] font-bold uppercase">Linked</button>
+                        <span class="text-[10px] font-bold text-slate-600 uppercase">Sync Triangles</span>
+                        <button id="lockBtn" onclick="toggleLock()" class="px-3 py-1 bg-green-600 text-white rounded text-[10px] font-bold uppercase shadow-sm">Linked</button>
                     </div>
                     <div id="ratioControls">
-                        <h3 class="text-[10px] font-bold text-slate-400 uppercase mb-1">Scale: <span id="scaleVal" class="text-blue-600">1.0</span>x</h3>
-                        <input type="range" id="scaleSlider" min="0.2" max="3.0" step="0.1" value="1" class="w-full" oninput="updateScale(this.value)">
+                        <div class="flex justify-between items-center mb-1">
+                            <h3 class="text-[10px] font-bold text-slate-400 uppercase">Scale Factor</h3>
+                            <span id="scaleVal" class="text-xs font-bold text-blue-600">1.0</span>
+                        </div>
+                        <input type="range" id="scaleSlider" min="0.2" max="3.0" step="0.01" value="1" class="w-full" oninput="updateScale(this.value)">
                     </div>
                 </div>
             </details>
 
+            <!-- Visuals Section -->
             <details open class="group">
                 <summary class="section-header">
                     <h2 class="text-xs font-bold uppercase text-slate-500">Visuals</h2>
                     <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                 </summary>
-                <div class="pt-2 grid grid-cols-2 gap-2">
-                    <button id="side0" onclick="toggleLabel('sides', 0)" class="btn-tool">Side AB</button>
-                    <button id="side1" onclick="toggleLabel('sides', 1)" class="btn-tool">Side BC</button>
-                    <button id="side2" onclick="toggleLabel('sides', 2)" class="btn-tool">Side CA</button>
-                    <button id="angle0" onclick="toggleLabel('angles', 0)" class="btn-tool">Angle A</button>
-                    <button id="angle1" onclick="toggleLabel('angles', 1)" class="btn-tool">Angle B</button>
-                    <button id="angle2" onclick="toggleLabel('angles', 2)" class="btn-tool">Angle C</button>
-                </div>
-            </details>
-
-            <details class="group">
-                <summary class="section-header">
-                    <h2 class="text-xs font-bold uppercase text-slate-500">Settings</h2>
-                    <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
-                </summary>
-                <div class="pt-2 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <label class="text-[10px] text-slate-400 uppercase font-bold">Labels On</label>
-                        <input type="checkbox" id="showNames" checked onchange="draw()" class="w-4 h-4 text-blue-600">
+                <div class="pt-2 space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Show Sides</p>
+                            <div class="flex gap-1">
+                                <button onclick="bulkSet('v', 'side', true)" class="bulk-btn">All</button>
+                                <button onclick="bulkSet('v', 'side', false)" class="bulk-btn">None</button>
+                            </div>
+                        </div>
+                        <div class="flex gap-2" id="v-side-container"></div>
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="name1" value="ABC" maxlength="3" class="p-2 border rounded text-center uppercase text-sm" oninput="updateNames()">
-                        <input type="text" id="name2" value="DEF" maxlength="3" class="p-2 border rounded text-center uppercase text-sm" oninput="updateNames()">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Show Angles</p>
+                            <div class="flex gap-1">
+                                <button onclick="bulkSet('v', 'angle', true)" class="bulk-btn">All</button>
+                                <button onclick="bulkSet('v', 'angle', false)" class="bulk-btn">None</button>
+                            </div>
+                        </div>
+                        <div class="flex gap-2" id="v-angle-container"></div>
                     </div>
                 </div>
             </details>
@@ -166,7 +219,9 @@
     let view = { x: 0, y: 0, zoom: 1 };
     let isLocked = true;
     let scaleFactor = 1.0;
-    let names = ["ABC", "DEF"];
+    let fontSize = 14;
+    let p2Rotation = 0; 
+    let triangleNames = [["A", "B", "C"], ["D", "E", "F"]];
     let p2Offset = { x: 400, y: 0 };
 
     let visibleElements = { sides: [false, false, false], angles: [false, false, false] };
@@ -176,7 +231,7 @@
     let p1 = [{ x: 250, y: 200 }, { x: 200, y: 400 }, { x: 400, y: 400 }];
     let p2 = [{ x: 650, y: 200 }, { x: 600, y: 400 }, { x: 800, y: 400 }];
 
-    let dragData = { type: null, index: null, startX: 0, startY: 0, initialP1: [] };
+    let dragData = { type: null, index: null, startX: 0, startY: 0, initialP1: [], initialScale: 1.0 };
 
     function resize() {
         width = container.clientWidth;
@@ -194,17 +249,75 @@
             '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />';
     }
 
-    function toggleConstraint(type, index) {
-        constraints[type][index] = !constraints[type][index];
-        const btn = document.getElementById(`lock${type.charAt(0).toUpperCase() + type.slice(1, -1)}${index}`);
-        
-        if (constraints[type][index]) {
-            btn.classList.add('btn-active-red');
-            btn.innerText = (type === 'sides' ? 'S' : '∠') + (index + 1) + ' 🔒';
-            updateFixedValues();
+    function updateFontSize(val) {
+        fontSize = parseInt(val);
+        document.getElementById('fontVal').innerText = fontSize;
+        draw();
+    }
+
+    function updateFullNames(tIdx, val) {
+        const letters = val.toUpperCase().padEnd(3, " ").split("");
+        triangleNames[tIdx] = letters.slice(0, 3);
+        renderControlChips();
+        draw();
+    }
+
+    function toggleElement(prefix, type, index) {
+        if (prefix === 'c') {
+            constraints[type + 's'][index] = !constraints[type + 's'][index];
         } else {
-            btn.classList.remove('btn-active-red');
-            btn.innerText = (type === 'sides' ? 'S' : '∠') + (index + 1) + ' 🔓';
+            visibleElements[type + 's'][index] = !visibleElements[type + 's'][index];
+        }
+        updateFixedValues();
+        renderControlChips();
+        draw();
+    }
+
+    function bulkSet(prefix, type, value) {
+        const target = prefix === 'c' ? constraints : visibleElements;
+        target[type + 's'] = [value, value, value];
+        updateFixedValues();
+        renderControlChips();
+        draw();
+    }
+
+    function renderControlChips() {
+        const createChips = (prefix, type) => {
+            const container = document.getElementById(`${prefix}-${type}-container`);
+            container.innerHTML = "";
+            for (let i = 0; i < 3; i++) {
+                let label = "";
+                if (type === 'side') {
+                    label = triangleNames[0][i] + triangleNames[0][(i+1)%3];
+                } else {
+                    label = "∠" + triangleNames[0][i];
+                }
+                
+                const val = (prefix === 'c' ? constraints : visibleElements)[type + 's'][i];
+                const chip = document.createElement('div');
+                chip.className = `toggle-chip ${val ? 'active' : 'inactive'}`;
+                chip.innerText = label;
+                chip.onclick = () => toggleElement(prefix, type, i);
+                container.appendChild(chip);
+            }
+        };
+
+        createChips('c', 'side');
+        createChips('c', 'angle');
+        createChips('v', 'side');
+        createChips('v', 'angle');
+    }
+
+    function flipDEF(axis) {
+        const c2 = getCenter(p2);
+        p2 = p2.map(p => {
+            if (axis === 'h') return { x: c2.x - (p.x - c2.x), y: p.y };
+            return { x: p.x, y: c2.y - (p.y - c2.y) };
+        });
+        if (isLocked) {
+            const c1 = getCenter(p1);
+            const curC2 = getCenter(p2);
+            p2Offset = { x: curC2.x - c1.x, y: curC2.y - c1.y };
         }
         draw();
     }
@@ -216,17 +329,11 @@
         }
     }
 
-    function toggleLabel(type, index) {
-        visibleElements[type][index] = !visibleElements[type][index];
-        document.getElementById(`${type.slice(0, -1)}${index}`).classList.toggle('btn-active-blue');
-        draw();
-    }
-
     function toggleLock() {
         isLocked = !isLocked;
         const btn = document.getElementById('lockBtn');
-        btn.innerText = isLocked ? "Locked" : "Unlocked";
-        btn.className = isLocked ? "px-3 py-1 bg-green-600 text-white rounded text-[10px] font-bold uppercase" : "px-3 py-1 bg-orange-600 text-white rounded text-[10px] font-bold uppercase";
+        btn.innerText = isLocked ? "Linked" : "Independent";
+        btn.className = isLocked ? "px-3 py-1 bg-green-600 text-white rounded text-[10px] font-bold uppercase shadow-sm" : "px-3 py-1 bg-orange-600 text-white rounded text-[10px] font-bold uppercase shadow-sm";
         if (isLocked) syncTriangles();
         updateStatus();
         draw();
@@ -238,38 +345,45 @@
         scaleFactor = 1.0;
         p1 = [{ x: 250, y: 200 }, { x: 200, y: 400 }, { x: 400, y: 400 }];
         p2Offset = { x: 400, y: 0 };
-        constraints = { sides: [false, false, false], angles: [false, false, false] };
+        p2Rotation = 0;
+        triangleNames = [["A", "B", "C"], ["D", "E", "F"]];
+        
         visibleElements = { sides: [false, false, false], angles: [false, false, false] };
-        document.querySelectorAll('.btn-tool').forEach(el => {
-            el.classList.remove('btn-active-red', 'btn-active-blue');
-            if(el.id.includes('lock')) el.innerText = el.innerText.replace('🔒', '🔓');
-        });
+        constraints = { sides: [false, false, false], angles: [false, false, false] };
+
+        document.getElementById('nameTri1').value = "ABC";
+        document.getElementById('nameTri2').value = "DEF";
         document.getElementById('scaleSlider').value = 1;
+        document.getElementById('fontSlider').value = 14;
+        fontSize = 14;
+        
+        renderControlChips();
+        updateFixedValues();
         updateScale(1);
-        updateStatus();
         draw();
     }
 
     function syncTriangles() {
         if (!isLocked) return;
         const c1 = getCenter(p1);
-        p2 = p1.map(p => ({
-            x: (p.x - c1.x) * scaleFactor + c1.x + p2Offset.x,
-            y: (p.y - c1.y) * scaleFactor + c1.y + p2Offset.y
-        }));
+        p2 = p1.map(p => {
+            let dx = (p.x - c1.x);
+            let dy = (p.y - c1.y);
+            let rx = dx * Math.cos(p2Rotation) - dy * Math.sin(p2Rotation);
+            let ry = dx * Math.sin(p2Rotation) + dy * Math.cos(p2Rotation);
+            return {
+                x: rx * scaleFactor + c1.x + p2Offset.x,
+                y: ry * scaleFactor + c1.y + p2Offset.y
+            };
+        });
     }
 
     function updateScale(val) {
         scaleFactor = parseFloat(val);
-        document.getElementById('scaleVal').innerText = scaleFactor.toFixed(1);
+        document.getElementById('scaleVal').innerText = scaleFactor.toFixed(2);
+        document.getElementById('scaleSlider').value = scaleFactor;
         syncTriangles();
         updateStatus();
-        draw();
-    }
-
-    function updateNames() {
-        names[0] = document.getElementById('name1').value.toUpperCase() || "ABC";
-        names[1] = document.getElementById('name2').value.toUpperCase() || "DEF";
         draw();
     }
 
@@ -287,59 +401,57 @@
         return Math.acos(Math.max(-1, Math.min(1, cos))) * 180 / Math.PI;
     }
 
-    function solveConstraints(index, mousePos) {
+    function solveConstraints(index, mousePos, targetTriangle) {
         const nextIdx = (index + 1) % 3;
         const prevIdx = (index + 2) % 3;
+        const pts = targetTriangle === 1 ? p1 : p2;
 
         if (constraints.sides.every(v => v)) {
-            const dx = mousePos.x - dragData.initialP1[index].x;
-            const dy = mousePos.y - dragData.initialP1[index].y;
-            p1 = dragData.initialP1.map(p => ({ x: p.x + dx, y: p.y + dy }));
+            const dx = mousePos.x - dragData.initialPts[index].x;
+            const dy = mousePos.y - dragData.initialPts[index].y;
+            pts.forEach((p, i) => {
+                p.x = dragData.initialPts[i].x + dx;
+                p.y = dragData.initialPts[i].y + dy;
+            });
             return;
         }
 
         if (constraints.angles.every(v => v)) {
-            const center = getCenter(p1);
-            const d_old = getDistance(center, dragData.initialP1[index]);
+            const center = getCenter(pts);
+            const d_old = getDistance(center, dragData.initialPts[index]);
             const d_new = getDistance(center, mousePos);
             const s = d_new / d_old;
             if (s > 0.05) {
-                p1 = dragData.initialP1.map(p => ({
-                    x: center.x + (p.x - center.x) * s,
-                    y: center.y + (p.y - center.y) * s
-                }));
+                pts.forEach((p, i) => {
+                    p.x = center.x + (dragData.initialPts[i].x - center.x) * s;
+                    p.y = center.y + (dragData.initialPts[i].y - center.y) * s;
+                });
             }
             return;
         }
 
         let target = { ...mousePos };
+        const sf = (targetTriangle === 2 ? scaleFactor : 1);
 
-        // Locked side AB is index 0. Vertex A is index 0, B is index 1.
-        // Side 0 = p0-p1, Side 1 = p1-p2, Side 2 = p2-p0.
-        
-        // Circular Constraint: If current vertex is connected to a locked side
-        // If current is p[index], check side index-1 (p_prev to p_curr)
         if (constraints.sides[prevIdx]) {
-            const center = p1[prevIdx];
-            const r = fixedValues.sides[prevIdx];
+            const center = pts[prevIdx];
+            const r = fixedValues.sides[prevIdx] * sf;
             const ang = Math.atan2(target.y - center.y, target.x - center.x);
             target.x = center.x + r * Math.cos(ang);
             target.y = center.y + r * Math.sin(ang);
         }
 
-        // If current is p[index], check side index (p_curr to p_next)
         if (constraints.sides[index]) {
-            const center = p1[nextIdx];
-            const r = fixedValues.sides[index];
+            const center = pts[nextIdx];
+            const r = fixedValues.sides[index] * sf;
             const ang = Math.atan2(target.y - center.y, target.x - center.x);
             target.x = center.x + r * Math.cos(ang);
             target.y = center.y + r * Math.sin(ang);
         }
 
-        // Linear (Ray) Constraint: If an adjacent angle is locked
         if (constraints.angles[prevIdx]) {
-            const origin = p1[prevIdx];
-            const anchor = p1[nextIdx];
+            const origin = pts[prevIdx];
+            const anchor = pts[nextIdx];
             const base = Math.atan2(anchor.y - origin.y, anchor.x - origin.x);
             const targetAng = base - (fixedValues.angles[prevIdx] * Math.PI / 180);
             const dist = getDistance(origin, target);
@@ -348,8 +460,8 @@
         }
 
         if (constraints.angles[nextIdx]) {
-            const origin = p1[nextIdx];
-            const anchor = p1[prevIdx];
+            const origin = pts[nextIdx];
+            const anchor = pts[prevIdx];
             const base = Math.atan2(anchor.y - origin.y, anchor.x - origin.x);
             const targetAng = base + (fixedValues.angles[nextIdx] * Math.PI / 180);
             const dist = getDistance(origin, target);
@@ -357,11 +469,11 @@
             target.y = origin.y + dist * Math.sin(targetAng);
         }
 
-        p1[index] = target;
+        pts[index] = target;
     }
 
     function drawLabel(text, x, y, bgColor, textColor, isLocked) {
-        ctx.font = "bold 11px sans-serif";
+        ctx.font = `bold ${11 * view.zoom}px sans-serif`;
         const displayText = (isLocked ? "🔒 " : "") + text;
         const tw = ctx.measureText(displayText).width;
         ctx.fillStyle = isLocked ? "#334155" : bgColor;
@@ -370,8 +482,11 @@
         ctx.textAlign = "center"; ctx.fillText(displayText, x, y + 5);
     }
 
-    function drawTriangle(pts, name, color, isSecondary) {
+    function drawTriangle(pts, names, color, isSecondary) {
         const s_pts = pts.map(p => worldToScreen(p.x, p.y));
+        const c_world = getCenter(pts);
+        const c_screen = worldToScreen(c_world.x, c_world.y);
+
         ctx.beginPath();
         ctx.moveTo(s_pts[0].x, s_pts[0].y);
         ctx.lineTo(s_pts[1].x, s_pts[1].y);
@@ -383,26 +498,48 @@
         ctx.fillStyle = color + "10";
         ctx.fill();
 
-        const showLabels = document.getElementById('showNames')?.checked ?? true;
+        if (isSecondary) {
+            const handleDist = 60 * view.zoom;
+            const handlePos = { 
+                x: c_screen.x + Math.cos(p2Rotation - Math.PI/2) * handleDist,
+                y: c_screen.y + Math.sin(p2Rotation - Math.PI/2) * handleDist
+            };
+            ctx.beginPath();
+            ctx.setLineDash([5, 5]);
+            ctx.moveTo(c_screen.x, c_screen.y);
+            ctx.lineTo(handlePos.x, handlePos.y);
+            ctx.strokeStyle = color;
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            ctx.beginPath();
+            ctx.arc(handlePos.x, handlePos.y, 10 * view.zoom, 0, Math.PI*2);
+            ctx.fillStyle = "white";
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(c_screen.x, c_screen.y, 4 * view.zoom, 0, Math.PI*2);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
 
         s_pts.forEach((p, i) => {
             ctx.beginPath();
-            ctx.arc(p.x, p.y, (isSecondary ? 4 : 7) * view.zoom, 0, Math.PI*2);
-            ctx.fillStyle = isSecondary ? color : "white";
+            ctx.arc(p.x, p.y, (isSecondary ? 6 : 7) * view.zoom, 0, Math.PI*2);
+            ctx.fillStyle = "white";
             ctx.fill();
-            if(!isSecondary) { ctx.strokeStyle = color; ctx.lineWidth = 2 * view.zoom; ctx.stroke(); }
+            ctx.strokeStyle = color; ctx.lineWidth = 2 * view.zoom; ctx.stroke();
 
-            if (showLabels) {
-                ctx.font = `bold ${14 * view.zoom}px sans-serif`;
-                ctx.fillStyle = "#475569"; ctx.textAlign = "center";
-                ctx.fillText(name[i], p.x, p.y - 12 * view.zoom);
-            }
+            ctx.font = `bold ${fontSize * view.zoom}px sans-serif`;
+            ctx.fillStyle = "#475569"; ctx.textAlign = "center";
+            ctx.fillText(names[i] || "", p.x, p.y - 12 * view.zoom);
 
             if (visibleElements.angles[i]) {
                 const val = getAngleDegree(pts[i], pts[(i+1)%3], pts[(i+2)%3]).toFixed(1);
                 const mid = { x: (p.x + (s_pts[(i+1)%3].x + s_pts[(i+2)%3].x)/2)/2, y: (p.y + (s_pts[(i+1)%3].y + s_pts[(i+2)%3].y)/2)/2 };
                 const dx = mid.x - p.x, dy = mid.y - p.y, d = Math.sqrt(dx*dx + dy*dy) || 1;
-                drawLabel(val + "°", p.x + (dx/d)*35*view.zoom, p.y + (dy/d)*35*view.zoom, "#fee2e2", "#ef4444", constraints.angles[i]);
+                drawLabel(`${val}°`, p.x + (dx/d)*35*view.zoom, p.y + (dy/d)*35*view.zoom, "#fee2e2", "#ef4444", constraints.angles[i]);
             }
 
             if (visibleElements.sides[i]) {
@@ -410,7 +547,7 @@
                 const mx = (p.x + next.x)/2, my = (p.y + next.y)/2;
                 const len = (getDistance(pts[i], pts[(i+1)%3]) / 20).toFixed(1);
                 const dx = next.x - p.x, dy = next.y - p.y, dist = Math.sqrt(dx*dx + dy*dy) || 1;
-                drawLabel(len, mx + (-dy/dist)*22*view.zoom, my + (dx/dist)*22*view.zoom, "#dcfce7", "#16a34a", constraints.sides[i]);
+                drawLabel(`${len}`, mx + (-dy/dist)*22*view.zoom, my + (dx/dist)*22*view.zoom, "#dcfce7", "#16a34a", constraints.sides[i]);
             }
         });
     }
@@ -424,15 +561,15 @@
         const step = 50 * view.zoom;
         for(let x=(view.x*view.zoom)%step; x<width; x+=step) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,height); ctx.stroke(); }
         for(let y=(view.y*view.zoom)%step; y<height; y+=step) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(width,y); ctx.stroke(); }
-        drawTriangle(p1, names[0], "#2563eb", false);
-        drawTriangle(p2, names[1], "#7c3aed", true);
+        drawTriangle(p1, triangleNames[0], "#2563eb", false);
+        drawTriangle(p2, triangleNames[1], "#7c3aed", true);
     }
 
     function updateStatus() {
         const ind = document.getElementById('statusIndicator');
         const mode = isLocked ? (Math.abs(scaleFactor - 1) < 0.01 ? "Congruent" : "Similar") : "Independent";
         const color = isLocked ? (mode === "Congruent" ? "bg-green-500" : "bg-blue-500") : "bg-orange-500";
-        ind.innerHTML = `<span class="w-3 h-3 rounded-full ${color}"></span> <span class="uppercase tracking-tight text-slate-700">${mode}</span>`;
+        ind.innerHTML = `<span class="w-3 h-3 rounded-full ${color}"></span> <span class="uppercase tracking-tight text-slate-700 font-black text-[11px]">${mode}</span>`;
     }
 
     container.addEventListener('mousedown', (e) => {
@@ -442,23 +579,40 @@
 
         for(let i=0; i<3; i++) {
             if (getDistance(worldPos, p1[i]) < 20/view.zoom) {
-                dragData = { type: 'p1', index: i, initialP1: JSON.parse(JSON.stringify(p1)) };
+                dragData = { type: 'p1', index: i, initialPts: JSON.parse(JSON.stringify(p1)) };
                 return;
             }
         }
         
         const c2 = getCenter(p2);
-        if (getDistance(worldPos, c2) < 40/view.zoom) {
-            dragData = { type: 'p2-move', startX: worldPos.x - c2.x, startY: worldPos.y - c2.y };
+        const hPos = { 
+            x: c2.x + Math.cos(p2Rotation - Math.PI/2) * 60,
+            y: c2.y + Math.sin(p2Rotation - Math.PI/2) * 60
+        };
+        if (getDistance(worldPos, hPos) < 20/view.zoom) {
+            dragData = { type: 'p2-rotate', initialRotation: p2Rotation };
             return;
         }
 
-        if (!isLocked) {
-            for(let i=0; i<3; i++) {
-                if (getDistance(worldPos, p2[i]) < 20/view.zoom) {
-                    dragData = { type: 'p2', index: i }; return;
+        for(let i=0; i<3; i++) {
+            if (getDistance(worldPos, p2[i]) < 20/view.zoom) {
+                if (isLocked) {
+                    dragData = { 
+                        type: 'p2-scale', 
+                        index: i, 
+                        initialScale: scaleFactor,
+                        initialDist: getDistance(c2, p2[i])
+                    };
+                } else {
+                    dragData = { type: 'p2', index: i, initialPts: JSON.parse(JSON.stringify(p2)) };
                 }
+                return;
             }
+        }
+
+        if (getDistance(worldPos, c2) < 40/view.zoom) {
+            dragData = { type: 'p2-move', startX: worldPos.x - c2.x, startY: worldPos.y - c2.y };
+            return;
         }
         
         if (e.button === 2 || e.altKey) {
@@ -471,11 +625,22 @@
         const worldPos = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
 
         if (dragData.type === 'p1') {
-            solveConstraints(dragData.index, worldPos);
+            solveConstraints(dragData.index, worldPos, 1);
             if(isLocked) syncTriangles();
             draw();
         } else if (dragData.type === 'p2') {
-            p2[dragData.index] = worldPos; draw();
+            solveConstraints(dragData.index, worldPos, 2);
+            draw();
+        } else if (dragData.type === 'p2-rotate') {
+            const c2 = getCenter(p2);
+            p2Rotation = Math.atan2(worldPos.y - c2.y, worldPos.x - c2.x) + Math.PI/2;
+            if (isLocked) syncTriangles();
+            draw();
+        } else if (dragData.type === 'p2-scale') {
+            const c2 = getCenter(p2);
+            const currentDist = getDistance(c2, worldPos);
+            const newScale = (currentDist / dragData.initialDist) * dragData.initialScale;
+            updateScale(Math.max(0.1, Math.min(5, newScale)));
         } else if (dragData.type === 'p2-move') {
             const c2 = getCenter(p2);
             const dx = worldPos.x - c2.x - dragData.startX;
@@ -509,7 +674,10 @@
 
     window.addEventListener('contextmenu', e => e.preventDefault());
     window.addEventListener('resize', resize);
-    resize(); updateStatus();
+    
+    renderControlChips();
+    resize(); 
+    updateStatus();
 </script>
 
 </body>
