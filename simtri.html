@@ -48,23 +48,21 @@
         }
 
         .toggle-chip {
-            @apply flex-1 py-2 text-[11px] font-black rounded-lg transition-all uppercase text-center cursor-pointer select-none shadow-sm active:scale-95 text-white flex items-center justify-center gap-1;
+            @apply flex-1 py-1.5 text-[9px] font-black rounded transition-all uppercase text-center cursor-pointer select-none shadow-sm active:scale-95 text-white flex items-center justify-center gap-1;
         }
         
         .toggle-chip.active { 
             background: linear-gradient(to bottom, #16a34a, #15803d);
-            box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
             border: 1px solid #14532d;
         }
         
         .toggle-chip.inactive { 
             background: linear-gradient(to bottom, #ef4444, #dc2626);
-            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
             border: 1px solid #991b1b;
         }
 
         .bulk-btn {
-            @apply text-[9px] px-2 py-1 rounded bg-slate-200 hover:bg-slate-300 text-slate-700 font-black uppercase transition-colors;
+            @apply text-[8px] px-1.5 py-0.5 rounded bg-slate-200 hover:bg-slate-300 text-slate-700 font-black uppercase transition-colors;
         }
 
         details summary::-webkit-details-marker { display: none; }
@@ -110,17 +108,14 @@
                         </div>
                         <input type="range" id="fontSlider" min="10" max="24" step="1" value="14" class="w-full" oninput="updateFontSize(this.value)">
                     </div>
-                    <div>
-                        <h3 class="text-[10px] font-black text-slate-400 uppercase mb-2">Triangle Names</h3>
-                        <div class="space-y-2">
-                            <div class="flex flex-col gap-1">
-                                <span class="text-[9px] font-black text-blue-600 uppercase ml-1">Triangle 1</span>
-                                <input type="text" id="nameTri1" maxlength="3" value="ABC" oninput="updateFullNames(0, this.value)" class="name-group-input">
-                            </div>
-                            <div class="flex flex-col gap-1">
-                                <span class="text-[9px] font-black text-purple-600 uppercase ml-1">Triangle 2</span>
-                                <input type="text" id="nameTri2" maxlength="3" value="DEF" oninput="updateFullNames(1, this.value)" class="name-group-input">
-                            </div>
+                    <div class="space-y-3">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[9px] font-black text-blue-600 uppercase ml-1">Triangle 1</span>
+                            <input type="text" id="nameTri1" maxlength="3" value="ABC" oninput="updateFullNames(0, this.value)" class="name-group-input">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[9px] font-black text-purple-600 uppercase ml-1">Triangle 2</span>
+                            <input type="text" id="nameTri2" maxlength="3" value="DEF" oninput="updateFullNames(1, this.value)" class="name-group-input">
                         </div>
                     </div>
                 </div>
@@ -157,6 +152,28 @@
 
             <details open class="group">
                 <summary class="section-header">
+                    <h2 class="text-xs font-black uppercase text-slate-400">Visual Controls</h2>
+                    <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                </summary>
+                <div class="pt-2 space-y-4">
+                    <!-- Triangle 1 Visuals -->
+                    <div>
+                        <p class="text-[9px] font-black text-blue-500 uppercase mb-2">Triangle 1 Labels</p>
+                        <div class="flex gap-1 mb-2" id="v1-side-container"></div>
+                        <div class="flex gap-1" id="v1-angle-container"></div>
+                    </div>
+                    <hr class="border-slate-100">
+                    <!-- Triangle 2 Visuals -->
+                    <div>
+                        <p class="text-[9px] font-black text-purple-500 uppercase mb-2">Triangle 2 Labels</p>
+                        <div class="flex gap-1 mb-2" id="v2-side-container"></div>
+                        <div class="flex gap-1" id="v2-angle-container"></div>
+                    </div>
+                </div>
+            </details>
+
+            <details open class="group">
+                <summary class="section-header">
                     <h2 class="text-xs font-black uppercase text-slate-400">Transformations</h2>
                     <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                 </summary>
@@ -175,35 +192,6 @@
                             <span id="scaleVal" class="text-xs font-black text-blue-600">1.0</span>
                         </div>
                         <input type="range" id="scaleSlider" min="0.2" max="3.0" step="0.01" value="1" class="w-full" oninput="updateScale(this.value)">
-                    </div>
-                </div>
-            </details>
-
-            <details open class="group">
-                <summary class="section-header">
-                    <h2 class="text-xs font-black uppercase text-slate-400">Visuals</h2>
-                    <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
-                </summary>
-                <div class="pt-2 space-y-4">
-                    <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-[10px] font-black text-slate-500 uppercase">Show Sides</p>
-                            <div class="flex gap-1">
-                                <button onclick="bulkSet('v', 'side', true)" class="bulk-btn">All</button>
-                                <button onclick="bulkSet('v', 'side', false)" class="bulk-btn">None</button>
-                            </div>
-                        </div>
-                        <div class="flex gap-2" id="v-side-container"></div>
-                    </div>
-                    <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-[10px] font-black text-slate-500 uppercase">Show Angles</p>
-                            <div class="flex gap-1">
-                                <button onclick="bulkSet('v', 'angle', true)" class="bulk-btn">All</button>
-                                <button onclick="bulkSet('v', 'angle', false)" class="bulk-btn">None</button>
-                            </div>
-                        </div>
-                        <div class="flex gap-2" id="v-angle-container"></div>
                     </div>
                 </div>
             </details>
@@ -230,14 +218,16 @@
     let triangleNames = [["A", "B", "C"], ["D", "E", "F"]];
     let p2Offset = { x: 400, y: 0 };
 
-    let visibleElements = { sides: [true, true, true], angles: [true, true, true] };
+    // Independent visibility states
+    let visible1 = { sides: [true, true, true], angles: [true, true, true] };
+    let visible2 = { sides: [true, true, true], angles: [true, true, true] };
     let constraints = { sides: [false, false, false], angles: [false, false, false] };
     let fixedValues = { sides: [0,0,0], angles: [0,0,0], winding: 1 };
 
     let p1 = [{ x: 250, y: 200 }, { x: 200, y: 400 }, { x: 400, y: 400 }];
     let p2 = [{ x: 650, y: 200 }, { x: 600, y: 400 }, { x: 800, y: 400 }];
 
-    let dragData = { type: null, index: null, startX: 0, startY: 0, initialPts: [], initialScale: 1.0 };
+    let dragData = { type: null, index: null, startX: 0, startY: 0, initialPts: [], initialScale: 1.0, startTime: 0, moved: false };
 
     function resize() {
         width = container.clientWidth;
@@ -271,8 +261,10 @@
     function toggleElement(prefix, type, index) {
         if (prefix === 'c') {
             constraints[type + 's'][index] = !constraints[type + 's'][index];
-        } else {
-            visibleElements[type + 's'][index] = !visibleElements[type + 's'][index];
+        } else if (prefix === 'v1') {
+            visible1[type + 's'][index] = !visible1[type + 's'][index];
+        } else if (prefix === 'v2') {
+            visible2[type + 's'][index] = !visible2[type + 's'][index];
         }
         updateFixedValues();
         renderControlChips();
@@ -280,8 +272,13 @@
     }
 
     function bulkSet(prefix, type, value) {
-        const target = prefix === 'c' ? constraints : visibleElements;
-        target[type + 's'] = [value, value, value];
+        if (prefix === 'c') {
+            constraints[type + 's'] = [value, value, value];
+        } else if (prefix === 'v1') {
+            visible1[type + 's'] = [value, value, value];
+        } else if (prefix === 'v2') {
+            visible2[type + 's'] = [value, value, value];
+        }
         updateFixedValues();
         renderControlChips();
         draw();
@@ -290,16 +287,20 @@
     function renderControlChips() {
         const createChips = (prefix, type) => {
             const container = document.getElementById(`${prefix}-${type}-container`);
+            if (!container) return;
             container.innerHTML = "";
+            const targetState = prefix === 'c' ? constraints : (prefix === 'v1' ? visible1 : visible2);
+            const nameIdx = prefix === 'v2' ? 1 : 0;
+
             for (let i = 0; i < 3; i++) {
                 let label = "";
                 if (type === 'side') {
-                    label = triangleNames[0][i] + triangleNames[0][(i+1)%3];
+                    label = triangleNames[nameIdx][i] + triangleNames[nameIdx][(i+1)%3];
                 } else {
-                    label = "∠" + triangleNames[0][i];
+                    label = "∠" + triangleNames[nameIdx][i];
                 }
                 
-                const val = (prefix === 'c' ? constraints : visibleElements)[type + 's'][i];
+                const val = targetState[type + 's'][i];
                 const chip = document.createElement('div');
                 chip.className = `toggle-chip ${val ? 'active' : 'inactive'}`;
                 const icon = prefix === 'c' ? (val ? '🔒' : '🔓') : '';
@@ -311,8 +312,10 @@
 
         createChips('c', 'side');
         createChips('c', 'angle');
-        createChips('v', 'side');
-        createChips('v', 'angle');
+        createChips('v1', 'side');
+        createChips('v1', 'angle');
+        createChips('v2', 'side');
+        createChips('v2', 'angle');
     }
 
     function flipDEF(axis) {
@@ -355,7 +358,8 @@
         p2Offset = { x: 400, y: 0 };
         p2Rotation = 0;
         triangleNames = [["A", "B", "C"], ["D", "E", "F"]];
-        visibleElements = { sides: [true, true, true], angles: [true, true, true] };
+        visible1 = { sides: [true, true, true], angles: [true, true, true] };
+        visible2 = { sides: [true, true, true], angles: [true, true, true] };
         constraints = { sides: [false, false, false], angles: [false, false, false] };
         document.getElementById('nameTri1').value = "ABC";
         document.getElementById('nameTri2').value = "DEF";
@@ -405,45 +409,37 @@
         return Math.acos(Math.max(-1, Math.min(1, cos))) * 180 / Math.PI;
     }
 
-    function solveConstraints(index, mousePos, targetTriangle) {
-        // If specific angle is locked, vertex is frozen
-        if (constraints.angles[index]) return;
+    function distToSegment(p, a, b) {
+        const l2 = (a.x-b.x)**2 + (a.y-b.y)**2;
+        if (l2 === 0) return getDistance(p, a);
+        let t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        return getDistance(p, { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) });
+    }
 
+    function solveConstraints(index, mousePos, targetTriangle) {
+        if (constraints.angles[index]) return;
         const nextIdx = (index + 1) % 3;
         const prevIdx = (index + 2) % 3;
         const pts = targetTriangle === 1 ? p1 : p2;
-
         const lockedAnglesCount = constraints.angles.filter(v => v).length;
         const isSSS = constraints.sides.every(v => v);
-        const isAA = lockedAnglesCount >= 2; // Rule: 2 angles fixed = AAA fixed
+        const isAA = lockedAnglesCount >= 2;
 
-        // Rule: If AA/AAA or SSS fixed, Triangle 2 can only zoom/scale and turn
         if (targetTriangle === 2 && (isSSS || isAA)) {
             const c2 = getCenter(pts);
-            
-            // Handle Scale (Zoom)
             const d_old = getDistance(c2, dragData.initialPts[index]);
             const d_new = getDistance(c2, mousePos);
-            const s = d_new / d_old;
-            
-            // Handle Rotation (Turn)
             const ang_old = Math.atan2(dragData.initialPts[index].y - c2.y, dragData.initialPts[index].x - c2.x);
             const ang_new = Math.atan2(mousePos.y - c2.y, mousePos.x - c2.x);
-            const d_ang = ang_new - ang_old;
-
-            if (s > 0.05) {
-                scaleFactor = dragData.initialScale * s;
-                p2Rotation = dragData.initialRotation + d_ang;
-                updateScale(scaleFactor);
+            if (d_old > 1) {
+                updateScale(dragData.initialScale * (d_new / d_old));
+                p2Rotation = dragData.initialRotation + (ang_new - ang_old);
             }
             return;
         }
 
-        if (isSSS || (targetTriangle === 1 && isAA)) {
-            // SSS or AA disables distortion on P1. 
-            // In SSS mode, only the whole triangle moves if dragged, but here we just block individual vertex distortion.
-            return;
-        }
+        if (isSSS || (targetTriangle === 1 && isAA)) return;
 
         let target = { ...mousePos };
         const localScale = (targetTriangle === 2 ? scaleFactor : 1);
@@ -455,7 +451,6 @@
             target.x = center.x + r * Math.cos(ang);
             target.y = center.y + r * Math.sin(ang);
         }
-
         if (constraints.sides[index]) {
             const center = pts[nextIdx];
             const r = fixedValues.sides[index] * localScale;
@@ -463,27 +458,22 @@
             target.x = center.x + r * Math.cos(ang);
             target.y = center.y + r * Math.sin(ang);
         }
-
         if (constraints.angles[prevIdx]) {
-            const origin = pts[prevIdx];
-            const anchor = pts[nextIdx];
+            const origin = pts[prevIdx], anchor = pts[nextIdx];
             const base = Math.atan2(anchor.y - origin.y, anchor.x - origin.x);
             const targetAng = base - (fixedValues.angles[prevIdx] * Math.PI / 180) * fixedValues.winding;
             const dist = getDistance(origin, target);
             target.x = origin.x + dist * Math.cos(targetAng);
             target.y = origin.y + dist * Math.sin(targetAng);
         }
-
         if (constraints.angles[nextIdx]) {
-            const origin = pts[nextIdx];
-            const anchor = pts[prevIdx];
+            const origin = pts[nextIdx], anchor = pts[prevIdx];
             const base = Math.atan2(anchor.y - origin.y, anchor.x - origin.x);
             const targetAng = base + (fixedValues.angles[nextIdx] * Math.PI / 180) * fixedValues.winding;
             const dist = getDistance(origin, target);
             target.x = origin.x + dist * Math.cos(targetAng);
             target.y = origin.y + dist * Math.sin(targetAng);
         }
-
         pts[index] = target;
     }
 
@@ -501,6 +491,7 @@
         const s_pts = pts.map(p => worldToScreen(p.x, p.y));
         const c_world = getCenter(pts);
         const c_screen = worldToScreen(c_world.x, c_world.y);
+        const vis = isSecondary ? visible2 : visible1;
 
         ctx.beginPath();
         ctx.moveTo(s_pts[0].x, s_pts[0].y);
@@ -519,24 +510,13 @@
                 x: c_screen.x + Math.cos(p2Rotation - Math.PI/2) * handleDist,
                 y: c_screen.y + Math.sin(p2Rotation - Math.PI/2) * handleDist
             };
-            ctx.beginPath();
-            ctx.setLineDash([5, 5]);
-            ctx.moveTo(c_screen.x, c_screen.y);
-            ctx.lineTo(handlePos.x, handlePos.y);
-            ctx.strokeStyle = color;
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            ctx.beginPath();
-            ctx.arc(handlePos.x, handlePos.y, 10 * view.zoom, 0, Math.PI*2);
-            ctx.fillStyle = "white";
-            ctx.fill();
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.arc(c_screen.x, c_screen.y, 4 * view.zoom, 0, Math.PI*2);
-            ctx.fillStyle = color;
-            ctx.fill();
+            ctx.beginPath(); ctx.setLineDash([5, 5]);
+            ctx.moveTo(c_screen.x, c_screen.y); ctx.lineTo(handlePos.x, handlePos.y);
+            ctx.strokeStyle = color; ctx.stroke(); ctx.setLineDash([]);
+            ctx.beginPath(); ctx.arc(handlePos.x, handlePos.y, 10 * view.zoom, 0, Math.PI*2);
+            ctx.fillStyle = "white"; ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.arc(c_screen.x, c_screen.y, 4 * view.zoom, 0, Math.PI*2);
+            ctx.fillStyle = color; ctx.fill();
         }
 
         s_pts.forEach((p, i) => {
@@ -551,14 +531,14 @@
             ctx.fillStyle = isVertexLocked ? "#334155" : "#1e293b"; ctx.textAlign = "center";
             ctx.fillText(names[i] || "", p.x, p.y - 12 * view.zoom);
 
-            if (visibleElements.angles[i]) {
+            if (vis.angles[i]) {
                 const val = getAngleDegree(pts[i], pts[(i+1)%3], pts[(i+2)%3]).toFixed(1);
                 const mid = { x: (p.x + (s_pts[(i+1)%3].x + s_pts[(i+2)%3].x)/2)/2, y: (p.y + (s_pts[(i+1)%3].y + s_pts[(i+2)%3].y)/2)/2 };
                 const dx = mid.x - p.x, dy = mid.y - p.y, d = Math.sqrt(dx*dx + dy*dy) || 1;
                 drawLabel(`${val}°`, p.x + (dx/d)*35*view.zoom, p.y + (dy/d)*35*view.zoom, "#fee2e2", "#ef4444", constraints.angles[i]);
             }
 
-            if (visibleElements.sides[i]) {
+            if (vis.sides[i]) {
                 const next = s_pts[(i+1)%3];
                 const mx = (p.x + next.x)/2, my = (p.y + next.y)/2;
                 const len = (getDistance(pts[i], pts[(i+1)%3]) / 20).toFixed(1);
@@ -583,19 +563,11 @@
 
     function updateStatus() {
         const ind = document.getElementById('statusIndicator');
-        let mode = "Independent";
-        let color = "bg-orange-500";
-
+        let mode = "Independent", color = "bg-orange-500";
         if (isLocked) {
-            if (Math.abs(scaleFactor - 1) < 0.001) {
-                mode = "Congruent";
-                color = "bg-green-500";
-            } else {
-                mode = "Similar";
-                color = "bg-blue-500";
-            }
+            if (Math.abs(scaleFactor - 1) < 0.001) { mode = "Congruent"; color = "bg-green-500"; }
+            else { mode = "Similar"; color = "bg-blue-500"; }
         }
-        
         ind.innerHTML = `<span class="w-4 h-4 rounded-full ${color} shadow-sm border border-white"></span> <span class="uppercase tracking-tight text-slate-800 font-black text-[12px]">${mode}</span>`;
     }
 
@@ -603,82 +575,69 @@
         const rect = canvas.getBoundingClientRect();
         const worldPos = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
         updateFixedValues();
+        dragData = { type: null, startTime: Date.now(), moved: false };
 
+        // Check P1 Points
         for(let i=0; i<3; i++) {
             if (getDistance(worldPos, p1[i]) < 20/view.zoom) {
-                dragData = { type: 'p1', index: i, initialPts: JSON.parse(JSON.stringify(p1)) };
+                dragData = { type: 'p1', index: i, initialPts: JSON.parse(JSON.stringify(p1)), moved: false };
                 return;
             }
         }
-        
-        const c2 = getCenter(p2);
-        const hPos = { 
-            x: c2.x + Math.cos(p2Rotation - Math.PI/2) * 60,
-            y: c2.y + Math.sin(p2Rotation - Math.PI/2) * 60
-        };
-        if (getDistance(worldPos, hPos) < 20/view.zoom) {
-            dragData = { 
-                type: 'p2-rotate', 
-                initialRotation: p2Rotation,
-                initialP2: JSON.parse(JSON.stringify(p2)),
-                initialAngle: Math.atan2(worldPos.y - c2.y, worldPos.x - c2.x)
-            };
-            return;
-        }
-
+        // Check P2 Points
         for(let i=0; i<3; i++) {
             if (getDistance(worldPos, p2[i]) < 20/view.zoom) {
-                dragData = { 
-                    type: 'p2', 
-                    index: i, 
-                    initialPts: JSON.parse(JSON.stringify(p2)),
-                    initialScale: scaleFactor,
-                    initialRotation: p2Rotation
-                };
+                dragData = { type: 'p2', index: i, initialPts: JSON.parse(JSON.stringify(p2)), initialScale: scaleFactor, initialRotation: p2Rotation, moved: false };
                 return;
             }
         }
-
-        if (getDistance(worldPos, c2) < 40/view.zoom) {
-            dragData = { type: 'p2-move', startX: worldPos.x - c2.x, startY: worldPos.y - c2.y };
+        // Handle rotation check
+        const c2 = getCenter(p2);
+        const hPos = { x: c2.x + Math.cos(p2Rotation - Math.PI/2) * 60, y: c2.y + Math.sin(p2Rotation - Math.PI/2) * 60 };
+        if (getDistance(worldPos, hPos) < 20/view.zoom) {
+            dragData = { type: 'p2-rotate', initialRotation: p2Rotation, initialAngle: Math.atan2(worldPos.y - c2.y, worldPos.x - c2.x), moved: false };
             return;
+        }
+        // Move check
+        if (getDistance(worldPos, c2) < 40/view.zoom) {
+            dragData = { type: 'p2-move', startX: worldPos.x - c2.x, startY: worldPos.y - c2.y, moved: false };
+            return;
+        }
+        // Side toggles check
+        for (let i=0; i<3; i++) {
+            if (distToSegment(worldPos, p1[i], p1[(i+1)%3]) < 10/view.zoom) { dragData.type = 'toggle-side'; dragData.target = { tIdx: 0, sIdx: i }; return; }
+            if (distToSegment(worldPos, p2[i], p2[(i+1)%3]) < 10/view.zoom) { dragData.type = 'toggle-side'; dragData.target = { tIdx: 1, sIdx: i }; return; }
         }
         
         if (e.button === 2 || e.altKey) {
-            dragData = { type: 'pan', startX: e.clientX, startY: e.clientY, origX: view.x, origY: view.y };
+            dragData = { type: 'pan', startX: e.clientX, startY: e.clientY, origX: view.x, origY: view.y, moved: false };
         }
     });
 
     window.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         const worldPos = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+        if (!dragData.type) return;
+        dragData.moved = true;
 
         if (dragData.type === 'p1') {
             solveConstraints(dragData.index, worldPos, 1);
-            syncTriangles(); 
-            draw();
+            syncTriangles(); draw();
         } else if (dragData.type === 'p2') {
             solveConstraints(dragData.index, worldPos, 2);
             if (!isLocked) {
-                const c1 = getCenter(p1);
-                const c2 = getCenter(p2);
+                const c1 = getCenter(p1), c2 = getCenter(p2);
                 p2Offset = { x: c2.x - c1.x, y: c2.y - c1.y };
             }
             draw();
         } else if (dragData.type === 'p2-rotate') {
             const c2 = getCenter(p2);
-            const currentMouseAngle = Math.atan2(worldPos.y - c2.y, worldPos.x - c2.x);
-            const delta = currentMouseAngle - dragData.initialAngle;
-            p2Rotation = dragData.initialRotation + delta;
-            syncTriangles();
-            draw();
+            p2Rotation = dragData.initialRotation + (Math.atan2(worldPos.y - c2.y, worldPos.x - c2.x) - dragData.initialAngle);
+            syncTriangles(); draw();
         } else if (dragData.type === 'p2-move') {
             const c2 = getCenter(p2);
-            const dx = worldPos.x - c2.x - dragData.startX;
-            const dy = worldPos.y - c2.y - dragData.startY;
-            p2.forEach(p => { p.x += dx; p.y += dy; });
-            const c1 = getCenter(p1);
-            const curC2 = getCenter(p2);
+            p2.forEach(p => { p.x += (worldPos.x - c2.x - dragData.startX); p.y += (worldPos.y - c2.y - dragData.startY); });
+            const c1 = getCenter(p1), curC2 = getCenter(p2);
             p2Offset = { x: curC2.x - c1.x, y: curC2.y - c1.y };
             draw();
         } else if (dragData.type === 'pan') {
@@ -688,14 +647,24 @@
         }
     });
 
-    window.addEventListener('mouseup', () => dragData.type = null);
+    window.addEventListener('mouseup', () => {
+        // Toggle logic: If we haven't moved much and it's a short click
+        if (!dragData.moved) {
+            if (dragData.type === 'p1' || dragData.type === 'p2') {
+                toggleElement(dragData.type === 'p1' ? 'v1' : 'v2', 'angle', dragData.index);
+            } else if (dragData.type === 'toggle-side') {
+                toggleElement(dragData.target.tIdx === 0 ? 'v1' : 'v2', 'side', dragData.target.sIdx);
+            }
+        }
+        dragData.type = null;
+    });
+
     container.addEventListener('wheel', (e) => {
         e.preventDefault();
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
         const before = screenToWorld(mouseX, mouseY);
-        view.zoom *= Math.pow(1.1, -e.deltaY / 100);
-        view.zoom = Math.max(0.1, Math.min(10, view.zoom));
+        view.zoom = Math.max(0.1, Math.min(10, view.zoom * Math.pow(1.1, -e.deltaY / 100)));
         const after = screenToWorld(mouseX, mouseY);
         view.x += (after.x - before.x); view.y += (after.y - before.y);
         draw();
@@ -703,11 +672,7 @@
 
     window.addEventListener('contextmenu', e => e.preventDefault());
     window.addEventListener('resize', resize);
-    
-    renderControlChips();
-    updateFixedValues();
-    resize(); 
-    updateStatus();
+    renderControlChips(); updateFixedValues(); resize(); updateStatus();
 </script>
 
 </body>
