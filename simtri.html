@@ -18,8 +18,6 @@
             height: 100vh;
             cursor: grab;
         }
-        .canvas-container:active { cursor: grabbing; }
-        
         canvas { display: block; width: 100%; height: 100%; }
 
         .control-panel {
@@ -31,35 +29,55 @@
         }
         .hidden-panel { transform: translateX(-100%); }
 
+        /* Larger Touch Targets for Sliders */
+        input[type=range] {
+            @apply accent-blue-600 h-8 w-full;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 28px;
+            width: 28px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            margin-top: -10px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+
         .fab-toggle {
             position: fixed;
             bottom: 1.5rem;
             right: 1.5rem;
-            width: 3.5rem;
-            height: 3.5rem;
-            background: white;
+            width: 4.5rem;
+            height: 4.5rem;
+            background: #2563eb;
+            color: white;
             border-radius: 9999px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
             cursor: pointer;
             z-index: 150;
-            border: 1px solid #e2e8f0;
             transition: all 0.2s;
         }
-        .fab-toggle:active { scale: 0.9; background-color: #f8fafc; }
+        .fab-toggle:active { scale: 0.9; }
 
         .toggle-chip {
-            @apply flex-1 py-1.5 text-[9px] font-black rounded transition-all uppercase text-center cursor-pointer select-none shadow-sm active:scale-95 text-white flex items-center justify-center gap-1;
+            @apply flex-1 py-3 text-[10px] font-black rounded transition-all uppercase text-center cursor-pointer select-none shadow-sm active:scale-95 text-white flex items-center justify-center gap-1;
         }
         .toggle-chip.active { background: linear-gradient(to bottom, #16a34a, #15803d); border: 1px solid #14532d; }
         .toggle-chip.inactive { background: linear-gradient(to bottom, #ef4444, #dc2626); border: 1px solid #991b1b; }
 
-        .bulk-btn { @apply text-[8px] px-1.5 py-0.5 rounded bg-slate-200 hover:bg-slate-300 text-slate-700 font-black uppercase transition-colors; }
-        input[type=range] { @apply accent-blue-600; }
-        .action-btn { @apply px-3 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-black uppercase shadow-sm text-slate-700; }
-        .name-group-input { @apply w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-xs font-bold uppercase tracking-[0.2em] text-center; }
+        .bulk-btn { @apply text-[10px] px-3 py-2 rounded bg-slate-200 hover:bg-slate-300 text-slate-700 font-black uppercase transition-colors; }
+        .action-btn { @apply px-4 py-3 bg-white border border-slate-200 rounded-xl text-[11px] font-black uppercase shadow-sm text-slate-700 active:bg-slate-50; }
+        .name-group-input { @apply w-full px-3 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold uppercase tracking-[0.2em] text-center; }
     </style>
 </head>
 <body>
@@ -67,27 +85,28 @@
 <div class="canvas-container" id="container">
     <canvas id="geometryCanvas"></canvas>
 
-    <div id="sidebar" class="control-panel fixed left-0 top-0 h-full w-72 p-5 overflow-y-auto border-r border-slate-200">
-        <div class="mb-6 flex items-center justify-between">
-            <h1 class="text-lg font-black tracking-tight text-slate-800">Triangle Lab</h1>
-            <button onclick="resetAll()" class="text-[10px] bg-red-50 text-red-600 px-3 py-1 rounded-lg border border-red-100 font-black uppercase hover:bg-red-100 transition-colors shadow-sm">Reset</button>
+    <!-- Sidebar Panel -->
+    <div id="sidebar" class="control-panel fixed left-0 top-0 h-full w-80 p-6 overflow-y-auto border-r border-slate-200">
+        <div class="mb-8 flex items-center justify-between">
+            <h1 class="text-xl font-black tracking-tight text-slate-800">Triangle Lab</h1>
+            <button onclick="resetAll()" class="text-[11px] bg-red-600 text-white px-4 py-2 rounded-xl font-black uppercase shadow-lg shadow-red-200 active:scale-95 transition-transform">Reset</button>
         </div>
 
-        <div class="space-y-6">
+        <div class="space-y-8">
             <details class="group">
-                <summary class="flex items-center justify-between py-2 cursor-pointer border-b border-slate-100 mb-2 list-none">
-                    <h2 class="text-xs font-black uppercase text-slate-400">Names & Font</h2>
-                    <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                <summary class="flex items-center justify-between py-2 cursor-pointer border-b border-slate-200 mb-4 list-none">
+                    <h2 class="text-xs font-black uppercase text-slate-400">Settings</h2>
+                    <svg class="w-5 h-5 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                 </summary>
-                <div class="pt-2 space-y-4">
+                <div class="space-y-6">
                     <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <h3 class="text-[10px] font-black text-slate-400 uppercase">Font Size</h3>
-                            <span id="fontVal" class="text-xs font-black text-blue-600">14</span>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase">Label Font Size</h3>
+                            <span id="fontVal" class="text-sm font-black text-blue-600">14</span>
                         </div>
-                        <input type="range" id="fontSlider" min="10" max="24" value="14" class="w-full" oninput="updateFontSize(this.value)">
+                        <input type="range" id="fontSlider" min="10" max="24" value="14" oninput="updateFontSize(this.value)">
                     </div>
-                    <div class="space-y-2">
+                    <div class="grid grid-cols-2 gap-3">
                         <input type="text" id="nameTri1" maxlength="3" value="ABC" oninput="updateFullNames(0, this.value)" class="name-group-input border-blue-200 text-blue-700">
                         <input type="text" id="nameTri2" maxlength="3" value="DEF" oninput="updateFullNames(1, this.value)" class="name-group-input border-purple-200 text-purple-700">
                     </div>
@@ -95,65 +114,64 @@
             </details>
 
             <details open class="group">
-                <summary class="flex items-center justify-between py-2 cursor-pointer border-b border-slate-100 mb-2 list-none">
-                    <h2 class="text-xs font-black uppercase text-slate-400">Lock Constraints</h2>
-                    <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                <summary class="flex items-center justify-between py-2 cursor-pointer border-b border-slate-200 mb-4 list-none">
+                    <h2 class="text-xs font-black uppercase text-slate-400">Lock Constraints (ABC)</h2>
+                    <svg class="w-5 h-5 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                 </summary>
-                <div class="pt-2 space-y-4">
+                <div class="space-y-6">
                     <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-[10px] font-black text-slate-500 uppercase">Lock Sides</p>
-                            <div class="flex gap-1"><button onclick="bulkSet('c', 'side', true)" class="bulk-btn">All</button><button onclick="bulkSet('c', 'side', false)" class="bulk-btn">None</button></div>
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-[10px] font-black text-slate-500 uppercase">Sides</p>
+                            <div class="flex gap-2"><button onclick="bulkSet('c', 'side', true)" class="bulk-btn">All</button><button onclick="bulkSet('c', 'side', false)" class="bulk-btn">None</button></div>
                         </div>
-                        <div class="flex gap-1" id="c-side-container"></div>
+                        <div class="flex gap-2" id="c-side-container"></div>
                     </div>
                     <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-[10px] font-black text-slate-500 uppercase">Lock Angles</p>
-                            <div class="flex gap-1"><button onclick="bulkSet('c', 'angle', true)" class="bulk-btn">All</button><button onclick="bulkSet('c', 'angle', false)" class="bulk-btn">None</button></div>
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-[10px] font-black text-slate-500 uppercase">Angles</p>
+                            <div class="flex gap-2"><button onclick="bulkSet('c', 'angle', true)" class="bulk-btn">All</button><button onclick="bulkSet('c', 'angle', false)" class="bulk-btn">None</button></div>
                         </div>
-                        <div class="flex gap-1" id="c-angle-container"></div>
+                        <div class="flex gap-2" id="c-angle-container"></div>
                     </div>
                 </div>
             </details>
 
             <details open class="group">
-                <summary class="flex items-center justify-between py-2 cursor-pointer border-b border-slate-100 mb-2 list-none">
-                    <h2 class="text-xs font-black uppercase text-slate-400">Visual Controls</h2>
-                    <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                <summary class="flex items-center justify-between py-2 cursor-pointer border-b border-slate-200 mb-4 list-none">
+                    <h2 class="text-xs font-black uppercase text-slate-400">Visuals</h2>
+                    <svg class="w-5 h-5 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                 </summary>
-                <div class="pt-2 space-y-4">
+                <div class="space-y-4">
                     <div>
-                        <p class="text-[9px] font-black text-blue-500 uppercase mb-2">ABC Visibility</p>
-                        <div class="flex gap-1 mb-1" id="v1-side-container"></div>
-                        <div class="flex gap-1" id="v1-angle-container"></div>
+                        <p class="text-[10px] font-black text-blue-500 uppercase mb-3">ABC Visibility</p>
+                        <div class="flex gap-2 mb-2" id="v1-side-container"></div>
+                        <div class="flex gap-2" id="v1-angle-container"></div>
                     </div>
-                    <hr class="border-slate-100">
-                    <div>
-                        <p class="text-[9px] font-black text-purple-500 uppercase mb-2">DEF Visibility</p>
-                        <div class="flex gap-1 mb-1" id="v2-side-container"></div>
-                        <div class="flex gap-1" id="v2-angle-container"></div>
+                    <div class="pt-2">
+                        <p class="text-[10px] font-black text-purple-500 uppercase mb-3">DEF Visibility</p>
+                        <div class="flex gap-2 mb-2" id="v2-side-container"></div>
+                        <div class="flex gap-2" id="v2-angle-container"></div>
                     </div>
                 </div>
             </details>
 
             <details open class="group">
-                <summary class="flex items-center justify-between py-2 cursor-pointer border-b border-slate-100 mb-2 list-none">
-                    <h2 class="text-xs font-black uppercase text-slate-400">Transformations</h2>
-                    <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                <summary class="flex items-center justify-between py-2 cursor-pointer border-b border-slate-200 mb-4 list-none">
+                    <h2 class="text-xs font-black uppercase text-slate-400">Sync & Tools</h2>
+                    <svg class="w-5 h-5 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                 </summary>
-                <div class="pt-2 space-y-4">
+                <div class="space-y-6">
                     <div class="flex gap-2"><button onclick="flipDEF('h')" class="action-btn flex-1">Flip H</button><button onclick="flipDEF('v')" class="action-btn flex-1">Flip V</button></div>
-                    <div class="flex items-center justify-between p-3 bg-slate-100 rounded-xl">
-                        <span class="text-[10px] font-black text-slate-600 uppercase">Similarity Sync</span>
-                        <button id="lockBtn" onclick="toggleLock()" class="px-3 py-1.5 bg-green-600 text-white rounded-lg text-[10px] font-black uppercase shadow-md active:scale-95">Linked</button>
+                    <div class="flex items-center justify-between p-4 bg-slate-100 rounded-2xl">
+                        <span class="text-[11px] font-black text-slate-600 uppercase">Linked State</span>
+                        <button id="lockBtn" onclick="toggleLock()" class="px-5 py-3 bg-green-600 text-white rounded-xl text-[11px] font-black uppercase shadow-lg shadow-green-100 active:scale-95">Linked</button>
                     </div>
                     <div>
-                        <div class="flex justify-between items-center mb-1">
+                        <div class="flex justify-between items-center mb-2">
                             <h3 class="text-[10px] font-black text-slate-400 uppercase">Scale Factor</h3>
-                            <span id="scaleVal" class="text-xs font-black text-blue-600">1.0</span>
+                            <span id="scaleVal" class="text-sm font-black text-blue-600">1.0</span>
                         </div>
-                        <input type="range" id="scaleSlider" min="0.2" max="3.0" step="0.01" value="1" class="w-full" oninput="updateScale(this.value)">
+                        <input type="range" id="scaleSlider" min="0.2" max="3.0" step="0.01" value="1" oninput="updateScale(this.value)">
                     </div>
                 </div>
             </details>
@@ -162,13 +180,14 @@
 
     <!-- Bottom Right Toggle -->
     <button onclick="toggleSidebar()" class="fab-toggle" id="fab">
-        <svg id="toggleIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg id="toggleIcon" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
     </button>
 
-    <div class="fixed top-4 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur px-6 py-2 rounded-full shadow-2xl border border-white z-10 pointer-events-none" id="statusBox">
-        <div id="statusIndicator" class="text-sm font-black flex items-center gap-2"></div>
+    <!-- Top Status Indicator -->
+    <div class="fixed top-6 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur px-8 py-3 rounded-full shadow-2xl border border-white z-10 pointer-events-none" id="statusBox">
+        <div id="statusIndicator" class="text-base font-black flex items-center gap-3"></div>
     </div>
 </div>
 
@@ -194,7 +213,7 @@
     let p1 = [{ x: 250, y: 200 }, { x: 200, y: 400 }, { x: 400, y: 400 }];
     let p2 = [{ x: 650, y: 200 }, { x: 600, y: 400 }, { x: 800, y: 400 }];
 
-    let dragData = { type: null, index: null, startX: 0, startY: 0, initialPts: [], initialScale: 1.0, startTime: 0, moved: false, pinchDist: 0 };
+    let dragData = { type: null, index: null, startX: 0, startY: 0, initialPts: [], initialScale: 1.0, initialRotation: 0, startTime: 0, moved: false, pinchDist: 0 };
 
     function resize() {
         width = container.clientWidth;
@@ -228,25 +247,20 @@
         if (prefix === 'c') constraints[type + 's'][index] = !constraints[type + 's'][index];
         else if (prefix === 'v1') visible1[type + 's'][index] = !visible1[type + 's'][index];
         else if (prefix === 'v2') visible2[type + 's'][index] = !visible2[type + 's'][index];
-        updateFixedValues();
-        renderControlChips();
-        draw();
+        updateFixedValues(); renderControlChips(); draw();
     }
 
     function bulkSet(prefix, type, value) {
         if (prefix === 'c') constraints[type + 's'] = [value, value, value];
         else if (prefix === 'v1') visible1[type + 's'] = [value, value, value];
         else if (prefix === 'v2') visible2[type + 's'] = [value, value, value];
-        updateFixedValues();
-        renderControlChips();
-        draw();
+        updateFixedValues(); renderControlChips(); draw();
     }
 
     function renderControlChips() {
         const createChips = (prefix, type) => {
             const container = document.getElementById(`${prefix}-${type}-container`);
-            if (!container) return;
-            container.innerHTML = "";
+            if (!container) return; container.innerHTML = "";
             const targetState = prefix === 'c' ? constraints : (prefix === 'v1' ? visible1 : visible2);
             const nameIdx = prefix === 'v2' ? 1 : 0;
             for (let i = 0; i < 3; i++) {
@@ -265,9 +279,12 @@
     function flipDEF(axis) {
         const c2 = getCenter(p2);
         p2 = p2.map(p => axis === 'h' ? { x: c2.x - (p.x - c2.x), y: p.y } : { x: p.x, y: c2.y - (p.y - c2.y) });
-        const c1 = getCenter(p1), curC2 = getCenter(p2);
-        p2Offset = { x: curC2.x - c1.x, y: curC2.y - c1.y };
-        draw();
+        syncOffsets(); draw();
+    }
+
+    function syncOffsets() {
+        const c1 = getCenter(p1), c2 = getCenter(p2);
+        p2Offset = { x: c2.x - c1.x, y: c2.y - c1.y };
     }
 
     function updateFixedValues() {
@@ -282,9 +299,9 @@
         isLocked = !isLocked;
         const btn = document.getElementById('lockBtn');
         btn.innerText = isLocked ? "Linked" : "Independent";
-        btn.className = isLocked ? "px-3 py-1.5 bg-green-600 text-white rounded-lg text-[10px] font-black uppercase shadow-md active:scale-95" : "px-3 py-1.5 bg-orange-600 text-white rounded-lg text-[10px] font-black uppercase shadow-md active:scale-95";
+        btn.className = isLocked ? "px-5 py-3 bg-green-600 text-white rounded-xl text-[11px] font-black uppercase shadow-lg shadow-green-100 active:scale-95" : "px-5 py-3 bg-orange-600 text-white rounded-xl text-[11px] font-black uppercase shadow-lg shadow-orange-100 active:scale-95";
         if (isLocked) syncTriangles();
-        updateStatus(); draw();
+        draw();
     }
 
     function resetAll() {
@@ -312,7 +329,8 @@
         scaleFactor = parseFloat(val);
         document.getElementById('scaleVal').innerText = scaleFactor.toFixed(2);
         document.getElementById('scaleSlider').value = scaleFactor;
-        syncTriangles(); updateStatus(); draw();
+        if (isLocked) syncTriangles();
+        draw();
     }
 
     function getCenter(pts) { return { x: (pts[0].x + pts[1].x + pts[2].x) / 3, y: (pts[0].y + pts[1].y + pts[2].y) / 3 }; }
@@ -331,13 +349,10 @@
     }
 
     function solveConstraints(index, mousePos, targetTriangle) {
-        if (constraints.angles[index]) return;
-        const nextIdx = (index + 1) % 3, prevIdx = (index + 2) % 3;
         const pts = targetTriangle === 1 ? p1 : p2;
-        const isAA = constraints.angles.filter(v => v).length >= 2;
-        const isSSS = constraints.sides.every(v => v);
-
-        if (targetTriangle === 2 && (isSSS || isAA)) {
+        
+        // AAA / Shape preservation logic when linked
+        if (isLocked && targetTriangle === 2) {
             const c2 = getCenter(pts);
             const d_old = getDistance(c2, dragData.initialPts[index]);
             const d_new = getDistance(c2, mousePos);
@@ -346,10 +361,16 @@
             if (d_old > 1) {
                 updateScale(dragData.initialScale * (d_new / d_old));
                 p2Rotation = dragData.initialRotation + (ang_new - ang_old);
+                syncTriangles();
             }
             return;
         }
 
+        if (constraints.angles[index]) return;
+        const nextIdx = (index + 1) % 3, prevIdx = (index + 2) % 3;
+        const isAA = constraints.angles.filter(v => v).length >= 2;
+        const isSSS = constraints.sides.every(v => v);
+        
         if (isSSS || (targetTriangle === 1 && isAA)) return;
 
         let target = { ...mousePos };
@@ -378,6 +399,7 @@
             target.x = origin.x + dist * Math.cos(tAng); target.y = origin.y + dist * Math.sin(tAng);
         }
         pts[index] = target;
+        if (isLocked) syncOffsets();
     }
 
     function drawLabel(text, x, y, bgColor, textColor, isLocked) {
@@ -408,7 +430,7 @@
 
         s_pts.forEach((p, i) => {
             const vertexLocked = constraints.angles[i];
-            ctx.beginPath(); ctx.arc(p.x, p.y, (isSecondary ? 6 : 7) * view.zoom, 0, Math.PI*2);
+            ctx.beginPath(); ctx.arc(p.x, p.y, (isSecondary ? 6 : 8) * view.zoom, 0, Math.PI*2);
             ctx.fillStyle = vertexLocked ? "#334155" : "white"; ctx.fill();
             ctx.strokeStyle = color; ctx.lineWidth = 2 * view.zoom; ctx.stroke();
             ctx.font = `bold ${fontSize * view.zoom}px sans-serif`;
@@ -440,16 +462,26 @@
         for(let x=(view.x*view.zoom)%step; x<width; x+=step) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,height); ctx.stroke(); }
         for(let y=(view.y*view.zoom)%step; y<height; y+=step) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(width,y); ctx.stroke(); }
         drawTriangle(p1, triangleNames[0], "#2563eb", false); drawTriangle(p2, triangleNames[1], "#7c3aed", true);
+        checkRelationship();
     }
 
-    function updateStatus() {
+    function checkRelationship() {
         const ind = document.getElementById('statusIndicator');
-        let mode = isLocked ? (Math.abs(scaleFactor - 1) < 0.001 ? "Congruent" : "Similar") : "Independent";
-        let color = mode === "Congruent" ? "bg-green-500" : (mode === "Similar" ? "bg-blue-500" : "bg-orange-500");
-        ind.innerHTML = `<span class="w-4 h-4 rounded-full ${color} border border-white"></span> <span class="uppercase tracking-tight text-slate-800 font-black text-[12px]">${mode}</span>`;
+        const a1 = [getAngleDegree(p1[0], p1[1], p1[2]), getAngleDegree(p1[1], p1[2], p1[0]), getAngleDegree(p1[2], p1[0], p1[1])].sort((a,b)=>a-b);
+        const a2 = [getAngleDegree(p2[0], p2[1], p2[2]), getAngleDegree(p2[1], p2[2], p2[0]), getAngleDegree(p2[2], p2[0], p2[1])].sort((a,b)=>a-b);
+        const s1 = [getDistance(p1[0], p1[1]), getDistance(p1[1], p1[2]), getDistance(p1[2], p1[0])].sort((a,b)=>a-b);
+        const s2 = [getDistance(p2[0], p2[1]), getDistance(p2[1], p2[2]), getDistance(p2[2], p2[0])].sort((a,b)=>a-b);
+
+        const anglesEqual = a1.every((v,i) => Math.abs(v - a2[i]) < 0.5);
+        const sidesEqual = s1.every((v,i) => Math.abs(v - s2[i]) < 1.0);
+
+        let mode = "Independent", color = "bg-orange-500";
+        if (sidesEqual && anglesEqual) { mode = "Congruent"; color = "bg-green-600"; }
+        else if (anglesEqual) { mode = "Similar"; color = "bg-blue-600"; }
+        
+        ind.innerHTML = `<span class="w-5 h-5 rounded-full ${color} border-2 border-white shadow-sm"></span> <span class="uppercase tracking-tighter text-slate-800 font-black text-[14px]">${mode}</span>`;
     }
 
-    // Interaction Handling
     function handleStart(clientX, clientY, touches = null) {
         const rect = canvas.getBoundingClientRect();
         const worldPos = screenToWorld(clientX - rect.left, clientY - rect.top);
@@ -460,36 +492,37 @@
             dragData.type = 'pinch';
             dragData.pinchDist = Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
             dragData.origZoom = view.zoom;
-            const midX = (touches[0].clientX + touches[1].clientX) / 2;
-            const midY = (touches[0].clientY + touches[1].clientY) / 2;
-            dragData.mid = screenToWorld(midX - rect.left, midY - rect.top);
+            dragData.mid = screenToWorld(((touches[0].clientX + touches[1].clientX) / 2) - rect.left, ((touches[0].clientY + touches[1].clientY) / 2) - rect.top);
             return;
         }
 
+        // Vertex Hits (Priority)
         for(let i=0; i<3; i++) {
-            if (getDistance(worldPos, p1[i]) < 30/view.zoom) {
+            if (getDistance(worldPos, p1[i]) < 40/view.zoom) {
                 dragData = { type: 'p1', index: i, initialPts: JSON.parse(JSON.stringify(p1)), moved: false };
                 return;
             }
         }
         for(let i=0; i<3; i++) {
-            if (getDistance(worldPos, p2[i]) < 30/view.zoom) {
+            if (getDistance(worldPos, p2[i]) < 40/view.zoom) {
                 dragData = { type: 'p2', index: i, initialPts: JSON.parse(JSON.stringify(p2)), initialScale: scaleFactor, initialRotation: p2Rotation, moved: false };
                 return;
             }
         }
+        // Rotate & Move Hits
         const c2 = getCenter(p2), hPos = { x: c2.x + Math.cos(p2Rotation - Math.PI/2) * 60, y: c2.y + Math.sin(p2Rotation - Math.PI/2) * 60 };
-        if (getDistance(worldPos, hPos) < 30/view.zoom) {
+        if (getDistance(worldPos, hPos) < 40/view.zoom) {
             dragData = { type: 'p2-rotate', initialRotation: p2Rotation, initialAngle: Math.atan2(worldPos.y - c2.y, worldPos.x - c2.x), moved: false };
             return;
         }
-        if (getDistance(worldPos, c2) < 50/view.zoom) {
+        if (getDistance(worldPos, c2) < 60/view.zoom) {
             dragData = { type: 'p2-move', startX: worldPos.x - c2.x, startY: worldPos.y - c2.y, moved: false };
             return;
         }
+        // Segment Toggles
         for (let i=0; i<3; i++) {
-            if (distToSegment(worldPos, p1[i], p1[(i+1)%3]) < 15/view.zoom) { dragData.type = 'toggle-side'; dragData.target = { tIdx: 0, sIdx: i }; return; }
-            if (distToSegment(worldPos, p2[i], p2[(i+1)%3]) < 15/view.zoom) { dragData.type = 'toggle-side'; dragData.target = { tIdx: 1, sIdx: i }; return; }
+            if (distToSegment(worldPos, p1[i], p1[(i+1)%3]) < 20/view.zoom) { dragData.type = 'toggle-side'; dragData.target = { tIdx: 0, sIdx: i }; return; }
+            if (distToSegment(worldPos, p2[i], p2[(i+1)%3]) < 20/view.zoom) { dragData.type = 'toggle-side'; dragData.target = { tIdx: 1, sIdx: i }; return; }
         }
         dragData = { type: 'pan', startX: clientX, startY: clientY, origX: view.x, origY: view.y, moved: false };
     }
@@ -502,23 +535,17 @@
 
         if (dragData.type === 'pinch' && touches && touches.length === 2) {
             const d = Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
-            const ratio = d / dragData.pinchDist;
-            view.zoom = Math.max(0.1, Math.min(10, dragData.origZoom * ratio));
-            const midX = (touches[0].clientX + touches[1].clientX) / 2;
-            const midY = (touches[0].clientY + touches[1].clientY) / 2;
+            view.zoom = Math.max(0.1, Math.min(10, dragData.origZoom * (d / dragData.pinchDist)));
+            const midX = (touches[0].clientX + touches[1].clientX) / 2, midY = (touches[0].clientY + touches[1].clientY) / 2;
             const after = screenToWorld(midX - rect.left, midY - rect.top);
             view.x += (after.x - dragData.mid.x); view.y += (after.y - dragData.mid.y);
             draw(); return;
         }
 
-        if (dragData.type === 'p1') { solveConstraints(dragData.index, worldPos, 1); syncTriangles(); draw(); }
-        else if (dragData.type === 'p2') { 
-            solveConstraints(dragData.index, worldPos, 2); 
-            if (!isLocked) { const c1 = getCenter(p1), c2 = getCenter(p2); p2Offset = { x: c2.x - c1.x, y: c2.y - c1.y }; }
-            draw(); 
-        }
-        else if (dragData.type === 'p2-rotate') { const c2 = getCenter(p2); p2Rotation = dragData.initialRotation + (Math.atan2(worldPos.y - c2.y, worldPos.x - c2.x) - dragData.initialAngle); syncTriangles(); draw(); }
-        else if (dragData.type === 'p2-move') { const c2 = getCenter(p2); p2.forEach(p => { p.x += (worldPos.x - c2.x - dragData.startX); p.y += (worldPos.y - c2.y - dragData.startY); }); const c1 = getCenter(p1), curC2 = getCenter(p2); p2Offset = { x: curC2.x - c1.x, y: curC2.y - c1.y }; draw(); }
+        if (dragData.type === 'p1') { solveConstraints(dragData.index, worldPos, 1); if (isLocked) syncTriangles(); draw(); }
+        else if (dragData.type === 'p2') { solveConstraints(dragData.index, worldPos, 2); draw(); }
+        else if (dragData.type === 'p2-rotate') { const c2 = getCenter(p2); p2Rotation = dragData.initialRotation + (Math.atan2(worldPos.y - c2.y, worldPos.x - c2.x) - dragData.initialAngle); if (isLocked) syncTriangles(); draw(); }
+        else if (dragData.type === 'p2-move') { const c2 = getCenter(p2); const dx = worldPos.x - c2.x - dragData.startX, dy = worldPos.y - c2.y - dragData.startY; p2.forEach(p => { p.x += dx; p.y += dy; }); if (isLocked) syncOffsets(); draw(); }
         else if (dragData.type === 'pan') { view.x = dragData.origX + (clientX - dragData.startX) / view.zoom; view.y = dragData.origY + (clientY - dragData.startY) / view.zoom; draw(); }
     }
 
@@ -534,12 +561,9 @@
 
     container.addEventListener('touchstart', e => { 
         if (e.target.closest('.control-panel') || e.target.closest('.fab-toggle')) return;
-        e.preventDefault(); 
-        handleStart(e.touches[0].clientX, e.touches[0].clientY, e.touches); 
+        e.preventDefault(); handleStart(e.touches[0].clientX, e.touches[0].clientY, e.touches); 
     }, { passive: false });
-    window.addEventListener('touchmove', e => { 
-        if (dragData.type) { e.preventDefault(); handleMove(e.touches[0].clientX, e.touches[0].clientY, e.touches); } 
-    }, { passive: false });
+    window.addEventListener('touchmove', e => { if (dragData.type) { e.preventDefault(); handleMove(e.touches[0].clientX, e.touches[0].clientY, e.touches); } }, { passive: false });
     window.addEventListener('touchend', () => {
         if (dragData.type && !dragData.moved) {
             if (dragData.type === 'p1' || dragData.type === 'p2') toggleElement(dragData.type === 'p1' ? 'v1' : 'v2', 'angle', dragData.index);
@@ -556,7 +580,7 @@
     }, { passive: false });
 
     window.addEventListener('resize', resize);
-    renderControlChips(); updateFixedValues(); resize(); updateStatus();
+    renderControlChips(); updateFixedValues(); resize(); draw();
 </script>
 </body>
 </html>
