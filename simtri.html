@@ -23,10 +23,10 @@
         canvas { display: block; }
 
         .control-panel {
-            backdrop-filter: blur(16px);
-            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            background-color: rgba(255, 255, 255, 0.92);
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 10px 0 30px rgba(0,0,0,0.05);
+            box-shadow: 10px 0 40px rgba(0,0,0,0.08);
         }
         .hidden-panel { transform: translateX(-100%); }
 
@@ -47,25 +47,38 @@
             @apply flex items-center justify-between py-2 cursor-pointer border-b border-slate-100 mb-2;
         }
 
+        /* Improved Button Styling */
         .toggle-chip {
-            @apply flex-1 py-1.5 text-[10px] font-bold rounded transition-all uppercase text-center cursor-pointer select-none shadow-sm active:scale-95;
+            @apply flex-1 py-2 text-[11px] font-black rounded-lg transition-all uppercase text-center cursor-pointer select-none shadow-sm active:scale-95 text-white flex items-center justify-center gap-1;
         }
-        .toggle-chip.active { @apply bg-green-600 text-white; }
-        .toggle-chip.inactive { @apply bg-red-600 text-white; }
+        
+        /* Active (Locked/Visible) - Professional Green */
+        .toggle-chip.active { 
+            background: linear-gradient(to bottom, #16a34a, #15803d);
+            box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+            border: 1px solid #14532d;
+        }
+        
+        /* Inactive (Unlocked/Hidden) - Professional Red/Slate Mix */
+        .toggle-chip.inactive { 
+            background: linear-gradient(to bottom, #ef4444, #dc2626);
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+            border: 1px solid #991b1b;
+        }
 
         .bulk-btn {
-            @apply text-[9px] px-2 py-0.5 rounded bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold uppercase transition-colors;
+            @apply text-[9px] px-2 py-1 rounded bg-slate-200 hover:bg-slate-300 text-slate-700 font-black uppercase transition-colors;
         }
 
         details summary::-webkit-details-marker { display: none; }
         input[type=range] { @apply accent-blue-600; }
         
         .action-btn {
-            @apply px-3 py-1.5 bg-white border border-slate-200 rounded text-[10px] font-bold uppercase hover:bg-slate-50 transition-colors shadow-sm;
+            @apply px-3 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-black uppercase hover:bg-slate-50 transition-colors shadow-sm text-slate-700;
         }
         
         .name-group-input {
-            @apply w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-xs font-bold uppercase tracking-[0.5em] focus:ring-1 focus:ring-blue-400 focus:outline-none text-center;
+            @apply w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-xs font-bold uppercase tracking-[0.5em] focus:ring-2 focus:ring-blue-400 focus:outline-none text-center;
         }
     </style>
 </head>
@@ -82,34 +95,34 @@
         </button>
 
         <div class="mb-6 flex items-center justify-between">
-            <h1 class="text-lg font-bold text-slate-800">Triangle Lab</h1>
-            <button onclick="resetAll()" class="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100 font-bold uppercase hover:bg-red-100 transition-colors">Reset</button>
+            <h1 class="text-lg font-black tracking-tight text-slate-800">Triangle Lab</h1>
+            <button onclick="resetAll()" class="text-[10px] bg-red-50 text-red-600 px-3 py-1 rounded-lg border border-red-100 font-black uppercase hover:bg-red-100 transition-colors shadow-sm">Reset</button>
         </div>
 
-        <div class="space-y-4">
-            <!-- Appearance Section -->
+        <div class="space-y-6">
+            <!-- Settings & Naming -->
             <details class="group">
                 <summary class="section-header">
-                    <h2 class="text-xs font-bold uppercase text-slate-500">Settings & Naming</h2>
+                    <h2 class="text-xs font-black uppercase text-slate-400">Settings & Naming</h2>
                     <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                 </summary>
                 <div class="pt-2 space-y-4">
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <h3 class="text-[10px] font-bold text-slate-400 uppercase">Label Font Size</h3>
-                            <span id="fontVal" class="text-xs font-bold text-blue-600">14</span>
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase">Label Font Size</h3>
+                            <span id="fontVal" class="text-xs font-black text-blue-600">14</span>
                         </div>
                         <input type="range" id="fontSlider" min="10" max="24" step="1" value="14" class="w-full" oninput="updateFontSize(this.value)">
                     </div>
                     <div>
-                        <h3 class="text-[10px] font-bold text-slate-400 uppercase mb-2">Triangle Names</h3>
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase mb-2">Triangle Names</h3>
                         <div class="space-y-2">
                             <div class="flex flex-col gap-1">
-                                <span class="text-[9px] font-bold text-blue-600 uppercase ml-1">Triangle 1</span>
+                                <span class="text-[9px] font-black text-blue-600 uppercase ml-1">Triangle 1</span>
                                 <input type="text" id="nameTri1" maxlength="3" value="ABC" oninput="updateFullNames(0, this.value)" class="name-group-input">
                             </div>
                             <div class="flex flex-col gap-1">
-                                <span class="text-[9px] font-bold text-purple-600 uppercase ml-1">Triangle 2</span>
+                                <span class="text-[9px] font-black text-purple-600 uppercase ml-1">Triangle 2</span>
                                 <input type="text" id="nameTri2" maxlength="3" value="DEF" oninput="updateFullNames(1, this.value)" class="name-group-input">
                             </div>
                         </div>
@@ -120,13 +133,13 @@
             <!-- Constraints Section -->
             <details open class="group">
                 <summary class="section-header">
-                    <h2 class="text-xs font-bold uppercase text-slate-500">Linked Constraints</h2>
+                    <h2 class="text-xs font-black uppercase text-slate-400">Linked Constraints</h2>
                     <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                 </summary>
                 <div class="pt-2 space-y-4">
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">Lock Sides</p>
+                            <p class="text-[10px] font-black text-slate-500 uppercase">Lock Sides</p>
                             <div class="flex gap-1">
                                 <button onclick="bulkSet('c', 'side', true)" class="bulk-btn">All</button>
                                 <button onclick="bulkSet('c', 'side', false)" class="bulk-btn">None</button>
@@ -136,7 +149,7 @@
                     </div>
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">Lock Angles</p>
+                            <p class="text-[10px] font-black text-slate-500 uppercase">Lock Angles</p>
                             <div class="flex gap-1">
                                 <button onclick="bulkSet('c', 'angle', true)" class="bulk-btn">All</button>
                                 <button onclick="bulkSet('c', 'angle', false)" class="bulk-btn">None</button>
@@ -147,25 +160,25 @@
                 </div>
             </details>
 
-            <!-- DEF Controls -->
+            <!-- Transformations -->
             <details open class="group">
                 <summary class="section-header">
-                    <h2 class="text-xs font-bold uppercase text-slate-500">Transformations</h2>
+                    <h2 class="text-xs font-black uppercase text-slate-400">Transformations</h2>
                     <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                 </summary>
-                <div class="pt-2 space-y-3">
+                <div class="pt-2 space-y-4">
                     <div class="flex gap-2">
                         <button onclick="flipDEF('h')" class="action-btn flex-1">Flip H</button>
                         <button onclick="flipDEF('v')" class="action-btn flex-1">Flip V</button>
                     </div>
-                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
-                        <span class="text-[10px] font-bold text-slate-600 uppercase">Sync Triangles</span>
-                        <button id="lockBtn" onclick="toggleLock()" class="px-3 py-1 bg-green-600 text-white rounded text-[10px] font-bold uppercase shadow-sm">Linked</button>
+                    <div class="flex items-center justify-between p-3 bg-slate-100 rounded-xl">
+                        <span class="text-[10px] font-black text-slate-600 uppercase">Sync Link</span>
+                        <button id="lockBtn" onclick="toggleLock()" class="px-3 py-1.5 bg-green-600 text-white rounded-lg text-[10px] font-black uppercase shadow-md transition-all active:scale-95">Linked</button>
                     </div>
                     <div id="ratioControls">
                         <div class="flex justify-between items-center mb-1">
-                            <h3 class="text-[10px] font-bold text-slate-400 uppercase">Scale Factor</h3>
-                            <span id="scaleVal" class="text-xs font-bold text-blue-600">1.0</span>
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase">Scale Factor</h3>
+                            <span id="scaleVal" class="text-xs font-black text-blue-600">1.0</span>
                         </div>
                         <input type="range" id="scaleSlider" min="0.2" max="3.0" step="0.01" value="1" class="w-full" oninput="updateScale(this.value)">
                     </div>
@@ -175,13 +188,13 @@
             <!-- Visuals Section -->
             <details open class="group">
                 <summary class="section-header">
-                    <h2 class="text-xs font-bold uppercase text-slate-500">Visuals</h2>
+                    <h2 class="text-xs font-black uppercase text-slate-400">Visuals</h2>
                     <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                 </summary>
                 <div class="pt-2 space-y-4">
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">Show Sides</p>
+                            <p class="text-[10px] font-black text-slate-500 uppercase">Show Sides</p>
                             <div class="flex gap-1">
                                 <button onclick="bulkSet('v', 'side', true)" class="bulk-btn">All</button>
                                 <button onclick="bulkSet('v', 'side', false)" class="bulk-btn">None</button>
@@ -191,7 +204,7 @@
                     </div>
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">Show Angles</p>
+                            <p class="text-[10px] font-black text-slate-500 uppercase">Show Angles</p>
                             <div class="flex gap-1">
                                 <button onclick="bulkSet('v', 'angle', true)" class="bulk-btn">All</button>
                                 <button onclick="bulkSet('v', 'angle', false)" class="bulk-btn">None</button>
@@ -204,8 +217,8 @@
         </div>
     </div>
 
-    <div class="fixed top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur px-6 py-2 rounded-full shadow-xl border border-white z-10 pointer-events-none" id="statusBox">
-        <div id="statusIndicator" class="text-sm font-bold flex items-center gap-2"></div>
+    <div class="fixed top-4 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur px-6 py-2 rounded-full shadow-2xl border border-white z-10 pointer-events-none" id="statusBox">
+        <div id="statusIndicator" class="text-sm font-black flex items-center gap-2"></div>
     </div>
 </div>
 
@@ -296,7 +309,11 @@
                 const val = (prefix === 'c' ? constraints : visibleElements)[type + 's'][i];
                 const chip = document.createElement('div');
                 chip.className = `toggle-chip ${val ? 'active' : 'inactive'}`;
-                chip.innerText = label;
+                
+                // Add icon for constraints
+                const icon = prefix === 'c' ? (val ? '🔒' : '🔓') : '';
+                chip.innerHTML = `<span>${icon}</span> ${label}`;
+                
                 chip.onclick = () => toggleElement(prefix, type, i);
                 container.appendChild(chip);
             }
@@ -333,7 +350,7 @@
         isLocked = !isLocked;
         const btn = document.getElementById('lockBtn');
         btn.innerText = isLocked ? "Linked" : "Independent";
-        btn.className = isLocked ? "px-3 py-1 bg-green-600 text-white rounded text-[10px] font-bold uppercase shadow-sm" : "px-3 py-1 bg-orange-600 text-white rounded text-[10px] font-bold uppercase shadow-sm";
+        btn.className = isLocked ? "px-3 py-1.5 bg-green-600 text-white rounded-lg text-[10px] font-black uppercase shadow-md active:scale-95" : "px-3 py-1.5 bg-orange-600 text-white rounded-lg text-[10px] font-black uppercase shadow-md active:scale-95";
         if (isLocked) syncTriangles();
         updateStatus();
         draw();
@@ -532,7 +549,7 @@
             ctx.strokeStyle = color; ctx.lineWidth = 2 * view.zoom; ctx.stroke();
 
             ctx.font = `bold ${fontSize * view.zoom}px sans-serif`;
-            ctx.fillStyle = "#475569"; ctx.textAlign = "center";
+            ctx.fillStyle = "#1e293b"; ctx.textAlign = "center";
             ctx.fillText(names[i] || "", p.x, p.y - 12 * view.zoom);
 
             if (visibleElements.angles[i]) {
@@ -569,7 +586,7 @@
         const ind = document.getElementById('statusIndicator');
         const mode = isLocked ? (Math.abs(scaleFactor - 1) < 0.01 ? "Congruent" : "Similar") : "Independent";
         const color = isLocked ? (mode === "Congruent" ? "bg-green-500" : "bg-blue-500") : "bg-orange-500";
-        ind.innerHTML = `<span class="w-3 h-3 rounded-full ${color}"></span> <span class="uppercase tracking-tight text-slate-700 font-black text-[11px]">${mode}</span>`;
+        ind.innerHTML = `<span class="w-4 h-4 rounded-full ${color} shadow-sm border border-white"></span> <span class="uppercase tracking-tight text-slate-800 font-black text-[12px]">${mode}</span>`;
     }
 
     container.addEventListener('mousedown', (e) => {
@@ -590,7 +607,12 @@
             y: c2.y + Math.sin(p2Rotation - Math.PI/2) * 60
         };
         if (getDistance(worldPos, hPos) < 20/view.zoom) {
-            dragData = { type: 'p2-rotate', initialRotation: p2Rotation };
+            dragData = { 
+                type: 'p2-rotate', 
+                initialRotation: p2Rotation,
+                initialP2: JSON.parse(JSON.stringify(p2)),
+                initialAngle: Math.atan2(worldPos.y - c2.y, worldPos.x - c2.x)
+            };
             return;
         }
 
@@ -633,8 +655,25 @@
             draw();
         } else if (dragData.type === 'p2-rotate') {
             const c2 = getCenter(p2);
-            p2Rotation = Math.atan2(worldPos.y - c2.y, worldPos.x - c2.x) + Math.PI/2;
-            if (isLocked) syncTriangles();
+            const currentMouseAngle = Math.atan2(worldPos.y - c2.y, worldPos.x - c2.x);
+            const delta = currentMouseAngle - dragData.initialAngle;
+            
+            // Apply rigid rotation to p2
+            p2 = dragData.initialP2.map(p => {
+                const dx = p.x - c2.x;
+                const dy = p.y - c2.y;
+                return {
+                    x: c2.x + dx * Math.cos(delta) - dy * Math.sin(delta),
+                    y: c2.y + dx * Math.sin(delta) + dy * Math.cos(delta)
+                };
+            });
+            
+            p2Rotation = dragData.initialRotation + delta;
+            
+            if (isLocked) {
+                const c1 = getCenter(p1);
+                p2Offset = { x: c2.x - c1.x, y: c2.y - c1.y };
+            }
             draw();
         } else if (dragData.type === 'p2-scale') {
             const c2 = getCenter(p2);
