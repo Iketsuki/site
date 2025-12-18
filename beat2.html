@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rhythm Practice Maker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom Scrollbar for the Sequencer */
+        .sequencer-scroll::-webkit-scrollbar {
+            height: 10px;
+        }
+        .sequencer-scroll::-webkit-scrollbar-track {
+            background: #1f2937;
+            border-radius: 6px;
+        }
+        .sequencer-scroll::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 6px;
+        }
+
+        /* Beat Cell Animation */
+        .beat-cell {
+            transition: all 0.1s ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .beat-cell:active {
+            transform: scale(0.92);
+        }
+        .playing-head {
+            outline: 3px solid #ef4444 !important;
+            outline-offset: -3px;
+            z-index: 10;
+            background-color: rgba(239, 68, 68, 0.2) !important;
+        }
+        
+        /* Grid Layout: Horizontal on desktop, Vertical on mobile */
+        #gridContainer {
+            display: flex;
+            flex-direction: column; /* Mobile first: Stacked */
+            gap: 1rem;
+            width: 100%;
+        }
+
+        @media (min-width: 1024px) {
+            #gridContainer {
+                flex-direction: row; /* Desktop: Side by side */
+                min-width: max-content;
+                height: 100%;
+            }
+        }
+
+        /* Prevent overscroll bounce on mobile */
+        body {
+            overscroll-behavior-y: contain;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-gray-800 border-b border-gray-700 p-3 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
+            <div class="flex items-center justify-between w-full md:w-auto">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-music text-blue-500 text-xl"></i>
+                    <h1 class="text-lg font-bold tracking-wide">Rhythm<span class="text-blue-500">Maker</span></h1>
+                </div>
+                <!-- Mobile Export Buttons (Mini) -->
+                <div class="flex md:hidden gap-2">
+                    <button id="exportImgBtnMob" onclick="exportToImage()" class="p-2 bg-indigo-600 rounded text-xs"><i class="fa-solid fa-image"></i></button>
+                    <button id="exportAudioBtnMob" onclick="exportToAudio()" class="p-2 bg-orange-600 rounded text-xs"><i class="fa-solid fa-file-audio"></i></button>
+                </div>
+            </div>
+            
+            <!-- Main Controls -->
+            <div class="flex items-center gap-3 bg-gray-900 p-1.5 rounded-full border border-gray-700 w-full md:w-auto justify-center">
+                <button id="playBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-600 hover:bg-green-500 text-white transition-colors">
+                    <i class="fa-solid fa-play"></i>
+                </button>
+                <button id="stopBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-colors">
+                    <i class="fa-solid fa-stop"></i>
+                </button>
+                <button id="loopBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700 text-gray-400 hover:text-blue-400 transition-colors border border-transparent">
+                    <i class="fa-solid fa-repeat"></i>
+                </button>
+                <div class="h-6 w-px bg-gray-700 mx-1"></div>
+                <div class="flex flex-col items-center w-16">
+                    <span class="text-[10px] uppercase text-gray-500 font-bold">BPM</span>
+                    <input type="number" id="bpmInput" value="60" min="20" max="300" class="w-full bg-transparent text-center font-mono font-bold text-base focus:outline-none text-blue-400">
+                </div>
+            </div>
+
+            <!-- Desktop Export Buttons -->
+            <div class="hidden md:flex gap-2">
+                 <button id="exportImgBtn" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-image"></i> <span>PNG</span>
+                </button>
+                <button id="exportAudioBtn" class="px-3 py-2 bg-orange-600 hover:bg-orange-500 rounded text-sm font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-file-audio"></i> <span>WAV</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Parameters Panel -->
+    <section class="bg-gray-800 border-b border-gray-700 p-3">
+        <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3 text-xs md:text-sm">
+            
+            <!-- Time Sig -->
+            <div class="flex flex-col gap-1">
+                <label class="text-gray-400">Time Signature</label>
+                <div class="flex items-center gap-2">
+                    <select id="timeSigNum" class="bg-gray-700 border border-gray-600 rounded px-2 py-1.5 flex-1">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4" selected>4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="9">9</option>
+                        <option value="12">12</option>
+                    </select>
+                    <span class="text-gray-500">/</span>
+                    <select id="timeSigDenom" class="bg-gray-700 border border-gray-600 rounded px-2 py-1.5 flex-1">
+                        <option value="2">2</option>
+                        <option value="4" selected>4</option>
+                        <option value="8">8</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Resolution -->
+            <div class="flex flex-col gap-1">
+                <label class="text-gray-400">Smallest Beat</label>
+                <select id="subdivision" class="bg-gray-700 border border-gray-600 rounded px-2 py-1.5 w-full">
+                    <option value="1">1/1 (Whole)</option>
+                    <option value="2">1/2 (Half)</option>
+                    <option value="4">1/4 (Quarter)</option>
+                    <option value="8" selected>1/8 (Eighth)</option>
+                    <option value="16">1/16 (Sixteenth)</option>
+                    <option value="32">1/32 (Thirty-second)</option>
+                </select>
+            </div>
+
+            <!-- Bars -->
+            <div class="flex flex-col gap-1">
+                <label class="text-gray-400">Number of Bars</label>
+                <input type="number" id="barCount" value="4" min="1" max="32" class="bg-gray-700 border border-gray-600 rounded px-2 py-1.5 w-full">
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col justify-end">
+                <button id="applySettingsBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-1.5 px-3 rounded transition-colors uppercase tracking-tight">
+                    Apply Changes
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sequencer Grid Area -->
+    <main class="flex-1 p-2 md:p-6 overflow-hidden flex flex-col relative">
+        <div class="sequencer-scroll overflow-auto flex-1 border border-gray-700 bg-gray-900 rounded-lg shadow-inner">
+            <div id="gridContainer" class="p-2 md:p-4">
+                <!-- Grid items generated here -->
+            </div>
+        </div>
+        <div class="flex flex-wrap justify-center items-center gap-4 text-gray-500 text-[10px] md:text-xs mt-3 uppercase font-bold tracking-widest">
+            <span class="flex items-center gap-1"><i class="fa-solid fa-hand-pointer text-blue-500"></i> Tap to Toggle</span>
+            <span class="flex items-center gap-1"><div class="w-2 h-2 bg-blue-500 rounded-full"></div> Beat</span>
+            <span class="flex items-center gap-1"><div class="w-2 h-2 bg-gray-700 border border-gray-500 rounded-full"></div> Rest</span>
+        </div>
+    </main>
+
+    <!-- Hidden Canvas for Export -->
+    <canvas id="exportCanvas" class="hidden"></canvas>
+
+    <!-- Modal / Overlay for processing -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center flex-col p-6 text-center">
+        <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-white text-lg font-medium" id="loadingText">Processing...</p>
+    </div>
+
+<script>
+/**
+ * AUDIO ENGINE & APP LOGIC
+ */
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let isPlaying = false;
+let isLooping = false;
+let currentStep = 0;
+let nextNoteTime = 0.0;
+let timerID;
+let sequence = [];
+let stepsPerBar = 0;
+let totalSteps = 0;
+
+// DOM Elements
+const gridContainer = document.getElementById('gridContainer');
+const playBtn = document.getElementById('playBtn');
+const stopBtn = document.getElementById('stopBtn');
+const loopBtn = document.getElementById('loopBtn');
+const bpmInput = document.getElementById('bpmInput');
+const timeSigNum = document.getElementById('timeSigNum');
+const timeSigDenom = document.getElementById('timeSigDenom');
+const subdivision = document.getElementById('subdivision');
+const barCountInput = document.getElementById('barCount');
+const applyBtn = document.getElementById('applySettingsBtn');
+const loadingOverlay = document.getElementById('loadingOverlay');
+const loadingText = document.getElementById('loadingText');
+
+// Init
+generateGrid();
+
+// Event Listeners
+applyBtn.addEventListener('click', () => {
+    stopPlayback();
+    generateGrid();
+});
+
+playBtn.addEventListener('click', togglePlay);
+stopBtn.addEventListener('click', stopPlayback);
+loopBtn.addEventListener('click', () => {
+    isLooping = !isLooping;
+    loopBtn.classList.toggle('bg-blue-600', isLooping);
+    loopBtn.classList.toggle('text-white', isLooping);
+    loopBtn.classList.toggle('text-gray-400', !isLooping);
+});
+
+const desktopImgBtn = document.getElementById('exportImgBtn');
+const desktopAudioBtn = document.getElementById('exportAudioBtn');
+if(desktopImgBtn) desktopImgBtn.addEventListener('click', exportToImage);
+if(desktopAudioBtn) desktopAudioBtn.addEventListener('click', exportToAudio);
+
+// --- Core Grid Logic ---
+
+function generateGrid() {
+    const num = parseInt(timeSigNum.value);
+    const den = parseInt(timeSigDenom.value);
+    const sub = parseInt(subdivision.value);
+    const bars = parseInt(barCountInput.value);
+
+    stepsPerBar = (num * sub) / den;
+    
+    if (stepsPerBar % 1 !== 0) {
+        alert("This time signature can't be evenly divided by that subdivision. Try a different 'Smallest Beat'.");
+        return;
+    }
+
+    totalSteps = stepsPerBar * bars;
+    sequence = new Array(totalSteps).fill(0);
+
+    renderGridUI(bars, stepsPerBar, sub);
+}
+
+function renderGridUI(bars, stepsPerBar, sub) {
+    gridContainer.innerHTML = '';
+    
+    for (let b = 0; b < bars; b++) {
+        const barDiv = document.createElement('div');
+        // Mobile: full width row. Desktop: inline-block columns.
+        barDiv.className = 'flex flex-col bg-gray-800 rounded-xl border border-gray-700 overflow-hidden shrink-0 shadow-lg';
+        
+        // Bar Header
+        const barHeader = document.createElement('div');
+        barHeader.className = 'bg-gray-700/50 text-[10px] text-left px-3 py-1 text-gray-400 font-black border-b border-gray-700 flex justify-between items-center';
+        barHeader.innerHTML = `<span>BAR ${b + 1}</span> <span class="opacity-30">${timeSigNum.value}/${timeSigDenom.value}</span>`;
+        barDiv.appendChild(barHeader);
+
+        // Steps Container
+        const stepsContainer = document.createElement('div');
+        // Responsive Grid: Wraps on mobile if too many steps, but generally stays row-like per bar
+        stepsContainer.className = 'flex flex-wrap md:flex-nowrap p-2 gap-1.5 items-center justify-start md:justify-center';
+        
+        for (let s = 0; s < stepsPerBar; s++) {
+            const absoluteStepIndex = (b * stepsPerBar) + s;
+            const cell = document.createElement('button');
+            cell.dataset.index = absoluteStepIndex;
+            
+            // Larger touch targets for mobile
+            cell.className = `beat-cell flex-1 min-w-[44px] md:min-w-[50px] h-16 md:h-28 rounded-lg flex items-center justify-center text-lg transition-all border-2 border-gray-700 bg-gray-900 text-gray-600 hover:bg-gray-800 focus:outline-none`;
+            
+            const ratio = parseInt(subdivision.value) / parseInt(timeSigDenom.value);
+            if (s % ratio === 0) {
+                cell.classList.add('border-b-blue-500/30'); 
+            }
+
+            cell.innerHTML = '<div class="w-1.5 h-1.5 bg-gray-700 rounded-full"></div>';
+
+            cell.onclick = (e) => {
+                e.preventDefault();
+                toggleNote(absoluteStepIndex, cell);
+            };
+            
+            stepsContainer.appendChild(cell);
+        }
+        
+        barDiv.appendChild(stepsContainer);
+        gridContainer.appendChild(barDiv);
+    }
+}
+
+function toggleNote(index, element) {
+    if (sequence[index] === 0) {
+        sequence[index] = 1;
+        element.classList.remove('bg-gray-900', 'text-gray-600', 'border-gray-700');
+        element.classList.add('bg-blue-600', 'text-white', 'border-blue-400');
+        element.innerHTML = '<i class="fa-solid fa-circle text-[8px] md:text-xs"></i>';
+        playClick(audioCtx, audioCtx.currentTime);
+    } else {
+        sequence[index] = 0;
+        element.classList.remove('bg-blue-600', 'text-white', 'border-blue-400');
+        element.classList.add('bg-gray-900', 'text-gray-600', 'border-gray-700');
+        element.innerHTML = '<div class="w-1.5 h-1.5 bg-gray-700 rounded-full"></div>';
+    }
+}
+
+// --- Audio Engine ---
+
+function playClick(context, time, isDownbeat = false) {
+    const osc = context.createOscillator();
+    const gainNode = context.createGain();
+
+    osc.connect(gainNode);
+    gainNode.connect(context.destination);
+
+    if (isDownbeat) {
+        osc.frequency.setValueAtTime(1000, time);
+        osc.frequency.exponentialRampToValueAtTime(40, time + 0.08);
+        gainNode.gain.setValueAtTime(0.8, time);
+    } else {
+        osc.frequency.setValueAtTime(600, time);
+        osc.frequency.exponentialRampToValueAtTime(40, time + 0.05);
+        gainNode.gain.setValueAtTime(0.5, time);
+    }
+    
+    gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+
+    osc.start(time);
+    osc.stop(time + 0.1);
+}
+
+function scheduler() {
+    while (nextNoteTime < audioCtx.currentTime + 0.1) {
+        scheduleNote(currentStep, nextNoteTime);
+        advanceNote();
+    }
+    timerID = requestAnimationFrame(scheduler);
+}
+
+function scheduleNote(stepNumber, time) {
+    const drawTime = (time - audioCtx.currentTime) * 1000;
+    setTimeout(() => {
+        highlightStep(stepNumber);
+    }, Math.max(0, drawTime));
+
+    if (sequence[stepNumber] === 1) {
+        const isBarStart = stepNumber % stepsPerBar === 0;
+        playClick(audioCtx, time, isBarStart);
+    }
+}
+
+function advanceNote() {
+    const bpm = parseInt(bpmInput.value);
+    const sub = parseInt(subdivision.value);
+    const secondsPerStep = (60.0 / bpm) * (4.0 / sub);
+    
+    nextNoteTime += secondsPerStep;
+    currentStep++;
+
+    if (currentStep >= totalSteps) {
+        if (isLooping) {
+            currentStep = 0;
+        } else {
+             setTimeout(() => {
+                 if(!isLooping && currentStep >= totalSteps) stopPlayback();
+             }, (secondsPerStep * 1000)); 
+        }
+    }
+}
+
+function highlightStep(step) {
+    document.querySelectorAll('.beat-cell').forEach(el => el.classList.remove('playing-head'));
+    if (step < totalSteps) {
+        const el = document.querySelector(`.beat-cell[data-index="${step}"]`);
+        if (el) {
+            // Only scroll on mobile if it's out of view
+            if(window.innerWidth < 1024) {
+                 el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+            } else {
+                 el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+            el.classList.add('playing-head');
+        }
+    }
+}
+
+async function togglePlay() {
+    if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+    }
+
+    if (isPlaying) {
+        stopPlayback();
+    } else {
+        isPlaying = true;
+        currentStep = 0;
+        nextNoteTime = audioCtx.currentTime + 0.05;
+        playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+        playBtn.classList.add('bg-orange-600');
+        scheduler();
+    }
+}
+
+function stopPlayback() {
+    isPlaying = false;
+    cancelAnimationFrame(timerID);
+    playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+    playBtn.classList.remove('bg-orange-600');
+    document.querySelectorAll('.beat-cell').forEach(el => el.classList.remove('playing-head'));
+}
+
+// --- Export Functions ---
+
+async function exportToAudio() {
+    showLoading(true, "Creating Audio File...");
+    const bpm = parseInt(bpmInput.value);
+    const sub = parseInt(subdivision.value);
+    const secondsPerStep = (60.0 / bpm) * (4.0 / sub);
+    const totalDuration = secondsPerStep * totalSteps + 0.3;
+    const offlineCtx = new OfflineAudioContext(1, 44100 * totalDuration, 44100);
+
+    for (let i = 0; i < sequence.length; i++) {
+        if (sequence[i] === 1) {
+            const time = i * secondsPerStep;
+            const isBarStart = i % stepsPerBar === 0;
+            playClick(offlineCtx, time, isBarStart);
+        }
+    }
+
+    try {
+        const renderedBuffer = await offlineCtx.startRendering();
+        const wavBlob = bufferToWave(renderedBuffer, totalDuration * 44100);
+        const url = URL.createObjectURL(wavBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `rhythm_${bpm}bpm.wav`;
+        a.click();
+    } catch(e) {
+        alert("Export failed.");
+    } finally {
+        showLoading(false);
+    }
+}
+
+function bufferToWave(abuffer, len) {
+    const numOfChan = abuffer.numberOfChannels;
+    const length = len * numOfChan * 2 + 44;
+    const buffer = new ArrayBuffer(length);
+    const view = new DataView(buffer);
+    const channels = [];
+    let i, sample, offset = 0, pos = 0;
+    const setUint16 = (d) => { view.setUint16(pos, d, true); pos += 2; };
+    const setUint32 = (d) => { view.setUint32(pos, d, true); pos += 4; };
+
+    setUint32(0x46464952); setUint32(length - 8); setUint32(0x45564157);
+    setUint32(0x20746d66); setUint32(16); setUint16(1); setUint16(numOfChan);
+    setUint32(abuffer.sampleRate); setUint32(abuffer.sampleRate * 2 * numOfChan);
+    setUint16(numOfChan * 2); setUint16(16); setUint32(0x61746164);
+    setUint32(length - pos - 4);
+
+    for (i = 0; i < numOfChan; i++) channels.push(abuffer.getChannelData(i));
+    while (pos < len) {
+        for (i = 0; i < numOfChan; i++) {
+            sample = Math.max(-1, Math.min(1, channels[i][pos])); 
+            sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0; 
+            view.setInt16(44 + offset, sample, true);
+            offset += 2;
+        }
+        pos++;
+    }
+    return new Blob([buffer], { type: "audio/wav" });
+}
+
+function exportToImage() {
+    showLoading(true, "Generating PNG...");
+    setTimeout(() => {
+        const canvas = document.getElementById('exportCanvas');
+        const ctx = canvas.getContext('2d');
+        const boxSize = 40;
+        const gap = 4;
+        const barMargin = 15;
+        const totalBars = parseInt(barCountInput.value);
+        const width = (stepsPerBar * (boxSize + gap) * totalBars) + (totalBars * barMargin) + 40;
+        const height = 180;
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.fillStyle = "#111827";
+        ctx.fillRect(0, 0, width, height);
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 16px Arial";
+        ctx.fillText(`Pattern: ${bpmInput.value} BPM | ${timeSigNum.value}/${timeSigDenom.value}`, 20, 35);
+        
+        let currentX = 20;
+        let currentY = 70;
+        for (let i = 0; i < sequence.length; i++) {
+            if (i > 0 && i % stepsPerBar === 0) {
+                ctx.strokeStyle = "#4b5563";
+                ctx.beginPath(); ctx.moveTo(currentX + barMargin/2, currentY - 5); ctx.lineTo(currentX + barMargin/2, currentY + boxSize + 5); ctx.stroke();
+                currentX += barMargin;
+            }
+            if (sequence[i] === 1) {
+                ctx.fillStyle = "#3b82f6";
+                ctx.beginPath();
+                ctx.roundRect(currentX, currentY, boxSize, boxSize, 8);
+                ctx.fill();
+            } else {
+                ctx.strokeStyle = "#374151";
+                ctx.beginPath();
+                ctx.roundRect(currentX, currentY, boxSize, boxSize, 8);
+                ctx.stroke();
+            }
+            currentX += boxSize + gap;
+        }
+        
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL("image/png");
+        a.download = 'pattern.png';
+        a.click();
+        showLoading(false);
+    }, 100);
+}
+
+function showLoading(show, text = "") {
+    loadingText.innerText = text;
+    loadingOverlay.classList.toggle('hidden', !show);
+}
+
+</script>
+</body>
+</html>
