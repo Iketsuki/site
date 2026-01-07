@@ -61,7 +61,7 @@
             <h1 class="text-xl font-bold tracking-wide">SQL Mastery <span class="text-slate-400 text-sm font-normal ml-2">Interactive Practice</span></h1>
         </div>
         <div class="text-sm text-slate-400">
-            <span id="progress-text">0/30 Completed</span>
+            <span id="progress-text">0/40 Completed</span>
         </div>
     </header>
 
@@ -98,70 +98,59 @@
                                 <code class="cheatsheet-code block mt-1">SELECT * FROM table_name;</code>
                             </div>
                             <div>
-                                <p class="font-semibold text-slate-700">Select Columns</p>
-                                <code class="cheatsheet-code block mt-1">SELECT col1, col2 FROM table;</code>
-                            </div>
-                            <div>
                                 <p class="font-semibold text-slate-700">Distinct Values</p>
                                 <code class="cheatsheet-code block mt-1">SELECT DISTINCT col1 FROM table;</code>
                             </div>
-                            <div>
-                                <p class="font-semibold text-slate-700">Limit Results</p>
-                                <code class="cheatsheet-code block mt-1">SELECT * FROM table LIMIT 5;</code>
-                            </div>
                         </div>
                     </div>
 
-                    <!-- Filtering -->
+                    <!-- Logical Operators -->
                     <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">2. Filtering (WHERE)</h3>
+                        <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">2. Logical Operators</h3>
                         <div class="text-sm space-y-3">
+                            <div><code class="cheatsheet-code">AND</code>, <code class="cheatsheet-code">OR</code>, <code class="cheatsheet-code">NOT</code></div>
                             <div>
-                                <p class="font-semibold text-slate-700">Exact Match</p>
-                                <code class="cheatsheet-code block mt-1">WHERE col = 5</code>
-                                <code class="cheatsheet-code block mt-1">WHERE name = 'John'</code>
-                            </div>
-                            <div>
-                                <p class="font-semibold text-slate-700">Comparison</p>
-                                <code class="cheatsheet-code block mt-1">WHERE age > 18</code>
-                                <code class="cheatsheet-code block mt-1">WHERE salary <= 5000</code>
-                                <code class="cheatsheet-code block mt-1">WHERE status != 'Active'</code>
-                            </div>
-                            <div>
-                                <p class="font-semibold text-slate-700">Logic</p>
-                                <code class="cheatsheet-code block mt-1">WHERE col1 = 5 AND col2 = 6</code>
-                                <code class="cheatsheet-code block mt-1">WHERE col1 = 5 OR col2 = 6</code>
+                                <p class="font-semibold text-slate-700">Lists & Ranges</p>
+                                <code class="cheatsheet-code block mt-1">col IN (1, 2, 3)</code>
+                                <code class="cheatsheet-code block mt-1">col BETWEEN 10 AND 20</code>
                             </div>
                             <div>
                                 <p class="font-semibold text-slate-700">Pattern Matching</p>
-                                <code class="cheatsheet-code block mt-1">WHERE name LIKE 'A%'</code>
-                                <p class="text-xs text-slate-500 mt-1">Starts with A</p>
+                                <code class="cheatsheet-code block mt-1">LIKE 'A%'</code> <span class="text-xs text-slate-500">(Starts with A)</span>
+                                <code class="cheatsheet-code block mt-1">LIKE '_B%'</code> <span class="text-xs text-slate-500">(2nd char is B)</span>
                             </div>
                             <div>
-                                <p class="font-semibold text-slate-700">Range</p>
-                                <code class="cheatsheet-code block mt-1">WHERE age BETWEEN 10 AND 20</code>
+                                <p class="font-semibold text-slate-700">Nulls</p>
+                                <code class="cheatsheet-code block mt-1">IS NULL</code>, <code class="cheatsheet-code block mt-1">IS NOT NULL</code>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Sorting -->
+                    <!-- String Functions -->
                     <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">3. Sorting</h3>
+                        <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">3. String Functions</h3>
                         <div class="text-sm space-y-3">
-                            <div>
-                                <p class="font-semibold text-slate-700">Ascending (Default)</p>
-                                <code class="cheatsheet-code block mt-1">ORDER BY col1 ASC</code>
-                            </div>
-                            <div>
-                                <p class="font-semibold text-slate-700">Descending</p>
-                                <code class="cheatsheet-code block mt-1">ORDER BY col1 DESC</code>
-                            </div>
+                            <div><code class="cheatsheet-code">LEN(str)</code> / <code class="cheatsheet-code">CHAR_LENGTH(str)</code></div>
+                            <div><code class="cheatsheet-code">LOWER(str)</code>, <code class="cheatsheet-code">UPPER(str)</code></div>
+                            <div><code class="cheatsheet-code">TRIM(str)</code> <span class="text-xs text-slate-500">(Remove spaces)</span></div>
+                            <div><code class="cheatsheet-code">SUBSTRING(str, start, len)</code></div>
+                            <div><code class="cheatsheet-code">MID(str, start, len)</code></div>
+                        </div>
+                    </div>
+
+                    <!-- Math Functions -->
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">4. Math Functions</h3>
+                        <div class="text-sm space-y-3">
+                            <div><code class="cheatsheet-code">ABS(num)</code> <span class="text-xs text-slate-500">(Absolute value)</span></div>
+                            <div><code class="cheatsheet-code">INT(num)</code> / <code class="cheatsheet-code">FLOOR(num)</code></div>
+                            <div><code class="cheatsheet-code">ROUND(num, decimals)</code></div>
                         </div>
                     </div>
 
                     <!-- Aggregates -->
                     <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">4. Aggregates</h3>
+                        <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">5. Aggregates</h3>
                         <div class="text-sm space-y-3">
                             <div class="grid grid-cols-2 gap-2">
                                 <div><code class="cheatsheet-code">COUNT(*)</code></div>
@@ -169,23 +158,6 @@
                                 <div><code class="cheatsheet-code">AVG(col)</code></div>
                                 <div><code class="cheatsheet-code">MAX(col)</code></div>
                                 <div><code class="cheatsheet-code">MIN(col)</code></div>
-                            </div>
-                            <p class="text-xs text-slate-500 italic mt-2">Aggregates condense many rows into a single number.</p>
-                        </div>
-                    </div>
-
-                    <!-- Grouping -->
-                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">5. Grouping</h3>
-                        <div class="text-sm space-y-3">
-                            <div>
-                                <p class="font-semibold text-slate-700">Group By</p>
-                                <code class="cheatsheet-code block mt-1">SELECT country, COUNT(*) FROM users GROUP BY country;</code>
-                            </div>
-                            <div>
-                                <p class="font-semibold text-slate-700">Filtering Groups (HAVING)</p>
-                                <code class="cheatsheet-code block mt-1">GROUP BY country HAVING COUNT(*) > 5;</code>
-                                <p class="text-xs text-slate-500 mt-1">Use WHERE before grouping, HAVING after grouping.</p>
                             </div>
                         </div>
                     </div>
@@ -314,7 +286,11 @@
             {ID: 2922, NAME: 'Carolina', COUNTRYCODE: 'PRI', DISTRICT: 'Carolina', POPULATION: 186076},
             {ID: 1001, NAME: 'Akita', COUNTRYCODE: 'JPN', DISTRICT: 'Akita', POPULATION: 300000}, 
             {ID: 1002, NAME: 'Albany', COUNTRYCODE: 'USA', DISTRICT: 'New York', POPULATION: 98000},
-            {ID: 214,  NAME: 'Porto Alegre', COUNTRYCODE: 'BRA', DISTRICT: 'Rio Grande do Sul', POPULATION: 1314032}
+            {ID: 214,  NAME: 'Porto Alegre', COUNTRYCODE: 'BRA', DISTRICT: 'Rio Grande do Sul', POPULATION: 1314032},
+            // Additional Data for String/Null/Math testing
+            {ID: 9001, NAME: '  TrimMe  ', COUNTRYCODE: 'TST', DISTRICT: null, POPULATION: 500}, 
+            {ID: 9002, NAME: 'short', COUNTRYCODE: 'TST', DISTRICT: 'TestDist', POPULATION: 100},
+            {ID: 9003, NAME: 'Special', COUNTRYCODE: 'TST', DISTRICT: null, POPULATION: 1234}
         ];
 
         const employeeData = [
@@ -339,285 +315,387 @@
         alasql.tables.CITY.data = cityData;
         alasql.tables.Employee.data = employeeData;
 
-        // --- 2. GAME LEVELS CONFIGURATION (Reordered by Difficulty) ---
+        // --- 2. GAME LEVELS CONFIGURATION ---
 
         const levels = [
-            // --- LEVEL 1: BASICS ---
+            // --- BASICS ---
             {
                 id: 1,
                 category: "CITY",
                 skill: "#select *",
                 difficulty: "Beginner",
-                question: "Query all columns (attributes) for every row in the CITY table.",
+                question: "Query all columns for every row in the CITY table.",
                 expectedSQL: "SELECT * FROM CITY",
-                hint: "Use the wildcard symbol `*` to select all columns."
+                hint: "Use `SELECT * FROM CITY`."
             },
             {
                 id: 2,
                 category: "CITY",
-                skill: "#where #id",
+                skill: "#select col",
                 difficulty: "Beginner",
-                question: "Query all columns for a city in CITY with the ID 1661.",
-                expectedSQL: "SELECT * FROM CITY WHERE ID = 1661",
-                hint: "Use a `WHERE` clause to filter by ID."
+                question: "Query only the NAME and POPULATION for all cities.",
+                expectedSQL: "SELECT NAME, POPULATION FROM CITY",
+                hint: "Separate column names with a comma."
             },
             {
                 id: 3,
-                category: "CITY",
-                skill: "#where #string",
-                difficulty: "Beginner",
-                question: "Query all attributes of every Japanese city in the CITY table. (CountryCode 'JPN')",
-                expectedSQL: "SELECT * FROM CITY WHERE COUNTRYCODE = 'JPN'",
-                hint: "Filter where COUNTRYCODE is 'JPN'."
-            },
-            {
-                id: 4,
-                category: "CITY",
-                skill: "#select #where",
-                difficulty: "Beginner",
-                question: "Query only the names of all the Japanese cities in the CITY table.",
-                expectedSQL: "SELECT NAME FROM CITY WHERE COUNTRYCODE = 'JPN'",
-                hint: "Select only the NAME column."
-            },
-            {
-                id: 5,
                 category: "CITY",
                 skill: "#distinct",
                 difficulty: "Beginner",
                 question: "Query a list of unique districts from the CITY table.",
                 expectedSQL: "SELECT DISTINCT DISTRICT FROM CITY",
-                hint: "Use the `DISTINCT` keyword before the column name to remove duplicates."
+                hint: "Use `SELECT DISTINCT DISTRICT ...`."
             },
-            // --- LEVEL 2: SORTING & LIMITS ---
+
+            // --- FILTERING & LOGIC ---
+            {
+                id: 4,
+                category: "CITY",
+                skill: "#where #and",
+                difficulty: "Beginner",
+                question: "Query cities in 'USA' with population > 100000.",
+                expectedSQL: "SELECT * FROM CITY WHERE COUNTRYCODE = 'USA' AND POPULATION > 100000",
+                hint: "Use `WHERE condition1 AND condition2`."
+            },
+            {
+                id: 5,
+                category: "Employee",
+                skill: "#where #or",
+                difficulty: "Beginner",
+                question: "Find employees who are in Group 1 OR have a salary < 1500.",
+                expectedSQL: "SELECT * FROM Employee WHERE group_id = 1 OR salary < 1500",
+                hint: "Use `WHERE ... OR ...`."
+            },
             {
                 id: 6,
                 category: "CITY",
-                skill: "#orderby #asc",
+                skill: "#not",
                 difficulty: "Beginner",
-                question: "Query all cities and sort them by population ascendingly.",
-                expectedSQL: "SELECT * FROM CITY ORDER BY POPULATION ASC",
-                hint: "Use `ORDER BY column_name ASC`."
+                question: "Query all cities that are NOT in the 'USA'.",
+                expectedSQL: "SELECT * FROM CITY WHERE NOT COUNTRYCODE = 'USA'",
+                hint: "Use `WHERE NOT` or `!=` or `<>`."
             },
             {
                 id: 7,
-                category: "CITY",
-                skill: "#orderby #desc",
-                difficulty: "Beginner",
-                question: "Query all cities and sort them by population descendingly.",
-                expectedSQL: "SELECT * FROM CITY ORDER BY POPULATION DESC",
-                hint: "Use `ORDER BY column_name DESC`."
+                category: "Employee",
+                skill: "#in",
+                difficulty: "Intermediate",
+                question: "Find employees whose group_id is 1, 2, or 3.",
+                expectedSQL: "SELECT * FROM Employee WHERE group_id IN (1, 2, 3)",
+                hint: "Use `WHERE column IN (val1, val2, ...)`."
             },
             {
                 id: 8,
-                category: "Employee",
-                skill: "#orderby #string",
-                difficulty: "Beginner",
-                question: "Find employee names from the Employee table in alphabetical order.",
-                expectedSQL: "SELECT name FROM Employee ORDER BY name",
-                hint: "Select name and order by it."
+                category: "CITY",
+                skill: "#between",
+                difficulty: "Intermediate",
+                question: "Query cities with population between 100,000 and 200,000.",
+                expectedSQL: "SELECT * FROM CITY WHERE POPULATION BETWEEN 100000 AND 200000",
+                hint: "Use `WHERE column BETWEEN x AND y`."
             },
+
+            // --- NULL HANDLING ---
             {
                 id: 9,
-                category: "Employee",
-                skill: "#limit",
+                category: "CITY",
+                skill: "#is null",
                 difficulty: "Intermediate",
-                question: "Find the top 3 earners (highest salary) in the company.",
-                expectedSQL: "SELECT * FROM Employee ORDER BY salary DESC LIMIT 3",
-                hint: "Order by salary descending, then use `LIMIT 3`."
+                question: "Find cities where the DISTRICT is NULL (missing).",
+                expectedSQL: "SELECT * FROM CITY WHERE DISTRICT IS NULL",
+                hint: "Use `WHERE column IS NULL`. Cannot use `= NULL`."
             },
-            // --- LEVEL 3: LOGIC (AND, OR, NOT) ---
             {
                 id: 10,
                 category: "CITY",
-                skill: "#where #and",
+                skill: "#is not null",
                 difficulty: "Intermediate",
-                question: "Query all columns for all American cities (CountryCode 'USA') with populations larger than 100,000.",
-                expectedSQL: "SELECT * FROM CITY WHERE COUNTRYCODE = 'USA' AND POPULATION > 100000",
-                hint: "Combine two conditions using `AND`."
+                question: "Find cities where the DISTRICT is NOT NULL.",
+                expectedSQL: "SELECT * FROM CITY WHERE DISTRICT IS NOT NULL",
+                hint: "Use `WHERE column IS NOT NULL`."
             },
+
+            // --- PATTERN MATCHING ---
             {
                 id: 11,
                 category: "CITY",
-                skill: "#select #and",
+                skill: "#like %",
                 difficulty: "Intermediate",
-                question: "Query the NAME field for all American cities with populations larger than 120,000.",
-                expectedSQL: "SELECT NAME FROM CITY WHERE COUNTRYCODE = 'USA' AND POPULATION > 120000",
-                hint: "Combine logic AND with specific column selection."
+                question: "Find cities starting with 'A'.",
+                expectedSQL: "SELECT * FROM CITY WHERE NAME LIKE 'A%'",
+                hint: "Use `LIKE 'A%'`. `%` matches any sequence."
             },
             {
                 id: 12,
                 category: "Employee",
-                skill: "#where #or",
+                skill: "#like _",
                 difficulty: "Intermediate",
-                question: "Find employee names having a salary lower than $1500 OR who just came within 1 year (months < 12).",
-                expectedSQL: "SELECT name FROM Employee WHERE salary < 1500 OR months < 12",
-                hint: "Use the `OR` operator between the two conditions."
+                question: "Find employees whose name is exactly 4 characters long and starts with 'R'.",
+                expectedSQL: "SELECT * FROM Employee WHERE name LIKE 'R___'",
+                hint: "Use `LIKE 'R___'` (three underscores). `_` matches exactly one character."
             },
+
+            // --- SORTING & LIMITS ---
             {
                 id: 13,
-                category: "CITY",
-                skill: "#not",
+                category: "Employee",
+                skill: "#order #limit",
                 difficulty: "Intermediate",
-                question: "Query all cities that are NOT in the USA.",
-                expectedSQL: "SELECT * FROM CITY WHERE COUNTRYCODE != 'USA'",
-                hint: "Use `!=` or `<>` or `NOT`."
+                question: "Find the top 3 highest paid employees.",
+                expectedSQL: "SELECT * FROM Employee ORDER BY salary DESC LIMIT 3",
+                hint: "Order descending and use `LIMIT 3`."
             },
-            // --- LEVEL 4: PATTERNS & RANGES ---
+
+            // --- STRING FUNCTIONS ---
             {
                 id: 14,
                 category: "CITY",
-                skill: "#between",
+                skill: "#len",
                 difficulty: "Intermediate",
-                question: "Query all cities with a population between 100,000 and 200,000.",
-                expectedSQL: "SELECT * FROM CITY WHERE POPULATION BETWEEN 100000 AND 200000",
-                hint: "Use the `BETWEEN` operator: `WHERE column BETWEEN x AND y`."
+                question: "Select city name and the length of the name (use LEN or CHAR_LENGTH).",
+                expectedSQL: "SELECT NAME, LEN(NAME) FROM CITY",
+                hint: "Use `LEN(column)`."
             },
             {
                 id: 15,
-                category: "CITY",
-                skill: "#like",
+                category: "Employee",
+                skill: "#upper #lower",
                 difficulty: "Intermediate",
-                question: "List city names that start with 'a' (case insensitive).",
-                expectedSQL: "SELECT NAME FROM CITY WHERE NAME LIKE 'A%'",
-                hint: "Use `LIKE 'A%'`. The % is a wildcard for any characters following 'A'."
+                question: "Select employee names in all uppercase.",
+                expectedSQL: "SELECT UPPER(name) FROM Employee",
+                hint: "Use `UPPER(column)`."
             },
             {
                 id: 16,
-                category: "Employee",
-                skill: "#like #and",
+                category: "CITY",
+                skill: "#substring",
                 difficulty: "Intermediate",
-                question: "List employee names starting with 'A' who have worked here more than 1 year (> 12 months).",
-                expectedSQL: "SELECT name FROM Employee WHERE name LIKE 'A%' AND months > 12",
-                hint: "Combine `LIKE` and a greater than comparison."
+                question: "Select the first 3 characters of each city name (use SUBSTRING, SUBSTR, or MID).",
+                expectedSQL: "SELECT SUBSTRING(NAME, 1, 3) FROM CITY",
+                hint: "Use `SUBSTRING(col, start, length)`."
             },
             {
                 id: 17,
-                category: "Employee",
-                skill: "#length",
+                category: "CITY",
+                skill: "#trim",
                 difficulty: "Intermediate",
-                question: "Find the names of employees whose name is longer than 5 characters.",
-                expectedSQL: "SELECT name FROM Employee WHERE LENGTH(name) > 5",
-                hint: "Use the `LENGTH(name)` function."
+                question: "Select all cities, but trim leading/trailing spaces from the NAME.",
+                expectedSQL: "SELECT TRIM(NAME) FROM CITY",
+                hint: "Use `TRIM(column)` to remove extra spaces."
             },
-            {
+             {
                 id: 18,
-                category: "Employee",
-                skill: "#math #alias",
+                category: "CITY",
+                skill: "#space #concat",
                 difficulty: "Intermediate",
-                question: "Select name and annual salary (salary * 12) for all employees.",
-                expectedSQL: "SELECT name, salary * 12 FROM Employee",
-                hint: "You can perform multiplication directly in the SELECT statement: `salary * 12`."
+                question: "Select Name and CountryCode combined with 3 spaces in between.",
+                expectedSQL: "SELECT NAME + SPACE(3) + COUNTRYCODE FROM CITY",
+                hint: "Use `SPACE(3)` and the `+` operator for concatenation."
             },
-            // --- LEVEL 5: AGGREGATES ---
+
+            // --- MATH FUNCTIONS ---
             {
                 id: 19,
-                category: "CITY",
-                skill: "#count",
-                difficulty: "Advanced",
-                question: "Count the total number of cities in the CITY table.",
-                expectedSQL: "SELECT COUNT(*) FROM CITY",
-                hint: "Use the `COUNT(*)` function."
+                category: "Employee",
+                skill: "#abs",
+                difficulty: "Intermediate",
+                question: "Calculate the absolute difference between salary and 3000.",
+                expectedSQL: "SELECT ABS(salary - 3000) FROM Employee",
+                hint: "Use `ABS(expression)`."
             },
             {
                 id: 20,
-                category: "Employee",
-                skill: "#count #where",
-                difficulty: "Advanced",
-                question: "Count how many employees have a salary greater than $3000.",
-                expectedSQL: "SELECT COUNT(*) FROM Employee WHERE salary > 3000",
-                hint: "Use `COUNT(*)` combined with a `WHERE` clause."
+                category: "CITY",
+                skill: "#int #floor",
+                difficulty: "Intermediate",
+                question: "Calculate population in thousands (divide by 1000) rounded down to an integer.",
+                expectedSQL: "SELECT FLOOR(POPULATION / 1000) FROM CITY",
+                hint: "Use `FLOOR(val)` or `INT(val)`."
             },
+
+            // --- AGGREGATES ---
             {
                 id: 21,
                 category: "Employee",
-                skill: "#min #max",
+                skill: "#count",
                 difficulty: "Advanced",
-                question: "Find the minimum and maximum salary in the Employee table.",
-                expectedSQL: "SELECT MIN(salary), MAX(salary) FROM Employee",
-                hint: "Use `MIN(column)` and `MAX(column)` functions."
+                question: "Count total number of employees.",
+                expectedSQL: "SELECT COUNT(*) FROM Employee",
+                hint: "Use `COUNT(*)`."
             },
             {
                 id: 22,
-                category: "CITY",
-                skill: "#avg #where",
+                category: "Employee",
+                skill: "#sum",
                 difficulty: "Advanced",
-                question: "Find the average population of cities in Japan (JPN).",
-                expectedSQL: "SELECT AVG(POPULATION) FROM CITY WHERE COUNTRYCODE = 'JPN'",
-                hint: "Use `AVG(POPULATION)` with a filter."
+                question: "Calculate sum of all salaries.",
+                expectedSQL: "SELECT SUM(salary) FROM Employee",
+                hint: "Use `SUM(salary)`."
             },
             {
                 id: 23,
                 category: "Employee",
-                skill: "#sum #where",
+                skill: "#avg",
                 difficulty: "Advanced",
-                question: "Calculate the total salary paid to all employees in Group 1.",
-                expectedSQL: "SELECT SUM(salary) FROM Employee WHERE group_id = 1",
-                hint: "Use `SUM(salary)` where group_id is 1."
+                question: "Calculate average months of experience.",
+                expectedSQL: "SELECT AVG(months) FROM Employee",
+                hint: "Use `AVG(months)`."
             },
-            // --- LEVEL 6: GROUPING ---
             {
                 id: 24,
-                category: "CITY",
-                skill: "#groupby #sum",
+                category: "Employee",
+                skill: "#min #max",
                 difficulty: "Advanced",
-                question: "Calculate total population by country.",
-                expectedSQL: "SELECT COUNTRYCODE, SUM(POPULATION) FROM CITY GROUP BY COUNTRYCODE",
-                hint: "Use `SUM(POPULATION)` and `GROUP BY COUNTRYCODE`."
+                question: "Find the minimum and maximum salary.",
+                expectedSQL: "SELECT MIN(salary), MAX(salary) FROM Employee",
+                hint: "Use `MIN` and `MAX` separated by comma."
             },
+
+            // --- GROUPING ---
             {
                 id: 25,
                 category: "CITY",
-                skill: "#groupby #order",
+                skill: "#groupby",
                 difficulty: "Advanced",
-                question: "Sort country code by total population (ascending).",
-                expectedSQL: "SELECT COUNTRYCODE, SUM(POPULATION) FROM CITY GROUP BY COUNTRYCODE ORDER BY SUM(POPULATION)",
-                hint: "You can `ORDER BY` the aggregate result `SUM(POPULATION)`."
+                question: "Count number of cities in each CountryCode.",
+                expectedSQL: "SELECT COUNTRYCODE, COUNT(*) FROM CITY GROUP BY COUNTRYCODE",
+                hint: "Use `GROUP BY COUNTRYCODE`."
             },
             {
                 id: 26,
                 category: "Employee",
-                skill: "#groupby #avg #in",
+                skill: "#groupby #avg",
                 difficulty: "Advanced",
-                question: "Find the average salary for group 1 and 2 respectively.",
-                expectedSQL: "SELECT group_id, AVG(salary) FROM Employee WHERE group_id IN (1, 2) GROUP BY group_id",
-                hint: "Filter `WHERE group_id IN (1, 2)` then `GROUP BY group_id`."
+                question: "Calculate average salary for each group_id.",
+                expectedSQL: "SELECT group_id, AVG(salary) FROM Employee GROUP BY group_id",
+                hint: "Select group_id and AVG, then group by group_id."
             },
             {
                 id: 27,
                 category: "Employee",
                 skill: "#having",
                 difficulty: "Advanced",
-                question: "Find groups with their average month experience more than 10 months, sort by group number descendingly.",
-                expectedSQL: "SELECT group_id FROM Employee GROUP BY group_id HAVING AVG(months) > 10 ORDER BY group_id DESC",
-                hint: "Use `HAVING` to filter after grouping (aggregates), not `WHERE`."
+                question: "Find group_ids where the average salary is > 3000.",
+                expectedSQL: "SELECT group_id FROM Employee GROUP BY group_id HAVING AVG(salary) > 3000",
+                hint: "Use `HAVING` after `GROUP BY` to filter aggregates."
             },
-            // --- LEVEL 7: REINFORCEMENT ---
+
+            // --- CHALLENGES & MIXED ---
             {
                 id: 28,
                 category: "Employee",
-                skill: "#where #order",
+                skill: "#math #filter",
                 difficulty: "Challenge",
-                question: "Find employee names having a salary lower than $1500. Sort your result by descending month experience.",
-                expectedSQL: "SELECT name FROM Employee WHERE salary < 1500 ORDER BY months DESC",
-                hint: "Filter salary first, then order by months with DESC."
+                question: "Find employees whose salary is an even number (remainder of division by 2 is 0).",
+                expectedSQL: "SELECT * FROM Employee WHERE salary % 2 = 0",
+                hint: "Use the modulo operator `%`."
             },
             {
                 id: 29,
-                category: "Employee",
-                skill: "#where #and #asc",
+                category: "CITY",
+                skill: "#string #filter",
                 difficulty: "Challenge",
-                question: "Find employee names having a salary greater than $2000 per month who have been employees for less than 10 months. Sort by ascending employee_id.",
-                expectedSQL: "SELECT name FROM Employee WHERE salary > 2000 AND months < 10 ORDER BY employee_id ASC",
-                hint: "Two conditions with AND, then ORDER BY."
+                question: "Find cities where the name is longer than 10 characters.",
+                expectedSQL: "SELECT * FROM CITY WHERE LEN(NAME) > 10",
+                hint: "Use `WHERE LEN(NAME) > 10`."
             },
             {
                 id: 30,
                 category: "Employee",
-                skill: "#complex #logic",
+                skill: "#complex",
                 difficulty: "Challenge",
-                question: "Find employees in Group 2 who earn more than 1500 OR employees in Group 3 who earn more than 2500.",
-                expectedSQL: "SELECT * FROM Employee WHERE (group_id = 2 AND salary > 1500) OR (group_id = 3 AND salary > 2500)",
-                hint: "Use parentheses `()` to group your AND/OR logic."
+                question: "Find employees in Group 1 with salary > 2000 OR in Group 2 with salary > 3000.",
+                expectedSQL: "SELECT * FROM Employee WHERE (group_id = 1 AND salary > 2000) OR (group_id = 2 AND salary > 3000)",
+                hint: "Use parentheses to group logical conditions."
+            },
+            {
+                id: 31,
+                category: "CITY",
+                skill: "#is null #or",
+                difficulty: "Challenge",
+                question: "Find cities where District is NULL or CountryCode is 'TST'.",
+                expectedSQL: "SELECT * FROM CITY WHERE DISTRICT IS NULL OR COUNTRYCODE = 'TST'",
+                hint: "Combine `IS NULL` with `OR`."
+            },
+            {
+                id: 32,
+                category: "Employee",
+                skill: "#round",
+                difficulty: "Challenge",
+                question: "Show name and salary divided by 12, rounded to 0 decimals.",
+                expectedSQL: "SELECT name, ROUND(salary / 12, 0) FROM Employee",
+                hint: "Use `ROUND(val, 0)`."
+            },
+            {
+                id: 33,
+                category: "CITY",
+                skill: "#count #distinct",
+                difficulty: "Challenge",
+                question: "Count how many unique CountryCodes exist in the table.",
+                expectedSQL: "SELECT COUNT(DISTINCT COUNTRYCODE) FROM CITY",
+                hint: "Use `COUNT(DISTINCT column)`."
+            },
+            {
+                id: 34,
+                category: "Employee",
+                skill: "#string #wildcard",
+                difficulty: "Challenge",
+                question: "Find employees where the name contains 'a' as the second letter.",
+                expectedSQL: "SELECT * FROM Employee WHERE name LIKE '_a%'",
+                hint: "Use `_a%`."
+            },
+             {
+                id: 35,
+                category: "CITY",
+                skill: "#logic #between",
+                difficulty: "Challenge",
+                question: "Find cities NOT in USA with population between 50k and 150k.",
+                expectedSQL: "SELECT * FROM CITY WHERE COUNTRYCODE != 'USA' AND POPULATION BETWEEN 50000 AND 150000",
+                hint: "Combine `!=` and `BETWEEN`."
+            },
+            {
+                id: 36,
+                category: "Employee",
+                skill: "#calc #sort",
+                difficulty: "Challenge",
+                question: "List employees sorted by their salary per month (salary/months) descending.",
+                expectedSQL: "SELECT * FROM Employee ORDER BY salary / months DESC",
+                hint: "You can calculate in the ORDER BY clause."
+            },
+            {
+                id: 37,
+                category: "CITY",
+                skill: "#avg #having",
+                difficulty: "Challenge",
+                question: "Show CountryCodes where the average population is less than 150,000.",
+                expectedSQL: "SELECT COUNTRYCODE FROM CITY GROUP BY COUNTRYCODE HAVING AVG(POPULATION) < 150000",
+                hint: "Use `GROUP BY` and `HAVING`."
+            },
+             {
+                id: 38,
+                category: "Employee",
+                skill: "#alias",
+                difficulty: "Challenge",
+                question: "Select name and salary, renaming salary to 'Monthly_Pay'.",
+                expectedSQL: "SELECT name, salary AS Monthly_Pay FROM Employee",
+                hint: "Use `AS` keyword."
+            },
+             {
+                id: 39,
+                category: "Employee",
+                skill: "#math #function",
+                difficulty: "Challenge",
+                question: "Find the square root of salary for employees in group 2.",
+                expectedSQL: "SELECT SQRT(salary) FROM Employee WHERE group_id = 2",
+                hint: "Use `SQRT(num)`."
+            },
+            {
+                id: 40,
+                category: "Employee",
+                skill: "#master",
+                difficulty: "Challenge",
+                question: "Find the average salary of employees whose name starts with 'A', grouped by group_id.",
+                expectedSQL: "SELECT group_id, AVG(salary) FROM Employee WHERE name LIKE 'A%' GROUP BY group_id",
+                hint: "Filter first with WHERE, then GROUP BY."
             }
         ];
 
@@ -705,11 +783,6 @@
             
             // Re-render list to show active state
             renderLevelList();
-            
-            // Switch to practice tab if on cheatsheet
-            if(document.getElementById('content-practice').classList.contains('hidden')) {
-                // optional: automatically switch back? maybe annoying. keeping as is.
-            }
             
             // Generate expected result silently
             try {
