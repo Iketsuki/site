@@ -45,10 +45,16 @@
         .cheatsheet-code {
             background-color: #1e293b;
             color: #a5b4fc;
-            padding: 2px 6px;
+            padding: 4px 8px;
             border-radius: 4px;
             font-family: monospace;
-            font-size: 0.85em;
+            font-size: 0.9em;
+            display: block;
+            margin-top: 4px;
+        }
+        .cheatsheet-section {
+            border-left: 3px solid #cbd5e1;
+            padding-left: 12px;
         }
     </style>
 </head>
@@ -69,7 +75,7 @@
     <div class="flex flex-1 overflow-hidden">
         
         <!-- Sidebar -->
-        <aside class="w-80 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-hidden">
+        <aside class="w-96 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-hidden">
             <!-- Tabs -->
             <div class="flex border-b border-slate-200">
                 <button onclick="switchTab('practice')" id="tab-practice" class="flex-1 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors tab-active">
@@ -85,89 +91,129 @@
                 <!-- Levels will be injected here -->
             </div>
 
-            <!-- Cheatsheet Content -->
+            <!-- Cheatsheet Content (Expanded) -->
             <div id="content-cheatsheet" class="flex-1 overflow-y-auto p-4 hidden bg-slate-50">
                 
-                <div class="space-y-6">
+                <div class="space-y-6 pb-8">
                     <!-- Basics -->
                     <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">1. The Basics</h3>
-                        <div class="text-sm space-y-3">
-                            <div>
-                                <p class="font-semibold text-slate-700">Select All</p>
-                                <code class="cheatsheet-code block mt-1">SELECT * FROM table_name;</code>
+                        <h3 class="font-bold text-slate-800 mb-3 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-cube text-blue-500"></i> 1. The Basics
+                        </h3>
+                        <div class="text-sm space-y-4">
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Retrieve Data</p>
+                                <p class="text-xs text-slate-500 mb-1">Use <span class="font-mono text-slate-600">*</span> for all columns, or list specific ones.</p>
+                                <code class="cheatsheet-code">SELECT * FROM table;</code>
+                                <code class="cheatsheet-code">SELECT name, salary FROM table;</code>
                             </div>
-                            <div>
-                                <p class="font-semibold text-slate-700">Distinct Values</p>
-                                <code class="cheatsheet-code block mt-1">SELECT DISTINCT col1 FROM table;</code>
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Remove Duplicates</p>
+                                <p class="text-xs text-slate-500 mb-1">Returns only unique values in a column.</p>
+                                <code class="cheatsheet-code">SELECT DISTINCT city FROM table;</code>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Logical Operators -->
-                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">2. Logical Operators</h3>
-                        <div class="text-sm space-y-3">
-                            <div><code class="cheatsheet-code">AND</code>, <code class="cheatsheet-code">OR</code>, <code class="cheatsheet-code">NOT</code></div>
-                            <div>
-                                <p class="font-semibold text-slate-700">Lists & Ranges</p>
-                                <code class="cheatsheet-code block mt-1">col IN (1, 2, 3)</code>
-                                <code class="cheatsheet-code block mt-1">col BETWEEN 10 AND 20</code>
-                            </div>
-                            <div>
-                                <p class="font-semibold text-slate-700">Pattern Matching</p>
-                                <code class="cheatsheet-code block mt-1">LIKE 'A%'</code> <span class="text-xs text-slate-500">(Starts with A)</span>
-                                <code class="cheatsheet-code block mt-1">LIKE '_B%'</code> <span class="text-xs text-slate-500">(2nd char is B)</span>
-                            </div>
-                            <div>
-                                <p class="font-semibold text-slate-700">Nulls</p>
-                                <code class="cheatsheet-code block mt-1">IS NULL</code>, <code class="cheatsheet-code block mt-1">IS NOT NULL</code>
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Renaming (Aliases)</p>
+                                <p class="text-xs text-slate-500 mb-1">Rename a column in the output for clarity.</p>
+                                <code class="cheatsheet-code">SELECT name AS EmployeeName FROM table;</code>
                             </div>
                         </div>
                     </div>
 
-                    <!-- String Functions -->
+                    <!-- Filtering -->
                     <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">3. String Functions</h3>
-                        <div class="text-sm space-y-3">
-                            <div><code class="cheatsheet-code">LEN(str)</code> / <code class="cheatsheet-code">CHAR_LENGTH(str)</code></div>
-                            <div><code class="cheatsheet-code">LOWER(str)</code>, <code class="cheatsheet-code">UPPER(str)</code></div>
-                            <div><code class="cheatsheet-code">TRIM(str)</code> <span class="text-xs text-slate-500">(Remove spaces)</span></div>
-                            <div><code class="cheatsheet-code">SUBSTRING(str, start, len)</code></div>
-                            <div><code class="cheatsheet-code">MID(str, start, len)</code></div>
+                        <h3 class="font-bold text-slate-800 mb-3 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-filter text-green-500"></i> 2. Filtering (WHERE)
+                        </h3>
+                        <div class="text-sm space-y-4">
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Basic Conditions</p>
+                                <code class="cheatsheet-code">WHERE age > 18</code>
+                                <code class="cheatsheet-code">WHERE country = 'USA'</code>
+                                <code class="cheatsheet-code">WHERE status != 'Active'</code>
+                            </div>
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Logic Gates</p>
+                                <p class="text-xs text-slate-500 mb-1"><span class="font-bold">Pro Tip:</span> AND happens before OR. Use parentheses to group logic.</p>
+                                <code class="cheatsheet-code">WHERE col1 = 5 AND col2 = 6</code>
+                                <code class="cheatsheet-code">WHERE (A=1 AND B=2) OR C=3</code>
+                            </div>
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Pattern Matching (LIKE)</p>
+                                <ul class="list-disc pl-4 text-xs text-slate-500 mt-1 mb-1">
+                                    <li><code class="bg-slate-100 px-1">%</code> matches anything (0+ chars).</li>
+                                    <li><code class="bg-slate-100 px-1">_</code> matches exactly 1 char.</li>
+                                </ul>
+                                <code class="cheatsheet-code">WHERE name LIKE 'A%'</code>
+                            </div>
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Handling NULLs</p>
+                                <p class="text-xs text-slate-500 mb-1">Never use <code class="bg-slate-100 px-1">= NULL</code>. It won't work.</p>
+                                <code class="cheatsheet-code">WHERE email IS NULL</code>
+                                <code class="cheatsheet-code">WHERE phone IS NOT NULL</code>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Math Functions -->
+                    <!-- Functions -->
                     <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">4. Math Functions</h3>
-                        <div class="text-sm space-y-3">
-                            <div><code class="cheatsheet-code">ABS(num)</code> <span class="text-xs text-slate-500">(Absolute value)</span></div>
-                            <div><code class="cheatsheet-code">INT(num)</code> / <code class="cheatsheet-code">FLOOR(num)</code></div>
-                            <div><code class="cheatsheet-code">ROUND(num, decimals)</code></div>
+                        <h3 class="font-bold text-slate-800 mb-3 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-calculator text-purple-500"></i> 3. Functions
+                        </h3>
+                        <div class="text-sm space-y-4">
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">String Magic</p>
+                                <code class="cheatsheet-code">LEN(str) / CHAR_LENGTH(str)</code>
+                                <code class="cheatsheet-code">UPPER(str) / LOWER(str)</code>
+                                <code class="cheatsheet-code">TRIM(str) -- Remove spaces</code>
+                                <code class="cheatsheet-code">SUBSTRING(str, start, len)</code>
+                            </div>
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Math Helpers</p>
+                                <code class="cheatsheet-code">ABS(-5) -> 5</code>
+                                <code class="cheatsheet-code">ROUND(1.234, 2) -> 1.23</code>
+                                <code class="cheatsheet-code">FLOOR(1.9) -> 1</code>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Aggregates -->
+                    <!-- Aggregates & Grouping -->
                     <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-slate-800 mb-2 border-b pb-1">5. Aggregates</h3>
-                        <div class="text-sm space-y-3">
-                            <div class="grid grid-cols-2 gap-2">
-                                <div><code class="cheatsheet-code">COUNT(*)</code></div>
-                                <div><code class="cheatsheet-code">SUM(col)</code></div>
-                                <div><code class="cheatsheet-code">AVG(col)</code></div>
-                                <div><code class="cheatsheet-code">MAX(col)</code></div>
-                                <div><code class="cheatsheet-code">MIN(col)</code></div>
+                        <h3 class="font-bold text-slate-800 mb-3 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-orange-500"></i> 4. Grouping & Totals
+                        </h3>
+                        <div class="text-sm space-y-4">
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Aggregate Functions</p>
+                                <p class="text-xs text-slate-500 mb-1">Condenses many rows into one.</p>
+                                <div class="grid grid-cols-2 gap-2 mt-1">
+                                    <code class="cheatsheet-code text-center">COUNT(*)</code>
+                                    <code class="cheatsheet-code text-center">SUM(col)</code>
+                                    <code class="cheatsheet-code text-center">AVG(col)</code>
+                                    <code class="cheatsheet-code text-center">MAX(col)</code>
+                                </div>
+                            </div>
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">The Golden Rule of GROUP BY</p>
+                                <p class="text-xs text-slate-500 mb-1 italic">"If you SELECT a column that isn't inside a SUM/COUNT/AVG, you MUST put it in GROUP BY."</p>
+                                <code class="cheatsheet-code">SELECT country, COUNT(*) <br>FROM users <br>GROUP BY country;</code>
+                            </div>
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">WHERE vs HAVING</p>
+                                <ul class="list-disc pl-4 text-xs text-slate-500 mt-1 mb-1">
+                                    <li><span class="font-bold text-slate-700">WHERE:</span> Filters *raw data* before grouping.</li>
+                                    <li><span class="font-bold text-slate-700">HAVING:</span> Filters *results* after grouping.</li>
+                                </ul>
+                                <code class="cheatsheet-code">GROUP BY country <br>HAVING COUNT(*) > 5</code>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="h-8"></div> <!-- Spacer -->
             </div>
         </aside>
 
         <!-- Main Workspace -->
-        <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
             
             <!-- Question Area -->
             <div class="p-6 bg-white border-b border-slate-200 shrink-0">
@@ -223,6 +269,25 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Certificate Modal -->
+            <div id="certificate-modal" class="absolute inset-0 z-50 bg-black/80 hidden flex items-center justify-center backdrop-blur-sm">
+                <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full text-center border-4 border-yellow-400">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-trophy text-yellow-500 text-3xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Course Completed!</h2>
+                    <p class="text-slate-600 mb-6">You've mastered all 40 SQL challenges. Enter your name to receive your certificate.</p>
+                    
+                    <input type="text" id="cert-name" placeholder="Enter Your Name" class="w-full px-4 py-3 rounded border border-slate-300 mb-4 focus:ring-2 focus:ring-blue-500 outline-none text-center font-bold text-lg">
+                    
+                    <button onclick="generateCertificate()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors shadow-lg">
+                        <i class="fa-solid fa-file-arrow-down mr-2"></i> Download Certificate
+                    </button>
+                    <p class="text-xs text-red-400 mt-4">*Note: Progress will reset after download.</p>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -1683,517 +1748,3 @@
                 id: 12,
                 category: "Employee",
                 skill: "#like _",
-                difficulty: "Intermediate",
-                question: "Find employees whose name is exactly 4 characters long and starts with 'R'.",
-                expectedSQL: "SELECT * FROM Employee WHERE name LIKE 'R___'",
-                hint: "Use `LIKE 'R___'` (three underscores). `_` matches exactly one character."
-            },
-
-            // --- SORTING & LIMITS ---
-            {
-                id: 13,
-                category: "Employee",
-                skill: "#order #limit",
-                difficulty: "Intermediate",
-                question: "Find the top 3 highest paid employees.",
-                expectedSQL: "SELECT * FROM Employee ORDER BY salary DESC LIMIT 3",
-                hint: "Order descending and use `LIMIT 3`."
-            },
-
-            // --- STRING FUNCTIONS ---
-            {
-                id: 14,
-                category: "CITY",
-                skill: "#len",
-                difficulty: "Intermediate",
-                question: "Select city name and the length of the name (use LEN or CHAR_LENGTH).",
-                expectedSQL: "SELECT NAME, LEN(NAME) FROM CITY",
-                hint: "Use `LEN(column)`."
-            },
-            {
-                id: 15,
-                category: "Employee",
-                skill: "#upper #lower",
-                difficulty: "Intermediate",
-                question: "Select employee names in all uppercase.",
-                expectedSQL: "SELECT UPPER(name) FROM Employee",
-                hint: "Use `UPPER(column)`."
-            },
-            {
-                id: 16,
-                category: "CITY",
-                skill: "#substring",
-                difficulty: "Intermediate",
-                question: "Select the first 3 characters of each city name (use SUBSTRING, SUBSTR, or MID).",
-                expectedSQL: "SELECT SUBSTRING(NAME, 1, 3) FROM CITY",
-                hint: "Use `SUBSTRING(col, start, length)`."
-            },
-            {
-                id: 17,
-                category: "CITY",
-                skill: "#trim",
-                difficulty: "Intermediate",
-                question: "Select all cities, but trim leading/trailing spaces from the NAME.",
-                expectedSQL: "SELECT TRIM(NAME) FROM CITY",
-                hint: "Use `TRIM(column)` to remove extra spaces."
-            },
-             {
-                id: 18,
-                category: "CITY",
-                skill: "#space #concat",
-                difficulty: "Intermediate",
-                question: "Select Name and CountryCode combined with 3 spaces in between.",
-                expectedSQL: "SELECT NAME + SPACE(3) + COUNTRYCODE FROM CITY",
-                hint: "Use `SPACE(3)` and the `+` operator for concatenation."
-            },
-
-            // --- MATH FUNCTIONS ---
-            {
-                id: 19,
-                category: "Employee",
-                skill: "#abs",
-                difficulty: "Intermediate",
-                question: "Calculate the absolute difference between salary and 3000.",
-                expectedSQL: "SELECT ABS(salary - 3000) FROM Employee",
-                hint: "Use `ABS(expression)`."
-            },
-            {
-                id: 20,
-                category: "CITY",
-                skill: "#int #floor",
-                difficulty: "Intermediate",
-                question: "Calculate population in thousands (divide by 1000) rounded down to an integer.",
-                expectedSQL: "SELECT FLOOR(POPULATION / 1000) FROM CITY",
-                hint: "Use `FLOOR(val)` or `INT(val)`."
-            },
-
-            // --- AGGREGATES ---
-            {
-                id: 21,
-                category: "Employee",
-                skill: "#count",
-                difficulty: "Advanced",
-                question: "Count total number of employees.",
-                expectedSQL: "SELECT COUNT(*) FROM Employee",
-                hint: "Use `COUNT(*)`."
-            },
-            {
-                id: 22,
-                category: "Employee",
-                skill: "#sum",
-                difficulty: "Advanced",
-                question: "Calculate sum of all salaries.",
-                expectedSQL: "SELECT SUM(salary) FROM Employee",
-                hint: "Use `SUM(salary)`."
-            },
-            {
-                id: 23,
-                category: "Employee",
-                skill: "#avg",
-                difficulty: "Advanced",
-                question: "Calculate average months of experience.",
-                expectedSQL: "SELECT AVG(months) FROM Employee",
-                hint: "Use `AVG(months)`."
-            },
-            {
-                id: 24,
-                category: "Employee",
-                skill: "#min #max",
-                difficulty: "Advanced",
-                question: "Find the minimum and maximum salary.",
-                expectedSQL: "SELECT MIN(salary), MAX(salary) FROM Employee",
-                hint: "Use `MIN` and `MAX` separated by comma."
-            },
-
-            // --- GROUPING ---
-            {
-                id: 25,
-                category: "CITY",
-                skill: "#groupby",
-                difficulty: "Advanced",
-                question: "Count number of cities in each CountryCode.",
-                expectedSQL: "SELECT COUNTRYCODE, COUNT(*) FROM CITY GROUP BY COUNTRYCODE",
-                hint: "Use `GROUP BY COUNTRYCODE`."
-            },
-            {
-                id: 26,
-                category: "Employee",
-                skill: "#groupby #avg",
-                difficulty: "Advanced",
-                question: "Calculate average salary for each group_id.",
-                expectedSQL: "SELECT group_id, AVG(salary) FROM Employee GROUP BY group_id",
-                hint: "Select group_id and AVG, then group by group_id."
-            },
-            {
-                id: 27,
-                category: "Employee",
-                skill: "#having",
-                difficulty: "Advanced",
-                question: "Find group_ids where the average salary is > 3000.",
-                expectedSQL: "SELECT group_id FROM Employee GROUP BY group_id HAVING AVG(salary) > 3000",
-                hint: "Use `HAVING` after `GROUP BY` to filter aggregates."
-            },
-
-            // --- CHALLENGES & MIXED ---
-            {
-                id: 28,
-                category: "Employee",
-                skill: "#math #filter",
-                difficulty: "Challenge",
-                question: "Find employees whose salary is an even number (remainder of division by 2 is 0).",
-                expectedSQL: "SELECT * FROM Employee WHERE salary % 2 = 0",
-                hint: "Use the modulo operator `%`."
-            },
-            {
-                id: 29,
-                category: "CITY",
-                skill: "#string #filter",
-                difficulty: "Challenge",
-                question: "Find cities where the name is longer than 10 characters.",
-                expectedSQL: "SELECT * FROM CITY WHERE LEN(NAME) > 10",
-                hint: "Use `WHERE LEN(NAME) > 10`."
-            },
-            {
-                id: 30,
-                category: "Employee",
-                skill: "#complex",
-                difficulty: "Challenge",
-                question: "Find employees in Group 1 with salary > 2000 OR in Group 2 with salary > 3000.",
-                expectedSQL: "SELECT * FROM Employee WHERE (group_id = 1 AND salary > 2000) OR (group_id = 2 AND salary > 3000)",
-                hint: "Use parentheses to group logical conditions."
-            },
-            {
-                id: 31,
-                category: "CITY",
-                skill: "#is null #or",
-                difficulty: "Challenge",
-                question: "Find cities where District is NULL or CountryCode is 'TST'.",
-                expectedSQL: "SELECT * FROM CITY WHERE DISTRICT IS NULL OR COUNTRYCODE = 'TST'",
-                hint: "Combine `IS NULL` with `OR`."
-            },
-            {
-                id: 32,
-                category: "Employee",
-                skill: "#round",
-                difficulty: "Challenge",
-                question: "Show name and salary divided by 12, rounded to 0 decimals.",
-                expectedSQL: "SELECT name, ROUND(salary / 12, 0) FROM Employee",
-                hint: "Use `ROUND(val, 0)`."
-            },
-            {
-                id: 33,
-                category: "CITY",
-                skill: "#count #distinct",
-                difficulty: "Challenge",
-                question: "Count how many unique CountryCodes exist in the table.",
-                expectedSQL: "SELECT COUNT(DISTINCT COUNTRYCODE) FROM CITY",
-                hint: "Use `COUNT(DISTINCT column)`."
-            },
-            {
-                id: 34,
-                category: "Employee",
-                skill: "#string #wildcard",
-                difficulty: "Challenge",
-                question: "Find employees where the name contains 'a' as the second letter.",
-                expectedSQL: "SELECT * FROM Employee WHERE name LIKE '_a%'",
-                hint: "Use `_a%`."
-            },
-             {
-                id: 35,
-                category: "CITY",
-                skill: "#logic #between",
-                difficulty: "Challenge",
-                question: "Find cities NOT in USA with population between 50k and 150k.",
-                expectedSQL: "SELECT * FROM CITY WHERE COUNTRYCODE != 'USA' AND POPULATION BETWEEN 50000 AND 150000",
-                hint: "Combine `!=` and `BETWEEN`."
-            },
-            {
-                id: 36,
-                category: "Employee",
-                skill: "#calc #sort",
-                difficulty: "Challenge",
-                question: "List employees sorted by their salary per month (salary/months) descending.",
-                expectedSQL: "SELECT * FROM Employee ORDER BY salary / months DESC",
-                hint: "You can calculate in the ORDER BY clause."
-            },
-            {
-                id: 37,
-                category: "CITY",
-                skill: "#avg #having",
-                difficulty: "Challenge",
-                question: "Show CountryCodes where the average population is less than 150,000.",
-                expectedSQL: "SELECT COUNTRYCODE FROM CITY GROUP BY COUNTRYCODE HAVING AVG(POPULATION) < 150000",
-                hint: "Use `GROUP BY` and `HAVING`."
-            },
-             {
-                id: 38,
-                category: "Employee",
-                skill: "#alias",
-                difficulty: "Challenge",
-                question: "Select name and salary, renaming salary to 'Monthly_Pay'.",
-                expectedSQL: "SELECT name, salary AS Monthly_Pay FROM Employee",
-                hint: "Use `AS` keyword."
-            },
-             {
-                id: 39,
-                category: "Employee",
-                skill: "#math #function",
-                difficulty: "Challenge",
-                question: "Find the square root of salary for employees in group 2.",
-                expectedSQL: "SELECT SQRT(salary) FROM Employee WHERE group_id = 2",
-                hint: "Use `SQRT(num)`."
-            },
-            {
-                id: 40,
-                category: "Employee",
-                skill: "#master",
-                difficulty: "Challenge",
-                question: "Find the average salary of employees whose name starts with 'A', grouped by group_id.",
-                expectedSQL: "SELECT group_id, AVG(salary) FROM Employee WHERE name LIKE 'A%' GROUP BY group_id",
-                hint: "Filter first with WHERE, then GROUP BY."
-            }
-        ];
-
-        // --- 3. APPLICATION STATE & LOGIC ---
-
-        let currentLevelIndex = 0;
-        let editor;
-        let completedLevels = new Set();
-
-        window.onload = function() {
-            // Initialize CodeMirror
-            editor = CodeMirror.fromTextArea(document.getElementById('sql-editor'), {
-                mode: 'text/x-sql',
-                theme: 'dracula',
-                lineNumbers: true,
-                smartIndent: true,
-                extraKeys: {"Ctrl-Enter": runUserQuery}
-            });
-
-            renderLevelList();
-            loadLevel(0);
-        };
-
-        function renderLevelList() {
-            const listContainer = document.getElementById('content-practice');
-            listContainer.innerHTML = '';
-            
-            levels.forEach((level, index) => {
-                const isCompleted = completedLevels.has(level.id);
-                const isActive = index === currentLevelIndex;
-                
-                const div = document.createElement('div');
-                div.className = `p-3 rounded-md cursor-pointer text-sm flex items-center justify-between transition-colors ${
-                    isActive ? 'bg-blue-100 border-blue-300 border text-blue-800' : 
-                    'bg-white border border-transparent hover:bg-slate-50 hover:border-slate-200 text-slate-600'
-                }`;
-                div.onclick = () => loadLevel(index);
-
-                // Add difficulty color badge
-                let diffColor = "text-slate-400";
-                if(level.difficulty === "Beginner") diffColor = "text-green-500";
-                if(level.difficulty === "Intermediate") diffColor = "text-blue-500";
-                if(level.difficulty === "Advanced") diffColor = "text-orange-500";
-                if(level.difficulty === "Challenge") diffColor = "text-red-500";
-
-                const left = document.createElement('div');
-                left.className = "flex items-center gap-2";
-                left.innerHTML = `<span class="font-bold w-5 text-slate-400 text-xs">${index + 1}.</span> 
-                    <div class="flex flex-col">
-                        <span class="truncate w-40 font-mono text-xs font-semibold text-slate-600">${level.skill}</span>
-                        <span class="text-[10px] ${diffColor}">${level.difficulty}</span>
-                    </div>`;
-
-                const icon = document.createElement('i');
-                if (isCompleted) {
-                    icon.className = "fa-solid fa-check-circle text-green-500";
-                } else {
-                    icon.className = "fa-regular fa-circle text-slate-300";
-                }
-
-                div.appendChild(left);
-                div.appendChild(icon);
-                listContainer.appendChild(div);
-            });
-
-            document.getElementById('progress-text').innerText = `${completedLevels.size}/${levels.length} Completed`;
-        }
-
-        function loadLevel(index) {
-            currentLevelIndex = index;
-            const level = levels[index];
-            
-            document.getElementById('question-text').innerText = level.question;
-            document.getElementById('current-table-badge').innerText = `${level.category} Table`;
-            document.getElementById('current-table-badge').className = level.category === 'CITY' 
-                ? 'bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded'
-                : 'bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded';
-
-            // Reset UI
-            document.getElementById('status-msg').className = 'hidden mb-4 p-4 rounded-md border';
-            document.getElementById('user-result-container').innerHTML = '<div class="p-8 text-center text-slate-400 italic">Run a query to see results</div>';
-            
-            editor.setValue("");
-            editor.focus();
-            
-            // Re-render list to show active state
-            renderLevelList();
-            
-            // Generate expected result silently
-            try {
-                const expectedRes = alasql(level.expectedSQL);
-                renderTable(expectedRes, 'expected-result-container', true);
-            } catch (e) {
-                console.error("Error generating expected result:", e);
-            }
-        }
-
-        function switchTab(tabName) {
-            const practiceBtn = document.getElementById('tab-practice');
-            const sheetBtn = document.getElementById('tab-cheatsheet');
-            const practiceContent = document.getElementById('content-practice');
-            const sheetContent = document.getElementById('content-cheatsheet');
-
-            if (tabName === 'practice') {
-                practiceBtn.classList.add('tab-active', 'bg-slate-50', 'text-blue-800');
-                sheetBtn.classList.remove('tab-active', 'bg-slate-50', 'text-blue-800');
-                
-                practiceContent.classList.remove('hidden');
-                sheetContent.classList.add('hidden');
-            } else {
-                sheetBtn.classList.add('tab-active', 'bg-slate-50', 'text-blue-800');
-                practiceBtn.classList.remove('tab-active', 'bg-slate-50', 'text-blue-800');
-
-                sheetContent.classList.remove('hidden');
-                practiceContent.classList.add('hidden');
-            }
-        }
-
-        function runUserQuery() {
-            const userSQL = editor.getValue().trim();
-            const statusDiv = document.getElementById('status-msg');
-            
-            if (!userSQL) {
-                statusDiv.innerText = "Please enter a SQL query.";
-                statusDiv.className = "block mb-4 p-4 rounded-md border bg-yellow-50 border-yellow-200 text-yellow-800";
-                return;
-            }
-
-            try {
-                // 1. Run User Query
-                const userResult = alasql(userSQL);
-                renderTable(userResult, 'user-result-container');
-
-                // 2. Run Expected Query
-                const level = levels[currentLevelIndex];
-                const expectedResult = alasql(level.expectedSQL);
-
-                // 3. Compare
-                const isCorrect = JSON.stringify(userResult) === JSON.stringify(expectedResult);
-
-                if (isCorrect) {
-                    statusDiv.innerHTML = `<div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-600 text-xl"></i> <div><strong>Correct!</strong> Great job.</div></div>`;
-                    statusDiv.className = "block mb-4 p-4 rounded-md border bg-green-50 border-green-200 text-green-800";
-                    completedLevels.add(level.id);
-                    renderLevelList();
-                } else {
-                    statusDiv.innerHTML = `<div class="flex flex-col gap-2">
-                        <div class="flex items-center gap-2"><i class="fa-solid fa-xmark-circle text-red-600 text-xl"></i> <div><strong>Incorrect.</strong> Your result doesn't match the expected output.</div></div>
-                        <div class="text-sm bg-yellow-50 text-yellow-800 p-2 rounded border border-yellow-200 mt-1"><strong>Hint:</strong> ${level.hint}</div>
-                    </div>`;
-                    statusDiv.className = "block mb-4 p-4 rounded-md border bg-red-50 border-red-200 text-red-800";
-                }
-
-            } catch (err) {
-                statusDiv.innerText = "SQL Error: " + err.message;
-                statusDiv.className = "block mb-4 p-4 rounded-md border bg-red-50 border-red-200 text-red-800 font-mono text-sm";
-                document.getElementById('user-result-container').innerHTML = '<div class="p-8 text-center text-red-400 italic">Query Failed</div>';
-            }
-        }
-
-        function renderTable(data, containerId, isTruncated = false) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-
-            if (!data || data.length === 0) {
-                container.innerHTML = '<div class="p-4 text-slate-500 italic">Query returned no results.</div>';
-                return;
-            }
-
-            if (typeof data[0] !== 'object') {
-                data = data.map(val => ({ Result: val }));
-            }
-
-            const table = document.createElement('table');
-            table.className = "min-w-full text-left text-sm whitespace-nowrap";
-            
-            let displayData = data;
-            if (isTruncated && data.length > 3) {
-                displayData = data.slice(0, 3);
-            }
-
-            const thead = document.createElement('thead');
-            thead.className = "bg-slate-100 border-b border-slate-200 sticky top-0";
-            const trHead = document.createElement('tr');
-            
-            Object.keys(displayData[0]).forEach(key => {
-                const th = document.createElement('th');
-                th.className = "px-4 py-2 font-semibold text-slate-600";
-                th.innerText = key;
-                trHead.appendChild(th);
-            });
-            thead.appendChild(trHead);
-            table.appendChild(thead);
-
-            const tbody = document.createElement('tbody');
-            displayData.forEach((row, idx) => {
-                const tr = document.createElement('tr');
-                tr.className = idx % 2 === 0 ? "bg-white" : "bg-slate-50";
-                
-                Object.values(row).forEach(val => {
-                    const td = document.createElement('td');
-                    td.className = "px-4 py-2 border-b border-slate-100 text-slate-700 font-mono";
-                    td.innerText = val;
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
-            });
-
-            if (isTruncated && data.length > 3) {
-                const tr = document.createElement('tr');
-                tr.className = "bg-slate-50 opacity-50";
-                Object.keys(displayData[0]).forEach(() => {
-                    const td = document.createElement('td');
-                    td.className = "px-4 py-2 border-b border-slate-100 text-slate-700 font-mono italic";
-                    td.innerText = "...";
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
-                
-                const trInfo = document.createElement('tr');
-                const tdInfo = document.createElement('td');
-                tdInfo.colSpan = Object.keys(displayData[0]).length;
-                tdInfo.className = "px-4 py-2 text-xs text-slate-400 text-center bg-slate-50";
-                tdInfo.innerText = `(${data.length - 3} more rows hidden)`;
-                trInfo.appendChild(tdInfo);
-                tbody.appendChild(trInfo);
-            }
-
-            table.appendChild(tbody);
-            container.appendChild(table);
-        }
-
-        function resetLevel() {
-            editor.setValue("");
-            document.getElementById('status-msg').classList.add('hidden');
-            document.getElementById('user-result-container').innerHTML = '<div class="p-8 text-center text-slate-400 italic">Run a query to see results</div>';
-        }
-
-        function toggleSchema() {
-            const modal = document.getElementById('schema-modal');
-            modal.classList.toggle('hidden');
-        }
-
-    </script>
-</body>
-</html>
