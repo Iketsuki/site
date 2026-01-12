@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LM Studio Mobile</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Marked for Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- DOMPurify for security -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    
+    <style>
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        /* Markdown Styles */
+        .prose p { margin-bottom: 0.5rem; }
+        .prose p:last-child { margin-bottom: 0; }
+        .prose pre { 
+            background-color: #111827; 
+            padding: 0.75rem; 
+            border-radius: 0.5rem; 
+            overflow-x: auto; 
+            margin: 0.5rem 0;
+            border: 1px solid #374151;
+        }
+        .prose code { 
+            background-color: rgba(31, 41, 55, 0.5); 
+            padding: 0.1rem 0.3rem; 
+            border-radius: 0.25rem; 
+            font-family: monospace; 
+            font-size: 0.9em;
+            color: #e5e7eb;
+        }
+        .prose ul { list-style-type: disc; margin-left: 1.5rem; }
+        .prose ol { list-style-type: decimal; margin-left: 1.5rem; }
+        .prose strong { color: #fff; font-weight: 700; }
+        .prose a { color: #60a5fa; text-decoration: underline; }
+        
+        /* Animation for typing indicator */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        .typing-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            margin-right: 2px;
+            background-color: #9ca3af;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        /* Mobile optimizations */
+        body { -webkit-tap-highlight-color: transparent; }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+        /* Modal transitions */
+        .modal {
+            transition: opacity 0.2s ease-in-out, visibility 0.2s;
+        }
+        .modal.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .modal:not(.hidden) {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 h-[100dvh] flex flex-col font-sans overflow-hidden">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700 shadow-md z-10">
+        <div class="flex items-center space-x-3">
+            <div class="relative">
+                <div id="status-dot" class="w-3 h-3 rounded-full bg-red-500 transition-colors duration-300"></div>
+                <div id="status-ping" class="absolute top-0 left-0 w-3 h-3 rounded-full bg-red-500 opacity-75 animate-ping hidden"></div>
+            </div>
+            <div class="flex flex-col">
+                <h1 class="font-bold text-base tracking-wide text-white leading-tight">LM Studio</h1>
+                <span id="model-display" class="text-[10px] text-gray-400 font-mono">Not Connected</span>
+            </div>
+        </div>
+        <button id="settings-btn" class="p-2 rounded-full hover:bg-gray-700 active:bg-gray-600 transition-colors text-gray-300">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </button>
+    </header>
+
+    <!-- Chat Area -->
+    <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth">
+        <!-- Welcome Message -->
+        <div id="welcome-screen" class="flex flex-col items-center justify-center h-full text-gray-500 space-y-4 text-center px-6">
+            <div class="p-4 bg-gray-800 rounded-full mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+            <h2 class="text-xl font-bold text-gray-300">Ready to Chat?</h2>
+            <div class="text-sm space-y-2 max-w-xs">
+                <p>Ensure LM Studio is running.</p>
+                <p class="text-xs bg-gray-800 p-2 rounded border border-gray-700 font-mono">LM Studio > Server > ON</p>
+                <div class="bg-yellow-900/30 border border-yellow-700/50 p-2 rounded text-left">
+                    <p class="text-xs text-yellow-500 font-bold mb-1">Troubleshooting:</p>
+                    <ul class="text-[10px] text-gray-400 list-disc ml-3 space-y-1">
+                        <li>Enable "CORS" in LM Studio Server settings.</li>
+                        <li>If using on Phone: Use PC's IP (e.g. 192.168.1.X)</li>
+                        <li>If preview fails: Try "Demo Mode" in settings.</li>
+                    </ul>
+                </div>
+            </div>
+            <button onclick="document.getElementById('settings-btn').click()" class="mt-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors text-white">
+                Configure Server
+            </button>
+        </div>
+        <!-- Messages will be injected here -->
+    </main>
+
+    <!-- Input Area -->
+    <footer class="bg-gray-800 border-t border-gray-700 p-3 safe-area-bottom z-10">
+        <div class="relative flex items-end bg-gray-700 rounded-2xl border border-gray-600 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all shadow-sm">
+            <textarea 
+                id="user-input" 
+                rows="1" 
+                placeholder="Message..." 
+                class="w-full bg-transparent text-white px-4 py-3 pr-12 rounded-2xl focus:outline-none resize-none max-h-32 overflow-y-auto"
+                style="min-height: 48px;"
+            ></textarea>
+            <button 
+                id="send-btn" 
+                class="absolute right-1 bottom-1 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-500 active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95"
+                disabled
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div id="modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm border border-gray-700 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="px-5 py-4 border-b border-gray-700 flex justify-between items-center bg-gray-850">
+                <h3 class="font-bold text-lg text-white">Server Settings</h3>
+                <button id="close-settings" class="text-gray-400 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            
+            <div class="p-5 space-y-4 overflow-y-auto">
+                 <!-- Demo Mode Toggle -->
+                 <div class="flex items-center justify-between bg-gray-900/50 p-3 rounded-lg border border-gray-700">
+                    <div>
+                        <span class="text-sm font-semibold text-white block">Demo Mode</span>
+                        <span class="text-[10px] text-gray-400 block">Simulate responses (no server needed)</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="config-demo" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+
+                <!-- Base URL -->
+                <div class="space-y-1">
+                    <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Base URL</label>
+                    <input type="text" id="config-url" placeholder="http://127.0.0.1:1234" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none placeholder-gray-600">
+                    <p class="text-[10px] text-gray-500">For real phones, use your PC's LAN IP (e.g., http://192.168.1.5:1234)</p>
+                </div>
+
+                <!-- Model ID -->
+                <div class="space-y-1">
+                    <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Model ID</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="config-model" placeholder="local-model" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none placeholder-gray-600">
+                        <button id="fetch-models-btn" class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs font-medium text-gray-200 whitespace-nowrap border border-gray-600" title="Auto-detect loaded model">
+                            Auto-Detect
+                        </button>
+                    </div>
+                </div>
+
+                <!-- System Prompt -->
+                <div class="space-y-1">
+                    <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">System Prompt</label>
+                    <textarea id="config-system" rows="3" placeholder="e.g., You are a helpful assistant." class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none resize-none placeholder-gray-600"></textarea>
+                </div>
+
+                <!-- Temperature -->
+                <div class="space-y-1">
+                    <div class="flex justify-between">
+                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Temperature</label>
+                        <span id="temp-value" class="text-xs text-gray-400 font-mono">0.7</span>
+                    </div>
+                    <input type="range" id="config-temp" min="0" max="2" step="0.1" value="0.7" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-gray-700 bg-gray-850">
+                <button id="save-settings" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
+                    <span>Save & Connect</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // --- State Management ---
+        const state = {
+            config: {
+                baseUrl: 'http://127.0.0.1:1234',
+                modelId: 'qwen3',
+                systemPrompt: 'Always answer in rhymes. Today is Thursday',
+                temperature: 0.7,
+                isDemoMode: false,
+                history: [] // { role, content }
+            },
+            isConnected: false
+        };
+
+        // --- DOM Elements ---
+        const els = {
+            chatContainer: document.getElementById('chat-container'),
+            welcomeScreen: document.getElementById('welcome-screen'),
+            userInput: document.getElementById('user-input'),
+            sendBtn: document.getElementById('send-btn'),
+            settingsBtn: document.getElementById('settings-btn'),
+            settingsModal: document.getElementById('settings-modal'),
+            closeSettingsBtn: document.getElementById('close-settings'),
+            modalBackdrop: document.getElementById('modal-backdrop'),
+            saveSettingsBtn: document.getElementById('save-settings'),
+            fetchModelsBtn: document.getElementById('fetch-models-btn'),
+            
+            // Inputs
+            configUrl: document.getElementById('config-url'),
+            configModel: document.getElementById('config-model'),
+            configSystem: document.getElementById('config-system'),
+            configTemp: document.getElementById('config-temp'),
+            configDemo: document.getElementById('config-demo'),
+            tempValue: document.getElementById('temp-value'),
+            
+            // Status
+            statusDot: document.getElementById('status-dot'),
+            statusPing: document.getElementById('status-ping'),
+            modelDisplay: document.getElementById('model-display'),
+        };
+
+        // --- Init ---
+        function init() {
+            loadSettings();
+            renderMessages();
+            checkConnection();
+            
+            // Auto-resize textarea
+            els.userInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+                if (this.value.trim().length > 0) {
+                    els.sendBtn.disabled = false;
+                } else {
+                    els.sendBtn.disabled = true;
+                }
+            });
+
+            // Enter key to send (on desktop mostly, or physical keyboard)
+            els.userInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            els.sendBtn.addEventListener('click', sendMessage);
+            
+            // Settings Modal Logic
+            els.settingsBtn.addEventListener('click', openSettings);
+            els.closeSettingsBtn.addEventListener('click', closeSettings);
+            els.modalBackdrop.addEventListener('click', closeSettings);
+            els.saveSettingsBtn.addEventListener('click', () => {
+                saveSettings();
+                closeSettings();
+                checkConnection();
+            });
+
+            // Temperature slider
+            els.configTemp.addEventListener('input', (e) => {
+                els.tempValue.textContent = e.target.value;
+            });
+            
+            // Demo mode toggle
+            els.configDemo.addEventListener('change', (e) => {
+                const inputs = [els.configUrl, els.configModel, els.fetchModelsBtn];
+                inputs.forEach(el => el.disabled = e.target.checked);
+                if(e.target.checked) {
+                    inputs.forEach(el => el.classList.add('opacity-50', 'cursor-not-allowed'));
+                } else {
+                    inputs.forEach(el => el.classList.remove('opacity-50', 'cursor-not-allowed'));
+                }
+            });
+
+            // Auto-detect model
+            els.fetchModelsBtn.addEventListener('click', fetchModels);
+        }
+
+        // --- Settings Logic ---
+        function loadSettings() {
+            const saved = localStorage.getItem('lmstudio-config');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                state.config = { ...state.config, ...parsed };
+                state.config.history = []; // Always start fresh history on reload
+            }
+            
+            // Populate fields
+            els.configUrl.value = state.config.baseUrl;
+            els.configModel.value = state.config.modelId;
+            els.configSystem.value = state.config.systemPrompt;
+            els.configTemp.value = state.config.temperature;
+            els.configDemo.checked = state.config.isDemoMode;
+            els.tempValue.textContent = state.config.temperature;
+            
+            // Set UI state for Demo Mode
+            if(state.config.isDemoMode) {
+                [els.configUrl, els.configModel, els.fetchModelsBtn].forEach(el => {
+                    el.disabled = true;
+                    el.classList.add('opacity-50', 'cursor-not-allowed');
+                });
+            }
+            
+            updateStatusUI();
+        }
+
+        function saveSettings() {
+            state.config.baseUrl = els.configUrl.value.replace(/\/$/, ''); // Remove trailing slash
+            state.config.modelId = els.configModel.value;
+            state.config.systemPrompt = els.configSystem.value;
+            state.config.temperature = parseFloat(els.configTemp.value);
+            state.config.isDemoMode = els.configDemo.checked;
+            
+            localStorage.setItem('lmstudio-config', JSON.stringify({
+                baseUrl: state.config.baseUrl,
+                modelId: state.config.modelId,
+                systemPrompt: state.config.systemPrompt,
+                temperature: state.config.temperature,
+                isDemoMode: state.config.isDemoMode
+            }));
+        }
+
+        function openSettings() {
+            els.settingsModal.classList.remove('hidden');
+        }
+
+        function closeSettings() {
+            els.settingsModal.classList.add('hidden');
+        }
+
+        // --- Core Logic ---
+
+        async function checkConnection() {
+            if (state.config.isDemoMode) {
+                updateStatus('demo');
+                return;
+            }
+
+            updateStatus('checking');
+            try {
+                // Check for Mixed Content warning
+                if (window.location.protocol === 'https:' && state.config.baseUrl.startsWith('http:')) {
+                    console.warn("Mixed Content: HTTPS page trying to access HTTP API.");
+                }
+
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), 2000);
+                
+                const res = await fetch(`${state.config.baseUrl}/v1/models`, {
+                    signal: controller.signal
+                });
+                clearTimeout(id);
+                
+                if (res.ok) {
+                    updateStatus('online');
+                    const data = await res.json();
+                    if (data.data && data.data.length > 0) {
+                        if(!state.config.modelId) {
+                            state.config.modelId = data.data[0].id;
+                            els.configModel.value = data.data[0].id;
+                            saveSettings();
+                        }
+                    }
+                } else {
+                    updateStatus('error');
+                }
+            } catch (e) {
+                console.error("Connection check failed", e);
+                // Differentiate error types for better UI feedback
+                if (e.name === 'TypeError' && e.message.includes('fetch')) {
+                     updateStatus('blocked'); // Likely CORS or Mixed Content
+                } else {
+                     updateStatus('error');
+                }
+            }
+        }
+
+        async function fetchModels() {
+            if(state.config.isDemoMode) return;
+            
+            const btnOriginal = els.fetchModelsBtn.innerText;
+            els.fetchModelsBtn.innerText = '...';
+            try {
+                const res = await fetch(`${els.configUrl.value}/v1/models`);
+                const data = await res.json();
+                if (data.data && data.data.length > 0) {
+                    els.configModel.value = data.data[0].id;
+                } else {
+                    alert('No loaded models found in LM Studio.');
+                }
+            } catch (e) {
+                alert('Connection Failed. \n\nPossible reasons:\n1. Mixed Content (HTTPS vs HTTP).\n2. CORS disabled in LM Studio.\n3. Wrong IP/Port.');
+            }
+            els.fetchModelsBtn.innerText = btnOriginal;
+        }
+
+        function updateStatus(status) {
+            const dot = els.statusDot;
+            const ping = els.statusPing;
+            const text = els.modelDisplay;
+
+            // Reset classes
+            text.className = 'text-[10px] font-mono';
+            
+            if (status === 'online') {
+                dot.className = 'w-3 h-3 rounded-full bg-green-500 transition-colors duration-300';
+                ping.classList.add('hidden');
+                text.textContent = `Connected: ${state.config.modelId || 'Unknown Model'}`;
+                text.classList.add('text-green-400');
+                state.isConnected = true;
+            } else if (status === 'demo') {
+                dot.className = 'w-3 h-3 rounded-full bg-blue-500 transition-colors duration-300';
+                ping.classList.add('hidden');
+                text.textContent = 'Demo Mode (Simulated)';
+                text.classList.add('text-blue-400');
+                state.isConnected = true;
+            } else if (status === 'checking') {
+                dot.className = 'w-3 h-3 rounded-full bg-yellow-500 transition-colors duration-300';
+                ping.classList.remove('hidden');
+                text.textContent = 'Connecting...';
+                text.classList.add('text-gray-400');
+            } else if (status === 'blocked') {
+                dot.className = 'w-3 h-3 rounded-full bg-orange-500 transition-colors duration-300';
+                ping.classList.add('hidden');
+                text.textContent = 'Blocked (CORS/Mixed Content)';
+                text.classList.add('text-orange-400');
+                state.isConnected = false;
+            } else {
+                dot.className = 'w-3 h-3 rounded-full bg-red-500 transition-colors duration-300';
+                ping.classList.add('hidden');
+                text.textContent = 'Disconnected';
+                text.classList.add('text-red-400');
+                state.isConnected = false;
+            }
+        }
+        
+        function updateStatusUI() {
+            if(!state.config.isDemoMode && !state.isConnected) {
+                els.modelDisplay.textContent = 'Not Connected';
+            }
+        }
+
+        // --- Chat Logic ---
+
+        function appendMessage(role, text) {
+            els.welcomeScreen.classList.add('hidden');
+
+            const isUser = role === 'user';
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `flex w-full ${isUser ? 'justify-end' : 'justify-start'}`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = `max-w-[85%] rounded-2xl px-4 py-3 ${
+                isUser 
+                ? 'bg-blue-600 text-white rounded-br-none' 
+                : 'bg-gray-800 text-gray-100 rounded-bl-none border border-gray-700'
+            }`;
+
+            if (isUser) {
+                bubble.innerText = text;
+            } else {
+                bubble.classList.add('prose', 'prose-invert', 'max-w-none', 'text-sm');
+                bubble.innerHTML = DOMPurify.sanitize(marked.parse(text));
+            }
+
+            msgDiv.appendChild(bubble);
+            els.chatContainer.appendChild(msgDiv);
+            scrollToBottom();
+            
+            state.config.history.push({ role, content: text });
+        }
+
+        function createTypingIndicator() {
+            const msgDiv = document.createElement('div');
+            msgDiv.id = 'typing-indicator';
+            msgDiv.className = 'flex w-full justify-start';
+            const bubble = document.createElement('div');
+            bubble.className = 'bg-gray-800 border border-gray-700 rounded-2xl rounded-bl-none px-4 py-4 flex items-center space-x-1';
+            bubble.innerHTML = `<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>`;
+            msgDiv.appendChild(bubble);
+            els.chatContainer.appendChild(msgDiv);
+            scrollToBottom();
+            return msgDiv;
+        }
+
+        function removeTypingIndicator() {
+            const el = document.getElementById('typing-indicator');
+            if (el) el.remove();
+        }
+
+        function scrollToBottom() {
+            els.chatContainer.scrollTop = els.chatContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const text = els.userInput.value.trim();
+            if (!text) return;
+
+            els.userInput.value = '';
+            els.userInput.style.height = 'auto'; 
+            els.sendBtn.disabled = true;
+            
+            appendMessage('user', text);
+            createTypingIndicator();
+
+            // Demo Mode Logic
+            if (state.config.isDemoMode) {
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    const rhymes = [
+                        "I'm in demo mode, it's true,\nJust to show this view to you.",
+                        "No server here to be found,\nJust pixels pushing logic around.",
+                        "Thursday is the day you say,\nBut I am simulating anyway."
+                    ];
+                    const randomRhyme = rhymes[Math.floor(Math.random() * rhymes.length)];
+                    appendMessage('assistant', `**[DEMO]** ${randomRhyme}`);
+                }, 1000);
+                return;
+            }
+
+            // Real Logic
+            const messages = [];
+            if (state.config.systemPrompt) {
+                messages.push({ role: 'system', content: state.config.systemPrompt });
+            }
+            messages.push(...state.config.history);
+
+            const payload = {
+                model: state.config.modelId || 'local-model',
+                messages: messages,
+                temperature: state.config.temperature,
+                max_tokens: -1, 
+                stream: false
+            };
+
+            try {
+                const res = await fetch(`${state.config.baseUrl}/v1/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) throw new Error(`Server Error: ${res.status}`);
+
+                const data = await res.json();
+                removeTypingIndicator();
+
+                if (data.choices && data.choices.length > 0) {
+                    const aiContent = data.choices[0].message.content;
+                    appendMessage('assistant', aiContent);
+                } else {
+                    appendMessage('assistant', '(No response content received)');
+                }
+                updateStatus('online');
+
+            } catch (err) {
+                removeTypingIndicator();
+                let errorMsg = `⚠️ **Error:** Could not connect to LM Studio.\n\n*Details: ${err.message}*`;
+                
+                // Add context-specific help
+                if (window.location.protocol === 'https:' && state.config.baseUrl.startsWith('http:')) {
+                    errorMsg += `\n\n**Note on Preview:** You are running this in a secure (HTTPS) preview window, but trying to connect to an insecure (HTTP) local server. Browsers block this ("Mixed Content").\n\n**To Fix:**\n1. Use "Demo Mode" to test UI.\n2. Or download this HTML file and open it locally.`;
+                } else {
+                    errorMsg += `\n\n**Troubleshooting:**\n1. Check IP.\n2. Ensure LM Studio server is ON.\n3. **Enable CORS** in LM Studio settings.`;
+                }
+                
+                appendMessage('assistant', errorMsg);
+                updateStatus('blocked');
+            }
+        }
+
+        function renderMessages() {
+            // Restore session if desired
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>
