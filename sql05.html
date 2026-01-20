@@ -949,17 +949,17 @@
                 skill: "Mastery: Math+Logic",
                 difficulty: "Boss",
                 question: "Find employees where Salary is even AND months > 10.",
-                expectedSQL: "SELECT * FROM Employee WHERE salary % 2 = 0 AND months > 10",
-                hint: "Use modulo `%` for even check."
+                expectedSQL: "SELECT * FROM Employee WHERE MOD(salary, 2) = 0 AND months > 10",
+                hint: "Use `MOD(salary, 2) = 0` for even check."
             },
             {
                 id: 53,
                 category: "CITY",
                 skill: "Mastery: String",
                 difficulty: "Boss",
-                question: "Select Name, and the first 3 letters of District as 'ShortDist'. Order by ShortDist.",
-                expectedSQL: "SELECT NAME, MID(DISTRICT, 1, 3) AS ShortDist FROM CITY ORDER BY ShortDist",
-                hint: "Use `MID` and `ORDER BY` alias."
+                question: "Select Name, and the first 3 letters of District as 'ShortDist' (exclude NULL districts). Order by ShortDist.",
+                expectedSQL: "SELECT NAME, MID(DISTRICT, 1, 3) AS ShortDist FROM CITY WHERE DISTRICT IS NOT NULL ORDER BY ShortDist",
+                hint: "Filter NULLs first: `WHERE DISTRICT IS NOT NULL`."
             },
             {
                 id: 54,
