@@ -240,6 +240,7 @@
                             <div class="cheatsheet-section">
                                 <p class="font-semibold text-slate-700">Math</p>
                                 <code class="cheatsheet-code">ABS(-10) -> 10</code>
+                                <code class="cheatsheet-code">MOD(10, 3) -> 1</code>
                             </div>
                         </div>
                     </div>
@@ -454,6 +455,7 @@
             alasql.fn.MONTH = function(d) { return new Date(d).getMonth() + 1; };
             alasql.fn.DAY = function(d) { return new Date(d).getDate(); };
             alasql.fn.DATE = function(d) { return new Date(d).toISOString().split('T')[0]; };
+            alasql.fn.MOD = function(n, m) { return n % m; };
         }
 
         alasql('CREATE TABLE CITY (ID INT, NAME STRING, COUNTRYCODE STRING, DISTRICT STRING, POPULATION INT)');
