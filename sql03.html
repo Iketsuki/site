@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Mastery: Interactive Practice</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- AlaSQL for client-side SQL execution -->
+    <script src="https://cdn.jsdelivr.net/npm/alasql@4.4.0/dist/alasql.min.js"></script>
+    <!-- CodeMirror for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/sql/sql.min.js"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .CodeMirror {
+            height: 150px;
+            border-radius: 0.5rem;
+            font-size: 14px;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        .tab-active {
+            border-bottom: 2px solid #3b82f6;
+            color: #1d4ed8;
+            background-color: #eff6ff;
+        }
+        .cheatsheet-code {
+            background-color: #1e293b;
+            color: #a5b4fc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+            display: block;
+            margin-top: 4px;
+        }
+        .cheatsheet-section {
+            border-left: 3px solid #cbd5e1;
+            padding-left: 12px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 h-screen flex flex-col font-sans text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-slate-800 text-white p-4 shadow-md flex justify-between items-center shrink-0">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-database text-yellow-400 text-2xl"></i>
+            <h1 class="text-xl font-bold tracking-wide">SQL Mastery <span class="text-slate-400 text-sm font-normal ml-2">Interactive Practice</span></h1>
+        </div>
+        <div class="text-sm text-slate-400">
+            <span id="progress-text">0/45 Completed</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-96 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-hidden">
+            <!-- Tabs -->
+            <div class="flex border-b border-slate-200">
+                <button onclick="switchTab('practice')" id="tab-practice" class="flex-1 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors tab-active">
+                    <i class="fa-solid fa-list-check mr-2"></i> Practice
+                </button>
+                <button onclick="switchTab('cheatsheet')" id="tab-cheatsheet" class="flex-1 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+                    <i class="fa-solid fa-book-open mr-2"></i> Cheatsheet
+                </button>
+            </div>
+
+            <!-- Practice List -->
+            <div id="content-practice" class="flex-1 overflow-y-auto p-2 space-y-2">
+                <!-- Levels will be injected here -->
+            </div>
+
+            <!-- Cheatsheet Content (Expanded) -->
+            <div id="content-cheatsheet" class="flex-1 overflow-y-auto p-4 hidden bg-slate-50">
+                
+                <div class="space-y-6 pb-8">
+                    <!-- Basics -->
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-3 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-cube text-blue-500"></i> 1. The Basics
+                        </h3>
+                        <div class="text-sm space-y-4">
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Retrieve Data</p>
+                                <p class="text-xs text-slate-500 mb-1">Use <span class="font-mono text-slate-600">*</span> for all columns, or list specific ones.</p>
+                                <code class="cheatsheet-code">SELECT * FROM table;</code>
+                                <code class="cheatsheet-code">SELECT name, salary FROM table;</code>
+                            </div>
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Renaming (Aliases)</p>
+                                <p class="text-xs text-slate-500 mb-1">Rename a column in the output for clarity.</p>
+                                <code class="cheatsheet-code">SELECT name AS EmployeeName FROM table;</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtering -->
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-3 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-filter text-green-500"></i> 2. Filtering (WHERE)
+                        </h3>
+                        <div class="text-sm space-y-4">
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Basic Conditions</p>
+                                <code class="cheatsheet-code">WHERE age > 18</code>
+                                <code class="cheatsheet-code">WHERE country = 'USA'</code>
+                            </div>
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Logic Gates</p>
+                                <p class="text-xs text-slate-500 mb-1"><span class="font-bold">Pro Tip:</span> AND happens before OR. Use parentheses to group logic.</p>
+                                <code class="cheatsheet-code">WHERE (A=1 AND B=2) OR C=3</code>
+                            </div>
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Handling NULLs</p>
+                                <p class="text-xs text-slate-500 mb-1">Never use <code class="bg-slate-100 px-1">= NULL</code>. It won't work.</p>
+                                <code class="cheatsheet-code">WHERE email IS NULL</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aggregates & Grouping -->
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-3 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-orange-500"></i> 4. Grouping & Totals
+                        </h3>
+                        <div class="text-sm space-y-4">
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">Aggregate Functions</p>
+                                <div class="grid grid-cols-2 gap-2 mt-1">
+                                    <code class="cheatsheet-code text-center">COUNT(*)</code>
+                                    <code class="cheatsheet-code text-center">SUM(col)</code>
+                                    <code class="cheatsheet-code text-center">AVG(col)</code>
+                                    <code class="cheatsheet-code text-center">MAX(col)</code>
+                                </div>
+                            </div>
+                            <div class="cheatsheet-section">
+                                <p class="font-semibold text-slate-700">WHERE vs HAVING</p>
+                                <ul class="list-disc pl-4 text-xs text-slate-500 mt-1 mb-1">
+                                    <li><span class="font-bold text-slate-700">WHERE:</span> Filters *raw data* before grouping.</li>
+                                    <li><span class="font-bold text-slate-700">HAVING:</span> Filters *results* after grouping.</li>
+                                </ul>
+                                <code class="cheatsheet-code">GROUP BY country <br>HAVING COUNT(*) > 5</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Master Template -->
+                    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 shadow-lg">
+                        <h3 class="font-bold text-yellow-400 mb-3 border-b border-slate-600 pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-crown"></i> 6. The Master Template
+                        </h3>
+                        <p class="text-xs text-slate-300 mb-2">The strict order you must write SQL queries:</p>
+                        <div class="font-mono text-sm space-y-2">
+                            <div class="flex gap-2"><span class="text-blue-400 font-bold w-20">SELECT</span> <span class="text-slate-300">col, AGG(col)</span></div>
+                            <div class="flex gap-2"><span class="text-blue-400 font-bold w-20">FROM</span> <span class="text-slate-300">table</span></div>
+                            <div class="flex gap-2"><span class="text-blue-400 font-bold w-20">WHERE</span> <span class="text-slate-300">condition (raw data)</span></div>
+                            <div class="flex gap-2"><span class="text-blue-400 font-bold w-20">GROUP BY</span> <span class="text-slate-300">col</span></div>
+                            <div class="flex gap-2"><span class="text-blue-400 font-bold w-20">HAVING</span> <span class="text-slate-300">condition (aggregates)</span></div>
+                            <div class="flex gap-2"><span class="text-blue-400 font-bold w-20">ORDER BY</span> <span class="text-slate-300">col ASC/DESC</span></div>
+                            <div class="flex gap-2"><span class="text-blue-400 font-bold w-20">LIMIT</span> <span class="text-slate-300">number</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+            
+            <!-- Question Area -->
+            <div class="p-6 bg-white border-b border-slate-200 shrink-0">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded" id="current-table-badge">CITY Table</span>
+                    <button onclick="toggleSchema()" class="text-xs text-slate-500 hover:text-blue-600 underline">
+                        <i class="fa-solid fa-table"></i> View Schema
+                    </button>
+                </div>
+                <h2 id="question-text" class="text-lg font-medium text-slate-800 mb-2">Select a level to begin...</h2>
+            </div>
+
+            <!-- Editor Area -->
+            <div class="p-6 flex flex-col gap-4 shrink-0 bg-slate-50">
+                <div class="shadow-sm rounded-lg border border-slate-300 overflow-hidden">
+                    <textarea id="sql-editor"></textarea>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button onclick="runUserQuery()" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded shadow-sm font-medium transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-play"></i> Run Query
+                    </button>
+                    <!-- Show Answer button removed -->
+                    <button onclick="resetLevel()" class="ml-auto text-slate-500 hover:text-red-500 px-3 py-2">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Area -->
+            <div class="flex-1 overflow-hidden flex flex-col p-6 pt-0">
+                <!-- Status Message -->
+                <div id="status-msg" class="hidden mb-4 p-4 rounded-md border"></div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full overflow-hidden">
+                    <!-- User Results -->
+                    <div class="flex flex-col h-full bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="bg-slate-50 px-4 py-2 border-b border-slate-200 text-sm font-semibold text-slate-600">Your Result</div>
+                        <div class="overflow-auto flex-1 p-0" id="user-result-container">
+                            <div class="p-8 text-center text-slate-400 italic">Run a query to see results</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Expected Results (Hidden initially or for comparison) -->
+                    <div class="flex flex-col h-full bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden transition-all">
+                        <div class="bg-slate-50 px-4 py-2 border-b border-slate-200 text-sm font-semibold text-slate-600 flex justify-between">
+                            <span>Expected Result</span>
+                            <span class="text-xs font-normal text-slate-400">(Truncated Preview)</span>
+                        </div>
+                        <div class="overflow-auto flex-1 p-0" id="expected-result-container">
+                             <div class="p-8 text-center text-slate-400 italic">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Certificate Modal -->
+            <div id="certificate-modal" class="absolute inset-0 z-50 bg-black/80 hidden flex items-center justify-center backdrop-blur-sm">
+                <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full text-center border-4 border-yellow-400">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-trophy text-yellow-500 text-3xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Course Completed!</h2>
+                    <p class="text-slate-600 mb-6">You've mastered all 45 SQL challenges. Enter your name to receive your certificate.</p>
+                    
+                    <input type="text" id="cert-name" placeholder="Enter Your Name" class="w-full px-4 py-3 rounded border border-slate-300 mb-4 focus:ring-2 focus:ring-blue-500 outline-none text-center font-bold text-lg">
+                    
+                    <button onclick="generateCertificate()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors shadow-lg">
+                        <i class="fa-solid fa-file-arrow-down mr-2"></i> Download Certificate
+                    </button>
+                    <p class="text-xs text-red-400 mt-4">*Note: Progress will reset after download.</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Schema Modal -->
+    <div id="schema-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4 overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b border-slate-200">
+                <h3 class="text-lg font-bold">Database Schema</h3>
+                <button onclick="toggleSchema()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-xl"></i></button>
+            </div>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50">
+                <!-- CITY Table -->
+                <div class="bg-white p-4 rounded border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-2 mb-3 border-b pb-2">
+                        <i class="fa-solid fa-city text-blue-500"></i>
+                        <h4 class="font-bold text-slate-700">CITY</h4>
+                    </div>
+                    <ul class="text-sm space-y-2 text-slate-600 font-mono">
+                        <li class="flex justify-between"><span>ID</span> <span class="text-slate-400">INT</span></li>
+                        <li class="flex justify-between"><span>NAME</span> <span class="text-slate-400">VARCHAR</span></li>
+                        <li class="flex justify-between"><span>COUNTRYCODE</span> <span class="text-slate-400">VARCHAR(3)</span></li>
+                        <li class="flex justify-between"><span>DISTRICT</span> <span class="text-slate-400">VARCHAR</span></li>
+                        <li class="flex justify-between"><span>POPULATION</span> <span class="text-slate-400">INT</span></li>
+                    </ul>
+                </div>
+                <!-- Employee Table -->
+                <div class="bg-white p-4 rounded border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-2 mb-3 border-b pb-2">
+                        <i class="fa-solid fa-users text-green-500"></i>
+                        <h4 class="font-bold text-slate-700">Employee</h4>
+                    </div>
+                    <ul class="text-sm space-y-2 text-slate-600 font-mono">
+                        <li class="flex justify-between"><span>employee_id</span> <span class="text-slate-400">INT</span></li>
+                        <li class="flex justify-between"><span>name</span> <span class="text-slate-400">VARCHAR</span></li>
+                        <li class="flex justify-between"><span>months</span> <span class="text-slate-400">INT</span></li>
+                        <li class="flex justify-between"><span>salary</span> <span class="text-slate-400">INT</span></li>
+                        <li class="flex justify-between"><span>group_id</span> <span class="text-slate-400">INT</span></li>
+                    </ul>
+                    <p class="text-xs text-slate-400 mt-2">*Note: The column is 'group_id' to avoid SQL reserved keyword conflicts, though practice questions refer to it as 'group'.</p>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-100 border-t border-slate-200 text-right">
+                <button onclick="toggleSchema()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. DATA INITIALIZATION ---
+        const cityData = [
+            {"ID":626,"NAME":"al-Minya","COUNTRYCODE":"EGY","DISTRICT":"al-Minya","POPULATION":201360},{"ID":762,"NAME":"Bahir Dar","COUNTRYCODE":"ETH","DISTRICT":"Amhara","POPULATION":96140},{"ID":1222,"NAME":"Tenali","COUNTRYCODE":"IND","DISTRICT":"Andhra Pradesh","POPULATION":143726},{"ID":3878,"NAME":"Scottsdale","COUNTRYCODE":"USA","DISTRICT":"Arizona","POPULATION":202705},{"ID":397,"NAME":"Lauro de Freitas","COUNTRYCODE":"BRA","DISTRICT":"Bahia","POPULATION":109236},{"ID":904,"NAME":"Banjul","COUNTRYCODE":"GMB","DISTRICT":"Banjul","POPULATION":42326},{"ID":1350,"NAME":"Dehri","COUNTRYCODE":"IND","DISTRICT":"Bihar","POPULATION":94526},{"ID":2972,"NAME":"Malabo","COUNTRYCODE":"GNQ","DISTRICT":"Bioko","POPULATION":40000},{"ID":1857,"NAME":"Kelowna","COUNTRYCODE":"CAN","DISTRICT":"British Colombia","POPULATION":89442},{"ID":552,"NAME":"Bujumbura","COUNTRYCODE":"BDI","DISTRICT":"Bujumbura","POPULATION":300000},{"ID":4054,"NAME":"Fairfield","COUNTRYCODE":"USA","DISTRICT":"California","POPULATION":92256},{"ID":3973,"NAME":"Concord","COUNTRYCODE":"USA","DISTRICT":"California","POPULATION":121780},{"ID":3965,"NAME":"Corona","COUNTRYCODE":"USA","DISTRICT":"California","POPULATION":124966},{"ID":3198,"NAME":"Dakar","COUNTRYCODE":"SEN","DISTRICT":"Cap-Vert","POPULATION":785071},{"ID":796,"NAME":"Baguio","COUNTRYCODE":"PHL","DISTRICT":"CAR","POPULATION":252386},{"ID":2922,"NAME":"Carolina","COUNTRYCODE":"PRI","DISTRICT":"Carolina","POPULATION":186076},{"ID":2602,"NAME":"Ocosingo","COUNTRYCODE":"MEX","DISTRICT":"Chiapas","POPULATION":171495},{"ID":4058,"NAME":"Boulder","COUNTRYCODE":"USA","DISTRICT":"Colorado","POPULATION":91238},{"ID":2406,"NAME":"Herakleion","COUNTRYCODE":"GRC","DISTRICT":"Crete","POPULATION":116178},{"ID":1383,"NAME":"Tabriz","COUNTRYCODE":"IRN","DISTRICT":"East Azerbaidzan","POPULATION":1191043},{"ID":990,"NAME":"Waru","COUNTRYCODE":"IDN","DISTRICT":"East Java","POPULATION":124300},{"ID":1520,"NAME":"Cesena","COUNTRYCODE":"ITA","DISTRICT":"Emilia-Romagna","POPULATION":89852},{"ID":3982,"NAME":"Coral Springs","COUNTRYCODE":"USA","DISTRICT":"Florida","POPULATION":117549},{"ID":1681,"NAME":"Omuta","COUNTRYCODE":"JPN","DISTRICT":"Fukuoka","POPULATION":142889},{"ID":1913,"NAME":"Lanzhou","COUNTRYCODE":"CHN","DISTRICT":"Gansu","POPULATION":1565800},{"ID":924,"NAME":"Villa Nueva","COUNTRYCODE":"GTM","DISTRICT":"Guatemala","POPULATION":101295},{"ID":3253,"NAME":"Hama","COUNTRYCODE":"SYR","DISTRICT":"Hama","POPULATION":343361},{"ID":3770,"NAME":"Hanoi","COUNTRYCODE":"VNM","DISTRICT":"Hanoi","POPULATION":1410000},{"ID":1895,"NAME":"Harbin","COUNTRYCODE":"CHN","DISTRICT":"Heilongjiang","POPULATION":4289800},{"ID":2153,"NAME":"Xianning","COUNTRYCODE":"CHN","DISTRICT":"Hubei","POPULATION":136811},{"ID":2193,"NAME":"Lianyuan","COUNTRYCODE":"CHN","DISTRICT":"Hunan","POPULATION":118858},{"ID":2111,"NAME":"Chenzhou","COUNTRYCODE":"CHN","DISTRICT":"Hunan","POPULATION":169400},{"ID":3977,"NAME":"Cedar Rapids","COUNTRYCODE":"USA","DISTRICT":"Iowa","POPULATION":120758},{"ID":1947,"NAME":"Changzhou","COUNTRYCODE":"CHN","DISTRICT":"Jiangsu","POPULATION":530000},{"ID":1900,"NAME":"Changchun","COUNTRYCODE":"CHN","DISTRICT":"Jilin","POPULATION":2812000},{"ID":3377,"NAME":"Kahramanmaras","COUNTRYCODE":"TUR","DISTRICT":"Kahramanmaras","POPULATION":245772},{"ID":2967,"NAME":"Grudziadz","COUNTRYCODE":"POL","DISTRICT":"Kujawsko-Pomorskie","POPULATION":102434},{"ID":2388,"NAME":"Sangju","COUNTRYCODE":"KOR","DISTRICT":"Kyongsangbuk","POPULATION":124116},{"ID":2386,"NAME":"Yongju","COUNTRYCODE":"KOR","DISTRICT":"Kyongsangbuk","POPULATION":131097},{"ID":2387,"NAME":"Chinhae","COUNTRYCODE":"KOR","DISTRICT":"Kyongsangnam","POPULATION":125997},{"ID":2384,"NAME":"Tong-yong","COUNTRYCODE":"KOR","DISTRICT":"Kyongsangnam","POPULATION":131717},{"ID":2227,"NAME":"Xingcheng","COUNTRYCODE":"CHN","DISTRICT":"Liaoning","POPULATION":102384},{"ID":2462,"NAME":"Lilongwe","COUNTRYCODE":"MWI","DISTRICT":"Lilongwe","POPULATION":435964},{"ID":1155,"NAME":"Latur","COUNTRYCODE":"IND","DISTRICT":"Maharashtra","POPULATION":197408},{"ID":4061,"NAME":"Fall River","COUNTRYCODE":"USA","DISTRICT":"Massachusetts","POPULATION":90555},{"ID":2273,"NAME":"Villavicencio","COUNTRYCODE":"COL","DISTRICT":"Meta","POPULATION":273140},{"ID":2440,"NAME":"Monrovia","COUNTRYCODE":"LBR","DISTRICT":"Montserrado","POPULATION":850000},{"ID":19,"NAME":"Zaanstad","COUNTRYCODE":"NLD","DISTRICT":"Noord-Holland","POPULATION":135621},{"ID":3073,"NAME":"Essen","COUNTRYCODE":"DEU","DISTRICT":"Nordrhein-Westfalen","POPULATION":599515},{"ID":3430,"NAME":"Odesa","COUNTRYCODE":"UKR","DISTRICT":"Odesa","POPULATION":1011000},{"ID":1613,"NAME":"Neyagawa","COUNTRYCODE":"JPN","DISTRICT":"Osaka","POPULATION":257315},{"ID":3581,"NAME":"St Petersburg","COUNTRYCODE":"RUS","DISTRICT":"Pietari","POPULATION":4694000},{"ID":2689,"NAME":"Palikir","COUNTRYCODE":"FSM","DISTRICT":"Pohnpei","POPULATION":8600},{"ID":2670,"NAME":"San Pedro Cholula","COUNTRYCODE":"MEX","DISTRICT":"Puebla","POPULATION":99734},{"ID":2716,"NAME":"Sittwe (Akyab)","COUNTRYCODE":"MMR","DISTRICT":"Rakhine","POPULATION":137600},{"ID":214,"NAME":"Porto Alegre","COUNTRYCODE":"BRA","DISTRICT":"Rio Grande do Sul","POPULATION":1314032},{"ID":1661,"NAME":"Sayama","COUNTRYCODE":"JPN","DISTRICT":"Saitama","POPULATION":162472},{"ID":1630,"NAME":"Ageo","COUNTRYCODE":"JPN","DISTRICT":"Saitama","POPULATION":209442},{"ID":646,"NAME":"Santa Ana","COUNTRYCODE":"SLV","DISTRICT":"Santa Ana","POPULATION":139389},{"ID":554,"NAME":"Santiago de Chile","COUNTRYCODE":"CHL","DISTRICT":"Santiago","POPULATION":4703954},{"ID":2081,"NAME":"Heze","COUNTRYCODE":"CHN","DISTRICT":"Shandong","POPULATION":189293},{"ID":2070,"NAME":"Dezhou","COUNTRYCODE":"CHN","DISTRICT":"Shandong","POPULATION":195485},{"ID":2609,"NAME":"Nogales","COUNTRYCODE":"MEX","DISTRICT":"Sonora","POPULATION":159103},{"ID":3353,"NAME":"Sousse","COUNTRYCODE":"TUN","DISTRICT":"Sousse","POPULATION":145900},{"ID":896,"NAME":"Malungon","COUNTRYCODE":"PHL","DISTRICT":"Southern Mindanao","POPULATION":93232},{"ID":3288,"NAME":"Luchou","COUNTRYCODE":"TWN","DISTRICT":"Taipei","POPULATION":160516},{"ID":1293,"NAME":"Pallavaram","COUNTRYCODE":"IND","DISTRICT":"Tamil Nadu","POPULATION":111866},{"ID":1279,"NAME":"Neyveli","COUNTRYCODE":"IND","DISTRICT":"Tamil Nadu","POPULATION":118080},{"ID":1256,"NAME":"Alandur","COUNTRYCODE":"IND","DISTRICT":"Tamil Nadu","POPULATION":125244},{"ID":1235,"NAME":"Tirunelveli","COUNTRYCODE":"IND","DISTRICT":"Tamil Nadu","POPULATION":135825},{"ID":3309,"NAME":"Tanga","COUNTRYCODE":"TZA","DISTRICT":"Tanga","POPULATION":137400},{"ID":2505,"NAME":"Taza","COUNTRYCODE":"MAR","DISTRICT":"Taza-Al Hoceima-Taou","POPULATION":92700},{"ID":1385,"NAME":"Karaj","COUNTRYCODE":"IRN","DISTRICT":"Teheran","POPULATION":940968},{"ID":2706,"NAME":"Tete","COUNTRYCODE":"MOZ","DISTRICT":"Tete","POPULATION":101984},{"ID":3815,"NAME":"El Paso","COUNTRYCODE":"USA","DISTRICT":"Texas","POPULATION":563662},{"ID":2192,"NAME":"Lhasa","COUNTRYCODE":"CHN","DISTRICT":"Tibet","POPULATION":120000},{"ID":1508,"NAME":"Bolzano","COUNTRYCODE":"ITA","DISTRICT":"Trentino-Alto Adige","POPULATION":97232},{"ID":3169,"NAME":"Apia","COUNTRYCODE":"WSM","DISTRICT":"Upolu","POPULATION":35900},{"ID":547,"NAME":"Dobric","COUNTRYCODE":"BGR","DISTRICT":"Varna","POPULATION":100399},{"ID":2555,"NAME":"Xalapa","COUNTRYCODE":"MEX","DISTRICT":"Veracruz","POPULATION":390058},{"ID":1793,"NAME":"Novi Sad","COUNTRYCODE":"YUG","DISTRICT":"Vojvodina","POPULATION":179626},{"ID":1739,"NAME":"Tokuyama","COUNTRYCODE":"JPN","DISTRICT":"Yamaguchi","POPULATION":107078},{"ID":6,"NAME":"Rotterdam","COUNTRYCODE":"NLD","DISTRICT":"Zuid-Holland","POPULATION":593321},
+            // Additional Data for String/Null/Math testing
+            {ID: 9001, NAME: '  TrimMe  ', COUNTRYCODE: 'TST', DISTRICT: null, POPULATION: 500}, 
+            {ID: 9002, NAME: 'short', COUNTRYCODE: 'TST', DISTRICT: 'TestDist', POPULATION: 100},
+            {ID: 9003, NAME: 'Special', COUNTRYCODE: 'TST', DISTRICT: null, POPULATION: 1234}
+        ];
+
+        const employeeData = [{"employee_id":330,"name":"Rose","months":5,"salary":2248,"group_id":1},{"employee_id":1233,"name":"Angela","months":7,"salary":1296,"group_id":2},{"employee_id":1901,"name":"Frank","months":10,"salary":2763,"group_id":3},{"employee_id":2035,"name":"Patrick","months":1,"salary":4583,"group_id":4},{"employee_id":2405,"name":"Lisa","months":7,"salary":4350,"group_id":5},{"employee_id":2974,"name":"Kimberly","months":11,"salary":2874,"group_id":6},{"employee_id":3190,"name":"Bonnie","months":11,"salary":3758,"group_id":7},{"employee_id":3506,"name":"Michael","months":9,"salary":1936,"group_id":8},{"employee_id":3708,"name":"Todd","months":22,"salary":4046,"group_id":9},{"employee_id":4428,"name":"Joe","months":22,"salary":3802,"group_id":10},{"employee_id":5962,"name":"Earl","months":11,"salary":2958,"group_id":1},{"employee_id":6060,"name":"Robert","months":22,"salary":4128,"group_id":2},{"employee_id":6418,"name":"Amy","months":2,"salary":4832,"group_id":3},{"employee_id":7466,"name":"Pamela","months":1,"salary":4199,"group_id":4},{"employee_id":9102,"name":"Maria","months":11,"salary":2958,"group_id":5},{"employee_id":11863,"name":"Joe","months":18,"salary":1721,"group_id":6},{"employee_id":12004,"name":"Linda","months":15,"salary":2306,"group_id":7},{"employee_id":12387,"name":"Melissa","months":20,"salary":1854,"group_id":8},{"employee_id":13835,"name":"Carol","months":20,"salary":4340,"group_id":9},{"employee_id":15151,"name":"Paula","months":15,"salary":1526,"group_id":10},{"employee_id":15286,"name":"Marilyn","months":10,"salary":3087,"group_id":1},{"employee_id":15675,"name":"Jennifer","months":2,"salary":2336,"group_id":2},{"employee_id":16493,"name":"Harry","months":14,"salary":4755,"group_id":3},{"employee_id":17858,"name":"David","months":13,"salary":3658,"group_id":4},{"employee_id":19035,"name":"Julia","months":4,"salary":2195,"group_id":5},{"employee_id":19172,"name":"Kevin","months":1,"salary":2113,"group_id":6},{"employee_id":21638,"name":"Paul","months":6,"salary":3120,"group_id":7},{"employee_id":22684,"name":"James","months":14,"salary":1370,"group_id":8},{"employee_id":23621,"name":"Kelly","months":7,"salary":1923,"group_id":9},{"employee_id":24011,"name":"Robin","months":22,"salary":1880,"group_id":10},{"employee_id":24611,"name":"Ralph","months":22,"salary":1495,"group_id":1},{"employee_id":25109,"name":"Gloria","months":2,"salary":1979,"group_id":2},{"employee_id":25120,"name":"Victor","months":20,"salary":1557,"group_id":3},{"employee_id":28247,"name":"David","months":23,"salary":2212,"group_id":4},{"employee_id":30183,"name":"Joyce","months":20,"salary":2748,"group_id":5},{"employee_id":30712,"name":"Donna","months":8,"salary":2604,"group_id":6},{"employee_id":32502,"name":"Michelle","months":1,"salary":2086,"group_id":7},{"employee_id":32654,"name":"Stephanie","months":17,"salary":1444,"group_id":8},{"employee_id":33086,"name":"Gerald","months":23,"salary":2206,"group_id":9},{"employee_id":33132,"name":"Walter","months":11,"salary":4180,"group_id":10},{"employee_id":37008,"name":"Christina","months":8,"salary":3100,"group_id":1},{"employee_id":38246,"name":"Brandon","months":3,"salary":4339,"group_id":2},{"employee_id":38272,"name":"Elizabeth","months":23,"salary":3967,"group_id":3},{"employee_id":38964,"name":"Joseph","months":4,"salary":2194,"group_id":4},{"employee_id":39789,"name":"Lawrence","months":9,"salary":1872,"group_id":5},{"employee_id":40797,"name":"Marilyn","months":15,"salary":2112,"group_id":6},{"employee_id":41228,"name":"Lori","months":13,"salary":4350,"group_id":7},{"employee_id":44436,"name":"Matthew","months":15,"salary":4673,"group_id":8},{"employee_id":45285,"name":"Jesse","months":1,"salary":3768,"group_id":9},{"employee_id":47458,"name":"John","months":13,"salary":3104,"group_id":10},{"employee_id":47496,"name":"Martha","months":15,"salary":4020,"group_id":1},{"employee_id":47920,"name":"Timothy","months":10,"salary":1745,"group_id":2},{"employee_id":48129,"name":"Christine","months":22,"salary":3738,"group_id":3},{"employee_id":50664,"name":"Anthony","months":22,"salary":4912,"group_id":4},{"employee_id":51741,"name":"Paula","months":1,"salary":2492,"group_id":5},{"employee_id":52923,"name":"Kimberly","months":17,"salary":1955,"group_id":6},{"employee_id":55238,"name":"Louise","months":1,"salary":2717,"group_id":7},{"employee_id":56775,"name":"Martin","months":16,"salary":1385,"group_id":8},{"employee_id":57065,"name":"Paul","months":23,"salary":3379,"group_id":9},{"employee_id":58343,"name":"Antonio","months":21,"salary":3268,"group_id":10},{"employee_id":59256,"name":"Jacqueline","months":14,"salary":3913,"group_id":1},{"employee_id":60119,"name":"Diana","months":13,"salary":5149,"group_id":2},{"employee_id":61191,"name":"John","months":5,"salary":1775,"group_id":3},{"employee_id":65288,"name":"Dorothy","months":22,"salary":3792,"group_id":4},{"employee_id":65375,"name":"Evelyn","months":6,"salary":4079,"group_id":5},{"employee_id":66442,"name":"Phillip","months":9,"salary":1894,"group_id":6},{"employee_id":67137,"name":"Evelyn","months":15,"salary":1311,"group_id":7},{"employee_id":68942,"name":"Debra","months":20,"salary":3704,"group_id":8},{"employee_id":69085,"name":"David","months":11,"salary":1845,"group_id":9},{"employee_id":69234,"name":"Willie","months":12,"salary":5088,"group_id":10},{"employee_id":69475,"name":"Brandon","months":19,"salary":2279,"group_id":1},{"employee_id":69787,"name":"Ann","months":9,"salary":1311,"group_id":2},{"employee_id":70963,"name":"Emily","months":8,"salary":5247,"group_id":3},{"employee_id":71569,"name":"Dorothy","months":22,"salary":4088,"group_id":4},{"employee_id":72030,"name":"Jonathan","months":4,"salary":5009,"group_id":5},{"employee_id":72370,"name":"Dorothy","months":18,"salary":3174,"group_id":6},{"employee_id":72785,"name":"Marilyn","months":1,"salary":1860,"group_id":7},{"employee_id":72974,"name":"Norma","months":21,"salary":1558,"group_id":8},{"employee_id":74662,"name":"Nancy","months":6,"salary":3223,"group_id":9},{"employee_id":76876,"name":"Andrew","months":11,"salary":1746,"group_id":10},{"employee_id":77609,"name":"Keith","months":2,"salary":1219,"group_id":1},{"employee_id":78101,"name":"Benjamin","months":7,"salary":4414,"group_id":2},{"employee_id":79744,"name":"Charles","months":11,"salary":1911,"group_id":3},{"employee_id":80475,"name":"Alan","months":16,"salary":1853,"group_id":4},{"employee_id":80895,"name":"Tammy","months":8,"salary":1591,"group_id":5},{"employee_id":81381,"name":"Anna","months":16,"salary":1569,"group_id":6},{"employee_id":82828,"name":"James","months":23,"salary":4398,"group_id":7},{"employee_id":85287,"name":"Robin","months":23,"salary":2078,"group_id":8},{"employee_id":87170,"name":"Jean","months":18,"salary":3895,"group_id":9},{"employee_id":87355,"name":"Andrew","months":15,"salary":1446,"group_id":10},{"employee_id":89017,"name":"Roy","months":8,"salary":3443,"group_id":1},{"employee_id":90507,"name":"Diana","months":9,"salary":5101,"group_id":2},{"employee_id":90558,"name":"Christina","months":23,"salary":3498,"group_id":3},{"employee_id":92908,"name":"Jesse","months":13,"salary":4753,"group_id":4},{"employee_id":95322,"name":"Joyce","months":18,"salary":1577,"group_id":5},{"employee_id":95983,"name":"Patricia","months":23,"salary":1469,"group_id":6},{"employee_id":96963,"name":"Gregory","months":16,"salary":5071,"group_id":7},{"employee_id":97178,"name":"Brian","months":19,"salary":3144,"group_id":8},{"employee_id":98271,"name":"Christine","months":3,"salary":3796,"group_id":9},{"employee_id":98491,"name":"Lillian","months":3,"salary":1920,"group_id":10},
+                             // Add a high earner to Group 1 to support complex queries (Level 43/44)
+            {employee_id: 90001, name: 'Elon', months: 30, salary: 15000, group_id: 1}
+                             ];
+
+        alasql('CREATE TABLE CITY (ID INT, NAME STRING, COUNTRYCODE STRING, DISTRICT STRING, POPULATION INT)');
+        alasql('CREATE TABLE Employee (employee_id INT, name STRING, months INT, salary INT, group_id INT)');
+        
+        alasql.tables.CITY.data = cityData;
+        alasql.tables.Employee.data = employeeData;
+
+        // --- 2. GAME LEVELS CONFIGURATION ---
+
+        const levels = [
+            // --- BASICS ---
+            {
+                id: 1,
+                category: "CITY",
+                skill: "#select *",
+                difficulty: "Beginner",
+                question: "Query all columns for every row in the CITY table.",
+                expectedSQL: "SELECT * FROM CITY",
+                hint: "Use `SELECT * FROM CITY`."
+            },
+            {
+                id: 2,
+                category: "CITY",
+                skill: "#select col",
+                difficulty: "Beginner",
+                question: "Query only the NAME and POPULATION for all cities.",
+                expectedSQL: "SELECT NAME, POPULATION FROM CITY",
+                hint: "Separate column names with a comma."
+            },
+            {
+                id: 3,
+                category: "CITY",
+                skill: "#distinct",
+                difficulty: "Beginner",
+                question: "Query a list of unique districts from the CITY table.",
+                expectedSQL: "SELECT DISTINCT DISTRICT FROM CITY",
+                hint: "Use `SELECT DISTINCT DISTRICT ...`."
+            },
+
+            // --- FILTERING & LOGIC ---
+            {
+                id: 4,
+                category: "CITY",
+                skill: "#where #and",
+                difficulty: "Beginner",
+                question: "Query cities in 'USA' with population > 100000.",
+                expectedSQL: "SELECT * FROM CITY WHERE COUNTRYCODE = 'USA' AND POPULATION > 100000",
+                hint: "Use `WHERE condition1 AND condition2`."
+            },
+            {
+                id: 5,
+                category: "Employee",
+                skill: "#where #or",
+                difficulty: "Beginner",
+                question: "Find employees who are in Group 1 OR have a salary < 1500.",
+                expectedSQL: "SELECT * FROM Employee WHERE group_id = 1 OR salary < 1500",
+                hint: "Use `WHERE ... OR ...`."
+            },
+            {
+                id: 6,
+                category: "CITY",
+                skill: "#not",
+                difficulty: "Beginner",
+                question: "Query all cities that are NOT in the 'USA'.",
+                expectedSQL: "SELECT * FROM CITY WHERE NOT COUNTRYCODE = 'USA'",
+                hint: "Use `WHERE NOT` or `!=` or `<>`."
+            },
+            {
+                id: 7,
+                category: "Employee",
+                skill: "#in",
+                difficulty: "Intermediate",
+                question: "Find employees whose group_id is 1, 2, or 3.",
+                expectedSQL: "SELECT * FROM Employee WHERE group_id IN (1, 2, 3)",
+                hint: "Use `WHERE column IN (val1, val2, ...)`."
+            },
+            {
+                id: 8,
+                category: "CITY",
+                skill: "#between",
+                difficulty: "Intermediate",
+                question: "Query cities with population between 100,000 and 200,000.",
+                expectedSQL: "SELECT * FROM CITY WHERE POPULATION BETWEEN 100000 AND 200000",
+                hint: "Use `WHERE column BETWEEN x AND y`."
+            },
+
+            // --- NULL HANDLING ---
+            {
+                id: 9,
+                category: "CITY",
+                skill: "#is null",
+                difficulty: "Intermediate",
+                question: "Find cities where the DISTRICT is NULL (missing).",
+                expectedSQL: "SELECT * FROM CITY WHERE DISTRICT IS NULL",
+                hint: "Use `WHERE column IS NULL`. Cannot use `= NULL`."
+            },
+            {
+                id: 10,
+                category: "CITY",
+                skill: "#is not null",
+                difficulty: "Intermediate",
+                question: "Find cities where the DISTRICT is NOT NULL.",
+                expectedSQL: "SELECT * FROM CITY WHERE DISTRICT IS NOT NULL",
+                hint: "Use `WHERE column IS NOT NULL`."
+            },
+
+            // --- PATTERN MATCHING ---
+            {
+                id: 11,
+                category: "CITY",
+                skill: "#like %",
+                difficulty: "Intermediate",
+                question: "Find cities starting with 'A'.",
+                expectedSQL: "SELECT * FROM CITY WHERE NAME LIKE 'A%'",
+                hint: "Use `LIKE 'A%'`. `%` matches any sequence."
+            },
+            {
+                id: 12,
+                category: "Employee",
+                skill: "#like _",
+                difficulty: "Intermediate",
+                question: "Find employees whose name is exactly 4 characters long and starts with 'R'.",
+                expectedSQL: "SELECT * FROM Employee WHERE name LIKE 'R___'",
+                hint: "Use `LIKE 'R___'` (three underscores). `_` matches exactly one character."
+            },
+
+            // --- SORTING & LIMITS ---
+            {
+                id: 13,
+                category: "Employee",
+                skill: "#order #limit",
+                difficulty: "Intermediate",
+                question: "Find the top 3 highest paid employees.",
+                expectedSQL: "SELECT * FROM Employee ORDER BY salary DESC LIMIT 3",
+                hint: "Order descending and use `LIMIT 3`."
+            },
+
+            // --- STRING FUNCTIONS ---
+            {
+                id: 14,
+                category: "CITY",
+                skill: "#len",
+                difficulty: "Intermediate",
+                question: "Select city name and the length of the name (use LEN or CHAR_LENGTH).",
+                expectedSQL: "SELECT NAME, LEN(NAME) FROM CITY",
+                hint: "Use `LEN(column)`."
+            },
+            {
+                id: 15,
+                category: "Employee",
+                skill: "#upper #lower",
+                difficulty: "Intermediate",
+                question: "Select employee names in all uppercase.",
+                expectedSQL: "SELECT UPPER(name) FROM Employee",
+                hint: "Use `UPPER(column)`."
+            },
+            {
+                id: 16,
+                category: "CITY",
+                skill: "#substring",
+                difficulty: "Intermediate",
+                question: "Select the first 3 characters of each city name (use SUBSTRING, SUBSTR, or MID).",
+                expectedSQL: "SELECT SUBSTRING(NAME, 1, 3) FROM CITY",
+                hint: "Use `SUBSTRING(col, start, length)`."
+            },
+            {
+                id: 17,
+                category: "CITY",
+                skill: "#trim",
+                difficulty: "Intermediate",
+                question: "Select all cities, but trim leading/trailing spaces from the NAME.",
+                expectedSQL: "SELECT TRIM(NAME) FROM CITY",
+                hint: "Use `TRIM(column)` to remove extra spaces."
+            },
+             {
+                id: 18,
+                category: "CITY",
+                skill: "#space #concat",
+                difficulty: "Intermediate",
+                question: "Select Name and CountryCode combined with 3 spaces in between.",
+                expectedSQL: "SELECT NAME + SPACE(3) + COUNTRYCODE FROM CITY",
+                hint: "Use `SPACE(3)` and the `+` operator for concatenation."
+            },
+
+            // --- MATH FUNCTIONS ---
+            {
+                id: 19,
+                category: "Employee",
+                skill: "#abs",
+                difficulty: "Intermediate",
+                question: "Calculate the absolute difference between salary and 3000.",
+                expectedSQL: "SELECT ABS(salary - 3000) FROM Employee",
+                hint: "Use `ABS(expression)`."
+            },
+            {
+                id: 20,
+                category: "CITY",
+                skill: "#int #floor",
+                difficulty: "Intermediate",
+                question: "Calculate population in thousands (divide by 1000) rounded down to an integer.",
+                expectedSQL: "SELECT FLOOR(POPULATION / 1000) FROM CITY",
+                hint: "Use `FLOOR(val)` or `INT(val)`."
+            },
+
+            // --- AGGREGATES ---
+            {
+                id: 21,
+                category: "Employee",
+                skill: "#count",
+                difficulty: "Advanced",
+                question: "Count total number of employees.",
+                expectedSQL: "SELECT COUNT(*) FROM Employee",
+                hint: "Use `COUNT(*)`."
+            },
+            {
+                id: 22,
+                category: "Employee",
+                skill: "#sum",
+                difficulty: "Advanced",
+                question: "Calculate sum of all salaries.",
+                expectedSQL: "SELECT SUM(salary) FROM Employee",
+                hint: "Use `SUM(salary)`."
+            },
+            {
+                id: 23,
+                category: "Employee",
+                skill: "#avg",
+                difficulty: "Advanced",
+                question: "Calculate average months of experience.",
+                expectedSQL: "SELECT AVG(months) FROM Employee",
+                hint: "Use `AVG(months)`."
+            },
+            {
+                id: 24,
+                category: "Employee",
+                skill: "#min #max",
+                difficulty: "Advanced",
+                question: "Find the minimum and maximum salary.",
+                expectedSQL: "SELECT MIN(salary), MAX(salary) FROM Employee",
+                hint: "Use `MIN` and `MAX` separated by comma."
+            },
+
+            // --- GROUPING ---
+            {
+                id: 25,
+                category: "CITY",
+                skill: "#groupby",
+                difficulty: "Advanced",
+                question: "Count number of cities in each CountryCode.",
+                expectedSQL: "SELECT COUNTRYCODE, COUNT(*) FROM CITY GROUP BY COUNTRYCODE",
+                hint: "Use `GROUP BY COUNTRYCODE`."
+            },
+            {
+                id: 26,
+                category: "Employee",
+                skill: "#groupby #avg",
+                difficulty: "Advanced",
+                question: "Calculate average salary for each group_id.",
+                expectedSQL: "SELECT group_id, AVG(salary) FROM Employee GROUP BY group_id",
+                hint: "Select group_id and AVG, then group by group_id."
+            },
+            {
+                id: 27,
+                category: "Employee",
+                skill: "#having",
+                difficulty: "Advanced",
+                question: "Find group_ids where the average salary is > 3000.",
+                expectedSQL: "SELECT group_id FROM Employee GROUP BY group_id HAVING AVG(salary) > 3000",
+                hint: "Use `HAVING` after `GROUP BY` to filter aggregates."
+            },
+
+            // --- CHALLENGES & MIXED ---
+            {
+                id: 28,
+                category: "Employee",
+                skill: "#math #filter",
+                difficulty: "Challenge",
+                question: "Find employees whose salary is an even number (remainder of division by 2 is 0).",
+                expectedSQL: "SELECT * FROM Employee WHERE salary % 2 = 0",
+                hint: "Use the modulo operator `%`."
+            },
+            {
+                id: 29,
+                category: "CITY",
+                skill: "#string #filter",
+                difficulty: "Challenge",
+                question: "Find cities where the name is longer than 10 characters.",
+                expectedSQL: "SELECT * FROM CITY WHERE LEN(NAME) > 10",
+                hint: "Use `WHERE LEN(NAME) > 10`."
+            },
+            {
+                id: 30,
+                category: "Employee",
+                skill: "#complex",
+                difficulty: "Challenge",
+                question: "Find employees in Group 1 with salary > 2000 OR in Group 2 with salary > 3000.",
+                expectedSQL: "SELECT * FROM Employee WHERE (group_id = 1 AND salary > 2000) OR (group_id = 2 AND salary > 3000)",
+                hint: "Use parentheses to group logical conditions."
+            },
+            {
+                id: 31,
+                category: "CITY",
+                skill: "#is null #or",
+                difficulty: "Challenge",
+                question: "Find cities where District is NULL or CountryCode is 'TST'.",
+                expectedSQL: "SELECT * FROM CITY WHERE DISTRICT IS NULL OR COUNTRYCODE = 'TST'",
+                hint: "Combine `IS NULL` with `OR`."
+            },
+            {
+                id: 32,
+                category: "Employee",
+                skill: "#round",
+                difficulty: "Challenge",
+                question: "Show name and salary divided by 12, rounded to 0 decimals.",
+                expectedSQL: "SELECT name, ROUND(salary / 12, 0) FROM Employee",
+                hint: "Use `ROUND(val, 0)`."
+            },
+            {
+                id: 33,
+                category: "CITY",
+                skill: "#count #distinct",
+                difficulty: "Challenge",
+                question: "Count how many unique CountryCodes exist in the table.",
+                expectedSQL: "SELECT COUNT(DISTINCT COUNTRYCODE) FROM CITY",
+                hint: "Use `COUNT(DISTINCT column)`."
+            },
+            {
+                id: 34,
+                category: "Employee",
+                skill: "#string #wildcard",
+                difficulty: "Challenge",
+                question: "Find employees where the name contains 'a' as the second letter.",
+                expectedSQL: "SELECT * FROM Employee WHERE name LIKE '_a%'",
+                hint: "Use `_a%`."
+            },
+             {
+                id: 35,
+                category: "CITY",
+                skill: "#logic #between",
+                difficulty: "Challenge",
+                question: "Find cities NOT in USA with population between 50k and 150k.",
+                expectedSQL: "SELECT * FROM CITY WHERE COUNTRYCODE != 'USA' AND POPULATION BETWEEN 50000 AND 150000",
+                hint: "Combine `!=` and `BETWEEN`."
+            },
+            {
+                id: 36,
+                category: "Employee",
+                skill: "#calc #sort",
+                difficulty: "Challenge",
+                question: "List employees sorted by their salary per month (salary/months) descending.",
+                expectedSQL: "SELECT * FROM Employee ORDER BY salary / months DESC",
+                hint: "You can calculate in the ORDER BY clause."
+            },
+            {
+                id: 37,
+                category: "CITY",
+                skill: "#avg #having",
+                difficulty: "Challenge",
+                question: "Show CountryCodes where the average population is less than 150,000.",
+                expectedSQL: "SELECT COUNTRYCODE FROM CITY GROUP BY COUNTRYCODE HAVING AVG(POPULATION) < 150000",
+                hint: "Use `GROUP BY` and `HAVING`."
+            },
+             {
+                id: 38,
+                category: "Employee",
+                skill: "#alias",
+                difficulty: "Challenge",
+                question: "Select name and salary, renaming salary to 'Monthly_Pay'.",
+                expectedSQL: "SELECT name, salary AS Monthly_Pay FROM Employee",
+                hint: "Use `AS` keyword."
+            },
+             {
+                id: 39,
+                category: "Employee",
+                skill: "#math #function",
+                difficulty: "Challenge",
+                question: "Find the square root of salary for employees in group 2.",
+                expectedSQL: "SELECT SQRT(salary) FROM Employee WHERE group_id = 2",
+                hint: "Use `SQRT(num)`."
+            },
+            {
+                id: 40,
+                category: "Employee",
+                skill: "#master",
+                difficulty: "Challenge",
+                question: "Find the average salary of employees whose name starts with 'A', grouped by group_id.",
+                expectedSQL: "SELECT group_id, AVG(salary) FROM Employee WHERE name LIKE 'A%' GROUP BY group_id",
+                hint: "Filter first with WHERE, then GROUP BY."
+            },
+
+            // --- INTEGRATED MASTERY (BOSS LEVELS) ---
+            {
+                id: 41,
+                category: "CITY",
+                skill: "#as #groupby",
+                difficulty: "Mastery",
+                question: "Count cities per CountryCode. Alias the count as 'City_Count'.",
+                expectedSQL: "SELECT COUNTRYCODE, COUNT(*) AS City_Count FROM CITY GROUP BY COUNTRYCODE",
+                hint: "SELECT col, COUNT(*) AS alias ... GROUP BY col"
+            },
+            {
+                id: 42,
+                category: "Employee",
+                skill: "#as #group #having",
+                difficulty: "Mastery",
+                question: "Calculate Average Salary per group, aliased as 'Avg_Sal'. Only show groups where Avg_Sal > 3000.",
+                expectedSQL: "SELECT group_id, AVG(salary) AS Avg_Sal FROM Employee GROUP BY group_id HAVING AVG(salary) > 3000",
+                hint: "Use HAVING with the aggregate function (AVG) or alias."
+            },
+            {
+                id: 43,
+                category: "Employee",
+                skill: "#as #group #order",
+                difficulty: "Mastery",
+                question: "Calculate Total Salary ('Sum_Sal') per group. Show only where Sum_Sal < 5000. Order by Sum_Sal descending.",
+                expectedSQL: "SELECT group_id, SUM(salary) AS Sum_Sal FROM Employee GROUP BY group_id HAVING SUM(salary) < 5000 ORDER BY Sum_Sal DESC",
+                hint: "GROUP BY ... HAVING ... ORDER BY alias."
+            },
+            {
+                id: 44,
+                category: "Employee",
+                skill: "#all_clauses",
+                difficulty: "Mastery",
+                question: "1. Filter out employees starting with 'A'. 2. Group by group_id. 3. Show Max Salary ('Max_Pay'). 4. Keep groups where Max_Pay > 2000. 5. Order by Max_Pay ascending.",
+                expectedSQL: "SELECT group_id, MAX(salary) AS Max_Pay FROM Employee WHERE name NOT LIKE 'A%' GROUP BY group_id HAVING MAX(salary) > 2000 ORDER BY Max_Pay ASC",
+                hint: "WHERE filters rows -> GROUP BY -> HAVING filters groups."
+            },
+            {
+                id: 45,
+                category: "Employee",
+                skill: "#efficiency_calc",
+                difficulty: "Mastery",
+                question: "Calculate 'Efficiency' (salary / months) for employees with > 5 months exp. Order by Efficiency descending.",
+                expectedSQL: "SELECT name, salary / months AS Efficiency FROM Employee WHERE months > 5 ORDER BY Efficiency DESC",
+                hint: "Calc in Select, Alias it, Filter in Where, Order by Alias."
+            }
+        ];
+
+        // --- 3. APPLICATION STATE & LOGIC ---
+
+        let currentLevelIndex = 0;
+        let editor;
+        let completedLevels = new Set();
+
+        window.onload = function() {
+            // Initialize CodeMirror
+            editor = CodeMirror.fromTextArea(document.getElementById('sql-editor'), {
+                mode: 'text/x-sql',
+                theme: 'dracula',
+                lineNumbers: true,
+                smartIndent: true,
+                extraKeys: {"Ctrl-Enter": runUserQuery}
+            });
+
+            renderLevelList();
+            loadLevel(0);
+        };
+
+        function renderLevelList() {
+            const listContainer = document.getElementById('content-practice');
+            listContainer.innerHTML = '';
+            
+            levels.forEach((level, index) => {
+                const isCompleted = completedLevels.has(level.id);
+                const isActive = index === currentLevelIndex;
+                
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-md cursor-pointer text-sm flex items-center justify-between transition-colors ${
+                    isActive ? 'bg-blue-100 border-blue-300 border text-blue-800' : 
+                    'bg-white border border-transparent hover:bg-slate-50 hover:border-slate-200 text-slate-600'
+                }`;
+                div.onclick = () => loadLevel(index);
+
+                // Add difficulty color badge
+                let diffColor = "text-slate-400";
+                if(level.difficulty === "Beginner") diffColor = "text-green-500";
+                if(level.difficulty === "Intermediate") diffColor = "text-blue-500";
+                if(level.difficulty === "Advanced") diffColor = "text-orange-500";
+                if(level.difficulty === "Challenge") diffColor = "text-red-500";
+                if(level.difficulty === "Mastery") diffColor = "text-purple-600 font-bold";
+
+                const left = document.createElement('div');
+                left.className = "flex items-center gap-2";
+                left.innerHTML = `<span class="font-bold w-5 text-slate-400 text-xs">${index + 1}.</span> 
+                    <div class="flex flex-col">
+                        <span class="truncate w-40 font-mono text-xs font-semibold text-slate-600">${level.skill}</span>
+                        <span class="text-[10px] ${diffColor}">${level.difficulty}</span>
+                    </div>`;
+
+                const icon = document.createElement('i');
+                if (isCompleted) {
+                    icon.className = "fa-solid fa-check-circle text-green-500";
+                } else {
+                    icon.className = "fa-regular fa-circle text-slate-300";
+                }
+
+                div.appendChild(left);
+                div.appendChild(icon);
+                listContainer.appendChild(div);
+            });
+
+            document.getElementById('progress-text').innerText = `${completedLevels.size}/${levels.length} Completed`;
+        }
+
+        function loadLevel(index) {
+            currentLevelIndex = index;
+            const level = levels[index];
+            
+            document.getElementById('question-text').innerText = level.question;
+            document.getElementById('current-table-badge').innerText = `${level.category} Table`;
+            document.getElementById('current-table-badge').className = level.category === 'CITY' 
+                ? 'bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded'
+                : 'bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded';
+
+            // Reset UI
+            document.getElementById('status-msg').className = 'hidden mb-4 p-4 rounded-md border';
+            document.getElementById('user-result-container').innerHTML = '<div class="p-8 text-center text-slate-400 italic">Run a query to see results</div>';
+            
+            editor.setValue("");
+            editor.focus();
+            
+            // Re-render list to show active state
+            renderLevelList();
+            
+            // Generate expected result silently
+            try {
+                const expectedRes = alasql(level.expectedSQL);
+                renderTable(expectedRes, 'expected-result-container', true);
+            } catch (e) {
+                console.error("Error generating expected result:", e);
+            }
+        }
+
+        function switchTab(tabName) {
+            const practiceBtn = document.getElementById('tab-practice');
+            const sheetBtn = document.getElementById('tab-cheatsheet');
+            const practiceContent = document.getElementById('content-practice');
+            const sheetContent = document.getElementById('content-cheatsheet');
+
+            if (tabName === 'practice') {
+                practiceBtn.classList.add('tab-active', 'bg-slate-50', 'text-blue-800');
+                sheetBtn.classList.remove('tab-active', 'bg-slate-50', 'text-blue-800');
+                
+                practiceContent.classList.remove('hidden');
+                sheetContent.classList.add('hidden');
+            } else {
+                sheetBtn.classList.add('tab-active', 'bg-slate-50', 'text-blue-800');
+                practiceBtn.classList.remove('tab-active', 'bg-slate-50', 'text-blue-800');
+
+                sheetContent.classList.remove('hidden');
+                practiceContent.classList.add('hidden');
+            }
+        }
+
+        function runUserQuery() {
+            const userSQL = editor.getValue().trim();
+            const statusDiv = document.getElementById('status-msg');
+            
+            if (!userSQL) {
+                statusDiv.innerText = "Please enter a SQL query.";
+                statusDiv.className = "block mb-4 p-4 rounded-md border bg-yellow-50 border-yellow-200 text-yellow-800";
+                return;
+            }
+
+            try {
+                // 1. Run User Query
+                const userResult = alasql(userSQL);
+                renderTable(userResult, 'user-result-container');
+
+                // 2. Run Expected Query
+                const level = levels[currentLevelIndex];
+                const expectedResult = alasql(level.expectedSQL);
+
+                // 3. Compare
+                const isCorrect = JSON.stringify(userResult) === JSON.stringify(expectedResult);
+
+                if (isCorrect) {
+                    statusDiv.innerHTML = `<div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-green-600 text-xl"></i> <div><strong>Correct!</strong> Great job.</div></div>`;
+                    statusDiv.className = "block mb-4 p-4 rounded-md border bg-green-50 border-green-200 text-green-800";
+                    completedLevels.add(level.id);
+                    renderLevelList();
+                    
+                    // CHECK FOR COMPLETION
+                    if (completedLevels.size === levels.length) {
+                        setTimeout(() => {
+                             document.getElementById('certificate-modal').classList.remove('hidden');
+                        }, 800);
+                    }
+
+                } else {
+                    statusDiv.innerHTML = `<div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-2"><i class="fa-solid fa-xmark-circle text-red-600 text-xl"></i> <div><strong>Incorrect.</strong> Your result doesn't match the expected output.</div></div>
+                        <div class="text-sm bg-yellow-50 text-yellow-800 p-2 rounded border border-yellow-200 mt-1"><strong>Hint:</strong> ${level.hint}</div>
+                    </div>`;
+                    statusDiv.className = "block mb-4 p-4 rounded-md border bg-red-50 border-red-200 text-red-800";
+                }
+
+            } catch (err) {
+                statusDiv.innerText = "SQL Error: " + err.message;
+                statusDiv.className = "block mb-4 p-4 rounded-md border bg-red-50 border-red-200 text-red-800 font-mono text-sm";
+                document.getElementById('user-result-container').innerHTML = '<div class="p-8 text-center text-red-400 italic">Query Failed</div>';
+            }
+        }
+
+        function generateCertificate() {
+            const userName = document.getElementById('cert-name').value.trim() || "SQL Master";
+            const date = new Date().toLocaleDateString();
+
+            // Create Canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = 1000;
+            canvas.height = 700;
+            const ctx = canvas.getContext('2d');
+
+            // 1. Background
+            ctx.fillStyle = "#fffbeb"; // Very light yellow/paper
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Border
+            ctx.strokeStyle = "#1e293b"; // Slate 800
+            ctx.lineWidth = 20;
+            ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
+            
+            ctx.strokeStyle = "#eab308"; // Yellow 500
+            ctx.lineWidth = 5;
+            ctx.strokeRect(45, 45, canvas.width - 90, canvas.height - 90);
+
+            // 3. Header Text
+            ctx.fillStyle = "#1e293b";
+            ctx.font = "bold 60px serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Certificate of Completion", canvas.width / 2, 160);
+
+            // 4. Subheader
+            ctx.font = "italic 30px sans-serif";
+            ctx.fillStyle = "#64748b";
+            ctx.fillText("This certifies that", canvas.width / 2, 240);
+
+            // 5. Name (Dynamic)
+            ctx.font = "bold 80px serif";
+            ctx.fillStyle = "#2563eb"; // Blue
+            ctx.fillText(userName, canvas.width / 2, 340);
+            
+            // 6. Underline
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2 - 200, 360);
+            ctx.lineTo(canvas.width / 2 + 200, 360);
+            ctx.strokeStyle = "#2563eb";
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // 7. Details
+            ctx.font = "30px sans-serif";
+            ctx.fillStyle = "#64748b";
+            ctx.fillText("has successfully completed all 45 levels of the", canvas.width / 2, 440);
+            
+            ctx.font = "bold 40px sans-serif";
+            ctx.fillStyle = "#1e293b";
+            ctx.fillText("SQL Mastery Interactive Course", canvas.width / 2, 500);
+
+            // 8. Seal (Simulated)
+            ctx.beginPath();
+            ctx.arc(850, 550, 80, 0, 2 * Math.PI);
+            ctx.fillStyle = "#eab308";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(850, 550, 70, 0, 2 * Math.PI);
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 24px sans-serif";
+            ctx.fillText("OFFICIAL", 850, 545);
+            ctx.fillText("SEAL", 850, 570);
+
+            // 9. Date
+            ctx.fillStyle = "#64748b";
+            ctx.font = "20px sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText(`Date: ${date}`, 100, 600);
+            ctx.fillText("Instructor: SQL Mastery AI", 100, 630);
+
+            // Convert and Download
+            const link = document.createElement('a');
+            link.download = `SQL_Certificate_${userName.replace(/\s+/g, '_')}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+
+            // RESET GAME
+            setTimeout(() => {
+                alert("Certificate Downloaded! The course will now reset.");
+                document.getElementById('certificate-modal').classList.add('hidden');
+                document.getElementById('cert-name').value = '';
+                completedLevels.clear();
+                renderLevelList();
+                loadLevel(0);
+            }, 500);
+        }
+
+        function renderTable(data, containerId, isTruncated = false) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="p-4 text-slate-500 italic">Query returned no results.</div>';
+                return;
+            }
+
+            if (typeof data[0] !== 'object') {
+                data = data.map(val => ({ Result: val }));
+            }
+
+            const table = document.createElement('table');
+            table.className = "min-w-full text-left text-sm whitespace-nowrap";
+            
+            let displayData = data;
+            if (isTruncated && data.length > 3) {
+                displayData = data.slice(0, 3);
+            }
+
+            const thead = document.createElement('thead');
+            thead.className = "bg-slate-100 border-b border-slate-200 sticky top-0";
+            const trHead = document.createElement('tr');
+            
+            Object.keys(displayData[0]).forEach(key => {
+                const th = document.createElement('th');
+                th.className = "px-4 py-2 font-semibold text-slate-600";
+                th.innerText = key;
+                trHead.appendChild(th);
+            });
+            thead.appendChild(trHead);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            displayData.forEach((row, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = idx % 2 === 0 ? "bg-white" : "bg-slate-50";
+                
+                Object.values(row).forEach(val => {
+                    const td = document.createElement('td');
+                    td.className = "px-4 py-2 border-b border-slate-100 text-slate-700 font-mono";
+                    td.innerText = val;
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+
+            if (isTruncated && data.length > 3) {
+                const tr = document.createElement('tr');
+                tr.className = "bg-slate-50 opacity-50";
+                Object.keys(displayData[0]).forEach(() => {
+                    const td = document.createElement('td');
+                    td.className = "px-4 py-2 border-b border-slate-100 text-slate-700 font-mono italic";
+                    td.innerText = "...";
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+                
+                const trInfo = document.createElement('tr');
+                const tdInfo = document.createElement('td');
+                tdInfo.colSpan = Object.keys(displayData[0]).length;
+                tdInfo.className = "px-4 py-2 text-xs text-slate-400 text-center bg-slate-50";
+                tdInfo.innerText = `(${data.length - 3} more rows hidden)`;
+                trInfo.appendChild(tdInfo);
+                tbody.appendChild(trInfo);
+            }
+
+            table.appendChild(tbody);
+            container.appendChild(table);
+        }
+
+        function resetLevel() {
+            editor.setValue("");
+            document.getElementById('status-msg').classList.add('hidden');
+            document.getElementById('user-result-container').innerHTML = '<div class="p-8 text-center text-slate-400 italic">Run a query to see results</div>';
+        }
+
+        function toggleSchema() {
+            const modal = document.getElementById('schema-modal');
+            modal.classList.toggle('hidden');
+        }
+
+    </script>
+</body>
+</html>
