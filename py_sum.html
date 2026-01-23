@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastering Python Summation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0fdf4; /* Green-50 */
+            color: #064e3b; /* Green-900 */
+        }
+
+        .math {
+            font-family: 'serif';
+            font-style: italic;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Textbook Math Formatting */
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        .fraction span:first-child { border-bottom: 1px solid currentColor; }
+        
+        .power {
+            vertical-align: super;
+            font-size: 0.75em;
+            font-style: normal;
+        }
+
+        .subscript {
+            vertical-align: sub;
+            font-size: 0.75em;
+            font-style: normal;
+        }
+
+        .slot-input {
+            width: 60px;
+            border: 2px solid #059669;
+            border-radius: 4px;
+            padding: 2px 4px;
+            text-align: center;
+            font-family: 'Fira Code', monospace;
+            font-weight: bold;
+            color: #047857;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .slot-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+        }
+
+        .step-container {
+            border-left: 4px solid #10b981;
+            padding-left: 1.5rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .hidden-step {
+            display: none;
+        }
+
+        .code-block {
+            background-color: #064e3b;
+            color: #ecfdf5;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+
+        .code-keyword { color: #6ee7b7; }
+        .code-var { color: #fbbf24; }
+        .code-comment { color: #94a3b8; font-style: italic; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        mark {
+            background-color: #fde047;
+            padding: 0 4px;
+            border-radius: 2px;
+            color: black;
+            font-weight: bold;
+        }
+
+        .feedback {
+            font-weight: 600;
+            margin-top: 0.5rem;
+            min-height: 1.5rem;
+        }
+
+        .grid-align {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 8px;
+            align-items: center;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 max-w-3xl mx-auto">
+
+    <!-- Problem Header -->
+    <header class="mb-8 text-center">
+        <h1 class="text-3xl font-bold mb-4 text-emerald-800">The Power of Summation</h1>
+        <div class="bg-white p-6 rounded-xl shadow-md border border-emerald-100">
+            <p class="text-lg leading-relaxed">
+                In Python, we have a list of numbers: <br>
+                <code class="text-xl font-bold tracking-widest bg-emerald-50 px-2 py-1 rounded">
+                    numbers = [<mark id="val1">10</mark>, <mark id="val2">5</mark>, <mark id="val3">8</mark>, <mark id="val4">7</mark>]
+                </code>
+            </p>
+            <p class="mt-4 italic">How do we find the total sum using logic and then using a shortcut?</p>
+        </div>
+    </header>
+
+    <main id="scaffold-content">
+        <!-- Step 0 -->
+        <section id="step-0" class="step-container">
+            <h2 class="font-bold text-emerald-700 mb-2">Step 0: Variable Definition</h2>
+            <div class="text-lg">
+                Let the total sum variable be <input type="text" class="slot-input !w-120" placeholder="?" data-answer="total" style="width: 100px;"> and initialize it to <input type="number" class="slot-input" placeholder="?" data-answer="0">.
+            </div>
+            <button onclick="checkStep(0)" class="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition">Check</button>
+            <div class="feedback" id="feedback-0"></div>
+        </section>
+
+        <!-- Step 1 -->
+        <section id="step-1" class="step-container hidden-step">
+            <h2 class="font-bold text-emerald-700 mb-2">Step 1: The Long Way (Iteration)</h2>
+            <p class="mb-2">Mathematically, we add each element <span class="math">x<span class="subscript">i</span></span> to the total:</p>
+            <div class="grid-align text-xl font-mono">
+                <div class="text-right">Total</div> <div>=</div> <div class="text-left">0 + <input type="number" class="slot-input" data-answer="10"></div>
+                <div class="text-right">Total</div> <div>=</div> <div class="text-left">10 + <input type="number" class="slot-input" data-answer="5"></div>
+                <div class="text-right">Total</div> <div>=</div> <div class="text-left">15 + <input type="number" class="slot-input" data-answer="8"></div>
+                <div class="text-right">Total</div> <div>=</div> <div class="text-left">23 + <input type="number" class="slot-input" data-answer="7"></div>
+            </div>
+            <button onclick="checkStep(1)" class="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition">Check Values</button>
+            <div class="feedback" id="feedback-1"></div>
+        </section>
+
+        <!-- Step 2 -->
+        <section id="step-2" class="step-container hidden-step">
+            <h2 class="font-bold text-emerald-700 mb-2">Step 2: Pythonic Logic</h2>
+            <p>Fill in the Python code for the manual loop:</p>
+            <div class="code-block">
+                <div><span class="code-var">total</span> = 0</div>
+                <div><span class="code-keyword">for</span> x <span class="code-keyword">in</span> numbers:</div>
+                <div class="ml-8">total = total + <input type="text" class="slot-input !w-12" data-answer="x" style="width: 40px;"></div>
+                <div class="mt-2"><span class="code-keyword">print</span>(<input type="text" class="slot-input" data-answer="total" style="width: 80px;">)</div>
+            </div>
+            <button onclick="checkStep(2)" class="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition">Verify Code</button>
+            <div class="feedback" id="feedback-2"></div>
+        </section>
+
+        <!-- Step 3 -->
+        <section id="step-3" class="step-container hidden-step">
+            <h2 class="font-bold text-emerald-700 mb-2">Step 3: The Python sum() Shortcut</h2>
+            <p>Python provides a built-in function to do all this work instantly.</p>
+            <div class="code-block">
+                <span class="code-var">result</span> = <input type="text" class="slot-input" data-answer="sum" style="width: 60px;">(numbers)
+            </div>
+            <p class="mt-2">What is the final value of <span class="math">result</span>?</p>
+            <div class="math text-2xl mt-2">
+                result = <input type="number" class="slot-input" data-answer="30">
+            </div>
+            <button onclick="checkStep(3)" class="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition">Check Result</button>
+            <div class="feedback" id="feedback-3"></div>
+        </section>
+
+        <!-- Final Step -->
+        <section id="step-4" class="step-container hidden-step">
+            <h2 class="font-bold text-emerald-700 mb-2">Final Conclusion</h2>
+            <div class="bg-emerald-100 p-4 rounded-lg border-2 border-emerald-300">
+                <p class="text-xl">
+                    &there4; The total sum of the list is <input type="number" class="slot-input" data-answer="30"> units.
+                </p>
+            </div>
+            <button onclick="checkStep(4)" class="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition">Final Check</button>
+            <div class="feedback" id="feedback-4"></div>
+        </section>
+
+        <!-- Success Message -->
+        <section id="success-message" class="hidden-step text-center py-10">
+            <h2 class="text-4xl font-bold text-emerald-600 mb-2">🎉 Mastered!</h2>
+            <p class="text-emerald-800">You've successfully learned how Python handles list summation.</p>
+            <button onclick="location.reload()" class="mt-6 text-emerald-600 underline">Start Over</button>
+        </section>
+    </main>
+
+    <script>
+        const totalSteps = 5;
+        let debugBuffer = "";
+
+        // Global Key Listener for Secrets
+        window.addEventListener('keydown', (e) => {
+            debugBuffer += e.key.toLowerCase();
+            if (debugBuffer.endsWith('aaa')) {
+                revealAll();
+            } else if (debugBuffer.endsWith('sss')) {
+                revealAndFill();
+            }
+            if (debugBuffer.length > 10) debugBuffer = debugBuffer.slice(-10);
+        });
+
+        function revealAll() {
+            document.querySelectorAll('.step-container').forEach(step => {
+                step.classList.remove('hidden-step');
+            });
+        }
+
+        function revealAndFill() {
+            revealAll();
+            document.querySelectorAll('.slot-input').forEach(input => {
+                input.value = input.getAttribute('data-answer');
+            });
+        }
+
+        function checkStep(stepIndex) {
+            const container = document.getElementById(`step-${stepIndex}`);
+            const inputs = container.querySelectorAll('.slot-input');
+            const feedback = document.getElementById(`feedback-${stepIndex}`);
+            
+            let allFilled = true;
+            let allCorrect = true;
+
+            inputs.forEach(input => {
+                if (input.value.trim() === "") allFilled = false;
+                if (input.value.trim().toLowerCase() !== input.getAttribute('data-answer').toLowerCase()) {
+                    allCorrect = false;
+                }
+            });
+
+            if (!allFilled) {
+                showFeedback(feedback, "Please fill in all the blanks.", "text-orange-600");
+                return;
+            }
+
+            if (allCorrect) {
+                showFeedback(feedback, "✔️ Nice!", "text-emerald-600");
+                unlockNext(stepIndex);
+            } else {
+                showFeedback(feedback, "Try again", "text-red-600");
+            }
+        }
+
+        function showFeedback(el, msg, colorClass) {
+            el.textContent = msg;
+            el.className = `feedback ${colorClass}`;
+        }
+
+        function unlockNext(currentIndex) {
+            const nextIndex = currentIndex + 1;
+            const nextStep = document.getElementById(`step-${nextIndex}`) || document.getElementById('success-message');
+            
+            if (nextStep) {
+                nextStep.classList.remove('hidden-step');
+                nextStep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Prevent non-numeric in number types manually for some browsers if needed
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'e' || e.key === '+' || e.key === '-') {
+                    // We allow - if expecting negative, but here we expect positive
+                    if (e.key !== '-') e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
