@@ -3,43 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python Logic: Manual List Insertion</title>
+    <title>Python Logic: Manual List Insertion (Presenter Mode)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code:wght@500;700&display=swap');
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0fdf4; /* Emerald-50 */
             color: #064e3b; /* Emerald-950 */
+            font-size: 1.25rem; /* Increased base font size for presenters */
         }
 
         .slot-input {
-            width: 140px;
-            border: 2px solid #059669;
-            border-radius: 6px;
-            padding: 4px;
+            width: 180px; /* Wider for better visibility */
+            border: 3px solid #059669;
+            border-radius: 8px;
+            padding: 8px;
             text-align: center;
             font-family: 'Fira Code', monospace;
-            font-weight: bold;
+            font-weight: 700;
             color: #065f46;
             background: white;
             transition: all 0.2s;
+            font-size: 1.5rem;
         }
 
         .slot-input:focus {
             outline: none;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.4);
             border-color: #047857;
         }
 
         .step-container {
             background: white;
-            border-left: 6px solid #059669;
-            padding: 2rem;
-            margin-bottom: 2.5rem;
-            border-radius: 0 12px 12px 0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-left: 10px solid #059669; /* Thicker border for emphasis */
+            padding: 3rem;
+            margin-bottom: 4rem;
+            border-radius: 0 20px 20px 0;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             animation: slideIn 0.5s ease-out;
         }
 
@@ -50,132 +52,144 @@
         .code-block {
             background-color: #064e3b;
             color: #ecfdf5;
-            padding: 1.5rem;
-            border-radius: 8px;
+            padding: 2.5rem;
+            border-radius: 12px;
             font-family: 'Fira Code', monospace;
-            margin: 1rem 0;
-            line-height: 1.7;
-            font-size: 0.95rem;
+            margin: 2rem 0;
+            line-height: 1.8;
+            font-size: 1.4rem; /* Larger code for screens/projectors */
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
         }
 
-        .code-keyword { color: #6ee7b7; }
+        .code-keyword { color: #6ee7b7; font-weight: 700; }
         .code-func { color: #93c5fd; }
         .code-var { color: #fbbf24; }
         .code-num { color: #c084fc; }
         .code-comment { color: #94a3b8; font-style: italic; }
 
         @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         mark {
             background-color: #fef08a;
-            padding: 0 4px;
-            border-radius: 4px;
+            padding: 2px 8px;
+            border-radius: 6px;
             color: #064e3b;
             font-weight: bold;
         }
 
         .feedback {
             font-weight: 700;
-            margin-top: 1rem;
-            min-height: 1.5rem;
+            margin-top: 1.5rem;
+            min-height: 2rem;
+            font-size: 1.5rem;
         }
 
         .challenge-card {
             background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
             color: white;
-            padding: 2.5rem;
-            border-radius: 24px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
-            margin-bottom: 3rem;
+            padding: 4rem 2rem;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+            margin-bottom: 5rem;
+        }
+
+        code {
+            font-variant-ligatures: none;
+        }
+
+        button {
+            font-size: 1.5rem !important;
+            padding: 1rem 3rem !important;
         }
     </style>
 </head>
-<body class="p-4 md:p-10 max-w-5xl mx-auto">
+<body class="p-4 md:p-12 max-w-6xl mx-auto">
 
     <!-- QUESTION AT THE TOP -->
     <header class="challenge-card text-center">
-        <h2 class="text-emerald-300 font-bold uppercase tracking-widest text-sm mb-2">Coding Challenge</h2>
-        <h1 class="text-3xl md:text-4xl font-extrabold mb-6">How do we insert 99 at Index 1?</h1>
-        <div class="flex flex-col md:flex-row justify-center items-center gap-6">
+        <h2 class="text-emerald-300 font-bold uppercase tracking-widest text-lg mb-4">Coding Challenge</h2>
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-10">Manual List Insertion</h1>
+        
+        <div class="flex flex-col lg:flex-row justify-center items-center gap-10">
             <div class="text-center">
-                <p class="text-emerald-200 text-sm mb-1 uppercase font-bold">Starting List</p>
-                <code class="text-2xl bg-emerald-950/50 px-4 py-2 rounded-lg border border-emerald-700/50">[10, 20, 30]</code>
+                <p class="text-emerald-200 text-lg mb-2 uppercase font-bold tracking-tight">Starting List</p>
+                <code class="text-3xl md:text-4xl bg-emerald-950/60 px-6 py-4 rounded-xl border-2 border-emerald-700/50 block md:inline-block">[10, 20, 30]</code>
             </div>
-            <div class="text-3xl text-emerald-400">→</div>
+            <div class="hidden lg:block text-5xl text-emerald-400 font-black">→</div>
             <div class="text-center">
-                <p class="text-emerald-200 text-sm mb-1 uppercase font-bold">Desired Result</p>
-                <code class="text-2xl bg-emerald-950/50 px-4 py-2 rounded-lg border border-emerald-400/50 font-bold text-white">[10, <span class="text-emerald-400">99</span>, 20, 30]</code>
+                <p class="text-emerald-200 text-lg mb-2 uppercase font-bold tracking-tight">Insert 99 at Index 1</p>
+                <code class="text-3xl md:text-4xl bg-emerald-950/60 px-6 py-4 rounded-xl border-2 border-emerald-400/80 font-bold text-white block md:inline-block">[10, <span class="text-emerald-400">99</span>, 20, 30]</code>
             </div>
         </div>
-        <p class="mt-8 text-emerald-100 italic text-sm">Constraint: You cannot use the .insert() method. You must move the data manually.</p>
+        <p class="mt-12 text-emerald-100 italic text-lg max-w-3xl mx-auto">
+            Constraint: You cannot use .insert(). You must shift the items manually.
+        </p>
     </header>
 
     <main id="scaffold-content">
         <!-- Step 0: Setup -->
         <section id="step-0" class="step-container">
-            <h2 class="text-xl font-bold text-emerald-800 mb-2">Step 1: Preparation & Expansion</h2>
-            <p class="mb-4 text-emerald-700">First, define the variables and grow the list to make room for the new element.</p>
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 1: Expansion</h2>
+            <p class="mb-6 text-emerald-700 text-xl">First, define the variables and grow the list to make room for the new element.</p>
             <div class="code-block">
                 <div><span class="code-var">inventory</span> = [<span class="code-num">10</span>, <span class="code-num">20</span>, <span class="code-num">30</span>]</div>
                 <div><span class="code-var">new_data</span> = <span class="code-num">99</span></div>
                 <div><span class="code-var">insert_at</span> = <span class="code-num">1</span></div>
-                <div class="mt-4"><span class="code-comment"># We need 4 slots, so add a dummy item (0)</span></div>
-                <div><span class="code-var">inventory</span> = <span class="code-var">inventory</span> + [<input type="text" class="slot-input !w-16" data-answer="0">]</div>
-                <div class="mt-2"><span class="code-comment"># Capture the total count of slots now</span></div>
-                <div><span class="code-var">total_size</span> = <input type="text" class="slot-input !w-24" data-answer="len">(<span class="code-var">inventory</span>)</div>
+                <div class="mt-6"><span class="code-comment"># Add a dummy item (0) to expand the list</span></div>
+                <div><span class="code-var">inventory</span> = <span class="code-var">inventory</span> + [<input type="text" class="slot-input !w-24" data-answer="0">]</div>
+                <div class="mt-2"><span class="code-var">total_size</span> = <input type="text" class="slot-input !w-32" data-answer="len">(<span class="code-var">inventory</span>)</div>
             </div>
-            <button onclick="checkStep(0)" class="mt-4 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 transition-all shadow-lg">Next: Handle the Shifting</button>
+            <button onclick="checkStep(0)" class="mt-6 bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 transition-all shadow-xl">Next: Shift Items</button>
             <div class="feedback" id="feedback-0"></div>
         </section>
 
         <!-- Step 1: The Shift Loop -->
         <section id="step-1" class="step-container hidden-step">
-            <h2 class="text-xl font-bold text-emerald-800 mb-2">Step 2: The Reverse Shift</h2>
-            <p class="mb-4 text-emerald-700">We must shift items to the right to clear <code>inventory[1]</code>. We move from right-to-left to avoid overwriting data we still need.</p>
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 2: The Reverse Shift</h2>
+            <p class="mb-6 text-emerald-700 text-xl">We shift items right to clear <code>inventory[1]</code>. We move right-to-left to avoid overwriting.</p>
             <div class="code-block">
-                <div class="opacity-50">
+                <div class="opacity-40">
                     <div>inventory = inventory + [0]</div>
                     <div>total_size = len(inventory)</div>
                 </div>
-                <div class="mt-4"><span class="code-comment"># Start at last index, move down to the target spot</span></div>
-                <div><span class="code-keyword">for</span> <span class="code-var">k</span> <span class="code-keyword">in</span> <span class="code-func">range</span>(<input type="text" class="slot-input !w-32" data-answer="total_size-1">, <span class="code-var">insert_at</span>, <input type="text" class="slot-input !w-16" data-answer="-1">):</div>
-                <div class="ml-8"><span class="code-comment"># Current slot gets data from the slot to its left</span></div>
-                <div class="ml-8"><span class="code-var">inventory</span>[<span class="code-var">k</span>] = <span class="code-var">inventory</span>[<input type="text" class="slot-input !w-24" data-answer="k-1">]</div>
+                <div class="mt-6"><span class="code-comment"># Start at last index, move down to target spot</span></div>
+                <div><span class="code-keyword">for</span> <span class="code-var">k</span> <span class="code-keyword">in</span> <span class="code-func">range</span>(<input type="text" class="slot-input !w-44" data-answer="total_size-1">, <span class="code-var">insert_at</span>, <input type="text" class="slot-input !w-20" data-answer="-1">):</div>
+                <div class="ml-12 mt-2"><span class="code-var">inventory</span>[<span class="code-var">k</span>] = <span class="code-var">inventory</span>[<input type="text" class="slot-input !w-36" data-answer="k-1">]</div>
             </div>
-            <button onclick="checkStep(1)" class="mt-4 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 shadow-lg">Verify Shift Logic</button>
+            <p class="text-lg text-emerald-600 italic font-semibold">Visualizing the shift: index 2 moves to 3, index 1 moves to 2.</p>
+            <button onclick="checkStep(1)" class="mt-6 bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Verify Shift</button>
             <div class="feedback" id="feedback-1"></div>
         </section>
 
         <!-- Step 2: Completion -->
         <section id="step-2" class="step-container hidden-step">
-            <h2 class="text-xl font-bold text-emerald-800 mb-2">Step 3: Final Insertion</h2>
-            <p class="mb-4 text-emerald-700">The shift is done! Index 1 is now ready to receive the <code>new_data</code>.</p>
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 3: Final Insertion</h2>
+            <p class="mb-6 text-emerald-700 text-xl">The shift is done! Index 1 is now ready to receive the <code>new_data</code>.</p>
             <div class="code-block">
-                <div class="opacity-50">
+                <div class="opacity-40">
                     <div>for k in range(total_size - 1, insert_at, -1):</div>
-                    <div class="ml-8">inventory[k] = inventory[k-1]</div>
+                    <div class="ml-12">inventory[k] = inventory[k-1]</div>
                 </div>
-                <div class="mt-4"><span class="code-comment"># 3. Final step: replace the shifted spot with 99</span></div>
-                <div><span class="code-var">inventory</span>[<input type="text" class="slot-input !w-28" data-answer="insert_at">] = <input type="text" class="slot-input !w-24" data-answer="new_data"></div>
-                <div class="mt-4"><span class="code-func">print</span>(<span class="code-var">inventory</span>)</div>
+                <div class="mt-6"><span class="code-comment"># Replace the cleared spot with our new data</span></div>
+                <div><span class="code-var">inventory</span>[<input type="text" class="slot-input !w-44" data-answer="insert_at">] = <input type="text" class="slot-input !w-44" data-answer="new_data"></div>
             </div>
-            <div class="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                <p class="text-emerald-900">What will the console show? <code class="font-bold">[10, <input type="text" class="slot-input !w-16" data-answer="99">, 20, 30]</code></p>
+            <div class="mt-8 p-6 bg-emerald-50 rounded-xl border-2 border-emerald-200 text-2xl">
+                <p class="text-emerald-900 font-semibold">Console Output: <code class="font-bold">[10, <input type="text" class="slot-input !w-24" data-answer="99">, 20, 30]</code></p>
             </div>
-            <button onclick="checkStep(2)" class="mt-6 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 shadow-lg">Execute Algorithm</button>
+            <button onclick="checkStep(2)" class="mt-8 bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Execute Algorithm</button>
             <div class="feedback" id="feedback-2"></div>
         </section>
 
         <!-- Success Screen -->
-        <section id="success-screen" class="hidden-step text-center py-12">
-            <div class="inline-block p-10 bg-white rounded-3xl shadow-2xl border-4 border-emerald-600">
-                <div class="text-5xl mb-4">🎉</div>
-                <h2 class="text-4xl font-black text-emerald-700 mb-4">Algorithm Mastered</h2>
-                <p class="text-xl text-emerald-900 mb-8 max-w-md">You've successfully built the logic that powers every dynamic list in programming.</p>
-                <button onclick="location.reload()" class="bg-emerald-700 text-white px-10 py-3 rounded-full font-bold hover:bg-emerald-800 transition-colors">Restart Lesson</button>
+        <section id="success-screen" class="hidden-step text-center py-20">
+            <div class="inline-block p-16 bg-white rounded-[40px] shadow-2xl border-8 border-emerald-600">
+                <div class="text-8xl mb-8">🎉</div>
+                <h2 class="text-6xl font-black text-emerald-700 mb-6">Algorithm Mastered</h2>
+                <p class="text-2xl text-emerald-900 mb-12 max-w-xl mx-auto">You've successfully built the manual shift-and-insert logic for a list!</p>
+                <button onclick="location.reload()" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 transition-transform hover:scale-105 shadow-2xl">Start Again</button>
             </div>
         </section>
     </main>
@@ -215,6 +229,7 @@
                 if (val !== ans) {
                     correct = false;
                     input.classList.add('border-red-500', 'text-red-600');
+                    input.classList.remove('border-emerald-500', 'text-emerald-600');
                 } else {
                     input.classList.remove('border-red-500', 'text-red-600');
                     input.classList.add('border-emerald-500', 'text-emerald-600');
@@ -222,17 +237,17 @@
             });
 
             if (!filled) {
-                feedback.textContent = "⚠️ Please fill in all the blanks.";
+                feedback.textContent = "⚠️ Fill in all the blanks.";
                 feedback.className = "feedback text-orange-600";
                 return;
             }
 
             if (correct) {
-                feedback.textContent = "✔️ Excellent! The code is logically sound.";
+                feedback.textContent = "✔️ Correct!";
                 feedback.className = "feedback text-emerald-600";
                 unlockNext(idx);
             } else {
-                feedback.textContent = "❌ Logic error. Remember: we shift items from k-1 to k.";
+                feedback.textContent = "❌ Logic error. Try again!";
                 feedback.className = "feedback text-red-600";
             }
         }
