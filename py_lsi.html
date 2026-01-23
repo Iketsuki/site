@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python Logic: Finding the Index</title>
+    <title>Python Logic: Searching with Flags and Indexes</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0fdf4; /* Emerald-50 */
+            background-color: #f0fdf4; /* Forest/Emerald-50 */
             color: #064e3b; /* Emerald-950 */
         }
 
@@ -25,6 +25,8 @@
             color: #065f46;
             background: white;
             transition: all 0.2s;
+            /* Disable ligatures to prevent != from becoming math symbols */
+            font-variant-ligatures: none;
         }
 
         .slot-input:focus {
@@ -55,13 +57,14 @@
             font-family: 'Fira Code', monospace;
             margin: 1rem 0;
             line-height: 1.6;
+            /* Disable ligatures for the code blocks too */
+            font-variant-ligatures: none;
         }
 
         .code-keyword { color: #6ee7b7; }
         .code-func { color: #93c5fd; }
         .code-var { color: #fbbf24; }
         .code-bool { color: #c084fc; }
-        .code-comment { color: #94a3b8; font-style: italic; }
 
         @keyframes slideIn {
             from { opacity: 0; transform: translateX(-20px); }
@@ -87,7 +90,7 @@
 
     <!-- Header -->
     <header class="mb-10 text-center">
-        <h1 class="text-4xl font-extrabold mb-4 text-emerald-900">Finding the Index</h1>
+        <h1 class="text-4xl font-extrabold mb-4 text-emerald-900">Searching for an Item</h1>
         <div class="bg-emerald-900 text-emerald-50 p-8 rounded-2xl shadow-xl">
             <p class="text-xl mb-4">Given the following Python list:</p>
             <code class="text-2xl font-bold bg-emerald-950 px-4 py-2 rounded-lg border border-emerald-700">
@@ -102,10 +105,10 @@
         <section id="step-0" class="step-container">
             <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 0: Variable Definition</h2>
             <div class="text-lg">
-                We will track the <strong>position</strong> (index) found: <br><br>
-                Item to find: <code class="bg-emerald-100 px-2 rounded">target = "cherry"</code> <br>
+                We track existence with <code>found</code> and location with <code>pos</code>: <br><br>
+                Target item: <code class="bg-emerald-100 px-2 rounded">target = "cherry"</code> <br>
                 Found status: <code class="bg-emerald-100 px-2 rounded">found = False</code> <br>
-                Storage for index: <code class="bg-emerald-100 px-2 rounded">pos = -1</code>
+                Index location: <code class="bg-emerald-100 px-2 rounded">pos = -1</code>
             </div>
             <button onclick="unlockNext(0)" class="mt-6 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 transition-all shadow-lg">Begin Step 1</button>
             <div class="feedback" id="feedback-0"></div>
@@ -113,8 +116,8 @@
 
         <!-- Step 1 -->
         <section id="step-1" class="step-container hidden-step">
-            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 1: Computer Index vs Human Count</h2>
-            <p class="mb-4">"cherry" is the 3rd item in the list. What are its Python index and its human position?</p>
+            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 1: Python Indexing</h2>
+            <p class="mb-4">"cherry" is the 3rd item. In Python, where does it sit?</p>
             <div class="text-lg space-y-4">
                 <div>Python Index: <input type="text" class="slot-input" data-answer="2"> <span class="text-sm">(Starts at 0)</span></div>
                 <div>Human Position: <input type="text" class="slot-input" data-answer="3"> <span class="text-sm">(Starts at 1)</span></div>
@@ -125,26 +128,25 @@
 
         <!-- Step 2 -->
         <section id="step-2" class="step-container hidden-step">
-            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 2: Logic with "Not Equal" (!=)</h2>
-            <p>We check every item. If the item is <strong>not equal</strong> to the target, we do nothing. If it <strong>is</strong> equal, we save the index.</p>
+            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 2: Basic "For" Loop with Index</h2>
+            <p>If the item matches, we store the index <code>i</code>. We then check if the position is <strong>not equal</strong> to -1.</p>
             <div class="code-block">
                 <div><span class="code-var">pos</span> = -1</div>
                 <div class="mt-2"><span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-func">len</span>(fruits)):</div>
-                <div class="ml-8"><span class="code-keyword">if</span> fruits[i] <input type="text" class="slot-input !w-16" data-answer="!="> "apple":</div>
-                <div class="ml-16"><span class="code-comment"># This isn't what we want yet...</span></div>
                 <div class="ml-8"><span class="code-keyword">if</span> fruits[i] == <span class="code-var">target</span>:</div>
+                <div class="ml-16"><span class="code-var">found</span> = <span class="code-bool">True</span></div>
                 <div class="ml-16"><span class="code-var">pos</span> = <input type="text" class="slot-input !w-16" data-answer="i"></div>
                 <div class="mt-4"><span class="code-keyword">if</span> pos <input type="text" class="slot-input !w-16" data-answer="!="> -1:</div>
-                <div class="ml-8"><span class="code-func">print</span>("Found at index", <span class="code-var">pos</span>)</div>
+                <div class="ml-8"><span class="code-func">print</span>("Found at index:", <span class="code-var">pos</span>)</div>
             </div>
-            <button onclick="checkStep(2)" class="mt-4 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 shadow-lg">Verify != Logic</button>
+            <button onclick="checkStep(2)" class="mt-4 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 shadow-lg">Verify Logic</button>
             <div class="feedback" id="feedback-2"></div>
         </section>
 
         <!-- Step 3 -->
         <section id="step-3" class="step-container hidden-step">
-            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 3: "For" Loop with Early Exit</h2>
-            <p>Once we find the correct index, use the <code>break</code> keyword to stop searching.</p>
+            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 3: Optimization with "Break"</h2>
+            <p>Once we find the index, use <code>break</code> to stop the loop immediately.</p>
             <div class="code-block">
                 <div class="mt-2"><span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-func">len</span>(fruits)):</div>
                 <div class="ml-8"><span class="code-keyword">if</span> fruits[i] == target:</div>
@@ -158,16 +160,16 @@
         <!-- Step 4 -->
         <section id="step-4" class="step-container hidden-step">
             <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 4: The "While" Flag Version</h2>
-            <p>A while loop that continues as long as the index is valid and we haven't found the item.</p>
+            <p>This loop stops if it reaches the end <strong>OR</strong> if <code>found</code> becomes True.</p>
             <div class="code-block">
                 <div><span class="code-var">i</span> = 0</div>
-                <div><span class="code-var">found</span> = <span class="code-bool">False</span></div>
-                <div class="mt-2"><span class="code-keyword">while</span> i &lt; <span class="code-func">len</span>(fruits) <span class="code-keyword">and</span> <span class="code-keyword">not</span> <span class="code-var">found</span>:</div>
+                <div><span class="code-var">found</span> = False</div>
+                <div class="mt-2"><span class="code-keyword">while</span> i &lt; <span class="code-func">len</span>(fruits) <span class="code-keyword">and</span> <span class="code-keyword">not</span> <input type="text" class="slot-input !w-20" data-answer="found">:</div>
                 <div class="ml-8"><span class="code-keyword">if</span> fruits[i] == <span class="code-var">target</span>:</div>
                 <div class="ml-16"><span class="code-var">found</span> = <span class="code-bool">True</span></div>
                 <div class="ml-16"><span class="code-var">pos</span> = i</div>
                 <div class="ml-8">i += 1</div>
-                <div class="mt-4"><span class="code-keyword">if</span> pos <input type="text" class="slot-input !w-16" data-answer="!="> -1:</div>
+                <div class="mt-4"><span class="code-keyword">if</span> pos != -1:</div>
                 <div class="ml-8"><span class="code-func">print</span>("Human position:", <input type="text" class="slot-input !w-20" data-answer="pos + 1">)</div>
             </div>
             <button onclick="checkStep(4)" class="mt-4 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 shadow-lg">Verify While Loop</button>
@@ -178,7 +180,7 @@
         <section id="success-screen" class="hidden-step text-center py-12">
             <div class="inline-block p-10 bg-white rounded-3xl shadow-2xl border-4 border-emerald-600">
                 <h2 class="text-5xl font-black text-emerald-700 mb-4">COMPLETE!</h2>
-                <p class="text-xl text-emerald-900 mb-8">You've mastered index search with for-breaks and while-found logic.</p>
+                <p class="text-xl text-emerald-900 mb-8">You can now search for existence, find indexes, and calculate human positions!</p>
                 <button onclick="location.reload()" class="bg-emerald-100 text-emerald-700 px-6 py-2 rounded-full font-bold hover:bg-emerald-200 transition-colors">Restart Module</button>
             </div>
         </section>
