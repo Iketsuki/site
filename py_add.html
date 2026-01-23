@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Logic: List Insertion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Lexend:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Lexend', sans-serif;
+            background-color: #f0fdf4;
+        }
+
+        .terminal-container {
+            background-color: #064e3b;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #059669;
+            position: relative;
+        }
+
+        .list-belt {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 16px;
+            padding: 60px 40px;
+            background: rgba(255, 255, 255, 0.03);
+            min-height: 220px;
+            position: relative;
+        }
+
+        .item-slot {
+            width: 80px;
+            height: 80px;
+            background: #ecfdf5;
+            border: 3px solid #10b981;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #064e3b;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 1.5rem;
+            z-index: 5;
+        }
+
+        .item-index {
+            position: absolute;
+            top: -30px;
+            font-size: 11px;
+            color: #059669;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+        }
+
+        /* Fixed Scanner Positioning Logic */
+        .scanner-bracket {
+            position: absolute;
+            border: 4px solid #facc15;
+            border-radius: 20px;
+            background: rgba(250, 204, 21, 0.1);
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 20;
+            opacity: 0;
+            display: flex;
+            justify-content: center;
+            top: 40px; /* Aligned with item slots */
+            height: 120px;
+        }
+
+        .scanner-bracket::after {
+            content: "SHIFTING DATA";
+            position: absolute;
+            top: -30px;
+            background: #facc15;
+            color: #422006;
+            padding: 2px 10px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 900;
+        }
+
+        .code-block {
+            background-color: #022c22;
+            color: #a7f3d0;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            border: 1px solid #065f46;
+        }
+
+        .highlight {
+            background-color: rgba(250, 204, 21, 0.25);
+            display: block;
+            border-left: 4px solid #facc15;
+            padding-left: 10px;
+            margin-left: -14px;
+            width: calc(100% + 28px);
+        }
+
+        .shifting-source {
+            transform: scale(1.1) translateY(-10px);
+            background-color: #fef08a !important;
+            border-color: #facc15 !important;
+            z-index: 10;
+        }
+
+        .new-item-pop {
+            background: #facc15 !important;
+            color: #422006 !important;
+            animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        .custom-slider {
+            -webkit-appearance: none;
+            width: 100%; height: 8px;
+            background: #d1fae5; border-radius: 5px;
+            outline: none;
+        }
+        .custom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 24px; height: 24px;
+            background: #059669; cursor: pointer; border-radius: 50%; border: 3px solid white;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <header class="flex flex-col md:flex-row items-center gap-6 mb-8 bg-white p-6 rounded-3xl shadow-sm border border-emerald-100">
+            <div class="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-4xl shadow-lg">📟</div>
+            <div>
+                <h1 class="text-3xl font-bold text-emerald-900">List Memory Manager</h1>
+                <p class="text-emerald-700 font-medium opacity-80">Manual Insertion Algorithm</p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-emerald-100">
+                    <h2 class="font-bold mb-6 text-emerald-800 flex items-center gap-2"><span>🛠️</span> Config</h2>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-xs font-black text-emerald-600 uppercase tracking-tighter">Insertion Point</label>
+                                <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-xs font-mono font-bold" id="p-val-display">2</span>
+                            </div>
+                            <input type="range" id="pos-input" min="0" max="4" value="2" class="custom-slider" oninput="updateInsertionIndex()">
+                        </div>
+                        <div>
+                            <label class="text-xs font-black text-emerald-600 uppercase tracking-tighter block mb-2">Value</label>
+                            <input type="text" id="data-input" value="💎" class="w-full p-3 bg-emerald-50 border-2 border-emerald-100 rounded-xl text-center text-2xl">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-emerald-100">
+                    <h2 class="font-bold mb-4 text-emerald-800">Python Logic</h2>
+                    <div class="code-block" id="code-display">
+                        <div id="line-0">the_list = the_list + [0]</div>
+                        <div id="line-1">total_slots = len(the_list)</div>
+                        <div id="line-2">for current_pointer in range(total_slots-1, insertion_index, -1):</div>
+                        <div id="line-3" class="pl-6">the_list[current_pointer] = the_list[current_pointer-1]</div>
+                        <div id="line-4">the_list[insertion_index] = new_data</div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button id="step-btn" onclick="stepAlgorithm()" class="flex-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold py-4 rounded-2xl transition-all border-2 border-emerald-200">
+                        STEP ➔
+                    </button>
+                    <button id="auto-btn" onclick="runAuto()" class="flex-[2] bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all">
+                        AUTO RUN ▶️
+                    </button>
+                </div>
+                <button onclick="resetSim()" class="w-full text-emerald-400 font-bold py-2 text-xs uppercase tracking-widest hover:text-emerald-600">↻ Reset</button>
+            </div>
+
+            <div class="lg:col-span-8 space-y-6">
+                <div class="terminal-container">
+                    <div class="flex items-center justify-between px-6 py-3 border-b border-emerald-800 bg-emerald-900/50">
+                        <div class="flex gap-2"><div class="w-3 h-3 rounded-full bg-red-500/50"></div><div class="w-3 h-3 rounded-full bg-yellow-500/50"></div><div class="w-3 h-3 rounded-full bg-green-500/50"></div></div>
+                        <span class="text-[10px] font-mono font-bold text-emerald-400">RAM_STATE_VIEWER</span>
+                    </div>
+
+                    <div class="list-belt" id="list-viz">
+                        <!-- Slots are injected here -->
+                    </div>
+                    <div id="scanner" class="scanner-bracket"></div>
+
+                    <div class="grid grid-cols-2 border-t border-emerald-800 bg-emerald-900/20">
+                        <div class="p-4 border-r border-emerald-800">
+                            <div class="text-[10px] text-emerald-500 uppercase font-bold tracking-tighter">Current Pointer</div>
+                            <div id="val-pointer" class="text-2xl font-mono text-white">-</div>
+                        </div>
+                        <div class="p-4">
+                            <div class="text-[10px] text-emerald-500 uppercase font-bold tracking-tighter">Active Memory Operation</div>
+                            <div id="val-instr" class="text-sm font-mono text-emerald-200 truncate">Awaiting input...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-900 p-6 rounded-3xl border border-emerald-800 min-h-[150px]">
+                    <h2 class="text-[10px] font-bold text-emerald-500 uppercase mb-4 tracking-widest">Execution Trace</h2>
+                    <div id="logic-logs" class="space-y-1 font-mono text-sm text-emerald-200"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let the_list = ["🔋", "💾", "💿", "🔌", "⌨️"];
+        let isRunning = false;
+        let stepIndex = 0;
+        let current_pointer = -1;
+        let insertion_index = 2;
+        let total_slots = 0;
+
+        function updateInsertionIndex() {
+            insertion_index = parseInt(document.getElementById('pos-input').value);
+            document.getElementById('p-val-display').innerText = insertion_index;
+            resetSim();
+        }
+
+        function renderList() {
+            const container = document.getElementById('list-viz');
+            container.innerHTML = '';
+            the_list.forEach((item, idx) => {
+                const slot = document.createElement('div');
+                slot.className = 'item-slot';
+                slot.id = `slot-${idx}`;
+                slot.innerHTML = `<span class="item-index">${idx}</span>${item === 0 ? '<span class="opacity-10 text-xs">EMPTY</span>' : item}`;
+                container.appendChild(slot);
+            });
+        }
+
+        function resetSim() {
+            the_list = ["🔋", "💾", "💿", "🔌", "⌨️"];
+            stepIndex = 0;
+            current_pointer = -1;
+            isRunning = false;
+            document.getElementById('logic-logs').innerHTML = '<div class="opacity-30">> RAM initialized. Ready to execute script.</div>';
+            document.getElementById('val-pointer').innerText = '-';
+            document.getElementById('val-instr').innerText = 'Awaiting input...';
+            document.getElementById('scanner').style.opacity = '0';
+            highlightCode(-1);
+            renderList();
+        }
+
+        // IMPROVED: Accurate scanner positioning relative to the container
+        function positionScanner(srcIdx, destIdx) {
+            const scanner = document.getElementById('scanner');
+            const container = document.getElementById('list-viz');
+            const slotSrc = document.getElementById(`slot-${srcIdx}`);
+            const slotDest = document.getElementById(`slot-${destIdx}`);
+            
+            if (!slotSrc || !slotDest) return;
+
+            // Use offsetLeft relative to the parent .list-belt container
+            const startX = slotSrc.offsetLeft;
+            const endX = slotDest.offsetLeft + slotDest.offsetWidth;
+            
+            scanner.style.opacity = '1';
+            scanner.style.width = `${(endX - startX) + 20}px`;
+            scanner.style.left = `${startX - 10}px`;
+        }
+
+        function highlightCode(line) {
+            document.querySelectorAll('#code-display div').forEach(el => el.classList.remove('highlight'));
+            if (line >= 0) document.getElementById(`line-${line}`).classList.add('highlight');
+        }
+
+        async function stepAlgorithm() {
+            const logs = document.getElementById('logic-logs');
+            const instr = document.getElementById('val-instr');
+            
+            if (stepIndex === 0) {
+                highlightCode(0);
+                the_list.push(0);
+                renderList();
+                logs.innerHTML += `<div>[ALLOC] Expanded list to ${the_list.length} slots.</div>`;
+                instr.innerText = 'the_list = the_list + [0]';
+                stepIndex = 1;
+            } 
+            else if (stepIndex === 1) {
+                highlightCode(1);
+                total_slots = the_list.length;
+                current_pointer = total_slots - 1;
+                logs.innerHTML += `<div>[STATE] total_slots = ${total_slots}</div>`;
+                instr.innerText = 'total_slots = len(the_list)';
+                stepIndex = 2;
+            } 
+            else if (stepIndex === 2) {
+                highlightCode(2);
+                document.getElementById('val-pointer').innerText = current_pointer;
+                if (current_pointer > insertion_index) {
+                    positionScanner(current_pointer - 1, current_pointer);
+                    logs.innerHTML += `<div>[ITER] Pointer at ${current_pointer}. Range check valid.</div>`;
+                    instr.innerText = `for k in range(${total_slots-1}, ${insertion_index}, -1)`;
+                    stepIndex = 3;
+                } else {
+                    document.getElementById('scanner').style.opacity = '0';
+                    logs.innerHTML += `<div>[BREAK] Pointer reached insertion_index. Loop terminated.</div>`;
+                    stepIndex = 4;
+                    // Auto-advance to final insertion
+                    setTimeout(() => stepAlgorithm(), 300);
+                }
+            } 
+            else if (stepIndex === 3) {
+                highlightCode(3);
+                const src = current_pointer - 1;
+                const dest = current_pointer;
+                
+                document.getElementById(`slot-${src}`).classList.add('shifting-source');
+                logs.innerHTML += `<div class="text-emerald-400">>> Moving data from Index ${src} to Index ${dest}</div>`;
+                instr.innerText = `the_list[${dest}] = the_list[${src}]`;
+                
+                setTimeout(() => {
+                    the_list[dest] = the_list[src];
+                    renderList();
+                    current_pointer--;
+                    stepIndex = 2; // Jump back to loop check
+                }, 400);
+            } 
+            else if (stepIndex === 4) {
+                highlightCode(4);
+                const val = document.getElementById('data-input').value;
+                the_list[insertion_index] = val;
+                renderList();
+                document.getElementById(`slot-${insertion_index}`).classList.add('new-item-pop');
+                logs.innerHTML += `<div class="text-yellow-400 font-bold">[DATA] Overwriting Index ${insertion_index} with "${val}"</div>`;
+                instr.innerText = `the_list[${insertion_index}] = "${val}"`;
+                stepIndex = 5;
+            }
+        }
+
+        async function runAuto() {
+            if(isRunning) return;
+            isRunning = true;
+            while(stepIndex < 5 && isRunning) {
+                await stepAlgorithm();
+                await new Promise(r => setTimeout(r, 1200));
+            }
+            isRunning = false;
+        }
+
+        window.onload = () => { renderList(); updateInsertionIndex(); };
+    </script>
+</body>
+</html>
