@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Search: Index Hunter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Lexend', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .chest {
+            width: 70px;
+            height: 60px;
+            background-color: #7c2d12;
+            border: 3px solid #451a03;
+            border-radius: 8px 8px 4px 4px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .chest-lid {
+            position: absolute;
+            top: -5px;
+            left: -3px;
+            width: calc(100% + 6px);
+            height: 30px;
+            background-color: #92400e;
+            border: 3px solid #451a03;
+            border-radius: 8px 8px 0 0;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: bottom;
+            z-index: 2;
+        }
+
+        .chest.open .chest-lid {
+            transform: rotateX(-115deg);
+        }
+
+        .chest-content {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .chest.open .chest-content {
+            opacity: 1;
+        }
+
+        .code-block {
+            background-color: #0f172a;
+            color: #cbd5e1;
+            font-family: 'Consolas', 'Monaco', monospace;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            min-height: 280px;
+        }
+
+        .highlight {
+            background-color: rgba(56, 189, 248, 0.3);
+            display: block;
+            border-left: 4px solid #38bdf8;
+            padding-left: 8px;
+            margin-left: -12px;
+            width: calc(100% + 24px);
+        }
+
+        .active-chest {
+            transform: scale(1.15);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+            border-color: #38bdf8;
+        }
+
+        .found-chest {
+            border-color: #22c55e !important;
+            background-color: #14532d !important;
+        }
+
+        .console-msg {
+            font-family: 'Consolas', monospace;
+            border-left: 4px solid #22c55e;
+            padding-left: 10px;
+            margin-top: 10px;
+            color: #22c55e;
+            font-weight: bold;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-10px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row items-center gap-6 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div class="text-6xl">📍</div>
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800">The Index Finder</h1>
+                <p class="text-gray-600 italic text-lg" id="mascot-speech">"Let's find the Key and tell the computer exactly where it is hidden!"</p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Side Panel: Logic Modes -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="font-bold mb-4 flex items-center gap-2 text-blue-700">
+                        <span>🧩</span> Search Logic
+                    </h2>
+                    <div class="space-y-2">
+                        <button onclick="setMode('for')" id="btn-for" class="w-full text-left py-3 px-4 rounded-xl border-2 border-blue-600 bg-blue-50 text-blue-700 font-bold transition-all text-sm">
+                            1. For Loop (Simple)
+                        </button>
+                        <button onclick="setMode('break')" id="btn-break" class="w-full text-left py-3 px-4 rounded-xl border-2 border-slate-100 text-slate-400 font-bold hover:border-blue-200 transition-all text-sm">
+                            2. For Loop + break
+                        </button>
+                        <button onclick="setMode('while')" id="btn-while" class="w-full text-left py-3 px-4 rounded-xl border-2 border-slate-100 text-slate-400 font-bold hover:border-blue-200 transition-all text-sm">
+                            3. While Loop + found
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="font-bold mb-3 text-slate-700">Python Script</h2>
+                    <div class="code-block" id="code-display">
+                        <!-- Code injected here -->
+                    </div>
+                </div>
+
+                <button id="run-btn" onclick="startSearch()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl shadow-lg transform active:scale-95 transition-all text-xl">
+                    RUN PROGRAM ▶️
+                </button>
+            </div>
+
+            <!-- Main Panel: Visualization -->
+            <div class="lg:col-span-8 space-y-6">
+                <!-- Chest Visualization -->
+                <div class="bg-white p-12 rounded-3xl shadow-inner border-4 border-slate-50 flex flex-col items-center relative">
+                    <div class="text-xs font-bold text-slate-500 mb-16 bg-slate-100 px-6 py-2 rounded-full uppercase tracking-widest">Storage Array</div>
+                    
+                    <div class="w-full flex justify-between items-center relative h-32 px-4" id="chest-row">
+                        <!-- Chests injected here -->
+                    </div>
+
+                    <div class="w-full flex justify-between px-8 text-[11px] font-mono mt-8 border-t pt-4">
+                        <div class="text-center"><span class="text-slate-400">Index</span><br><b class="text-blue-600">0</b></div>
+                        <div class="text-center"><span class="text-slate-400">Index</span><br><b class="text-blue-600">1</b></div>
+                        <div class="text-center"><span class="text-slate-400">Index</span><br><b class="text-blue-600">2</b></div>
+                        <div class="text-center"><span class="text-slate-400">Index</span><br><b class="text-blue-600">3</b></div>
+                        <div class="text-center"><span class="text-slate-400">Index</span><br><b class="text-blue-600">4</b></div>
+                        <div class="text-center"><span class="text-slate-400">Index</span><br><b class="text-blue-600">5</b></div>
+                    </div>
+                </div>
+
+                <!-- Live Trace and Console -->
+                <div class="bg-slate-900 p-6 rounded-2xl shadow-xl min-h-[300px]">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="font-bold flex items-center gap-2 text-blue-400">
+                            <span>💻</span> Execution Terminal
+                        </h2>
+                        <div id="status-tag" class="text-[10px] px-2 py-1 rounded bg-slate-800 text-slate-400 uppercase font-bold tracking-widest">Idle</div>
+                    </div>
+                    
+                    <div class="space-y-2 text-sm font-mono" id="console-output">
+                        <!-- Console logs injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const items = ["🍔", "🦴", "🔑", "📦", "💎", "👟"];
+        const target = "🔑";
+        let currentMode = 'for';
+        let isRunning = false;
+
+        function initChests() {
+            const row = document.getElementById('chest-row');
+            row.innerHTML = '';
+            items.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'chest';
+                div.id = `chest-${idx}`;
+                div.innerHTML = `
+                    <div class="chest-lid"></div>
+                    <div class="chest-content">${item}</div>
+                `;
+                row.appendChild(div);
+            });
+            updateCodeDisplay();
+        }
+
+        function updateCodeDisplay() {
+            const display = document.getElementById('code-display');
+            if (currentMode === 'for') {
+                display.innerHTML = `
+<div id="line-0">items = ["🍔", "🦴", "🔑", "📦", "💎", "👟"]</div>
+<div id="line-1">for i in range(len(items)):</div>
+<div id="line-2" class="pl-4">  if items[i] == "🔑":</div>
+<div id="line-3" class="pl-8">    print("Found at index", i)</div>
+<div id="line-4" class="pl-8">    print("Position:", i + 1)</div>
+                `;
+            } else if (currentMode === 'break') {
+                display.innerHTML = `
+<div id="line-0">items = ["🍔", "🦴", "🔑", "📦", "💎", "👟"]</div>
+<div id="line-1">for i in range(len(items)):</div>
+<div id="line-2" class="pl-4">  if items[i] == "🔑":</div>
+<div id="line-3" class="pl-8">    print("Found at index", i)</div>
+<div id="line-4" class="pl-8">    print("Position:", i + 1)</div>
+<div id="line-5" class="pl-8">    break # Stop immediately!</div>
+                `;
+            } else {
+                display.innerHTML = `
+<div id="line-0">items = ["🍔", "🦴", "🔑", "📦", "💎", "👟"]</div>
+<div id="line-1">found = False</div>
+<div id="line-2">i = 0</div>
+<div id="line-3">while i < len(items) and not found:</div>
+<div id="line-4" class="pl-4">  if items[i] == "🔑":</div>
+<div id="line-5" class="pl-8">    print("Found at index", i)</div>
+<div id="line-6" class="pl-8">    print("Position:", i + 1)</div>
+<div id="line-7" class="pl-8">    found = True</div>
+<div id="line-8" class="pl-4">  i = i + 1</div>
+                `;
+            }
+        }
+
+        function setMode(mode) {
+            if (isRunning) return;
+            currentMode = mode;
+            ['for', 'break', 'while'].forEach(m => {
+                const btn = document.getElementById(`btn-${m}`);
+                if (m === mode) {
+                    btn.classList.add('border-blue-600', 'bg-blue-50', 'text-blue-700');
+                    btn.classList.remove('text-slate-400', 'border-slate-100');
+                } else {
+                    btn.classList.remove('border-blue-600', 'bg-blue-50', 'text-blue-700');
+                    btn.classList.add('text-slate-400', 'border-slate-100');
+                }
+            });
+            resetSim();
+        }
+
+        function resetSim() {
+            initChests();
+            document.getElementById('console-output').innerHTML = '';
+            document.getElementById('status-tag').innerText = 'Idle';
+            document.getElementById('status-tag').className = 'text-[10px] px-2 py-1 rounded bg-slate-800 text-slate-400 uppercase font-bold tracking-widest';
+            highlight(-1);
+        }
+
+        function log(msg, isSuccess = false) {
+            const out = document.getElementById('console-output');
+            const div = document.createElement('div');
+            div.className = isSuccess ? 'console-msg' : 'text-slate-400 mb-1';
+            div.innerText = isSuccess ? `>>> ${msg}` : `[System]: ${msg}`;
+            out.appendChild(div);
+            out.scrollTop = out.scrollHeight;
+        }
+
+        async function startSearch() {
+            if (isRunning) return;
+            isRunning = true;
+            resetSim();
+            
+            const status = document.getElementById('status-tag');
+            status.innerText = 'Running...';
+            status.classList.replace('text-slate-400', 'text-blue-400');
+
+            if (currentMode === 'for' || currentMode === 'break') {
+                highlight(0); await sleep(600);
+                for (let i = 0; i < items.length; i++) {
+                    highlight(1);
+                    const chest = document.getElementById(`chest-${i}`);
+                    chest.classList.add('active-chest');
+                    log(`Checking index ${i}...`);
+                    await sleep(600);
+                    
+                    highlight(2);
+                    chest.classList.add('open');
+                    await sleep(400);
+
+                    if (items[i] === target) {
+                        chest.classList.add('found-chest');
+                        highlight(3);
+                        log(`MATCH FOUND! Index: ${i}`, true);
+                        await sleep(500);
+                        highlight(4);
+                        log(`Human Position: ${i + 1}`, true);
+                        await sleep(800);
+                        
+                        if (currentMode === 'break') {
+                            highlight(5);
+                            log("BREAK triggered. Stopping loop.");
+                            chest.classList.remove('active-chest');
+                            break;
+                        }
+                    }
+                    await sleep(400);
+                    chest.classList.remove('active-chest');
+                }
+            } else {
+                // While mode
+                highlight(0); await sleep(400);
+                highlight(1); let found = false; await sleep(400);
+                highlight(2); let i = 0; await sleep(400);
+
+                while (i < items.length && !found) {
+                    highlight(3);
+                    const chest = document.getElementById(`chest-${i}`);
+                    chest.classList.add('active-chest');
+                    log(`Checking index ${i}...`);
+                    await sleep(800);
+
+                    highlight(4);
+                    chest.classList.add('open');
+                    await sleep(400);
+
+                    if (items[i] === target) {
+                        chest.classList.add('found-chest');
+                        highlight(5);
+                        log(`MATCH FOUND! Index: ${i}`, true);
+                        await sleep(500);
+                        highlight(6);
+                        log(`Human Position: ${i + 1}`, true);
+                        await sleep(800);
+                        highlight(7);
+                        found = true;
+                    }
+
+                    if (!found) {
+                        highlight(8);
+                        i++;
+                    }
+                    await sleep(600);
+                    chest.classList.remove('active-chest');
+                }
+                highlight(3); // Show final condition check
+            }
+
+            status.innerText = 'Finished';
+            status.classList.replace('text-blue-400', 'text-green-400');
+            isRunning = false;
+        }
+
+        function highlight(lineNum) {
+            document.querySelectorAll('#code-display div').forEach(el => el.classList.remove('highlight'));
+            if (lineNum >= 0) {
+                const active = document.getElementById(`line-${lineNum}`);
+                if (active) active.classList.add('highlight');
+            }
+        }
+
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+        window.onload = initChests;
+    </script>
+</body>
+</html>
