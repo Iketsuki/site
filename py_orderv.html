@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Logic: Order Checker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Lexend', sans-serif;
+            background-color: #f0f9ff;
+        }
+
+        .bar-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 12px;
+            height: 200px;
+            padding: 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .data-bar {
+            width: 50px;
+            background: #0ea5e9;
+            border-radius: 8px 8px 4px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 8px;
+            color: white;
+            font-weight: bold;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .scanner-frame {
+            position: absolute;
+            width: 130px; /* Wider to comfortably fit two bars */
+            height: 240px;
+            border: 4px solid #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            border-radius: 12px;
+            pointer-events: none;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            top: 50%;
+            margin-top: -120px; /* Center vertically */
+            left: 0;
+            opacity: 0;
+        }
+
+        .compare-label {
+            position: absolute;
+            top: -45px;
+            background: #f59e0b;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .code-block {
+            background-color: #0f172a;
+            color: #cbd5e1;
+            font-family: 'Consolas', monospace;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            background-color: rgba(245, 158, 11, 0.3);
+            display: block;
+            border-left: 4px solid #f59e0b;
+            padding-left: 8px;
+            margin-left: -12px;
+            width: calc(100% + 24px);
+        }
+
+        .status-pill {
+            padding: 8px 24px;
+            border-radius: 30px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .fail-bar {
+            background-color: #ef4444 !important;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+        }
+
+        .btn-active {
+            border-color: #0ea5e9;
+            background-color: #f0f9ff;
+            color: #0369a1;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row items-center gap-6 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-sky-100">
+            <div class="text-6xl">🏔️</div>
+            <div>
+                <h1 class="text-3xl font-bold text-sky-900">Mountain Range Logic</h1>
+                <p class="text-gray-600 italic text-lg">Test different data scenarios against different sorting rules!</p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Side Panel -->
+            <div class="lg:col-span-4 space-y-6">
+                <!-- Logic Picker -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-sky-100">
+                    <h2 class="font-bold mb-4 flex items-center gap-2 text-sky-700">
+                        <span>🧩</span> Step 1: Choose Logic
+                    </h2>
+                    <div class="flex gap-2">
+                        <button onclick="setLogic('asc')" id="logic-asc" class="flex-1 py-2 rounded-lg border-2 border-sky-600 bg-sky-50 text-sky-700 font-bold">Ascending</button>
+                        <button onclick="setLogic('desc')" id="logic-desc" class="flex-1 py-2 rounded-lg border-2 border-slate-100 text-slate-400 font-bold">Descending</button>
+                    </div>
+                </div>
+
+                <!-- Scenario Picker -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-sky-100">
+                    <h2 class="font-bold mb-4 flex items-center gap-2 text-sky-700">
+                        <span>📊</span> Step 2: Choose Data
+                    </h2>
+                    <div class="space-y-2">
+                        <button onclick="setScenario('ascending')" id="btn-asc" class="w-full text-left py-3 px-4 rounded-xl border-2 border-sky-600 bg-sky-50 text-sky-700 font-bold transition-all">
+                            Ascending List [10, 25, 45...]
+                        </button>
+                        <button onclick="setScenario('descending')" id="btn-desc" class="w-full text-left py-3 px-4 rounded-xl border-2 border-slate-100 text-slate-400 font-bold hover:border-sky-200 transition-all">
+                            Descending List [90, 75, 55...]
+                        </button>
+                        <button onclick="setScenario('random')" id="btn-rand" class="w-full text-left py-3 px-4 rounded-xl border-2 border-slate-100 text-slate-400 font-bold hover:border-sky-200 transition-all">
+                            Random List [20, 45, 30...]
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-sky-100">
+                    <h2 class="font-bold mb-3 text-sky-700">Python Code</h2>
+                    <div class="code-block" id="code-display">
+                        <!-- Code injected here -->
+                    </div>
+                </div>
+
+                <button id="run-btn" onclick="checkOrder()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-5 rounded-2xl shadow-lg transform active:scale-95 transition-all text-xl">
+                    RUN CHECKER 🔍
+                </button>
+            </div>
+
+            <!-- Main Visualization -->
+            <div class="lg:col-span-8 space-y-6">
+                <div class="bg-white p-12 rounded-3xl shadow-inner border-4 border-sky-50 relative overflow-hidden flex flex-col items-center">
+                    
+                    <!-- Result Display -->
+                    <div class="mb-8 h-12 flex items-center">
+                        <div id="result-pill" class="status-pill bg-slate-100 text-slate-400">Awaiting Run...</div>
+                    </div>
+
+                    <!-- Visual Area -->
+                    <div class="relative w-full flex justify-center items-end" style="height: 250px;">
+                        <!-- The Scanner Frame -->
+                        <div id="scanner" class="scanner-frame">
+                            <div class="compare-label" id="comparison-text">items[i] < items[i+1]</div>
+                        </div>
+                        
+                        <div class="bar-container w-full" id="data-container">
+                            <!-- Bars here -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Logs -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-sky-100 min-h-[180px]">
+                    <h2 class="font-bold mb-4 text-sky-700">Execution Log</h2>
+                    <div id="logic-logs" class="space-y-2 font-mono text-sm text-slate-600">
+                        <div class="italic text-slate-300">Set your logic and data, then click Run...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const scenarios = {
+            ascending: [10, 25, 45, 60, 85, 95],
+            descending: [90, 75, 55, 40, 20, 5],
+            random: [20, 45, 30, 80, 10, 50]
+        };
+
+        let currentScenario = 'ascending';
+        let currentLogic = 'asc';
+        let isRunning = false;
+
+        function initBars() {
+            const container = document.getElementById('data-container');
+            container.innerHTML = '';
+            const data = scenarios[currentScenario];
+            data.forEach((val, idx) => {
+                const bar = document.createElement('div');
+                bar.className = 'data-bar';
+                bar.id = `bar-${idx}`;
+                bar.style.height = `${val * 2}px`;
+                bar.innerHTML = `<span class="text-xs mb-1 opacity-50">${idx}</span>${val}`;
+                container.appendChild(bar);
+            });
+            
+            // Set scanner initial position to the first comparison pair (hidden)
+            resetScannerPos();
+            updateCode();
+        }
+
+        function resetScannerPos() {
+            const scanner = document.getElementById('scanner');
+            scanner.style.opacity = '0';
+            scanner.style.transform = `translateX(0px)`;
+        }
+
+        function updateCode() {
+            const display = document.getElementById('code-display');
+            const varName = currentLogic === 'asc' ? 'is_ascending' : 'is_descending';
+            const operator = currentLogic === 'asc' ? '>=' : '<=';
+            
+            display.innerHTML = `
+<div id="line-0">${varName} = True</div>
+<div id="line-1">for i in range(len(items) - 1):</div>
+<div id="line-2" class="pl-4">  # Comparison</div>
+<div id="line-3" class="pl-4">  if items[i] ${operator} items[i+1]:</div>
+<div id="line-4" class="pl-8">    ${varName} = False</div>
+<div id="line-5" class="pl-8">    break</div>
+<div id="line-6">print(${varName})</div>
+            `;
+        }
+
+        function setLogic(logic) {
+            if (isRunning) return;
+            currentLogic = logic;
+            const btnAsc = document.getElementById('logic-asc');
+            const btnDesc = document.getElementById('logic-desc');
+            
+            if(logic === 'asc') {
+                btnAsc.className = 'flex-1 py-2 rounded-lg border-2 border-sky-600 bg-sky-50 text-sky-700 font-bold';
+                btnDesc.className = 'flex-1 py-2 rounded-lg border-2 border-slate-100 text-slate-400 font-bold';
+            } else {
+                btnDesc.className = 'flex-1 py-2 rounded-lg border-2 border-sky-600 bg-sky-50 text-sky-700 font-bold';
+                btnAsc.className = 'flex-1 py-2 rounded-lg border-2 border-slate-100 text-slate-400 font-bold';
+            }
+            resetSim();
+        }
+
+        function setScenario(type) {
+            if (isRunning) return;
+            currentScenario = type;
+            ['asc', 'desc', 'rand'].forEach(id => {
+                const btn = document.getElementById(`btn-${id}`);
+                btn.className = btn.className.replace('border-sky-600 bg-sky-50 text-sky-700', 'border-slate-100 text-slate-400');
+            });
+            const activeId = type === 'ascending' ? 'asc' : type === 'desc' ? 'desc' : 'rand';
+            const activeBtn = document.getElementById(`btn-${activeId}`);
+            activeBtn.className = activeBtn.className.replace('border-slate-100 text-slate-400', 'border-sky-600 bg-sky-50 text-sky-700');
+            
+            resetSim();
+        }
+
+        function resetSim() {
+            initBars();
+            document.getElementById('result-pill').innerText = 'Awaiting Run...';
+            document.getElementById('result-pill').className = 'status-pill bg-slate-100 text-slate-400';
+            document.getElementById('logic-logs').innerHTML = '<div class="italic text-slate-300">Ready to check...</div>';
+            resetScannerPos();
+            highlight(-1);
+        }
+
+        async function checkOrder() {
+            if (isRunning) return;
+            isRunning = true;
+            resetSim();
+
+            const data = scenarios[currentScenario];
+            const scanner = document.getElementById('scanner');
+            const container = document.getElementById('data-container');
+            const logs = document.getElementById('logic-logs');
+            const pill = document.getElementById('result-pill');
+            const opLabel = currentLogic === 'asc' ? '<' : '>';
+            
+            logs.innerHTML = '';
+            
+            let isSorted = true;
+            highlight(0);
+            await sleep(600);
+
+            for (let i = 0; i < data.length - 1; i++) {
+                highlight(1);
+                
+                // Position Scanner
+                const bar1 = document.getElementById(`bar-${i}`);
+                const bar2 = document.getElementById(`bar-${i+1}`);
+                const rect1 = bar1.getBoundingClientRect();
+                const rect2 = bar2.getBoundingClientRect();
+                const parentRect = container.getBoundingClientRect();
+                
+                // Calculate perfect center relative to the container
+                const centerX = (rect1.left + rect2.right) / 2 - parentRect.left;
+                scanner.style.transform = `translateX(${centerX - (scanner.offsetWidth / 2)}px)`;
+                scanner.style.opacity = '1';
+                
+                document.getElementById('comparison-text').innerText = `${data[i]} ${opLabel} ${data[i+1]}?`;
+                
+                await sleep(1000);
+
+                highlight(3);
+                
+                const failsAsc = currentLogic === 'asc' && data[i] >= data[i+1];
+                const failsDesc = currentLogic === 'desc' && data[i] <= data[i+1];
+
+                if (failsAsc || failsDesc) {
+                    highlight(4);
+                    isSorted = false;
+                    bar1.classList.add('fail-bar');
+                    bar2.classList.add('fail-bar');
+                    const reason = currentLogic === 'asc' ? 'not smaller than' : 'not larger than';
+                    logs.innerHTML += `<div class="text-red-500 font-bold">❌ Error: ${data[i]} is ${reason} ${data[i+1]}</div>`;
+                    await sleep(800);
+                    highlight(5);
+                    logs.innerHTML += `<div class="text-red-800 italic">Breaking out of loop early...</div>`;
+                    break;
+                } else {
+                    logs.innerHTML += `<div class="text-emerald-600">✅ Step ${i}: ${data[i]} ${opLabel} ${data[i+1]}</div>`;
+                }
+                await sleep(600);
+            }
+
+            highlight(6);
+            scanner.style.opacity = '0';
+            
+            const logicText = currentLogic === 'asc' ? "Strictly Ascending" : "Strictly Descending";
+            pill.innerText = isSorted ? `VALID: ${logicText}` : `INVALID: Not ${currentLogic === 'asc' ? 'Ascending' : 'Descending'}`;
+            pill.className = isSorted ? "status-pill bg-emerald-500 text-white shadow-lg" : "status-pill bg-red-500 text-white shadow-lg";
+            
+            isRunning = false;
+        }
+
+        function highlight(lineNum) {
+            document.querySelectorAll('#code-display div').forEach(el => el.classList.remove('highlight'));
+            if (lineNum >= 0) {
+                const active = document.getElementById(`line-${lineNum}`);
+                if (active) active.classList.add('highlight');
+            }
+        }
+
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+        window.onload = initBars;
+    </script>
+</body>
+</html>
