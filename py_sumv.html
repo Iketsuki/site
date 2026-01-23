@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Summing: The Grocery Checkout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Lexend', sans-serif;
+            background-color: #f0fdf4;
+        }
+
+        .conveyor-belt {
+            background: repeating-linear-gradient(
+                90deg,
+                #333,
+                #333 40px,
+                #444 40px,
+                #444 80px
+            );
+            height: 120px;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 8px solid #222;
+        }
+
+        .grocery-item {
+            width: 70px;
+            height: 80px;
+            background-color: #fbbf24;
+            border: 3px solid #d97706;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            bottom: 15px;
+            transition: all 0.5s ease;
+        }
+
+        .register-screen {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1a2e1a;
+            color: #2ecc71;
+            text-shadow: 0 0 10px #2ecc71;
+        }
+
+        .code-block {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Consolas', monospace;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .highlight-line {
+            background-color: rgba(46, 204, 113, 0.3);
+            display: block;
+            width: 100%;
+        }
+
+        .scanning-beam {
+            position: absolute;
+            width: 4px;
+            height: 100%;
+            background: rgba(239, 68, 68, 0.5);
+            box-shadow: 0 0 15px red;
+            left: 200px;
+            z-index: 20;
+            display: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .scanning {
+            animation: pulse 0.3s infinite;
+            border-color: #ef4444 !important;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header & Mascot -->
+        <header class="flex items-center gap-6 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-green-100">
+            <div class="text-5xl">🛒</div>
+            <div>
+                <h1 class="text-2xl font-bold text-green-800">The Grocery Summation</h1>
+                <p class="text-gray-600 italic" id="mascot-speech">"Imagine you are a cashier. To find the total price, you must scan every item on the belt, one by one!"</p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- LEFT: Controls & Code -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-green-100">
+                    <h2 class="font-bold mb-4 flex items-center gap-2">
+                        <span>⚙️</span> Strategy
+                    </h2>
+                    <div class="flex flex-col gap-3">
+                        <button onclick="setMode('manual')" id="btn-manual" class="w-full py-3 px-4 rounded-xl border-2 border-green-500 bg-green-50 text-green-700 font-bold transition-all">
+                            🐢 Manual Loop (The Long Way)
+                        </button>
+                        <button onclick="setMode('auto')" id="btn-auto" class="w-full py-3 px-4 rounded-xl border-2 border-gray-200 text-gray-500 font-bold hover:border-green-300 transition-all">
+                            ⚡ sum() Function (The Shortcut)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-green-100">
+                    <h2 class="font-bold mb-2">Python Logic</h2>
+                    <div class="code-block" id="code-display">
+                        <div id="line-0">prices = [5, 12, 8]</div>
+                        <div id="line-1">total = 0</div>
+                        <div id="line-2">for i in range(len(prices)):</div>
+                        <div id="line-3" class="pl-4">&nbsp;&nbsp;total = total + prices[i]</div>
+                        <div id="line-4">print(total)</div>
+                    </div>
+                </div>
+
+                <button id="run-btn" onclick="startSimulation()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-2xl shadow-lg transform active:scale-95 transition-all text-xl">
+                    RUN CODE ▶
+                </button>
+            </div>
+
+            <!-- RIGHT: Visual Simulation -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Register & Belt -->
+                <div class="bg-white p-8 rounded-2xl shadow-inner border-4 border-gray-100 flex flex-col items-center">
+                    <!-- Register -->
+                    <div class="w-64 h-32 register-screen rounded-lg border-8 border-gray-800 flex flex-col items-center justify-center mb-8 relative">
+                        <span class="text-xs uppercase opacity-50 absolute top-2">Grand Total</span>
+                        <div class="text-4xl font-bold" id="total-display">$0</div>
+                        <div class="text-xs mt-2 text-green-400" id="step-info">READY TO SCAN</div>
+                    </div>
+
+                    <!-- Belt Area -->
+                    <div class="w-full conveyor-belt" id="belt">
+                        <div class="scanning-beam" id="scanner"></div>
+                        <!-- Items will be injected here -->
+                    </div>
+                    <div class="w-full flex justify-around px-4 text-xs text-gray-400 font-mono mt-2">
+                        <span>INDEX 0</span>
+                        <span>INDEX 1</span>
+                        <span>INDEX 2</span>
+                        <span>INDEX 3</span>
+                    </div>
+                </div>
+
+                <!-- Trace Table -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-green-100 overflow-hidden">
+                    <h2 class="font-bold mb-4 flex items-center gap-2">
+                        <span>📊</span> Trace Table (Live Memory)
+                    </h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b-2 border-green-100 text-green-700">
+                                    <th class="pb-2">Step</th>
+                                    <th class="pb-2">Index `i`</th>
+                                    <th class="pb-2">Current Item</th>
+                                    <th class="pb-2">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trace-body">
+                                <tr class="text-gray-400 italic">
+                                    <td colspan="4" class="py-4 text-center">Click RUN to start tracking variables...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- The Trap Alert -->
+                <div id="trap-card" class="hidden bg-red-50 border-2 border-red-200 p-4 rounded-xl flex items-start gap-4">
+                    <div class="text-2xl">⚠️</div>
+                    <div>
+                        <h4 class="font-bold text-red-800">The "Inside-Out" Trap!</h4>
+                        <p class="text-sm text-red-700">If you put <code class="bg-red-100 px-1">total = 0</code> inside the loop, the register resets every time! Always set your starting total <b>before</b> you scan.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const prices = [5, 12, 8, 15];
+        let currentMode = 'manual';
+        let isRunning = false;
+
+        // Initialize Belt
+        function initBelt() {
+            const belt = document.getElementById('belt');
+            // Clear existing items but keep scanner
+            const scanner = document.getElementById('scanner');
+            belt.innerHTML = '';
+            belt.appendChild(scanner);
+
+            prices.forEach((price, index) => {
+                const item = document.createElement('div');
+                item.className = 'grocery-item';
+                item.id = `item-${index}`;
+                item.style.left = `${100 + (index * 120)}px`;
+                item.innerHTML = `
+                    <span class="text-xs font-bold text-amber-800">ITEM ${index}</span>
+                    <span class="text-xl font-bold">$${price}</span>
+                `;
+                belt.appendChild(item);
+            });
+        }
+
+        function setMode(mode) {
+            if(isRunning) return;
+            currentMode = mode;
+            const manualBtn = document.getElementById('btn-manual');
+            const autoBtn = document.getElementById('btn-auto');
+            const codeDisplay = document.getElementById('code-display');
+            const mascot = document.getElementById('mascot-speech');
+
+            if (mode === 'manual') {
+                manualBtn.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+                autoBtn.classList.remove('border-green-500', 'bg-green-50', 'text-green-700');
+                codeDisplay.innerHTML = `
+                    <div id="line-0">prices = [5, 12, 8, 15]</div>
+                    <div id="line-1">total = 0</div>
+                    <div id="line-2">for i in range(len(prices)):</div>
+                    <div id="line-3" class="pl-4">&nbsp;&nbsp;total = total + prices[i]</div>
+                    <div id="line-4">print(total)</div>
+                `;
+                mascot.innerText = "One by one! We move the index 'i' to see every price.";
+            } else {
+                autoBtn.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+                manualBtn.classList.remove('border-green-500', 'bg-green-50', 'text-green-700');
+                codeDisplay.innerHTML = `
+                    <div id="line-0">prices = [5, 12, 8, 15]</div>
+                    <div id="line-1">total = sum(prices)</div>
+                    <div id="line-2">print(total)</div>
+                `;
+                mascot.innerText = "The sum() function is like magic! It adds everything at once.";
+            }
+            resetSimulation();
+        }
+
+        function resetSimulation() {
+            document.getElementById('total-display').innerText = '$0';
+            document.getElementById('step-info').innerText = 'READY';
+            document.getElementById('trace-body').innerHTML = '<tr class="text-gray-400 italic"><td colspan="4" class="py-4 text-center">Click RUN to start tracking variables...</td></tr>';
+            initBelt();
+        }
+
+        async function startSimulation() {
+            if(isRunning) return;
+            isRunning = true;
+            resetSimulation();
+            
+            const totalDisp = document.getElementById('total-display');
+            const stepInfo = document.getElementById('step-info');
+            const traceBody = document.getElementById('trace-body');
+            const scanner = document.getElementById('scanner');
+            
+            traceBody.innerHTML = '';
+            let currentTotal = 0;
+
+            if (currentMode === 'manual') {
+                // Line 1: Init Total
+                highlight(1);
+                stepInfo.innerText = "INITIALIZING TOTAL";
+                await sleep(800);
+
+                for (let i = 0; i < prices.length; i++) {
+                    // Line 2: Loop header
+                    highlight(2);
+                    stepInfo.innerText = `CHECKING INDEX i = ${i}`;
+                    
+                    // Visual item movement
+                    const item = document.getElementById(`item-${i}`);
+                    item.style.backgroundColor = '#6ee7b7';
+                    item.style.transform = 'translateY(-10px)';
+                    
+                    // Align scanner
+                    scanner.style.display = 'block';
+                    scanner.style.left = item.style.left;
+                    item.classList.add('scanning');
+                    
+                    await sleep(600);
+
+                    // Line 3: Addition
+                    highlight(3);
+                    currentTotal += prices[i];
+                    totalDisp.innerText = `$${currentTotal}`;
+                    totalDisp.style.transform = 'scale(1.2)';
+                    setTimeout(() => totalDisp.style.transform = 'scale(1)', 200);
+
+                    // Update Table
+                    const row = `
+                        <tr class="border-b border-gray-100 animate-pulse">
+                            <td class="py-2">Scan ${i+1}</td>
+                            <td class="py-2 font-mono">${i}</td>
+                            <td class="py-2">$${prices[i]}</td>
+                            <td class="font-bold text-green-600">$${currentTotal}</td>
+                        </tr>
+                    `;
+                    traceBody.innerHTML += row;
+                    
+                    await sleep(800);
+                    item.classList.remove('scanning');
+                    item.style.backgroundColor = '#fbbf24';
+                    item.style.transform = 'translateY(0)';
+                }
+                highlight(4);
+                stepInfo.innerText = "FINISHED!";
+            } else {
+                // Auto Mode logic
+                highlight(1);
+                stepInfo.innerText = "SUMMING ALL ITEMS...";
+                scanner.style.display = 'block';
+                scanner.style.width = '100%';
+                scanner.style.left = '0';
+                
+                await sleep(1000);
+                
+                currentTotal = prices.reduce((a, b) => a + b, 0);
+                totalDisp.innerText = `$${currentTotal}`;
+                
+                traceBody.innerHTML = `
+                    <tr class="bg-green-50">
+                        <td class="py-2">Instant</td>
+                        <td class="py-2 font-mono">ALL</td>
+                        <td class="py-2">ALL</td>
+                        <td class="font-bold text-green-600">$${currentTotal}</td>
+                    </tr>
+                `;
+                highlight(2);
+                stepInfo.innerText = "FINISHED!";
+            }
+
+            scanner.style.display = 'none';
+            isRunning = false;
+        }
+
+        function highlight(lineNum) {
+            for (let i = 0; i < 10; i++) {
+                const el = document.getElementById(`line-${i}`);
+                if (el) el.classList.remove('highlight-line');
+            }
+            const active = document.getElementById(`line-${lineNum}`);
+            if (active) active.classList.add('highlight-line');
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Initialize on load
+        window.onload = initBelt;
+    </script>
+</body>
+</html>
