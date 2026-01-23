@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Logic: Finding the Index</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0fdf4; /* Emerald-50 */
+            color: #064e3b; /* Emerald-950 */
+        }
+
+        .slot-input {
+            width: 110px;
+            border: 2px solid #059669;
+            border-radius: 6px;
+            padding: 4px;
+            text-align: center;
+            font-family: 'Fira Code', monospace;
+            font-weight: bold;
+            color: #065f46;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .slot-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+            border-color: #059669;
+        }
+
+        .step-container {
+            background: white;
+            border-left: 6px solid #064e3b;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-radius: 0 12px 12px 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .hidden-step {
+            display: none;
+        }
+
+        .code-block {
+            background-color: #064e3b;
+            color: #ecfdf5;
+            padding: 1.25rem;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            margin: 1rem 0;
+            line-height: 1.6;
+        }
+
+        .code-keyword { color: #6ee7b7; }
+        .code-func { color: #93c5fd; }
+        .code-var { color: #fbbf24; }
+        .code-bool { color: #c084fc; }
+        .code-comment { color: #94a3b8; font-style: italic; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        mark {
+            background-color: #fef08a;
+            padding: 0 4px;
+            border-radius: 4px;
+            color: #064e3b;
+            font-weight: bold;
+        }
+
+        .feedback {
+            font-weight: 700;
+            margin-top: 0.75rem;
+            min-height: 1.5rem;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-10 max-w-4xl mx-auto">
+
+    <!-- Header -->
+    <header class="mb-10 text-center">
+        <h1 class="text-4xl font-extrabold mb-4 text-emerald-900">Finding the Index</h1>
+        <div class="bg-emerald-900 text-emerald-50 p-8 rounded-2xl shadow-xl">
+            <p class="text-xl mb-4">Given the following Python list:</p>
+            <code class="text-2xl font-bold bg-emerald-950 px-4 py-2 rounded-lg border border-emerald-700">
+                fruits = [<mark>"apple"</mark>, <mark>"banana"</mark>, <mark>"cherry"</mark>, <mark>"date"</mark>]
+            </code>
+            <p class="mt-6 italic text-emerald-200">Task: Find the index of <strong>"cherry"</strong> and print its position.</p>
+        </div>
+    </header>
+
+    <main id="scaffold-content">
+        <!-- Step 0 -->
+        <section id="step-0" class="step-container">
+            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 0: Variable Definition</h2>
+            <div class="text-lg">
+                We will track the <strong>position</strong> (index) found: <br><br>
+                Item to find: <code class="bg-emerald-100 px-2 rounded">target = "cherry"</code> <br>
+                Found status: <code class="bg-emerald-100 px-2 rounded">found = False</code> <br>
+                Storage for index: <code class="bg-emerald-100 px-2 rounded">pos = -1</code>
+            </div>
+            <button onclick="unlockNext(0)" class="mt-6 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 transition-all shadow-lg">Begin Step 1</button>
+            <div class="feedback" id="feedback-0"></div>
+        </section>
+
+        <!-- Step 1 -->
+        <section id="step-1" class="step-container hidden-step">
+            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 1: Computer Index vs Human Count</h2>
+            <p class="mb-4">"cherry" is the 3rd item in the list. What are its Python index and its human position?</p>
+            <div class="text-lg space-y-4">
+                <div>Python Index: <input type="text" class="slot-input" data-answer="2"> <span class="text-sm">(Starts at 0)</span></div>
+                <div>Human Position: <input type="text" class="slot-input" data-answer="3"> <span class="text-sm">(Starts at 1)</span></div>
+            </div>
+            <button onclick="checkStep(1)" class="mt-4 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 shadow-lg">Confirm</button>
+            <div class="feedback" id="feedback-1"></div>
+        </section>
+
+        <!-- Step 2 -->
+        <section id="step-2" class="step-container hidden-step">
+            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 2: Logic with "Not Equal" (!=)</h2>
+            <p>We check every item. If the item is <strong>not equal</strong> to the target, we do nothing. If it <strong>is</strong> equal, we save the index.</p>
+            <div class="code-block">
+                <div><span class="code-var">pos</span> = -1</div>
+                <div class="mt-2"><span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-func">len</span>(fruits)):</div>
+                <div class="ml-8"><span class="code-keyword">if</span> fruits[i] <input type="text" class="slot-input !w-16" data-answer="!="> "apple":</div>
+                <div class="ml-16"><span class="code-comment"># This isn't what we want yet...</span></div>
+                <div class="ml-8"><span class="code-keyword">if</span> fruits[i] == <span class="code-var">target</span>:</div>
+                <div class="ml-16"><span class="code-var">pos</span> = <input type="text" class="slot-input !w-16" data-answer="i"></div>
+                <div class="mt-4"><span class="code-keyword">if</span> pos <input type="text" class="slot-input !w-16" data-answer="!="> -1:</div>
+                <div class="ml-8"><span class="code-func">print</span>("Found at index", <span class="code-var">pos</span>)</div>
+            </div>
+            <button onclick="checkStep(2)" class="mt-4 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 shadow-lg">Verify != Logic</button>
+            <div class="feedback" id="feedback-2"></div>
+        </section>
+
+        <!-- Step 3 -->
+        <section id="step-3" class="step-container hidden-step">
+            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 3: "For" Loop with Early Exit</h2>
+            <p>Once we find the correct index, use the <code>break</code> keyword to stop searching.</p>
+            <div class="code-block">
+                <div class="mt-2"><span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-func">len</span>(fruits)):</div>
+                <div class="ml-8"><span class="code-keyword">if</span> fruits[i] == target:</div>
+                <div class="ml-16"><span class="code-var">pos</span> = i</div>
+                <div class="ml-16"><span class="code-keyword"><input type="text" class="slot-input !w-16" data-answer="break"></span></div>
+            </div>
+            <button onclick="checkStep(3)" class="mt-4 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 shadow-lg">Verify Break</button>
+            <div class="feedback" id="feedback-3"></div>
+        </section>
+
+        <!-- Step 4 -->
+        <section id="step-4" class="step-container hidden-step">
+            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 4: The "While" Flag Version</h2>
+            <p>A while loop that continues as long as the index is valid and we haven't found the item.</p>
+            <div class="code-block">
+                <div><span class="code-var">i</span> = 0</div>
+                <div><span class="code-var">found</span> = <span class="code-bool">False</span></div>
+                <div class="mt-2"><span class="code-keyword">while</span> i &lt; <span class="code-func">len</span>(fruits) <span class="code-keyword">and</span> <span class="code-keyword">not</span> <span class="code-var">found</span>:</div>
+                <div class="ml-8"><span class="code-keyword">if</span> fruits[i] == <span class="code-var">target</span>:</div>
+                <div class="ml-16"><span class="code-var">found</span> = <span class="code-bool">True</span></div>
+                <div class="ml-16"><span class="code-var">pos</span> = i</div>
+                <div class="ml-8">i += 1</div>
+                <div class="mt-4"><span class="code-keyword">if</span> pos <input type="text" class="slot-input !w-16" data-answer="!="> -1:</div>
+                <div class="ml-8"><span class="code-func">print</span>("Human position:", <input type="text" class="slot-input !w-20" data-answer="pos + 1">)</div>
+            </div>
+            <button onclick="checkStep(4)" class="mt-4 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 shadow-lg">Verify While Loop</button>
+            <div class="feedback" id="feedback-4"></div>
+        </section>
+
+        <!-- Success Screen -->
+        <section id="success-screen" class="hidden-step text-center py-12">
+            <div class="inline-block p-10 bg-white rounded-3xl shadow-2xl border-4 border-emerald-600">
+                <h2 class="text-5xl font-black text-emerald-700 mb-4">COMPLETE!</h2>
+                <p class="text-xl text-emerald-900 mb-8">You've mastered index search with for-breaks and while-found logic.</p>
+                <button onclick="location.reload()" class="bg-emerald-100 text-emerald-700 px-6 py-2 rounded-full font-bold hover:bg-emerald-200 transition-colors">Restart Module</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let debugBuffer = "";
+        window.addEventListener('keydown', (e) => {
+            debugBuffer += e.key.toLowerCase();
+            if (debugBuffer.endsWith('aaa')) {
+                document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
+            } else if (debugBuffer.endsWith('sss')) {
+                document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
+                document.querySelectorAll('.slot-input').forEach(i => i.value = i.getAttribute('data-answer'));
+            }
+            if (debugBuffer.length > 10) debugBuffer = debugBuffer.slice(-10);
+        });
+
+        function checkStep(idx) {
+            const step = document.getElementById(`step-${idx}`);
+            const inputs = step.querySelectorAll('.slot-input');
+            const feedback = document.getElementById(`feedback-${idx}`);
+            
+            let filled = true;
+            let correct = true;
+
+            inputs.forEach(input => {
+                const val = input.value.trim().toLowerCase().replace(/\s/g, '');
+                const ans = input.getAttribute('data-answer').toLowerCase().replace(/\s/g, '');
+                
+                if (val === "") filled = false;
+                if (val !== ans) correct = false;
+            });
+
+            if (!filled) {
+                feedback.textContent = "⚠️ Please fill in all the blanks.";
+                feedback.className = "feedback text-orange-600";
+                return;
+            }
+
+            if (correct) {
+                feedback.textContent = "✔️ Excellent work!";
+                feedback.className = "feedback text-emerald-600";
+                unlockNext(idx);
+            } else {
+                feedback.textContent = "❌ Logic error. Try again!";
+                feedback.className = "feedback text-red-600";
+            }
+        }
+
+        function unlockNext(current) {
+            const next = document.getElementById(`step-${current + 1}`) || document.getElementById('success-screen');
+            if (next) {
+                next.classList.remove('hidden-step');
+                setTimeout(() => {
+                    next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+        }
+    </script>
+</body>
+</html>
