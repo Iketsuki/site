@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Logic: Counting Items</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0fdf4; /* Forest/Emerald-50 */
+            color: #064e3b; /* Emerald-950 */
+        }
+
+        .slot-input {
+            width: 110px;
+            border: 2px solid #059669;
+            border-radius: 6px;
+            padding: 4px;
+            text-align: center;
+            font-family: 'Fira Code', monospace;
+            font-weight: bold;
+            color: #065f46;
+            background: white;
+            transition: all 0.2s;
+            font-variant-ligatures: none;
+        }
+
+        .slot-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+            border-color: #059669;
+        }
+
+        /* Styling for pre-filled static answers */
+        .static-answer {
+            background-color: #ecfdf5;
+            border-bottom: 2px solid #059669;
+            padding: 0 8px;
+            font-family: 'Fira Code', monospace;
+            font-weight: bold;
+            color: #065f46;
+            border-radius: 4px;
+        }
+
+        .step-container {
+            background: white;
+            border-left: 6px solid #064e3b;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-radius: 0 12px 12px 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .hidden-step {
+            display: none;
+        }
+
+        .code-block {
+            background-color: #064e3b;
+            color: #ecfdf5;
+            padding: 1.25rem;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            margin: 1rem 0;
+            line-height: 1.6;
+            font-variant-ligatures: none;
+        }
+
+        .code-keyword { color: #6ee7b7; }
+        .code-func { color: #93c5fd; }
+        .code-var { color: #fbbf24; }
+        .code-num { color: #c084fc; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        mark {
+            background-color: #fef08a;
+            padding: 0 4px;
+            border-radius: 4px;
+            color: #064e3b;
+            font-weight: bold;
+        }
+
+        .feedback {
+            font-weight: 700;
+            margin-top: 0.75rem;
+            min-height: 1.5rem;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-10 max-w-4xl mx-auto">
+
+    <!-- Header -->
+    <header class="mb-10 text-center">
+        <h1 class="text-4xl font-extrabold mb-4 text-emerald-900">Counting Items in a List</h1>
+        <div class="bg-emerald-900 text-emerald-50 p-8 rounded-2xl shadow-xl">
+            <p class="text-xl mb-4">Given the following inventory list:</p>
+            <code class="text-2xl font-bold bg-emerald-950 px-4 py-2 rounded-lg border border-emerald-700">
+                items = [<mark>"apple"</mark>, <mark>"orange"</mark>, <mark>"apple"</mark>, <mark>"apple"</mark>, <mark>"pear"</mark>]
+            </code>
+            <p class="mt-6 italic text-emerald-200">How many items are in total? And how many are <strong>"apple"</strong>?</p>
+        </div>
+    </header>
+
+    <main id="scaffold-content">
+        <!-- Step 0 -->
+        <section id="step-0" class="step-container">
+            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 0: Initializing Counters</h2>
+            <div class="text-lg">
+                To count, we always start our counter variables at zero: <br><br>
+                <div class="space-y-4">
+                    <div>Total count: <span class="static-answer">total</span> = 0</div>
+                    <div>Apple count: <span class="static-answer">apple_count</span> = 0</div>
+                </div>
+            </div>
+            <button onclick="unlockNext(0)" class="mt-6 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 transition-all shadow-lg">Begin Step 1</button>
+            <div class="feedback" id="feedback-0"></div>
+        </section>
+
+        <!-- Step 1 -->
+        <section id="step-1" class="step-container hidden-step">
+            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 1: Counting Everything (by Index)</h2>
+            <p class="mb-4">Let's iterate through the list using its length and increase the total for every index.</p>
+            <div class="code-block">
+                <div><span class="code-var">total</span> = 0</div>
+                <div class="mt-2"><span class="code-keyword">for</span> <input type="text" class="slot-input !w-12" data-answer="i"> <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-func">len</span>(<input type="text" class="slot-input !w-20" data-answer="items">)):</div>
+                <div class="ml-8"><span class="code-var">total</span> = <span class="code-var">total</span> + <input type="text" class="slot-input !w-12" data-answer="1"></div>
+                <div class="mt-4"><span class="code-func">print</span>("Total items:", <span class="code-var">total</span>)</div>
+            </div>
+            <div class="text-lg mt-4">
+                What is the final value of total? <input type="text" class="slot-input" data-answer="5">
+            </div>
+            <button onclick="checkStep(1)" class="mt-4 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 shadow-lg">Verify Total</button>
+            <div class="feedback" id="feedback-1"></div>
+        </section>
+
+        <!-- Step 2 -->
+        <section id="step-2" class="step-container hidden-step">
+            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 2: The "Count If" Logic</h2>
+            <p>Use the index <code>i</code> to look at each specific fruit inside the list.</p>
+            <div class="code-block">
+                <div><span class="code-var">apple_count</span> = 0</div>
+                <div class="mt-2"><span class="code-keyword">for</span> <span class="code-var">i</span> <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-func">len</span>(items)):</div>
+                <div class="ml-8"><span class="code-keyword">if</span> <input type="text" class="slot-input !w-24" data-answer="items[i]"> == <input type="text" class="slot-input !w-24" data-answer='"apple"'>:</div>
+                <div class="ml-16"><span class="code-var">apple_count</span> += <input type="text" class="slot-input !w-12" data-answer="1"></div>
+            </div>
+            <div class="text-lg mt-4">
+                How many apples were found? <input type="text" class="slot-input" data-answer="3">
+            </div>
+            <button onclick="checkStep(2)" class="mt-4 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 shadow-lg">Check Apples</button>
+            <div class="feedback" id="feedback-2"></div>
+        </section>
+
+        <!-- Step 3 -->
+        <section id="step-3" class="step-container hidden-step">
+            <h2 class="text-xl font-bold text-emerald-800 mb-4">Step 3: Counting Everything EXCEPT...</h2>
+            <p>Count how many items are <strong>not equal</strong> (<code>!=</code>) to "apple".</p>
+            <div class="code-block">
+                <div><span class="code-var">others</span> = <span class="code-num">0</span></div>
+                <div class="mt-2"><span class="code-keyword">for</span> <input type="text" class="slot-input !w-12" data-answer="i"> <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-func">len</span>(<input type="text" class="slot-input !w-20" data-answer="items">)):</div>
+                <div class="ml-8"><span class="code-keyword">if</span> items[i] <input type="text" class="slot-input !w-16" data-answer="!="> "apple":</div>
+                <div class="ml-16"><span class="code-var">others</span> = <span class="code-var">others</span> + <input type="text" class="slot-input !w-12" data-answer="1"></div>
+            </div>
+            <div class="text-lg mt-4">
+                Count of non-apple items: <input type="text" class="slot-input" data-answer="2">
+            </div>
+            <button onclick="checkStep(3)" class="mt-4 bg-emerald-700 text-white px-8 py-3 rounded-full font-bold hover:bg-emerald-800 shadow-lg">Verify Non-Apples</button>
+            <div class="feedback" id="feedback-3"></div>
+        </section>
+
+        <!-- Success Screen -->
+        <section id="success-screen" class="hidden-step text-center py-12">
+            <div class="inline-block p-10 bg-white rounded-3xl shadow-2xl border-4 border-emerald-600">
+                <h2 class="text-5xl font-black text-emerald-700 mb-4">GREAT JOB!</h2>
+                <p class="text-xl text-emerald-900 mb-8">You've mastered index-based counting and conditional filtering.</p>
+                <button onclick="location.reload()" class="bg-emerald-100 text-emerald-700 px-6 py-2 rounded-full font-bold hover:bg-emerald-200 transition-colors">Restart Module</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let debugBuffer = "";
+        window.addEventListener('keydown', (e) => {
+            debugBuffer += e.key.toLowerCase();
+            if (debugBuffer.endsWith('aaa')) {
+                document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
+            } else if (debugBuffer.endsWith('sss')) {
+                document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
+                document.querySelectorAll('.slot-input').forEach(i => i.value = i.getAttribute('data-answer'));
+            }
+        });
+
+        function checkStep(idx) {
+            const step = document.getElementById(`step-${idx}`);
+            const inputs = step.querySelectorAll('.slot-input');
+            const feedback = document.getElementById(`feedback-${idx}`);
+            
+            let filled = true;
+            let correct = true;
+
+            inputs.forEach(input => {
+                const val = input.value.trim().toLowerCase().replace(/\s/g, '');
+                const ans = input.getAttribute('data-answer').toLowerCase().replace(/\s/g, '');
+                
+                if (ans.includes('"')) {
+                   const cleanVal = val.replace(/['"]/g, '');
+                   const cleanAns = ans.replace(/['"]/g, '');
+                   if (cleanVal !== cleanAns) correct = false;
+                } else if (val !== ans) {
+                    correct = false;
+                }
+                
+                if (val === "") filled = false;
+            });
+
+            if (!filled) {
+                feedback.textContent = "⚠️ Please fill in all the blanks.";
+                feedback.className = "feedback text-orange-600";
+                return;
+            }
+
+            if (correct) {
+                feedback.textContent = "✔️ That's correct!";
+                feedback.className = "feedback text-emerald-600";
+                unlockNext(idx);
+            } else {
+                feedback.textContent = "❌ Not quite right. Look at the code logic again!";
+                feedback.className = "feedback text-red-600";
+            }
+        }
+
+        function unlockNext(current) {
+            const next = document.getElementById(`step-${current + 1}`) || document.getElementById('success-screen');
+            if (next) {
+                next.classList.remove('hidden-step');
+                setTimeout(() => {
+                    next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+        }
+    </script>
+</body>
+</html>
