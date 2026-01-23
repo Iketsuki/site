@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Search: The Lost Key</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Lexend', sans-serif;
+            background-color: #f0f9ff;
+        }
+
+        .chest {
+            width: 75px;
+            height: 65px;
+            background-color: #8b4513;
+            border: 3px solid #5d2e0a;
+            border-radius: 8px 8px 4px 4px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .chest-lid {
+            position: absolute;
+            top: -5px;
+            left: -3px;
+            width: calc(100% + 6px);
+            height: 35px;
+            background-color: #a0522d;
+            border: 3px solid #5d2e0a;
+            border-radius: 8px 8px 0 0;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: bottom;
+            z-index: 2;
+        }
+
+        .chest.open .chest-lid {
+            transform: rotateX(-115deg);
+        }
+
+        .chest-content {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .chest.open .chest-content {
+            opacity: 1;
+        }
+
+        .light-bulb {
+            width: 60px;
+            height: 60px;
+            background-color: #cbd5e1;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            transition: all 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .light-bulb.on {
+            background-color: #fde047;
+            box-shadow: 0 0 40px #fde047, inset 0 0 5px white;
+            color: #854d0e;
+        }
+
+        .code-block {
+            background-color: #1a202c;
+            color: #e2e8f0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            min-height: 220px;
+        }
+
+        .highlight {
+            background-color: rgba(20, 184, 166, 0.4);
+            display: block;
+            border-left: 4px solid #14b8a6;
+            padding-left: 8px;
+            margin-left: -12px;
+            width: calc(100% + 24px);
+        }
+
+        .active-chest {
+            transform: scale(1.15);
+            box-shadow: 0 0 20px rgba(20, 184, 166, 0.4);
+            border-color: #14b8a6;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row items-center gap-6 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-teal-100">
+            <div class="text-6xl animate-pulse">🗝️</div>
+            <div>
+                <h1 class="text-3xl font-bold text-teal-800">The Lost Key Search</h1>
+                <p class="text-gray-600 italic text-lg" id="mascot-speech">"We need the Golden Key! Once the light turns ON, our search might be over... or is it?"</p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Side Panel: Controls -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-teal-100">
+                    <h2 class="font-bold mb-4 flex items-center gap-2 text-teal-700">
+                        <span>🛰️</span> Search Strategy
+                    </h2>
+                    <div class="space-y-3">
+                        <button onclick="setMode('for')" id="btn-for" class="w-full text-left py-4 px-4 rounded-xl border-2 border-teal-600 bg-teal-50 text-teal-700 font-bold transition-all flex justify-between items-center">
+                            <span>🔄 For Loop</span>
+                            <span class="text-[10px] bg-teal-200 px-2 py-1 rounded">EXHAUSTIVE</span>
+                        </button>
+                        <button onclick="setMode('while')" id="btn-while" class="w-full text-left py-4 px-4 rounded-xl border-2 border-gray-100 text-gray-400 font-bold hover:border-teal-200 transition-all flex justify-between items-center">
+                            <span>🛑 While Loop</span>
+                            <span class="text-[10px] bg-gray-100 px-2 py-1 rounded">EFFICIENT</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-teal-100">
+                    <h2 class="font-bold mb-3 text-teal-700">Python Console</h2>
+                    <div class="code-block" id="code-display">
+                        <!-- Code injected here -->
+                    </div>
+                </div>
+
+                <button id="run-btn" onclick="startSearch()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-5 rounded-2xl shadow-lg transform active:scale-95 transition-all text-xl flex items-center justify-center gap-3">
+                    START SEARCH 🔍
+                </button>
+            </div>
+
+            <!-- Main Panel: Visualization -->
+            <div class="lg:col-span-8 space-y-6">
+                <!-- Visual Search Area -->
+                <div class="bg-white p-12 rounded-3xl shadow-inner border-4 border-teal-50 flex flex-col items-center relative overflow-hidden">
+                    <!-- Flag Bulb -->
+                    <div class="absolute top-8 right-12 flex flex-col items-center gap-2">
+                        <div class="light-bulb" id="flag-bulb">💡</div>
+                        <span class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest" id="flag-label">FOUND = FALSE</span>
+                    </div>
+
+                    <div class="text-xs font-bold text-teal-800 mb-16 bg-teal-100 px-6 py-2 rounded-full uppercase tracking-widest">Aisle of Mystery</div>
+                    
+                    <div class="w-full flex justify-between items-center relative h-32 px-4" id="chest-row">
+                        <!-- Chests injected here -->
+                    </div>
+
+                    <div class="w-full flex justify-between px-8 text-[10px] text-gray-400 font-mono mt-8 border-t pt-4">
+                        <span>index 0</span>
+                        <span>index 1</span>
+                        <span>index 2</span>
+                        <span>index 3</span>
+                        <span>index 4</span>
+                        <span>index 5</span>
+                    </div>
+                </div>
+
+                <!-- Memory Tracker -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-teal-100 min-h-[300px]">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="font-bold flex items-center gap-2 text-teal-700">
+                            <span>🧠</span> Step-by-Step Logic
+                        </h2>
+                        <div class="flex gap-3">
+                            <div id="idx-var" class="px-3 py-1 bg-teal-50 text-teal-700 rounded-lg text-sm font-bold border border-teal-100">i = ?</div>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b-2 border-teal-50 text-teal-600 font-bold uppercase text-[10px]">
+                                    <th class="pb-3 px-2">Action</th>
+                                    <th class="pb-3 px-2">Looking At</th>
+                                    <th class="pb-3 px-2 text-center">Is it the Key?</th>
+                                    <th class="pb-3 px-2">Flag Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trace-body">
+                                <tr class="text-gray-300">
+                                    <td colspan="4" class="py-12 text-center italic text-lg">Choose a loop and click Start...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const items = ["🍎", "🦴", "🔑", "📦", "💎", "👟"];
+        const target = "🔑";
+        let currentMode = 'for';
+        let isRunning = false;
+
+        function initChests() {
+            const row = document.getElementById('chest-row');
+            row.innerHTML = '';
+            items.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'chest';
+                div.id = `chest-${idx}`;
+                div.innerHTML = `
+                    <div class="chest-lid"></div>
+                    <div class="chest-content">${item}</div>
+                `;
+                row.appendChild(div);
+            });
+            updateCodeDisplay();
+        }
+
+        function updateCodeDisplay() {
+            const display = document.getElementById('code-display');
+            if (currentMode === 'for') {
+                display.innerHTML = `
+                    <div id="line-0">items = ["🍎", "🦴", "🔑", "📦", "💎", "👟"]</div>
+                    <div id="line-1">found = False</div>
+                    <div id="line-2">for i in range(len(items)):</div>
+                    <div id="line-3" class="pl-4">  if items[i] == "🔑":</div>
+                    <div id="line-4" class="pl-8">    found = True</div>
+                    <div id="line-5">print("Key found:", found)</div>
+                `;
+            } else {
+                display.innerHTML = `
+                    <div id="line-0">items = ["🍎", "🦴", "🔑", "📦", "💎", "👟"]</div>
+                    <div id="line-1">found = False</div>
+                    <div id="line-2">i = 0</div>
+                    <div id="line-3">while i < len(items) and not found:</div>
+                    <div id="line-4" class="pl-4">  if items[i] == "🔑":</div>
+                    <div id="line-5" class="pl-8">    found = True</div>
+                    <div id="line-6" class="pl-4">  i = i + 1</div>
+                `;
+            }
+        }
+
+        function setMode(mode) {
+            if (isRunning) return;
+            currentMode = mode;
+            const bFor = document.getElementById('btn-for');
+            const bWhile = document.getElementById('btn-while');
+            const mascot = document.getElementById('mascot-speech');
+
+            if (mode === 'for') {
+                bFor.classList.add('border-teal-600', 'bg-teal-50', 'text-teal-700');
+                bWhile.classList.remove('border-teal-600', 'bg-teal-50', 'text-teal-700');
+                bWhile.classList.add('text-gray-400', 'border-gray-100');
+                mascot.innerText = "The For Loop is thorough. It will check every single chest in the row!";
+            } else {
+                bWhile.classList.add('border-teal-600', 'bg-teal-50', 'text-teal-700');
+                bFor.classList.remove('border-teal-600', 'bg-teal-50', 'text-teal-700');
+                bFor.classList.add('text-gray-400', 'border-gray-100');
+                mascot.innerText = "The While Loop uses a Flag. Once it finds the key, it stops immediately!";
+            }
+            resetSimulation();
+        }
+
+        function resetSimulation() {
+            initChests();
+            document.getElementById('flag-bulb').classList.remove('on');
+            document.getElementById('flag-label').innerText = "FOUND = FALSE";
+            document.getElementById('flag-label').classList.replace('text-teal-600', 'text-gray-400');
+            document.getElementById('idx-var').innerText = "i = ?";
+            document.getElementById('trace-body').innerHTML = `
+                <tr class="text-gray-300">
+                    <td colspan="4" class="py-12 text-center italic text-lg">Choose a loop and click Start...</td>
+                </tr>`;
+            highlight(-1);
+        }
+
+        async function startSearch() {
+            if (isRunning) return;
+            isRunning = true;
+            resetSimulation();
+            
+            const trace = document.getElementById('trace-body');
+            const bulb = document.getElementById('flag-bulb');
+            const label = document.getElementById('flag-label');
+            const idxVar = document.getElementById('idx-var');
+            trace.innerHTML = '';
+            
+            let found = false;
+
+            if (currentMode === 'for') {
+                highlight(1); await sleep(800);
+                for (let i = 0; i < items.length; i++) {
+                    highlight(2);
+                    idxVar.innerText = `i = ${i}`;
+                    const chest = document.getElementById(`chest-${i}`);
+                    chest.classList.add('active-chest');
+                    await sleep(600);
+                    
+                    highlight(3);
+                    chest.classList.add('open');
+                    await sleep(500);
+
+                    const isMatch = items[i] === target;
+                    if (isMatch) {
+                        highlight(4);
+                        found = true;
+                        bulb.classList.add('on');
+                        label.innerText = "FOUND = TRUE";
+                        label.classList.replace('text-gray-400', 'text-teal-600');
+                    }
+
+                    trace.innerHTML += `
+                        <tr class="border-b border-teal-50 ${isMatch ? 'bg-teal-50' : ''} animate-fadeIn">
+                            <td class="py-3 px-2 font-bold">Peeking...</td>
+                            <td class="py-3 px-2">${items[i]} (idx ${i})</td>
+                            <td class="py-3 px-2 text-center font-bold ${isMatch ? 'text-teal-600' : 'text-gray-400'}">${isMatch ? 'YES 🗝️' : 'NO'}</td>
+                            <td class="py-3 px-2 font-bold ${found ? 'text-teal-600' : 'text-gray-400'}">${found ? 'TRUE' : 'FALSE'}</td>
+                        </tr>
+                    `;
+                    await sleep(1000);
+                    chest.classList.remove('active-chest');
+                }
+                highlight(5);
+            } else {
+                // While Loop Strategy
+                highlight(1); await sleep(500);
+                highlight(2); 
+                let i = 0;
+                idxVar.innerText = `i = ${i}`;
+                await sleep(600);
+
+                while (i < items.length && !found) {
+                    highlight(3);
+                    const chest = document.getElementById(`chest-${i}`);
+                    chest.classList.add('active-chest');
+                    idxVar.innerText = `i = ${i}`;
+                    await sleep(800);
+
+                    highlight(4);
+                    chest.classList.add('open');
+                    await sleep(500);
+
+                    const isMatch = items[i] === target;
+                    if (isMatch) {
+                        highlight(5);
+                        found = true;
+                        bulb.classList.add('on');
+                        label.innerText = "FOUND = TRUE";
+                        label.classList.replace('text-gray-400', 'text-teal-600');
+                    }
+
+                    trace.innerHTML += `
+                        <tr class="border-b border-teal-50 ${isMatch ? 'bg-teal-50' : ''} animate-fadeIn">
+                            <td class="py-3 px-2 font-bold">Checking...</td>
+                            <td class="py-3 px-2">${items[i]} (idx ${i})</td>
+                            <td class="py-3 px-2 text-center font-bold ${isMatch ? 'text-teal-600' : 'text-gray-400'}">${isMatch ? 'YES 🗝️' : 'NO'}</td>
+                            <td class="py-3 px-2 font-bold ${found ? 'text-teal-600' : 'text-gray-400'}">${found ? 'TRUE' : 'FALSE'}</td>
+                        </tr>
+                    `;
+
+                    await sleep(800);
+                    if (!found) {
+                        highlight(6);
+                        i++;
+                        await sleep(400);
+                    }
+                    chest.classList.remove('active-chest');
+                }
+                // Final check to show loop exit
+                if(found) highlight(3); 
+            }
+            isRunning = false;
+        }
+
+        function highlight(lineNum) {
+            document.querySelectorAll('#code-display div').forEach(el => el.classList.remove('highlight'));
+            if (lineNum >= 0) {
+                const active = document.getElementById(`line-${lineNum}`);
+                if (active) active.classList.add('highlight');
+            }
+        }
+
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        window.onload = initChests;
+    </script>
+</body>
+</html>
