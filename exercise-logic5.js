@@ -9,46 +9,56 @@ const supabaseKey = 'sb_publishable_MmpFp2Aymzj0-VorP1Sh6Q_68HA-PGZ';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 let isSubmitted = false;
+let hasUsedDebug = false; // New flag to block submission
 let debugBuffer = "";
 
-function showToast(message) {
+function showToast(message, isError = false) {
     const toast = document.createElement('div');
     toast.textContent = message;
-    toast.style = "position:fixed; bottom:20px; right:20px; background:#064e3b; color:white; padding:12px 24px; border-radius:12px; z-index:9999; font-family:sans-serif; font-weight:bold; box-shadow:0 10px 15px -3px rgba(0,0,0,0.3); border: 2px solid #059669;";
+    const bg = isError ? "#991b1b" : "#064e3b"; // Red if error/blocked
+    toast.style = `position:fixed; bottom:20px; right:20px; background:${bg}; color:white; padding:12px 24px; border-radius:12px; z-index:9999; font-family:sans-serif; font-weight:bold; box-shadow:0 10px 15px -3px rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.2); animation: slideUp 0.3s ease-out;`;
+    
+    if (!document.getElementById('toast-style')) {
+        const style = document.createElement('style');
+        style.id = 'toast-style';
+        style.innerHTML = "@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }";
+        document.head.appendChild(style);
+    }
+
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2500);
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transition = "opacity 0.5s";
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
 }
 
 // 2. Debug Key Listener
 window.addEventListener('keydown', (e) => {
     if (!DEBUG_MODE) return;
-
     debugBuffer += e.key.toLowerCase();
     
     if (debugBuffer.endsWith('aaa')) {
         document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
         showToast("🔓 All steps unlocked");
-        debugBuffer = ""; 
+        debugBuffer = "";
     } else if (debugBuffer.endsWith('sss')) {
-        // Show all steps
+        hasUsedDebug = true; // LOCK SUBMISSION
         document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
-        // Fill all inputs with data-answer
         document.querySelectorAll('.slot-input').forEach(i => {
             const ans = i.getAttribute('data-answer');
             if (ans) i.value = ans;
         });
-        showToast("✨ Answers filled. Click Finish to submit.");
+        showToast("✨ Answers filled (Submission Disabled)");
         debugBuffer = "";
     }
-
-    if (debugBuffer.length > 10) debugBuffer = debugBuffer.slice(-5);
+    if (debugBuffer.length > 10) debugBuffer = debugBuffer.slice(-7);
 });
 
 window.checkStep = async function(idx) {
     const allSteps = document.querySelectorAll('section.step-container');
     const lastStepIdx = allSteps.length - 1;
 
-    // Reset logic
     if (idx === lastStepIdx && isSubmitted) {
         location.reload();
         return;
@@ -77,13 +87,8 @@ window.checkStep = async function(idx) {
     if (correct) {
         feedback.textContent = "✔️ Nice!";
         feedback.className = "feedback text-emerald-600";
-        
-        // Final Step: Always trigger prompt even if filled via 'sss'
-        if (idx === lastStepIdx) {
-            await handleFinalSubmission(idx, feedback);
-        } else {
-            unlockNext(idx);
-        }
+        if (idx === lastStepIdx) await handleFinalSubmission(idx, feedback);
+        else unlockNext(idx);
     } else {
         feedback.textContent = "❌ Try again";
         feedback.className = "feedback text-red-600";
@@ -91,12 +96,17 @@ window.checkStep = async function(idx) {
 };
 
 async function handleFinalSubmission(idx, feedbackElement) {
-    const userEmail = prompt("Please enter your email (xxx@...edu.hk) to submit:");
+    // BLOCK IF SSS WAS USED
+    if (hasUsedDebug) {
+        alert("Submission Disabled: Auto-fill was used. Please refresh and complete the exercise manually to submit.");
+        feedbackElement.textContent = "❌ Manual completion required for submission.";
+        return;
+    }
+
+    const userEmail = prompt("Please enter your email (@...edu.hk) to submit:");
     
-    // Strict Check for @ and edu.hk
     if (!userEmail || !userEmail.includes('@') || !userEmail.toLowerCase().endsWith('edu.hk')) {
-        alert("Invalid email. Must contain @ and end with edu.hk");
-        feedbackElement.textContent = "❌ Invalid email format.";
+        alert("Please use a valid school email (@...edu.hk).");
         return;
     }
 
@@ -106,10 +116,7 @@ async function handleFinalSubmission(idx, feedbackElement) {
 
     const { error } = await supabase
         .from('anscol')
-        .insert([{ 
-            mail: userEmail.toLowerCase().trim(), 
-            hw: document.title 
-        }]);
+        .insert([{ mail: userEmail.toLowerCase().trim(), hw: document.title }]);
 
     if (error) {
         alert("Error: " + error.message);
@@ -119,8 +126,7 @@ async function handleFinalSubmission(idx, feedbackElement) {
         isSubmitted = true;
         finishBtn.disabled = false;
         finishBtn.textContent = "Reset Lesson";
-        // Use a standard style change to ensure visibility
-        finishBtn.style.backgroundColor = "#4b5563"; 
+        finishBtn.classList.add('!bg-gray-600'); 
         unlockNext(idx);
         showToast("✅ Submitted Successfully");
     }
