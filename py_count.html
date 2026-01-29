@@ -185,8 +185,18 @@
         </section>
     </main>
 
-    <script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+        // CONFIGURATION
+        const supabaseUrl = 'https://ndjodjiuydlsysltawwu.supabase.co';
+        const supabaseKey = 'sb_publishable_MmpFp2Aymzj0-VorP1Sh6Q_68HA-PGZ'; 
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        let isSubmitted = false;
         let debugBuffer = "";
+
+        // Hidden Debug Modes
         window.addEventListener('keydown', (e) => {
             debugBuffer += e.key.toLowerCase();
             if (debugBuffer.endsWith('aaa')) {
@@ -195,9 +205,20 @@
                 document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
                 document.querySelectorAll('.slot-input').forEach(i => i.value = i.getAttribute('data-answer'));
             }
+            if (debugBuffer.length > 10) debugBuffer = debugBuffer.slice(-10);
         });
 
-        function checkStep(idx) {
+        window.checkStep = async function(idx) {
+            // Find all step sections to determine which one is the last one
+            const allSteps = document.querySelectorAll('section.step-container');
+            const lastStepIdx = allSteps.length - 1;
+
+            // If already submitted and user clicks the final button again, reset
+            if (idx === lastStepIdx && isSubmitted) {
+                location.reload();
+                return;
+            }
+
             const step = document.getElementById(`step-${idx}`);
             const inputs = step.querySelectorAll('.slot-input');
             const feedback = document.getElementById(`feedback-${idx}`);
@@ -208,16 +229,8 @@
             inputs.forEach(input => {
                 const val = input.value.trim().toLowerCase().replace(/\s/g, '');
                 const ans = input.getAttribute('data-answer').toLowerCase().replace(/\s/g, '');
-                
-                if (ans.includes('"')) {
-                   const cleanVal = val.replace(/['"]/g, '');
-                   const cleanAns = ans.replace(/['"]/g, '');
-                   if (cleanVal !== cleanAns) correct = false;
-                } else if (val !== ans) {
-                    correct = false;
-                }
-                
                 if (val === "") filled = false;
+                if (val !== ans) correct = false;
             });
 
             if (!filled) {
@@ -227,16 +240,60 @@
             }
 
             if (correct) {
-                feedback.textContent = "✔️ That's correct!";
+                feedback.textContent = "✔️ Nice!";
                 feedback.className = "feedback text-emerald-600";
-                unlockNext(idx);
+                
+                // Check if this is the final step dynamically
+                if (idx === lastStepIdx) {
+                    await handleFinalSubmission(idx, feedback);
+                } else {
+                    unlockNext(idx);
+                }
             } else {
-                feedback.textContent = "❌ Not quite right. Look at the code logic again!";
+                feedback.textContent = "❌ Try again";
                 feedback.className = "feedback text-red-600";
             }
         }
 
-        function unlockNext(current) {
+        async function handleFinalSubmission(idx, feedbackElement) {
+            const userEmail = prompt("Please enter your @carmelss.edu.hk email to submit your work:");
+            
+            if (!userEmail || !userEmail.toLowerCase().endsWith('@carmelss.edu.hk')) {
+                alert("Valid @carmelss.edu.hk email is required to submit.");
+                feedbackElement.textContent = "❌ Submission cancelled. Enter valid email and click the button again.";
+                return;
+            }
+
+            const finishBtn = document.querySelector(`#step-${idx} button`);
+            const originalClasses = finishBtn.className;
+            
+            finishBtn.disabled = true;
+            finishBtn.textContent = "Saving...";
+
+            const { error } = await supabase
+                .from('anscol')
+                .insert([{ 
+                    mail: userEmail.toLowerCase().trim(), 
+                    hw: document.title 
+                }]);
+
+            if (error) {
+                alert("Error saving: " + error.message);
+                finishBtn.disabled = false;
+                finishBtn.textContent = "Finish Lesson";
+                feedbackElement.textContent = "❌ Error uploading. Try again.";
+            } else {
+                isSubmitted = true;
+                // Transform button to Reset
+                finishBtn.disabled = false;
+                finishBtn.textContent = "Reset Lesson";
+                // Swap green background for gray
+                finishBtn.className = originalClasses.replace(/bg-emerald-\d+|bg-emerald-\d+/, 'bg-gray-600');
+                unlockNext(idx);
+            }
+        }
+
+        window.unlockNext = function(current) {
             const next = document.getElementById(`step-${current + 1}`) || document.getElementById('success-screen');
             if (next) {
                 next.classList.remove('hidden-step');
