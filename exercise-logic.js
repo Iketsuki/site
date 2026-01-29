@@ -6,24 +6,29 @@ const supabaseKey = 'sb_publishable_MmpFp2Aymzj0-VorP1Sh6Q_68HA-PGZ';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 let isSubmitted = false;
-let debugBuffer = ""; // Re-added for aaa/sss logic
+let debugBuffer = "";
 
-// 1. Re-add the Hidden Debug Listener
+console.log("Exercise Logic Loaded - Debug keys active");
+
+// Hidden Debug Listener
 window.addEventListener('keydown', (e) => {
     debugBuffer += e.key.toLowerCase();
     if (debugBuffer.endsWith('aaa')) {
+        console.log("Debug: Unlocking all steps");
         document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
+        alert("Debug: All steps unlocked");
     } else if (debugBuffer.endsWith('sss')) {
+        console.log("Debug: Filling all answers");
         document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
         document.querySelectorAll('.slot-input').forEach(i => {
             const ans = i.getAttribute('data-answer');
             if (ans) i.value = ans;
         });
+        alert("Debug: Answers filled");
     }
     if (debugBuffer.length > 10) debugBuffer = debugBuffer.slice(-10);
 });
 
-// 2. Main Logic (Exposed to window)
 window.checkStep = async function(idx) {
     const allSteps = document.querySelectorAll('section.step-container');
     const lastStepIdx = allSteps.length - 1;
@@ -56,12 +61,8 @@ window.checkStep = async function(idx) {
     if (correct) {
         feedback.textContent = "✔️ Nice!";
         feedback.className = "feedback text-emerald-600";
-        
-        if (idx === lastStepIdx) {
-            await handleFinalSubmission(idx, feedback);
-        } else {
-            unlockNext(idx);
-        }
+        if (idx === lastStepIdx) await handleFinalSubmission(idx, feedback);
+        else unlockNext(idx);
     } else {
         feedback.textContent = "❌ Try again";
         feedback.className = "feedback text-red-600";
@@ -70,7 +71,6 @@ window.checkStep = async function(idx) {
 
 async function handleFinalSubmission(idx, feedbackElement) {
     const userEmail = prompt("Please enter your @carmelss.edu.hk email to submit:");
-    
     if (!userEmail || !userEmail.toLowerCase().endsWith('@carmelss.edu.hk')) {
         alert("Valid @carmelss.edu.hk email is required.");
         return;
