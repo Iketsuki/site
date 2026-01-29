@@ -6,8 +6,24 @@ const supabaseKey = 'sb_publishable_MmpFp2Aymzj0-VorP1Sh6Q_68HA-PGZ';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 let isSubmitted = false;
+let debugBuffer = ""; // Re-added for aaa/sss logic
 
-// Global functions must be attached to 'window' to be called by HTML onclick attributes
+// 1. Re-add the Hidden Debug Listener
+window.addEventListener('keydown', (e) => {
+    debugBuffer += e.key.toLowerCase();
+    if (debugBuffer.endsWith('aaa')) {
+        document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
+    } else if (debugBuffer.endsWith('sss')) {
+        document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
+        document.querySelectorAll('.slot-input').forEach(i => {
+            const ans = i.getAttribute('data-answer');
+            if (ans) i.value = ans;
+        });
+    }
+    if (debugBuffer.length > 10) debugBuffer = debugBuffer.slice(-10);
+});
+
+// 2. Main Logic (Exposed to window)
 window.checkStep = async function(idx) {
     const allSteps = document.querySelectorAll('section.step-container');
     const lastStepIdx = allSteps.length - 1;
@@ -76,7 +92,7 @@ async function handleFinalSubmission(idx, feedbackElement) {
         isSubmitted = true;
         finishBtn.disabled = false;
         finishBtn.textContent = "Reset Lesson";
-        finishBtn.classList.add('!bg-gray-600'); // Override Tailwind emerald classes
+        finishBtn.classList.add('!bg-gray-600'); 
         unlockNext(idx);
     }
 }
