@@ -176,60 +176,6 @@
         </section>
     </main>
 
-    <script>
-        let debugBuffer = "";
-        window.addEventListener('keydown', (e) => {
-            debugBuffer += e.key.toLowerCase();
-            if (debugBuffer.endsWith('aaa')) {
-                document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
-            } else if (debugBuffer.endsWith('sss')) {
-                document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
-                document.querySelectorAll('.slot-input').forEach(i => i.value = i.getAttribute('data-answer'));
-            }
-            if (debugBuffer.length > 10) debugBuffer = debugBuffer.slice(-10);
-        });
-
-        function checkStep(idx) {
-            const step = document.getElementById(`step-${idx}`);
-            const inputs = step.querySelectorAll('.slot-input');
-            const feedback = document.getElementById(`feedback-${idx}`);
-            
-            let filled = true;
-            let correct = true;
-
-            inputs.forEach(input => {
-                const val = input.value.trim().toLowerCase().replace(/\s/g, '');
-                const ans = input.getAttribute('data-answer').toLowerCase().replace(/\s/g, '');
-                
-                if (val === "") filled = false;
-                if (val !== ans) correct = false;
-            });
-
-            if (!filled) {
-                feedback.textContent = "⚠️ Please fill in all the blanks.";
-                feedback.className = "feedback text-orange-600";
-                return;
-            }
-
-            if (correct) {
-                feedback.textContent = "✔️ Excellent work!";
-                feedback.className = "feedback text-emerald-600";
-                unlockNext(idx);
-            } else {
-                feedback.textContent = "❌ Logic error. Try again!";
-                feedback.className = "feedback text-red-600";
-            }
-        }
-
-        function unlockNext(current) {
-            const next = document.getElementById(`step-${current + 1}`) || document.getElementById('success-screen');
-            if (next) {
-                next.classList.remove('hidden-step');
-                setTimeout(() => {
-                    next.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100);
-            }
-        }
-    </script>
+    <script type="module" src="https://cdn.jsdelivr.net/gh/Iketsuki/site/exercise-logic5.js"></script>
 </body>
 </html>

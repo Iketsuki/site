@@ -162,49 +162,6 @@
         </div>
     </section>
 
-    <script>
-        function checkStep(btn, isLast = false) {
-            const container = btn.parentElement;
-            const inputs = container.querySelectorAll('.slot-input');
-            const feedback = container.querySelector('.feedback');
-            let correct = true;
-            let filled = true;
-
-            inputs.forEach(input => {
-                const val = input.value.trim().toLowerCase().replace(/\s/g, '');
-                const ans = input.getAttribute('data-answer').toLowerCase().replace(/\s/g, '');
-                if (!val) filled = false;
-                if (val !== ans) {
-                    correct = false;
-                    input.classList.add('border-red-500', 'text-red-600');
-                } else {
-                    input.classList.remove('border-red-500', 'text-red-600');
-                    input.classList.add('border-emerald-500', 'text-emerald-600');
-                }
-            });
-
-            if (!filled) {
-                feedback.textContent = "⚠️ Fill all gaps!";
-                feedback.className = "feedback text-orange-600";
-                return;
-            }
-
-            if (correct) {
-                feedback.textContent = "✔️ Logic sequence confirmed!";
-                feedback.className = "feedback text-emerald-600";
-                
-                if (!isLast) {
-                    document.getElementById('challenge-2').classList.remove('hidden-step');
-                    setTimeout(() => document.getElementById('challenge-2').scrollIntoView({behavior: 'smooth'}), 200);
-                } else {
-                    document.getElementById('success-screen').classList.remove('hidden-step');
-                    setTimeout(() => document.getElementById('success-screen').scrollIntoView({behavior: 'smooth'}), 200);
-                }
-            } else {
-                feedback.textContent = "❌ Check your index math!";
-                feedback.className = "feedback text-red-600";
-            }
-        }
-    </script>
+    <script type="module" src="https://cdn.jsdelivr.net/gh/Iketsuki/site/exercise-logic5.js"></script>
 </body>
 </html>
