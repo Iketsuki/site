@@ -1,8 +1,8 @@
 // exercise-logic.js
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-// 1. DEBUG TOGGLE (Set to false for students)
-const DEBUG_MODE = false; 
+// 1. DEBUG TOGGLE
+const DEBUG_MODE = true; 
 
 const supabaseUrl = 'https://ndjodjiuydlsysltawwu.supabase.co';
 const supabaseKey = 'sb_publishable_MmpFp2Aymzj0-VorP1Sh6Q_68HA-PGZ'; 
@@ -11,32 +11,50 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 let isSubmitted = false;
 let debugBuffer = "";
 
-// Function to show visual feedback for debug actions
+// Visual feedback function
 function showToast(message) {
     const toast = document.createElement('div');
     toast.textContent = message;
-    toast.style = "position:fixed; bottom:20px; right:20px; background:#064e3b; color:white; padding:10px 20px; border-radius:8px; z-index:9999; font-family:sans-serif; box-shadow:0 4px 12px rgba(0,0,0,0.2);";
+    toast.style = "position:fixed; bottom:20px; right:20px; background:#064e3b; color:white; padding:12px 24px; border-radius:12px; z-index:9999; font-family:sans-serif; font-weight:bold; box-shadow:0 10px 15px -3px rgba(0,0,0,0.3); border: 2px solid #059669; animation: slideUp 0.3s ease-out;";
+    
+    // Add simple animation style if not present
+    if (!document.getElementById('toast-style')) {
+        const style = document.createElement('style');
+        style.id = 'toast-style';
+        style.innerHTML = "@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }";
+        document.head.appendChild(style);
+    }
+
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2000);
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transition = "opacity 0.5s";
+        setTimeout(() => toast.remove(), 500);
+    }, 2000);
 }
 
-// 2. Debug Key Listener
+// 2. Debug Key Listener (Fixed)
 window.addEventListener('keydown', (e) => {
     if (!DEBUG_MODE) return;
 
+    // We use e.key to build the buffer
     debugBuffer += e.key.toLowerCase();
+    
     if (debugBuffer.endsWith('aaa')) {
         document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
-        showToast("🔓 All steps unlocked (Debug)");
+        showToast("🔓 All steps unlocked");
+        debugBuffer = ""; // Clear after trigger
     } else if (debugBuffer.endsWith('sss')) {
         document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
         document.querySelectorAll('.slot-input').forEach(i => {
             const ans = i.getAttribute('data-answer');
             if (ans) i.value = ans;
         });
-        showToast("✨ Answers filled (Debug)");
+        showToast("✨ Answers filled");
+        debugBuffer = ""; // Clear after trigger
     }
-    if (debugBuffer.length > 10) debugBuffer = debugBuffer.slice(-10);
+
+    if (debugBuffer.length > 10) debugBuffer = debugBuffer.slice(-7);
 });
 
 // Main Step Logic
@@ -81,9 +99,12 @@ window.checkStep = async function(idx) {
 };
 
 async function handleFinalSubmission(idx, feedbackElement) {
-    const userEmail = prompt("Please enter your @<school>.edu.hk email to submit:");
-    if (!userEmail || !userEmail.toLowerCase().endsWith('@<school>.edu.hk')) {
-        alert("Valid @<school>.edu.hk email is required.");
+    // UPDATED MESSAGE
+    const userEmail = prompt("Please enter your email (<school>.edu.hk) to submit:");
+    
+    // UPDATED CHECK: Must contain @ AND end with edu.hk
+    if (!userEmail || !userEmail.includes('@') || !userEmail.toLowerCase().endsWith('edu.hk')) {
+        alert("Please use a valid school email (@...edu.hk).");
         return;
     }
 
@@ -105,6 +126,7 @@ async function handleFinalSubmission(idx, feedbackElement) {
         finishBtn.textContent = "Reset Lesson";
         finishBtn.classList.add('!bg-gray-600'); 
         unlockNext(idx);
+        showToast("✅ Submitted Successfully");
     }
 }
 
