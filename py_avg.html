@@ -219,10 +219,17 @@
         </section>
     </main>
 
-    <script>
-        let debugBuffer = "";
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-        // Hidden Debug Modes
+        // CONFIGURATION
+        const supabaseUrl = 'https://ndjodjiuydlsysltawwu.supabase.co';
+        const supabaseKey = 'sb_publishable_MmpFp2Aymzj0-VorP1Sh6Q_68HA-PGZ'; 
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        let debugBuffer = "";
+        let isSubmitted = false; // Track submission state
+
         window.addEventListener('keydown', (e) => {
             debugBuffer += e.key.toLowerCase();
             if (debugBuffer.endsWith('aaa')) {
@@ -234,7 +241,13 @@
             if (debugBuffer.length > 10) debugBuffer = debugBuffer.slice(-10);
         });
 
-        function checkStep(idx) {
+        window.checkStep = async function(idx) {
+            // If already submitted and user clicks the final button again, reset
+            if (idx === 4 && isSubmitted) {
+                location.reload();
+                return;
+            }
+
             const step = document.getElementById(`step-${idx}`);
             const inputs = step.querySelectorAll('.slot-input');
             const feedback = document.getElementById(`feedback-${idx}`);
@@ -244,13 +257,9 @@
 
             inputs.forEach(input => {
                 if (input.value.trim() === "") filled = false;
-                // Remove potential brackets or spaces for index checks
                 const cleanInput = input.value.trim().toLowerCase().replace(/\s/g, '');
                 const cleanAnswer = input.getAttribute('data-answer').toLowerCase().replace(/\s/g, '');
-                
-                if (cleanInput !== cleanAnswer) {
-                    correct = false;
-                }
+                if (cleanInput !== cleanAnswer) correct = false;
             });
 
             if (!filled) {
@@ -262,14 +271,54 @@
             if (correct) {
                 feedback.textContent = "✔️ Nice!";
                 feedback.className = "feedback text-emerald-600";
-                unlockNext(idx);
+                
+                if (idx === 4) {
+                    await handleFinalSubmission(feedback);
+                } else {
+                    unlockNext(idx);
+                }
             } else {
                 feedback.textContent = "❌ Try again";
                 feedback.className = "feedback text-red-600";
             }
         }
 
-        function unlockNext(current) {
+        async function handleFinalSubmission(feedbackElement) {
+            const userEmail = prompt("Please enter your @carmelss.edu.hk email to submit your work:");
+            
+            if (!userEmail || !userEmail.toLowerCase().endsWith('@carmelss.edu.hk')) {
+                alert("Valid @carmelss.edu.hk email is required to submit.");
+                feedbackElement.textContent = "❌ Submission cancelled. Enter valid email and click Complete again.";
+                return;
+            }
+
+            const finishBtn = document.querySelector('#step-4 button');
+            finishBtn.disabled = true;
+            finishBtn.textContent = "Saving...";
+
+            const { error } = await supabase
+                .from('anscol')
+                .insert([{ 
+                    mail: userEmail.toLowerCase().trim(), 
+                    hw: document.title 
+                }]);
+
+            if (error) {
+                alert("Error saving: " + error.message);
+                finishBtn.disabled = false;
+                finishBtn.textContent = "Complete Lesson";
+                feedbackElement.textContent = "❌ Error uploading. Try again.";
+            } else {
+                isSubmitted = true;
+                // Transform button to Reset
+                finishBtn.disabled = false;
+                finishBtn.textContent = "Reset Lesson";
+                finishBtn.classList.replace('bg-emerald-800', 'bg-gray-600');
+                unlockNext(4);
+            }
+        }
+
+        window.unlockNext = function(current) {
             const next = document.getElementById(`step-${current + 1}`) || document.getElementById('success-screen');
             if (next) {
                 next.classList.remove('hidden-step');
