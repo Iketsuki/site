@@ -70,9 +70,9 @@ window.checkStep = async function(idx) {
 };
 
 async function handleFinalSubmission(idx, feedbackElement) {
-    const userEmail = prompt("Please enter your @carmelss.edu.hk email to submit:");
-    if (!userEmail || !userEmail.toLowerCase().endsWith('@carmelss.edu.hk')) {
-        alert("Valid @carmelss.edu.hk email is required.");
+    const userEmail = prompt("Please enter your @<school>.edu.hk email to submit:");
+    if (!userEmail || !userEmail.toLowerCase().endsWith('@<school>.edu.hk')) {
+        alert("Valid @<school>.edu.hk email is required.");
         return;
     }
 
