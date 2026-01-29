@@ -1,6 +1,9 @@
 // exercise-logic.js
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
+// 1. DEBUG TOGGLE (Set to false for students)
+const DEBUG_MODE = true; 
+
 const supabaseUrl = 'https://ndjodjiuydlsysltawwu.supabase.co';
 const supabaseKey = 'sb_publishable_MmpFp2Aymzj0-VorP1Sh6Q_68HA-PGZ'; 
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -8,27 +11,35 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 let isSubmitted = false;
 let debugBuffer = "";
 
-console.log("Exercise Logic Loaded - Debug keys active");
+// Function to show visual feedback for debug actions
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style = "position:fixed; bottom:20px; right:20px; background:#064e3b; color:white; padding:10px 20px; border-radius:8px; z-index:9999; font-family:sans-serif; box-shadow:0 4px 12px rgba(0,0,0,0.2);";
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+}
 
-// Hidden Debug Listener
+// 2. Debug Key Listener
 window.addEventListener('keydown', (e) => {
+    if (!DEBUG_MODE) return;
+
     debugBuffer += e.key.toLowerCase();
     if (debugBuffer.endsWith('aaa')) {
-        console.log("Debug: Unlocking all steps");
         document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
-        alert("Debug: All steps unlocked");
+        showToast("🔓 All steps unlocked (Debug)");
     } else if (debugBuffer.endsWith('sss')) {
-        console.log("Debug: Filling all answers");
         document.querySelectorAll('.step-container').forEach(s => s.classList.remove('hidden-step'));
         document.querySelectorAll('.slot-input').forEach(i => {
             const ans = i.getAttribute('data-answer');
             if (ans) i.value = ans;
         });
-        alert("Debug: Answers filled");
+        showToast("✨ Answers filled (Debug)");
     }
     if (debugBuffer.length > 10) debugBuffer = debugBuffer.slice(-10);
 });
 
+// Main Step Logic
 window.checkStep = async function(idx) {
     const allSteps = document.querySelectorAll('section.step-container');
     const lastStepIdx = allSteps.length - 1;
@@ -70,9 +81,9 @@ window.checkStep = async function(idx) {
 };
 
 async function handleFinalSubmission(idx, feedbackElement) {
-    const userEmail = prompt("Please enter your @<school>.edu.hk email to submit:");
-    if (!userEmail || !userEmail.toLowerCase().endsWith('@<school>.edu.hk')) {
-        alert("Valid @<school>.edu.hk email is required.");
+    const userEmail = prompt("Please enter your @carmelss.edu.hk email to submit:");
+    if (!userEmail || !userEmail.toLowerCase().endsWith('@carmelss.edu.hk')) {
+        alert("Valid @carmelss.edu.hk email is required.");
         return;
     }
 
