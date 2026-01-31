@@ -145,7 +145,7 @@
 <body class="p-3 md:p-6">
     <div class="max-w-7xl mx-auto">
         <header class="mb-4 flex flex-wrap justify-between items-center gap-3">
-            <h1 class="text-xl md:text-2xl font-black text-slate-800 tracking-tight uppercase">Pitch Trainer <span class="text-blue-600">Grand Staff</span></h1>
+            <h1 class="text-xl md:text-2xl font-black text-slate-800 tracking-tight uppercase">Pitch Trainer <span class="text-blue-600">Pro</span></h1>
             <div class="flex gap-2">
                 <button id="toggle-complexity" class="bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-lg text-xs uppercase shadow-sm active:scale-95 transition-transform">Complexity</button>
             </div>
@@ -210,13 +210,33 @@
                                 <input type="text" id="range-end" value="C5" class="w-8 border-none bg-transparent text-center font-bold text-[10px]">
                             </div>
                         </div>
-                        <!-- Acceptable Deviation Slider -->
-                        <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
-                             <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Acceptable Deviation (+/- %)</label>
-                             <div class="flex items-center gap-2">
-                                <input type="range" id="deviation-threshold" min="0" max="50" value="35" class="w-24 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                                <span id="deviation-val" class="text-[10px] font-bold text-slate-600 w-8 text-right">35%</span>
-                             </div>
+                    </div>
+                    
+                    <!-- Engine & Display -->
+                    <div class="border-t pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-[11px] font-black uppercase text-slate-400 tracking-widest">Engine & Display</label>
+                        </div>
+                        
+                        <div class="flex gap-2 mb-4" id="clef-mode-container">
+                            <div class="customize-btn active" data-type="clef-mode" data-value="grand">Grand Staff</div>
+                            <div class="customize-btn" data-type="clef-mode" data-value="treble">Treble Only</div>
+                            <div class="customize-btn" data-type="clef-mode" data-value="bass">Bass Only</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="flex justify-between text-[9px] font-bold text-slate-500 mb-1 uppercase">
+                                    Pitch Stability (Delay) <span id="delay-val"></span>
+                                </label>
+                                <input type="range" id="detection-delay" min="1" max="50" value="12" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            </div>
+                            <div>
+                                <label class="flex justify-between text-[9px] font-bold text-slate-500 mb-1 uppercase">
+                                    Acceptable Deviation <span id="deviation-val">35%</span>
+                                </label>
+                                <input type="range" id="deviation-threshold" min="0" max="50" value="35" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -261,7 +281,7 @@
         <div class="bg-slate-800 text-white p-4 rounded-xl shadow-lg mb-4 grid grid-cols-2 md:grid-cols-12 gap-4 items-center">
             
             <!-- 1. Tempo -->
-            <div class="col-span-2 md:col-span-3 flex flex-col gap-2">
+            <div class="col-span-2 md:col-span-4 flex flex-col gap-2">
                 <div class="flex justify-between items-center">
                     <label class="text-slate-400 font-bold text-[9px] uppercase">Tempo</label>
                     <button id="tap-beat-btn" class="text-[9px] uppercase tracking-wider bg-slate-600 px-2 py-0.5 rounded font-black hover:bg-slate-500 active:scale-95">Tap</button>
@@ -275,7 +295,7 @@
             </div>
 
             <!-- 2. Config -->
-            <div class="col-span-2 md:col-span-4 flex flex-col gap-2 md:border-l md:border-slate-700 md:pl-4">
+            <div class="col-span-2 md:col-span-3 flex flex-col gap-2 md:border-l md:border-slate-700 md:pl-4">
                 <div class="flex gap-4">
                     <div class="flex-1">
                         <label class="block text-slate-400 font-bold text-[9px] mb-1 uppercase">Meter & Range</label>
@@ -286,16 +306,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="hidden"></div>
             </div>
 
-            <!-- 3. Stability & Actions -->
+            <!-- 3. Actions -->
             <div class="col-span-2 md:col-span-5 flex flex-col gap-2 md:border-l md:border-slate-700 md:pl-4">
-                <div class="flex gap-2 items-center">
-                    <label class="text-slate-400 font-bold text-[9px] uppercase whitespace-nowrap">Stability</label>
-                    <input type="range" id="detection-delay" min="1" max="50" value="12" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-                </div>
-                <div class="flex gap-2 mt-1">
+                <div class="flex gap-2 mt-auto h-full items-end">
                     <button id="start-btn" class="bg-blue-600 text-white font-bold px-3 py-2 rounded-lg text-xs uppercase shadow-md active:scale-95 hover:bg-blue-500 flex-1">Mic Off</button>
                     <button id="reset-btn" class="bg-slate-600 text-white font-bold px-3 py-2 rounded-lg text-xs uppercase shadow-md active:scale-95 hover:bg-slate-500 flex-1">Reset</button>
                     <button id="next-btn" class="bg-emerald-600 text-white font-bold px-3 py-2 rounded-lg text-xs uppercase shadow-md active:scale-95 hover:bg-emerald-500 flex-1">New</button>
@@ -341,7 +356,6 @@
         const sharpNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
         const flatNotes =  ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
         const flatKeys = ["F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb"];
-        
         const keySignatures = { "C":[], "G":["F#"], "D":["F#","C#"], "A":["F#","C#","G#"], "E":["F#","C#","G#","D#"], "B":["F#","C#","G#","D#","A#"], "F#":["F#","C#","G#","D#","A#","E#"], "F":["Bb"], "Bb":["Bb","Eb"], "Eb":["Bb","Eb","Ab"], "Ab":["Bb","Eb","Ab","Db"], "Db":["Bb","Eb","Ab","Db","Gb"], "Gb":["Bb","Eb","Ab","Db","Gb","Cb"] };
         const keyRootMap = { "C": 0, "G": 7, "D": 2, "A": 9, "E": 4, "B": 11, "F#": 6, "F": 5, "Bb": 10, "Eb": 3, "Ab": 8, "Db": 1, "Gb": 6, "Cb": 11 };
         const solfegeMap = { 0: "Do", 1: "Di", 2: "Re", 3: "Me", 4: "Mi", 5: "Fa", 6: "Fi", 7: "Sol", 8: "Le", 9: "La", 10: "Te", 11: "Ti" };
@@ -413,6 +427,12 @@
         }
 
         function saveState() {
+            // Determine clef mode
+            let clefMode = 'grand';
+            document.querySelectorAll('[data-type="clef-mode"]').forEach(b => {
+                if(b.classList.contains('active')) clefMode = b.dataset.value;
+            });
+
             const state = {
                 keys: Array.from(document.querySelectorAll('#key-pool .active')).map(b => b.innerText),
                 scales: Array.from(document.querySelectorAll('#scale-pool .active')).map(b => b.dataset.val),
@@ -424,6 +444,7 @@
                 tempo: document.getElementById('metronome-bpm').value,
                 delay: document.getElementById('detection-delay').value,
                 devThreshold: document.getElementById('deviation-threshold').value,
+                clefMode: clefMode,
                 asc: document.querySelector('[data-value="asc"]').classList.contains('active'),
                 desc: document.querySelector('[data-value="desc"]').classList.contains('active'),
                 notes: Array.from(document.querySelectorAll('#rhythm-pool .duration-group')).map(g => ({
@@ -459,10 +480,17 @@
                     document.getElementById('deviation-val').innerText = state.devThreshold + "%";
                 }
 
+                if(state.clefMode) {
+                     document.querySelectorAll('[data-type="clef-mode"]').forEach(b => {
+                        b.classList.toggle('active', b.dataset.value === state.clefMode);
+                     });
+                }
+
                 document.querySelectorAll('#key-pool .customize-btn').forEach(b => {
                     b.classList.toggle('active', state.keys.includes(b.innerText));
                 });
-                
+                if(state.keys.length > 0) currentKey = state.keys[0];
+
                 document.querySelectorAll('#scale-pool .customize-btn').forEach(b => {
                     b.classList.toggle('active', state.scales.includes(b.dataset.val));
                 });
@@ -550,21 +578,34 @@
                         b.classList.toggle('active');
                         saveState();
                     };
+                } else if (b.dataset.type === 'clef-mode') {
+                    b.onclick = () => {
+                        document.querySelectorAll('.customize-btn[data-type="clef-mode"]').forEach(x => x.classList.remove('active'));
+                        b.classList.add('active');
+                        saveState();
+                        renderTarget(); // Re-render immediately
+                    };
                 } else {
                     b.onclick = () => { b.classList.toggle('active'); saveState(); };
                 }
             });
             
-            ['range-start', 'range-end', 'time-sig', 'bar-count', 'metronome-bpm', 'detection-delay'].forEach(id => {
+            // Slider Listeners with Labels
+            document.getElementById('detection-delay').addEventListener('input', (e) => {
+                document.getElementById('delay-val').innerText = e.target.value;
+                saveState();
+            });
+            document.getElementById('deviation-threshold').addEventListener('input', (e) => {
+                document.getElementById('deviation-val').innerText = e.target.value + '%';
+                saveState();
+            });
+            
+            // Other inputs
+            ['range-start', 'range-end', 'time-sig', 'bar-count', 'metronome-bpm'].forEach(id => {
                 document.getElementById(id).addEventListener('change', saveState);
             });
 
-            // Deviation Threshold Listener
-            document.getElementById('deviation-threshold').oninput = (e) => {
-                document.getElementById('deviation-val').innerText = e.target.value + '%';
-                saveState();
-            };
-
+            // Metronome
             document.getElementById('toggle-metro-btn').onclick = () => {
                 isMetroActive = !isMetroActive;
                 const btn = document.getElementById('toggle-metro-btn');
@@ -615,6 +656,10 @@
             };
 
             loadState();
+            // init Labels after load
+            document.getElementById('delay-val').innerText = document.getElementById('detection-delay').value;
+            document.getElementById('deviation-val').innerText = document.getElementById('deviation-threshold').value + '%';
+            
             initPiano();
         }
 
@@ -813,8 +858,13 @@
             const numBars = parseInt(document.getElementById('bar-count').value) || 4;
             const beatsPerBar = sigX * (4 / sigY);
 
+            // Clef Mode Logic
+            let clefMode = document.querySelector('[data-type="clef-mode"].active')?.dataset.value || 'grand';
+
             const renderer = new VF.Renderer(container, VF.Renderer.Backends.SVG);
-            renderer.resize((targetNotes.length * NOTE_WIDTH) + 800, 320);
+            // Height adjust based on mode
+            const height = clefMode === 'grand' ? 320 : 200;
+            renderer.resize((targetNotes.length * NOTE_WIDTH) + 800, height);
             const context = renderer.getContext();
             
             let currentX = 50;
@@ -829,91 +879,93 @@
 
                 const barWidth = Math.max(180, (bCount * NOTE_WIDTH) + (b === 0 ? 100 : 30));
                 
-                const trebleStave = new VF.Stave(currentX, 40, barWidth);
-                const bassStave = new VF.Stave(currentX, 160, barWidth);
-
-                if (b === 0) {
-                    trebleStave.addClef("treble").addKeySignature(currentKey).addTimeSignature(`${sigX}/${sigY}`);
-                    bassStave.addClef("bass").addKeySignature(currentKey).addTimeSignature(`${sigX}/${sigY}`);
-                    new VF.StaveConnector(trebleStave, bassStave).setType(VF.StaveConnector.type.BRACE).setContext(context).draw();
-                }
-                new VF.StaveConnector(trebleStave, bassStave).setType(VF.StaveConnector.type.SINGLE_RIGHT).setContext(context).draw();
-                trebleStave.setContext(context).draw();
-                bassStave.setContext(context).draw();
-
                 const barNotesData = targetNotes.slice(noteCursor, noteCursor + bCount);
-                const trebleNotes = [];
-                const bassNotes = [];
+                
+                // Draw Staves based on Mode
+                if (clefMode === 'grand') {
+                    const trebleStave = new VF.Stave(currentX, 40, barWidth);
+                    const bassStave = new VF.Stave(currentX, 160, barWidth);
+                    if (b === 0) {
+                        trebleStave.addClef("treble").addKeySignature(currentKey).addTimeSignature(`${sigX}/${sigY}`);
+                        bassStave.addClef("bass").addKeySignature(currentKey).addTimeSignature(`${sigX}/${sigY}`);
+                        new VF.StaveConnector(trebleStave, bassStave).setType(VF.StaveConnector.type.BRACE).setContext(context).draw();
+                    }
+                    new VF.StaveConnector(trebleStave, bassStave).setType(VF.StaveConnector.type.SINGLE_RIGHT).setContext(context).draw();
+                    trebleStave.setContext(context).draw();
+                    bassStave.setContext(context).draw();
 
-                const measureAccidentals = {}; 
+                    // Distribute Notes
+                    const trebleNotes = [];
+                    const bassNotes = [];
+                    // Measure Accidentals Tracking
+                    const measureAccidentals = {}; 
 
-                barNotesData.forEach((tn, idx) => {
-                    const clef = tn.midi >= 60 ? "treble" : "bass";
-                    const sn = new VF.StaveNote({ keys: [tn.key], duration: tn.duration, clef: clef });
-                    const col = tn.matched ? (tn.isRest ? "#94a3b8" : "#10b981") : (noteCursor + idx === currentTargetIndex ? "#3b82f6" : "#cbd5e1");
-                    sn.setStyle({ fillStyle: col, strokeStyle: col });
-                    
-                    if (!tn.isRest) {
-                        const noteLetter = tn.name.charAt(0).toUpperCase();
-                        const noteOctave = tn.octave;
-                        const noteId = noteLetter + noteOctave;
-                        let actualAcc = 'n';
-                        if (tn.accidental === '#') actualAcc = '#';
-                        else if (tn.accidental === 'b') actualAcc = 'b';
+                    barNotesData.forEach((tn, idx) => {
+                        const clef = tn.midi >= 60 ? "treble" : "bass";
+                        const sn = new VF.StaveNote({ keys: [tn.key], duration: tn.duration, clef: clef });
+                        const col = tn.matched ? (tn.isRest ? "#94a3b8" : "#10b981") : (noteCursor + idx === currentTargetIndex ? "#3b82f6" : "#cbd5e1");
+                        sn.setStyle({ fillStyle: col, strokeStyle: col });
+                        
+                        handleAccidentals(tn, sn, measureAccidentals);
 
-                        let contextAcc = measureAccidentals[noteId];
-                        if (contextAcc === undefined) {
-                            const sig = keySignatures[currentKey]; 
-                            const inSig = sig.find(s => s.startsWith(noteLetter));
-                            if (inSig) {
-                                if (inSig.includes('#')) contextAcc = '#';
-                                else if (inSig.includes('b')) contextAcc = 'b';
-                            } else {
-                                contextAcc = 'n';
-                            }
+                        if (tn.dots > 0) sn.addModifier(new VF.Dot(), 0);
+                        if (tn.intervalLabel) sn.addModifier(new VF.Annotation(tn.intervalLabel).setFont("Arial", 10, "bold").setVerticalJustification(VF.Annotation.VerticalJustify.TOP), 0);
+                        if (tn.solfegeLabel) sn.addModifier(new VF.Annotation(tn.solfegeLabel).setFont("Arial", 10, "italic").setVerticalJustification(VF.Annotation.VerticalJustify.TOP), 0);
+
+                        tn.vfNote = sn;
+                        if (clef === "treble") {
+                            trebleNotes.push(sn);
+                            bassNotes.push(new VF.GhostNote({ duration: tn.duration }));
+                        } else {
+                            bassNotes.push(sn);
+                            trebleNotes.push(new VF.GhostNote({ duration: tn.duration }));
                         }
+                        if (tn.isTie && noteCursor + idx + 1 < targetNotes.length) tn.tieTargetIdx = noteCursor + idx + 1;
+                    });
 
-                        if (actualAcc !== contextAcc) {
-                            sn.addModifier(new VF.Accidental(actualAcc), 0);
-                            measureAccidentals[noteId] = actualAcc; 
-                        }
+                    if (trebleNotes.length > 0) {
+                        const vT = new VF.Voice({ num_beats: sigX, beat_value: sigY }).setStrict(false).addTickables(trebleNotes);
+                        const vB = new VF.Voice({ num_beats: sigX, beat_value: sigY }).setStrict(false).addTickables(bassNotes);
+                        new VF.Formatter().joinVoices([vT, vB]).format([vT, vB], barWidth - (b===0?110:40));
+                        vT.draw(context, trebleStave); vB.draw(context, bassStave);
                     }
+                } else {
+                    // Single Stave Mode (Treble or Bass)
+                    const stave = new VF.Stave(currentX, 40, barWidth);
+                    if (b === 0) stave.addClef(clefMode).addKeySignature(currentKey).addTimeSignature(`${sigX}/${sigY}`);
+                    stave.setContext(context).draw();
                     
-                    if (tn.dots > 0) sn.addModifier(new VF.Dot(), 0); 
+                    const notes = [];
+                    const measureAccidentals = {}; 
                     
-                    // Stack Interval and Solfege annotations vertically
-                    // Add Interval first (closest to note)
-                    if (tn.intervalLabel) {
-                        sn.addModifier(new VF.Annotation(tn.intervalLabel).setFont("Arial", 10, "bold").setVerticalJustification(VF.Annotation.VerticalJustify.TOP), 0);
-                    }
-                    
-                    // Add Solfege second (further above)
-                    if (tn.solfegeLabel) {
-                         // Note: VexFlow might overlay them if not careful. Adding blank space or using different modifier index?
-                         // Actually, multiple annotations stack automatically.
-                         sn.addModifier(new VF.Annotation(tn.solfegeLabel).setFont("Arial", 10, "italic").setVerticalJustification(VF.Annotation.VerticalJustify.TOP), 0);
-                    }
+                    barNotesData.forEach((tn, idx) => {
+                        const sn = new VF.StaveNote({ keys: [tn.key], duration: tn.duration, clef: clefMode });
+                        const col = tn.matched ? (tn.isRest ? "#94a3b8" : "#10b981") : (noteCursor + idx === currentTargetIndex ? "#3b82f6" : "#cbd5e1");
+                        sn.setStyle({ fillStyle: col, strokeStyle: col });
+                        
+                        handleAccidentals(tn, sn, measureAccidentals);
 
-                    tn.vfNote = sn;
-                    if (clef === "treble") {
-                        trebleNotes.push(sn);
-                        bassNotes.push(new VF.GhostNote({ duration: tn.duration }));
-                    } else {
-                        bassNotes.push(sn);
-                        trebleNotes.push(new VF.GhostNote({ duration: tn.duration }));
-                    }
-                    if (tn.isTie && noteCursor + idx + 1 < targetNotes.length) tn.tieTargetIdx = noteCursor + idx + 1;
-                });
+                        if (tn.dots > 0) sn.addModifier(new VF.Dot(), 0);
+                        if (tn.intervalLabel) sn.addModifier(new VF.Annotation(tn.intervalLabel).setFont("Arial", 10, "bold").setVerticalJustification(VF.Annotation.VerticalJustify.TOP), 0);
+                        if (tn.solfegeLabel) sn.addModifier(new VF.Annotation(tn.solfegeLabel).setFont("Arial", 10, "italic").setVerticalJustification(VF.Annotation.VerticalJustify.TOP), 0);
 
-                if (trebleNotes.length > 0) {
-                    const vT = new VF.Voice({ num_beats: sigX, beat_value: sigY }).setStrict(false).addTickables(trebleNotes);
-                    const vB = new VF.Voice({ num_beats: sigX, beat_value: sigY }).setStrict(false).addTickables(bassNotes);
-                    new VF.Formatter().joinVoices([vT, vB]).format([vT, vB], barWidth - (b===0?110:40));
-                    vT.draw(context, trebleStave); vB.draw(context, bassStave);
+                        tn.vfNote = sn;
+                        notes.push(sn);
+                        if (tn.isTie && noteCursor + idx + 1 < targetNotes.length) tn.tieTargetIdx = noteCursor + idx + 1;
+                    });
+
+                    if (notes.length > 0) {
+                        const v = new VF.Voice({ num_beats: sigX, beat_value: sigY }).setStrict(false).addTickables(notes);
+                        new VF.Formatter().joinVoices([v]).format([v], barWidth - (b===0?90:30));
+                        v.draw(context, stave);
+                    }
                 }
+
                 currentX += barWidth;
                 noteCursor += bCount;
             }
+
+            // Draw Ties
             targetNotes.forEach((tn) => {
                 if (tn.tieTargetIdx !== undefined && tn.vfNote && targetNotes[tn.tieTargetIdx].vfNote && !tn.isRest) {
                     new VF.StaveTie({ first_note: tn.vfNote, last_note: targetNotes[tn.tieTargetIdx].vfNote, first_indices: [0], last_indices: [0] }).setContext(context).draw();
@@ -921,28 +973,78 @@
             });
         }
 
+        function handleAccidentals(tn, sn, measureAccidentals) {
+             if (!tn.isRest) {
+                const noteLetter = tn.name.charAt(0).toUpperCase();
+                const noteOctave = tn.octave;
+                const noteId = noteLetter + noteOctave;
+                let actualAcc = 'n';
+                if (tn.accidental === '#') actualAcc = '#';
+                else if (tn.accidental === 'b') actualAcc = 'b';
+
+                let contextAcc = measureAccidentals[noteId];
+                if (contextAcc === undefined) {
+                    const sig = keySignatures[currentKey]; 
+                    const inSig = sig.find(s => s.startsWith(noteLetter));
+                    if (inSig) {
+                        if (inSig.includes('#')) contextAcc = '#';
+                        else if (inSig.includes('b')) contextAcc = 'b';
+                    } else {
+                        contextAcc = 'n';
+                    }
+                }
+
+                if (actualAcc !== contextAcc) {
+                    sn.addModifier(new VF.Accidental(actualAcc), 0);
+                    measureAccidentals[noteId] = actualAcc; 
+                }
+            }
+        }
+
         function renderLiveNote(midi, dev) {
             const overlay = document.getElementById('live-note-overlay');
             overlay.innerHTML = '';
+            
+            // Adjust renderer height if needed for single stave vs grand
+            let clefMode = document.querySelector('[data-type="clef-mode"].active')?.dataset.value || 'grand';
+            
             const renderer = new VF.Renderer(overlay, VF.Renderer.Backends.SVG);
-            renderer.resize(120, 320);
+            const height = clefMode === 'grand' ? 320 : 200;
+            renderer.resize(120, height);
             const context = renderer.getContext();
             const n = getNoteFromMidi(midi);
-            const clef = midi >= 60 ? "treble" : "bass";
-            const tS = new VF.Stave(0, 40, 100).setContext(context);
-            const bS = new VF.Stave(0, 160, 100).setContext(context);
+            
+            // Determine clef to use for drawing
+            let clef = clefMode === 'grand' ? (midi >= 60 ? "treble" : "bass") : clefMode;
+            
+            // Position staves
+            // If Grand: Treble at 40, Bass at 160
+            // If Single: Stave at 40
+            let staveY = 40;
+            if (clefMode === 'grand' && clef === 'bass') staveY = 160;
+            
+            const stave = new VF.Stave(0, staveY, 100).setContext(context);
+            // Don't draw stave lines, just context
+            
             const liveNote = new VF.StaveNote({ keys: [n.key], duration: "q", clef: clef });
             liveNote.setStyle({ fillStyle: "#3b82f6", strokeStyle: "#3b82f6" });
             if (n.accidental) liveNote.addModifier(new VF.Accidental(n.accidental), 0);
+            
             const voice = new VF.Voice({ num_beats: 1, beat_value: 4 }).setStrict(false).addTickables([liveNote]);
             new VF.Formatter().format([voice], 80);
-            voice.draw(context, clef === "treble" ? tS : bS);
+            voice.draw(context, stave);
             
             const devPct = Math.round(dev * 100);
             const devLabel = document.createElement('div');
             devLabel.className = 'absolute font-black';
             devLabel.style.left = '45px';
-            devLabel.style.top = (clef === "treble" ? 10 : 130) + 'px';
+            // Adjust label Y pos relative to stave Y + rough note head offset
+            // Treble note ~30-70px from top of stave? 
+            // Just offset from staveY:
+            // Treble (40) -> Label ~ 10
+            // Bass (160) -> Label ~ 130
+            // Single Stave (40) -> Label ~ 10
+            devLabel.style.top = (staveY - 30) + 'px';
             devLabel.style.fontSize = '20px';
             devLabel.style.color = Math.abs(devPct) < 10 ? '#10b981' : '#3b82f6';
             devLabel.innerText = (devPct > 0 ? '+' : '') + devPct + '%';
@@ -1001,27 +1103,20 @@
                         } else if (midi === target.midi && hasSilencedSinceLastMatch) {
                             target.matched = true;
                             
-                            // CALCULATE INTERVAL & SOLFEGE
+                            if (currentTargetIndex > 0) {
+                                const prevNote = targetNotes[currentTargetIndex - 1];
+                                if (!prevNote.isRest && !target.isRest && !prevNote.isTie && !target.isTie) {
+                                    const interval = Math.abs(target.midi - prevNote.midi);
+                                    const map = ["P1", "m2", "M2", "m3", "M3", "P4", "TT", "P5", "m6", "M6", "m7", "M7", "P8"];
+                                    target.intervalLabel = map[interval] || (interval > 12 ? ">P8" : "?");
+                                }
+                            }
+
+                            // Calculate Solfege
                             const rootChroma = keyRootMap[currentKey];
                             const noteChroma = target.midi % 12;
                             const intervalFromRoot = (noteChroma - rootChroma + 12) % 12;
                             target.solfegeLabel = solfegeMap[intervalFromRoot];
-                            
-                            // Find previous non-rest/non-tie note for interval
-                            let prevIndex = currentTargetIndex - 1;
-                            while (prevIndex >= 0) {
-                                const p = targetNotes[prevIndex];
-                                if (!p.isRest && !p.isTie) break; 
-                                prevIndex--;
-                            }
-
-                            if (prevIndex >= 0) {
-                                const prevNote = targetNotes[prevIndex];
-                                if (!prevNote.isRest && !target.isRest && !prevNote.isTie && !target.isTie) {
-                                    const interval = Math.abs(target.midi - prevNote.midi);
-                                    target.intervalLabel = intervalMap[interval] || (interval > 12 ? ">P8" : "?");
-                                }
-                            }
 
                             let lookahead = currentTargetIndex + 1;
                             while(lookahead < targetNotes.length && targetNotes[lookahead].isTie) {
@@ -1061,9 +1156,11 @@
             const names = isFlatKey ? flatNotes : sharpNotes;
             const name = names[midi % 12];
             const octave = Math.floor(midi / 12) - 1;
+            
             let acc = null;
             if (name.includes('#')) acc = '#';
             if (name.includes('b')) acc = 'b';
+            
             return { name, octave, key: `${name.toLowerCase()}/${octave}`, midi, deviation, accidental: acc };
         }
 
