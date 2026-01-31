@@ -206,7 +206,6 @@
         .btn-pill { @apply px-4 py-2 text-xs font-bold rounded-full border transition-all active:scale-95; }
         .btn-pill.active { @apply bg-slate-800 text-white border-slate-800 shadow-md; }
         
-        /* Updated nav toggle buttons with more spacing and clear touch targets */
         .nav-toggle-btn { @apply p-2.5 rounded-xl hover:bg-slate-100 transition-all grayscale opacity-40 active:scale-90 text-xl; }
         .nav-toggle-btn.active { @apply grayscale-0 opacity-100 bg-white shadow-sm; }
         
@@ -220,7 +219,6 @@
     <div class="p-3 bg-white flex justify-between items-center shadow-sm z-50">
         <h1 class="text-sm font-black text-slate-800 uppercase tracking-widest pl-2">Grand Tuner</h1>
         
-        <!-- Quick Toggle Icons - Increased gap and padding for finger-friendly access -->
         <div class="flex items-center gap-3 bg-slate-100 p-1.5 rounded-2xl">
             <button id="quick-toggle-labels" onclick="toggleFeature('labels')" class="nav-toggle-btn active" title="Toggle Labels">🏷️</button>
             <button id="quick-toggle-piano" onclick="toggleFeature('piano')" class="nav-toggle-btn active" title="Toggle Piano">🎹</button>
@@ -350,8 +348,6 @@
         const tunerContainer = document.getElementById('bottom-tuner-container');
         const floatContainer = document.getElementById('note-float-container');
         const staffArea = document.getElementById('main-staff-area');
-
-        // Note info floaters
         const floatNote = document.getElementById('float-note');
         const floatDev = document.getElementById('float-dev');
 
@@ -369,15 +365,62 @@
             labels: true,
             piano: true,
             pitch: true,
-            staff: true
+            staff: true,
+            viewMode: 'treble',
+            staffScale: 1.0,
+            uiScale: 1.0,
+            labelScale: 1.0,
+            smoothing: 5
         };
+
+        // Cache Functions
+        function saveSettings() {
+            localStorage.setItem('tuner_pro_settings', JSON.stringify(uiState));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('tuner_pro_settings');
+            if (saved) {
+                const data = JSON.parse(saved);
+                
+                // Restore Feature Toggles
+                ['labels', 'piano', 'pitch', 'staff'].forEach(key => {
+                    if (data.hasOwnProperty(key)) updateUIState(key, data[key], false);
+                });
+
+                // Restore Scales
+                if (data.staffScale) {
+                    uiState.staffScale = data.staffScale;
+                    document.getElementById('staff-size-slider').value = data.staffScale;
+                    document.documentElement.style.setProperty('--staff-scale', data.staffScale);
+                }
+                if (data.uiScale) {
+                    uiState.uiScale = data.uiScale;
+                    document.getElementById('ui-size-slider').value = data.uiScale;
+                    document.documentElement.style.setProperty('--ui-scale', data.uiScale);
+                }
+                if (data.labelScale) {
+                    uiState.labelScale = data.labelScale;
+                    document.getElementById('label-size-slider').value = data.labelScale;
+                    document.documentElement.style.setProperty('--label-scale', data.labelScale);
+                }
+                if (data.smoothing) {
+                    uiState.smoothing = data.smoothing;
+                    smoothingFactor = data.smoothing;
+                    document.getElementById('smoothing-slider').value = data.smoothing;
+                }
+                if (data.viewMode) {
+                    setView(data.viewMode, false);
+                }
+            }
+        }
 
         function toggleFeature(feature) {
             uiState[feature] = !uiState[feature];
             updateUIState(feature, uiState[feature]);
         }
 
-        function updateUIState(feature, isVisible) {
+        function updateUIState(feature, isVisible, shouldSave = true) {
             uiState[feature] = isVisible;
             
             // Update Quick Toggle Buttons
@@ -409,6 +452,8 @@
                     staffArea.classList.toggle('staff-hidden', !isVisible);
                     break;
             }
+
+            if (shouldSave) saveSettings();
         }
 
         function toggleSettings() { document.getElementById('settings-panel').classList.toggle('open'); }
@@ -419,10 +464,13 @@
             document.getElementById('play-icon').classList.toggle('hidden', !isPaused);
         }
 
-        function setView(mode) {
+        function setView(mode, shouldSave = true) {
+            uiState.viewMode = mode;
             document.body.className = `flex flex-col h-screen overflow-hidden view-${mode}`;
             document.querySelectorAll('#view-mode-btns button').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + mode).classList.add('active');
+            const btn = document.getElementById('btn-' + mode);
+            if(btn) btn.classList.add('active');
+            if (shouldSave) saveSettings();
         }
 
         function getNotePosition(midiIndex) {
@@ -568,18 +616,30 @@
             requestAnimationFrame(updateLoop);
         }
 
-        // Scaling Listeners
+        // Scaling Listeners with Auto-Save
         document.getElementById('staff-size-slider').addEventListener('input', (e) => {
-            document.documentElement.style.setProperty('--staff-scale', e.target.value);
+            const val = e.target.value;
+            uiState.staffScale = val;
+            document.documentElement.style.setProperty('--staff-scale', val);
+            saveSettings();
         });
         document.getElementById('ui-size-slider').addEventListener('input', (e) => {
-            document.documentElement.style.setProperty('--ui-scale', e.target.value);
+            const val = e.target.value;
+            uiState.uiScale = val;
+            document.documentElement.style.setProperty('--ui-scale', val);
+            saveSettings();
         });
         document.getElementById('label-size-slider').addEventListener('input', (e) => {
-            document.documentElement.style.setProperty('--label-scale', e.target.value);
+            const val = e.target.value;
+            uiState.labelScale = val;
+            document.documentElement.style.setProperty('--label-scale', val);
+            saveSettings();
         });
         document.getElementById('smoothing-slider').addEventListener('input', (e) => {
-            smoothingFactor = parseInt(e.target.value);
+            const val = parseInt(e.target.value);
+            uiState.smoothing = val;
+            smoothingFactor = val;
+            saveSettings();
         });
 
         function init() {
@@ -594,7 +654,10 @@
                 staffWrapper.appendChild(bl);
             }
             buildKeyboard();
-            setView('treble'); 
+            
+            // Load and apply cached settings
+            loadSettings();
+
             document.getElementById('start-btn').addEventListener('click', initAudio);
         }
         init();
