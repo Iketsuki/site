@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pitch Trainer - Grand Staff Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Inter', sans-serif; overflow-x: hidden; touch-action: manipulation; }
+        .customize-btn {
+            cursor: pointer; transition: all 0.2s; border: 2px solid #e2e8f0; background: white;
+            padding: 0.25rem 0.6rem; border-radius: 8px; font-size: 0.7rem; font-weight: 600;
+            user-select: none; display: inline-flex; align-items: center; justify-content: center; color: #475569; gap: 4px;
+            min-height: 32px;
+        }
+        .customize-btn.active { border-color: #3b82f6; color: #1e40af; background-color: #eff6ff; }
+        .dot-toggle { width: 14px; height: 14px; border-radius: 50%; border: 1px solid #cbd5e1; display: inline-block; cursor: pointer; }
+        .dot-toggle.active { background: #3b82f6; border-color: #1e40af; }
+        
+        .bulk-action-btn { cursor: pointer; font-size: 10px; font-weight: 800; color: #3b82f6; text-transform: uppercase; margin-left: 8px; transition: opacity 0.2s; }
+        .bulk-action-btn:hover { opacity: 0.7; }
+        
+        #main-score-area { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 12px 12px 0 0; 
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            border-bottom: none;
+        }
+
+        #feedback-panel {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0 0 12px 12px;
+            padding: 15px;
+            margin-bottom: 1rem;
+        }
+
+        .piano-container { 
+            width: 100%; 
+            background: #1e293b; 
+            padding: 20px 0; 
+            border-radius: 12px; 
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+            cursor: grab;
+        }
+        .piano-container:active { cursor: grabbing; }
+        .piano-viewport { 
+            display: flex; 
+            padding: 0 20px 20px 20px; 
+            justify-content: flex-start;
+            user-select: none;
+            transition: transform 0.1s ease-out;
+            pointer-events: none;
+        }
+        .key { pointer-events: auto; position: relative; flex-shrink: 0; border: 1px solid #334155; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; font-size: 10px; font-weight: 800; color: #94a3b8; }
+        .white-key { width: 35px; height: 140px; background: white; border-radius: 0 0 4px 4px; z-index: 1; }
+        .black-key { width: 22px; height: 85px; background: #000; margin-left: -11px; margin-right: -11px; z-index: 2; border-radius: 0 0 2px 2px; }
+        .key.active { background: #93c5fd !important; }
+        .key.middle-c { border-bottom: 6px solid #3b82f6; }
+        
+        .metronome-light { width: 12px; height: 12px; border-radius: 50%; background: #e2e8f0; transition: background 0.1s; }
+        .metronome-light.active { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
+        #stave-viewport { width: 100%; overflow: hidden; position: relative; height: 320px; }
+        #stave-scroller { position: absolute; left: 0; top: 0; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; }
+        
+        .target-indicator {
+            position: absolute;
+            left: 30%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+            z-index: 10;
+            pointer-events: none;
+            transform: translateX(-50%);
+        }
+
+        #floating-note-display {
+            position: absolute;
+            left: 30%;
+            top: 10px;
+            transform: translateX(-50%);
+            z-index: 20;
+            background: #3b82f6;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 900;
+            font-size: 14px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            pointer-events: none;
+            display: none;
+        }
+
+        .duration-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .mod-row { display: flex; gap: 4px; justify-content: center; margin-top: 4px; }
+        .mod-btn { font-size: 10px; padding: 1px 4px; border-radius: 4px; background: #e2e8f0; cursor: pointer; color: #64748b; font-weight: 800; }
+        .mod-btn.active { background: #3b82f6; color: white; }
+
+        #live-note-overlay {
+            position: absolute;
+            left: 30%;
+            top: 0;
+            height: 100%;
+            pointer-events: none;
+            z-index: 15;
+            transform: translateX(-50%);
+        }
+        
+        .range-setting-mode .key { cursor: crosshair; }
+        .range-setting-mode #piano-panel { border: 2px dashed #f59e0b; }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+    </style>
+</head>
+<body class="p-3 md:p-6">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-4 flex flex-wrap justify-between items-center gap-3">
+            <h1 class="text-xl md:text-2xl font-black text-slate-800 tracking-tight uppercase">Pitch Trainer <span class="text-blue-600">Grand Staff</span></h1>
+            <div class="flex gap-2">
+                <button id="toggle-complexity" class="bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-lg text-xs uppercase shadow-sm active:scale-95 transition-transform">Complexity</button>
+            </div>
+        </header>
+
+        <!-- Options Panel -->
+        <div id="complexity-panel" class="mb-6 space-y-6 bg-white p-4 md:p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <!-- Left Column -->
+                <div class="space-y-6">
+                    <!-- Keys -->
+                    <div>
+                        <div class="section-header">
+                            <label class="text-[11px] font-black uppercase text-slate-400 tracking-widest">Allowed Keys</label>
+                            <button class="bulk-action-btn" onclick="selectAll('key-pool')">All</button>
+                        </div>
+                        <div id="key-pool" class="flex flex-wrap gap-1.5"></div>
+                    </div>
+                    
+                    <!-- Scales -->
+                    <div>
+                        <div class="section-header">
+                            <label class="text-[11px] font-black uppercase text-slate-400 tracking-widest">Scales / Modes</label>
+                            <div class="flex gap-1">
+                                <button class="bulk-action-btn" onclick="selectScaleGroup('primary')">Primary</button>
+                                <button class="bulk-action-btn" onclick="selectScaleGroup('secondary')">Secondary</button>
+                                <button class="bulk-action-btn" onclick="selectNone('scale-pool')">Off</button>
+                            </div>
+                            <div class="flex items-center gap-1 ml-auto">
+                                <div class="customize-btn text-[9px]" data-type="direction-mod" data-value="asc">Ascending</div>
+                                <div class="customize-btn text-[9px]" data-type="direction-mod" data-value="desc">Descending</div>
+                            </div>
+                        </div>
+                        <div id="scale-pool" class="flex flex-wrap gap-1.5"></div>
+                    </div>
+
+                    <!-- Patterns -->
+                    <div>
+                        <div class="section-header">
+                            <label class="text-[11px] font-black uppercase text-slate-400 tracking-widest">Patterns & Range</label>
+                            <button class="bulk-action-btn" onclick="selectAll('leap-pool')">All</button>
+                            <button class="bulk-action-btn" onclick="selectNone('leap-pool')">Off</button>
+                        </div>
+                        <div id="leap-pool" class="flex flex-wrap gap-2 items-center">
+                            <div class="customize-btn active" data-type="leap-option" data-value="allow-accidentals">Accidentals</div>
+                            <div class="customize-btn active" data-type="leap-option" data-value="allow-out-of-key">Out-of-Key</div>
+                            <div class="w-px h-6 bg-slate-200 mx-1"></div>
+                            <div class="customize-btn" data-type="leap-option" data-value="1-3">1-3</div>
+                            <div class="customize-btn" data-type="leap-option" data-value="1-5">1-5</div>
+                            <div class="customize-btn" data-type="leap-option" data-value="1-7">1-7</div>
+                            <div class="customize-btn" data-type="leap-option" data-value="1-8">Octaves</div>
+                            <div class="customize-btn" data-type="leap-option" data-value="4ths">4ths</div>
+                            <div class="customize-btn" data-type="leap-option" data-value="9th">9th Arp</div>
+                            <div class="customize-btn" data-type="leap-option" data-value="v7iv">V7-IV</div>
+                            <div class="customize-btn" data-type="leap-option" data-value="v7v">V7-V</div>
+                            <div class="customize-btn" data-type="leap-option" data-value="chromatic">Chromatic</div>
+                            <div class="customize-btn" data-type="leap-option" data-value="syncopation">Syncopation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <!-- Rhythms -->
+                    <div>
+                        <div class="section-header">
+                            <label class="text-[11px] font-black uppercase text-slate-400 tracking-widest">Notes Rhythm</label>
+                            <button class="bulk-action-btn" onclick="selectAll('rhythm-pool')">All</button>
+                        </div>
+                        <div id="rhythm-pool" class="grid grid-cols-3 sm:grid-cols-6 gap-2"></div>
+                    </div>
+                    
+                    <!-- Rests -->
+                    <div>
+                        <div class="section-header">
+                            <label class="text-[11px] font-black uppercase text-slate-400 tracking-widest">Rests Rhythm</label>
+                            <div class="flex gap-1">
+                                <button class="bulk-action-btn" onclick="selectAll('rest-pool')">All</button>
+                                <button class="bulk-action-btn" onclick="selectNone('rest-pool')">Off</button>
+                            </div>
+                        </div>
+                        <div id="rest-pool" class="grid grid-cols-3 sm:grid-cols-6 gap-2"></div>
+                    </div>
+
+                    <!-- Modifiers -->
+                    <div>
+                        <label class="text-[11px] font-black uppercase text-slate-400 tracking-widest block mb-2">Tuplet Modifiers</label>
+                        <div id="rhythm-mods" class="flex flex-wrap gap-2">
+                            <div class="customize-btn" data-type="rhythm-mod" data-value="2">Duplets (2)</div>
+                            <div class="customize-btn" data-type="rhythm-mod" data-value="3">Triplets (3)</div>
+                            <div class="customize-btn" data-type="rhythm-mod" data-value="5">Quints (5)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Performance Controls -->
+        <!-- Redesigned Grid Layout for Mobile -->
+        <div class="bg-slate-800 text-white p-4 rounded-xl shadow-lg mb-4 grid grid-cols-2 md:grid-cols-12 gap-4 items-center">
+            
+            <!-- 1. Tempo (Col 1-4) -->
+            <div class="col-span-2 md:col-span-3 flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                    <label class="text-slate-400 font-bold text-[9px] uppercase">Tempo</label>
+                    <button id="tap-beat-btn" class="text-[9px] uppercase tracking-wider bg-slate-600 px-2 py-0.5 rounded font-black hover:bg-slate-500 active:scale-95">Tap</button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="mute-metro-btn" class="text-lg w-8 h-8 flex items-center justify-center rounded hover:bg-slate-700" title="Mute/Unmute">🔊</button>
+                    <input type="number" id="metronome-bpm" value="100" class="w-16 bg-slate-700 border-none rounded p-1 text-center font-bold text-xs">
+                    <button id="toggle-metro-btn" class="bg-slate-700 text-slate-300 font-bold px-2 py-1 rounded text-[9px] uppercase flex-1 hover:bg-slate-600">Click Off</button>
+                    <div id="metro-light" class="metronome-light flex-shrink-0"></div>
+                </div>
+            </div>
+
+            <!-- 2. Config (Col 5-8) -->
+            <div class="col-span-2 md:col-span-4 flex flex-col gap-2 md:border-l md:border-slate-700 md:pl-4">
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-slate-400 font-bold text-[9px] mb-1 uppercase">Meter & Range</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="time-sig" value="4/4" class="w-12 bg-slate-700 border-none rounded p-1 text-center font-bold text-xs" title="Time Signature">
+                            <input type="number" id="bar-count" value="4" class="w-10 bg-slate-700 border-none rounded p-1 text-center font-bold text-xs" title="Bar Count">
+                            <button id="set-range-btn" class="bg-amber-500 text-white font-bold px-2 py-1 rounded text-[9px] uppercase hover:bg-amber-600 flex-1 truncate">Set Range</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Range Inputs (Hidden logic uses these) -->
+                <div class="hidden">
+                    <input type="text" id="range-start" value="G2">
+                    <input type="text" id="range-end" value="G5">
+                </div>
+            </div>
+
+            <!-- 3. Stability & Actions (Col 9-12) -->
+            <div class="col-span-2 md:col-span-5 flex flex-col gap-2 md:border-l md:border-slate-700 md:pl-4">
+                <div class="flex gap-2 items-center">
+                    <label class="text-slate-400 font-bold text-[9px] uppercase whitespace-nowrap">Stability</label>
+                    <input type="range" id="detection-delay" min="1" max="50" value="12" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                </div>
+                <div class="flex gap-2 mt-1">
+                    <button id="start-btn" class="bg-blue-600 text-white font-bold px-3 py-2 rounded-lg text-xs uppercase shadow-md active:scale-95 hover:bg-blue-500 flex-1">Mic Off</button>
+                    <button id="reset-btn" class="bg-slate-600 text-white font-bold px-3 py-2 rounded-lg text-xs uppercase shadow-md active:scale-95 hover:bg-slate-500 flex-1">Reset</button>
+                    <button id="next-btn" class="bg-emerald-600 text-white font-bold px-3 py-2 rounded-lg text-xs uppercase shadow-md active:scale-95 hover:bg-emerald-500 flex-1">New</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Area -->
+        <div id="main-score-area">
+            <div id="floating-note-display">--</div>
+            <div class="target-indicator"></div>
+            <div id="stave-viewport">
+                <div id="stave-scroller">
+                    <div id="output-target"></div>
+                </div>
+                <div id="live-note-overlay"></div>
+            </div>
+        </div>
+
+        <!-- Feedback Below Score -->
+        <div id="feedback-panel">
+            <div class="flex items-center justify-between gap-4">
+                <div id="note-display" class="text-2xl font-black text-slate-400 w-16">--</div>
+                <div class="flex-1 px-4">
+                    <div class="h-1.5 bg-slate-200 rounded-full relative">
+                        <div id="tuner-bar" class="absolute h-4 w-1 bg-blue-500 top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 transition-all"></div>
+                    </div>
+                </div>
+                <div id="deviation-display" class="text-sm font-mono font-bold text-slate-400 w-16 text-right">0%</div>
+            </div>
+        </div>
+
+        <!-- Piano -->
+        <div id="piano-panel" class="piano-container">
+            <div id="piano-viewport" class="piano-viewport"></div>
+        </div>
+    </div>
+
+    <script>
+        const VF = Vex.Flow;
+        let audioContext, analyser, microphone, isRunning = false;
+        let currentKey = "C";
+        let targetNotes = [], currentTargetIndex = 0;
+        let pitchBuffer = [];
+        let hasSilencedSinceLastMatch = true; 
+        const NOTE_WIDTH = 130;
+        let pianoScrollX = 0;
+
+        const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+        const keySignatures = { "C":[], "G":["F#"], "D":["F#","C#"], "A":["F#","C#","G#"], "E":["F#","C#","G#","D#"], "B":["F#","C#","G#","D#","A#"], "F#":["F#","C#","G#","D#","A#","E#"], "F":["Bb"], "Bb":["Bb","Eb"], "Eb":["Bb","Eb","Ab"], "Ab":["Bb","Eb","Ab","Db"], "Db":["Bb","Eb","Ab","Db","Gb"], "Gb":["Bb","Eb","Ab","Db","Gb","Cb"] };
+        
+        const scalesDef = {
+            major: { name: "Major", intervals: [0, 2, 4, 5, 7, 9, 11], group: "primary" },
+            minor: { name: "Natural Minor", intervals: [0, 2, 3, 5, 7, 8, 10], group: "primary" },
+            harmonic_minor: { name: "Harmonic Minor", intervals: [0, 2, 3, 5, 7, 8, 11], group: "primary" },
+            melodic_minor: { name: "Jazz Melodic Minor", intervals: [0, 2, 3, 5, 7, 9, 11], group: "primary" },
+            dorian: { name: "Dorian", intervals: [0, 2, 3, 5, 7, 9, 10], group: "primary" },
+            phrygian: { name: "Phrygian", intervals: [0, 1, 3, 5, 7, 8, 10], group: "primary" },
+            lydian: { name: "Lydian", intervals: [0, 2, 4, 6, 7, 9, 11], group: "primary" },
+            mixolydian: { name: "Mixolydian", intervals: [0, 2, 4, 5, 7, 9, 10], group: "primary" },
+            locrian: { name: "Locrian", intervals: [0, 1, 3, 5, 6, 8, 10], group: "primary" },
+            pentatonic_major: { name: "Pentatonic Major", intervals: [0, 2, 4, 7, 9], group: "secondary" },
+            pentatonic_minor: { name: "Pentatonic Minor", intervals: [0, 3, 5, 7, 10], group: "secondary" },
+            blues: { name: "Blues", intervals: [0, 3, 5, 6, 7, 10], group: "secondary" },
+            whole_tone: { name: "Whole Tone", intervals: [0, 2, 4, 6, 8, 10], group: "secondary" },
+            chromatic: { name: "Chromatic", intervals: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], group: "secondary" },
+            major_bebop: { name: "Major Bebop", intervals: [0, 2, 4, 5, 7, 8, 9, 11], group: "secondary" },
+            minor_bebop: { name: "Minor Bebop", intervals: [0, 2, 3, 4, 5, 7, 9, 10], group: "secondary" },
+            dominant_bebop: { name: "Bebop Dominant", intervals: [0, 2, 4, 5, 7, 9, 10, 11], group: "secondary" }
+        };
+
+        const baseDurations = [
+            { id: 'w', label: '1', beats: 4 },
+            { id: 'h', label: '1/2', beats: 2 },
+            { id: 'q', label: '1/4', beats: 1 },
+            { id: '8', label: '1/8', beats: 0.5 },
+            { id: '16', label: '1/16', beats: 0.25 },
+            { id: '32', label: '1/32', beats: 0.125 }
+        ];
+
+        const intervalMap = ["P1", "m2", "M2", "m3", "M3", "P4", "TT", "P5", "m6", "M6", "m7", "M7", "P8"];
+
+        let metroInterval = null;
+        let lastTap = 0;
+        let isMetroActive = false;
+        let isMetroMuted = false;
+        let isSettingRange = 0;
+
+        function selectAll(id) {
+            const btns = document.querySelectorAll(`#${id} .customize-btn`);
+            const anyOff = Array.from(btns).some(b => !b.classList.contains('active'));
+            btns.forEach(b => anyOff ? b.classList.add('active') : b.classList.remove('active'));
+        }
+
+        function selectNone(id) {
+            document.querySelectorAll(`#${id} .customize-btn`).forEach(b => b.classList.remove('active'));
+        }
+
+        function selectScaleGroup(group) {
+            if (group === 'none') return selectNone('scale-pool');
+            document.querySelectorAll('#scale-pool .customize-btn').forEach(b => {
+                const scale = scalesDef[b.dataset.val];
+                if (scale.group === group) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+        }
+
+        function initUI() {
+            document.getElementById('toggle-complexity').onclick = () => {
+                const panel = document.getElementById('complexity-panel');
+                panel.classList.toggle('hidden');
+            };
+
+            const keyPool = document.getElementById('key-pool');
+            Object.keys(keySignatures).forEach(k => {
+                const b = document.createElement('div');
+                b.className = `customize-btn ${k === 'C' ? 'active' : ''}`;
+                b.innerText = k;
+                b.onclick = () => {
+                    document.querySelectorAll('#key-pool .customize-btn').forEach(x => x.classList.remove('active'));
+                    b.classList.add('active'); currentKey = k;
+                };
+                keyPool.appendChild(b);
+            });
+
+            const scalePool = document.getElementById('scale-pool');
+            Object.keys(scalesDef).forEach(s => {
+                const b = document.createElement('div');
+                b.className = `customize-btn ${s === 'major' ? 'active' : ''}`;
+                b.innerText = scalesDef[s].name;
+                b.dataset.val = s;
+                b.onclick = () => b.classList.toggle('active');
+                scalePool.appendChild(b);
+            });
+
+            const rPool = document.getElementById('rhythm-pool');
+            const restPool = document.getElementById('rest-pool');
+            const createDurGroup = (d, type) => {
+                const g = document.createElement('div');
+                g.className = 'duration-group';
+                g.innerHTML = `
+                    <div class="customize-btn w-full justify-center base-${type} ${d.id==='q'?'active':''}" data-id="${d.id}">${d.label}${type === 'rest' ? ' R' : ''}</div>
+                    <div class="mod-row">
+                        <div class="dot-toggle mod-dot" data-mod="dot"></div>
+                        <div class="dot-toggle mod-dbl" data-mod="double-dot"></div>
+                    </div>
+                `;
+                g.querySelector(`.base-${type}`).onclick = (e) => e.target.classList.toggle('active');
+                g.querySelectorAll('.dot-toggle').forEach(btn => btn.onclick = () => btn.classList.toggle('active'));
+                return g;
+            };
+            baseDurations.forEach(d => {
+                rPool.appendChild(createDurGroup(d, 'dur'));
+                restPool.appendChild(createDurGroup(d, 'rest'));
+            });
+
+            document.querySelectorAll('.customize-btn[data-type]').forEach(b => {
+                if(b.dataset.type === 'direction-mod') {
+                    b.onclick = () => {
+                        const val = b.dataset.value;
+                        document.querySelectorAll('.customize-btn[data-type="direction-mod"]').forEach(x => {
+                            if(x !== b) x.classList.remove('active');
+                        });
+                        b.classList.toggle('active');
+                    };
+                } else {
+                    b.onclick = () => b.classList.toggle('active');
+                }
+            });
+            
+            // Metronome
+            document.getElementById('toggle-metro-btn').onclick = () => {
+                isMetroActive = !isMetroActive;
+                const btn = document.getElementById('toggle-metro-btn');
+                btn.innerText = isMetroActive ? "Click On" : "Click Off";
+                btn.classList.toggle('bg-blue-600', isMetroActive);
+                btn.classList.toggle('bg-slate-700', !isMetroActive);
+                toggleMetro();
+            };
+
+            document.getElementById('mute-metro-btn').onclick = () => {
+                isMetroMuted = !isMetroMuted;
+                document.getElementById('mute-metro-btn').innerText = isMetroMuted ? "🔇" : "🔊";
+            };
+
+            document.getElementById('tap-beat-btn').onclick = () => {
+                const now = Date.now();
+                if (lastTap > 0 && now - lastTap < 2000) {
+                    const bpm = Math.round(60000 / (now - lastTap));
+                    if (bpm > 30 && bpm < 300) {
+                        document.getElementById('metronome-bpm').value = bpm;
+                        if (isMetroActive) toggleMetro();
+                    }
+                }
+                lastTap = now;
+            };
+
+            document.getElementById('reset-btn').onclick = () => {
+                targetNotes.forEach(n => n.matched = false);
+                currentTargetIndex = 0; renderTarget(); updateScroll();
+            };
+            document.getElementById('next-btn').onclick = generateSequence;
+            document.getElementById('start-btn').onclick = startAudio;
+            
+            const rangeBtn = document.getElementById('set-range-btn');
+            rangeBtn.onclick = () => {
+                if (isSettingRange === 0) {
+                    isSettingRange = 1;
+                    rangeBtn.innerText = "Tap Low";
+                    rangeBtn.classList.replace('bg-amber-500', 'bg-red-500');
+                    document.body.classList.add('range-setting-mode');
+                } else {
+                    isSettingRange = 0;
+                    rangeBtn.innerText = "Set Range";
+                    rangeBtn.classList.replace('bg-red-500', 'bg-amber-500');
+                    document.body.classList.remove('range-setting-mode');
+                }
+            };
+
+            initPiano();
+        }
+
+        function toggleMetro() {
+            clearInterval(metroInterval);
+            if (!isMetroActive) return;
+            const bpm = parseInt(document.getElementById('metronome-bpm').value) || 100;
+            const interval = 60000 / bpm;
+            metroInterval = setInterval(() => {
+                const light = document.getElementById('metro-light');
+                light.classList.add('active');
+                if (!isMetroMuted) playClick();
+                setTimeout(() => light.classList.remove('active'), 80);
+            }, interval);
+        }
+
+        function playClick() {
+            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioContext.createOscillator();
+            const g = audioContext.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(1000, audioContext.currentTime);
+            g.gain.setValueAtTime(0.1, audioContext.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.05);
+            osc.connect(g); g.connect(audioContext.destination);
+            osc.start(); osc.stop(audioContext.currentTime + 0.05);
+        }
+
+        function generateSequence() {
+            targetNotes = [];
+            currentTargetIndex = 0;
+            const rangeStart = noteToMidi(document.getElementById('range-start').value);
+            const rangeEnd = noteToMidi(document.getElementById('range-end').value);
+            const numBars = parseInt(document.getElementById('bar-count').value) || 4;
+            const [sigX, sigY] = document.getElementById('time-sig').value.split('/').map(Number);
+            const beatsPerBar = sigX * (4 / sigY);
+
+            const activeScales = Array.from(document.querySelectorAll('#scale-pool .active')).map(b => b.dataset.val);
+            const activeLeaps = Array.from(document.querySelectorAll('#leap-pool .active[data-type="leap-option"]')).map(b => b.dataset.value);
+            const allowAccidentals = document.querySelector('[data-value="allow-accidentals"]').classList.contains('active');
+            const allowOutOfKey = document.querySelector('[data-value="allow-out-of-key"]').classList.contains('active');
+            const isAsc = document.querySelector('[data-value="asc"]')?.classList.contains('active');
+            const isDesc = document.querySelector('[data-value="desc"]')?.classList.contains('active');
+            
+            const rootMidi = noteStrings.indexOf(currentKey);
+            let pool = [];
+            
+            activeScales.forEach(s => {
+                scalesDef[s].intervals.forEach(i => {
+                    for(let m=rangeStart; m<=rangeEnd; m++) if((m-rootMidi+1200)%12 === i) pool.push(m);
+                });
+            });
+            if (pool.length === 0) for(let m=rangeStart; m<=rangeEnd; m++) pool.push(m);
+            pool = [...new Set(pool)].sort((a,b) => a-b);
+
+            const getRhythmPool = (selector) => {
+                return Array.from(document.querySelectorAll(selector)).filter(el => el.classList.contains('active')).map(el => {
+                    const group = el.closest('.duration-group');
+                    const dots = group.querySelector('[data-mod="dot"]').classList.contains('active');
+                    const doubleDots = group.querySelector('[data-mod="double-dot"]').classList.contains('active');
+                    return { id: el.dataset.id, dots: doubleDots ? 2 : (dots ? 1 : 0) };
+                });
+            };
+            const notePool = getRhythmPool('.base-dur');
+            const restPool = getRhythmPool('.base-rest');
+
+            let barIndex = 0;
+            let barRemaining = beatsPerBar;
+            
+            let currentSequenceMidi;
+            if (isAsc) {
+                const roots = pool.filter(m => m % 12 === rootMidi);
+                currentSequenceMidi = roots.length > 0 ? roots[0] : pool[0];
+            } else if (isDesc) {
+                const roots = pool.filter(m => m % 12 === rootMidi);
+                currentSequenceMidi = roots.length > 0 ? roots[roots.length-1] : pool[pool.length-1];
+            } else {
+                currentSequenceMidi = pool[Math.floor(Math.random() * pool.length)];
+            }
+
+            while (barIndex < numBars) {
+                const isRest = restPool.length > 0 && Math.random() > 0.85;
+                const poolChoice = isRest ? restPool : (notePool.length > 0 ? notePool : [{id: 'q', dots: 0}]);
+                const rhythm = poolChoice[Math.floor(Math.random() * poolChoice.length)];
+                const base = baseDurations.find(x => x.id === rhythm.id);
+                let durationBeats = base.beats * (rhythm.dots === 1 ? 1.5 : (rhythm.dots === 2 ? 1.75 : 1));
+
+                let midi = currentSequenceMidi;
+                let patternUsed = false;
+
+                if (!isRest && activeLeaps.length > 0 && Math.random() > 0.6) {
+                    const pattern = activeLeaps[Math.floor(Math.random() * activeLeaps.length)];
+                    let offset = 0;
+                    if (pattern === '1-3') offset = 4;
+                    else if (pattern === '1-5') offset = 7;
+                    else if (pattern === '1-7') offset = 11;
+                    else if (pattern === '1-8') offset = 12;
+                    else if (pattern === '4ths') offset = 5;
+                    else if (pattern === '9th') offset = 14;
+                    else if (pattern === 'v7iv') offset = 5; 
+                    else if (pattern === 'v7v') offset = 7;
+                    else if (pattern === 'chromatic') offset = 1;
+                    
+                    const candidate = currentSequenceMidi + offset;
+                    
+                    if (allowOutOfKey || pool.includes(candidate)) {
+                        if (candidate <= rangeEnd) {
+                            midi = candidate;
+                            patternUsed = true;
+                        }
+                    }
+                }
+
+                if (!patternUsed && !isRest) {
+                    if (isAsc && !isDesc) {
+                        const idx = pool.indexOf(currentSequenceMidi);
+                        const nextIdx = idx + 1;
+                        if (nextIdx < pool.length) currentSequenceMidi = pool[nextIdx];
+                        else currentSequenceMidi = pool[0]; 
+                    } else if (isDesc && !isAsc) {
+                        const idx = pool.indexOf(currentSequenceMidi);
+                        const nextIdx = idx - 1;
+                        if (nextIdx >= 0) currentSequenceMidi = pool[nextIdx];
+                        else currentSequenceMidi = pool[pool.length-1];
+                    } else {
+                        const step = Math.floor(Math.random() * 5) - 2; 
+                        const idx = pool.indexOf(currentSequenceMidi);
+                        let newIdx = idx + step;
+                        if (newIdx < 0) newIdx = 0;
+                        if (newIdx >= pool.length) newIdx = pool.length - 1;
+                        currentSequenceMidi = pool[newIdx];
+                    }
+                    midi = currentSequenceMidi;
+                }
+                
+                if (patternUsed) currentSequenceMidi = midi;
+
+                const noteInfo = getNoteFromMidi(midi);
+                let beatsLeftToGenerate = durationBeats;
+
+                while (beatsLeftToGenerate > 0.001) {
+                    let partBeats = Math.min(beatsLeftToGenerate, barRemaining);
+                    let partDur = 'q';
+                    if (Math.abs(partBeats - 4) < 0.01) partDur = 'w';
+                    else if (Math.abs(partBeats - 2) < 0.01) partDur = 'h';
+                    else if (Math.abs(partBeats - 1) < 0.01) partDur = 'q';
+                    else if (Math.abs(partBeats - 0.5) < 0.01) partDur = '8';
+                    else if (Math.abs(partBeats - 0.25) < 0.01) partDur = '16';
+                    else if (Math.abs(partBeats - 0.125) < 0.01) partDur = '32';
+                    else if (Math.abs(partBeats - 3) < 0.01) partDur = 'hd';
+                    else if (Math.abs(partBeats - 1.5) < 0.01) partDur = 'qd';
+                    
+                    if (partDur.length > 2 && partDur.indexOf('d') === -1) partDur = 'q'; 
+
+                    let vfDur = partDur.replace('d', '');
+                    let isDot = partDur.includes('d');
+
+                    targetNotes.push({
+                        ...noteInfo,
+                        duration: isRest ? vfDur + 'r' : vfDur,
+                        beats: partBeats,
+                        dots: isDot ? 1 : 0,
+                        isRest: isRest,
+                        isTie: !isRest && (beatsLeftToGenerate > barRemaining),
+                        matched: isRest 
+                    });
+
+                    beatsLeftToGenerate -= partBeats;
+                    barRemaining -= partBeats;
+
+                    if (barRemaining < 0.01) {
+                        barIndex++;
+                        barRemaining = beatsPerBar;
+                        if (barIndex >= numBars) break;
+                    }
+                }
+            }
+            renderTarget();
+            updateScroll();
+        }
+
+        function renderTarget() {
+            const container = document.getElementById('output-target');
+            container.innerHTML = '';
+            const [sigX, sigY] = document.getElementById('time-sig').value.split('/').map(Number);
+            const numBars = parseInt(document.getElementById('bar-count').value) || 4;
+            const beatsPerBar = sigX * (4 / sigY);
+
+            const renderer = new VF.Renderer(container, VF.Renderer.Backends.SVG);
+            renderer.resize((targetNotes.length * NOTE_WIDTH) + 800, 320);
+            const context = renderer.getContext();
+            
+            let currentX = 50;
+            let noteCursor = 0;
+
+            for (let b = 0; b < numBars; b++) {
+                let sum = 0; let bCount = 0;
+                while (noteCursor + bCount < targetNotes.length && sum < beatsPerBar - 0.01) {
+                    sum += targetNotes[noteCursor + bCount].beats;
+                    bCount++;
+                }
+
+                const barWidth = Math.max(180, (bCount * NOTE_WIDTH) + (b === 0 ? 100 : 30));
+                
+                const trebleStave = new VF.Stave(currentX, 40, barWidth);
+                const bassStave = new VF.Stave(currentX, 160, barWidth);
+
+                if (b === 0) {
+                    trebleStave.addClef("treble").addKeySignature(currentKey).addTimeSignature(`${sigX}/${sigY}`);
+                    bassStave.addClef("bass").addKeySignature(currentKey).addTimeSignature(`${sigX}/${sigY}`);
+                    new VF.StaveConnector(trebleStave, bassStave).setType(VF.StaveConnector.type.BRACE).setContext(context).draw();
+                }
+                new VF.StaveConnector(trebleStave, bassStave).setType(VF.StaveConnector.type.SINGLE_RIGHT).setContext(context).draw();
+                trebleStave.setContext(context).draw();
+                bassStave.setContext(context).draw();
+
+                const barNotesData = targetNotes.slice(noteCursor, noteCursor + bCount);
+                const trebleNotes = [];
+                const bassNotes = [];
+
+                barNotesData.forEach((tn, idx) => {
+                    const clef = tn.midi >= 60 ? "treble" : "bass";
+                    const sn = new VF.StaveNote({ keys: [tn.key], duration: tn.duration, clef: clef });
+                    const col = tn.matched ? (tn.isRest ? "#94a3b8" : "#10b981") : (noteCursor + idx === currentTargetIndex ? "#3b82f6" : "#cbd5e1");
+                    sn.setStyle({ fillStyle: col, strokeStyle: col });
+                    if (tn.accidental && !tn.isRest) sn.addModifier(new VF.Accidental(tn.accidental), 0);
+                    if (tn.dots > 0) sn.addModifier(new VF.Dot(), 0); 
+
+                    // Check for interval display
+                    if (tn.intervalLabel) {
+                        sn.addModifier(new VF.Annotation(tn.intervalLabel).setFont("Arial", 10, "bold").setVerticalJustification(VF.Annotation.VerticalJustify.TOP), 0);
+                    }
+
+                    tn.vfNote = sn;
+                    if (clef === "treble") {
+                        trebleNotes.push(sn);
+                        bassNotes.push(new VF.GhostNote({ duration: tn.duration }));
+                    } else {
+                        bassNotes.push(sn);
+                        trebleNotes.push(new VF.GhostNote({ duration: tn.duration }));
+                    }
+                    if (tn.isTie && noteCursor + idx + 1 < targetNotes.length) tn.tieTargetIdx = noteCursor + idx + 1;
+                });
+
+                if (trebleNotes.length > 0) {
+                    const vT = new VF.Voice({ num_beats: sigX, beat_value: sigY }).setStrict(false).addTickables(trebleNotes);
+                    const vB = new VF.Voice({ num_beats: sigX, beat_value: sigY }).setStrict(false).addTickables(bassNotes);
+                    new VF.Formatter().joinVoices([vT, vB]).format([vT, vB], barWidth - (b===0?110:40));
+                    vT.draw(context, trebleStave); vB.draw(context, bassStave);
+                }
+                currentX += barWidth;
+                noteCursor += bCount;
+            }
+            targetNotes.forEach((tn) => {
+                if (tn.tieTargetIdx !== undefined && tn.vfNote && targetNotes[tn.tieTargetIdx].vfNote && !tn.isRest) {
+                    new VF.StaveTie({ first_note: tn.vfNote, last_note: targetNotes[tn.tieTargetIdx].vfNote, first_indices: [0], last_indices: [0] }).setContext(context).draw();
+                }
+            });
+        }
+
+        function renderLiveNote(midi, dev) {
+            const overlay = document.getElementById('live-note-overlay');
+            overlay.innerHTML = '';
+            const renderer = new VF.Renderer(overlay, VF.Renderer.Backends.SVG);
+            renderer.resize(120, 320);
+            const context = renderer.getContext();
+            const n = getNoteFromMidi(midi);
+            const clef = midi >= 60 ? "treble" : "bass";
+            const tS = new VF.Stave(0, 40, 100).setContext(context);
+            const bS = new VF.Stave(0, 160, 100).setContext(context);
+            const liveNote = new VF.StaveNote({ keys: [n.key], duration: "q", clef: clef });
+            liveNote.setStyle({ fillStyle: "#3b82f6", strokeStyle: "#3b82f6" });
+            if (n.accidental) liveNote.addModifier(new VF.Accidental(n.accidental), 0);
+            const voice = new VF.Voice({ num_beats: 1, beat_value: 4 }).setStrict(false).addTickables([liveNote]);
+            new VF.Formatter().format([voice], 80);
+            voice.draw(context, clef === "treble" ? tS : bS);
+            const devPct = Math.round(dev * 100);
+            const devLabel = document.createElement('div');
+            devLabel.className = 'absolute text-[10px] font-black';
+            devLabel.style.left = '45px';
+            devLabel.style.top = (clef === "treble" ? 85 : 205) + 'px';
+            devLabel.style.color = Math.abs(devPct) < 10 ? '#10b981' : '#3b82f6';
+            devLabel.innerText = (devPct > 0 ? '+' : '') + devPct + '%';
+            overlay.appendChild(devLabel);
+        }
+
+        async function startAudio() {
+            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioContext.state === 'suspended') await audioContext.resume();
+            if (!microphone) {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                microphone = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 2048;
+                microphone.connect(analyser);
+            }
+            isRunning = !isRunning;
+            const btn = document.getElementById('start-btn');
+            btn.innerText = isRunning ? "Mic On" : "Mic Off";
+            btn.classList.toggle('bg-blue-600', !isRunning);
+            btn.classList.toggle('bg-red-500', isRunning);
+            if (isRunning) updatePitch();
+        }
+
+        function updatePitch() {
+            if (!isRunning) return;
+            const buf = new Float32Array(analyser.fftSize);
+            analyser.getFloatTimeDomainData(buf);
+            const freq = autoCorrelate(buf, audioContext.sampleRate);
+            const stabilityThreshold = parseInt(document.getElementById('detection-delay').value);
+
+            if (freq !== -1) {
+                const val = 12 * (Math.log(freq / 440) / Math.log(2)) + 69;
+                const midi = Math.round(val);
+                const dev = val - midi;
+                pitchBuffer.push(midi);
+                if (pitchBuffer.length > stabilityThreshold) pitchBuffer.shift();
+
+                if (pitchBuffer.length >= stabilityThreshold && pitchBuffer.every(m => m === midi)) {
+                    const n = getNoteFromMidi(midi);
+                    renderLiveNote(midi, dev);
+                    const txt = n.name + n.octave;
+                    document.getElementById('note-display').innerText = txt;
+                    document.getElementById('note-display').classList.replace('text-slate-400', 'text-blue-600');
+                    const float = document.getElementById('floating-note-display');
+                    float.innerText = txt; float.style.display = 'block';
+                    document.getElementById('deviation-display').innerText = Math.round(dev * 100) + "%";
+                    document.getElementById('tuner-bar').style.left = (50 + dev * 50) + "%";
+
+                    if (currentTargetIndex < targetNotes.length && Math.abs(dev) < 0.35) {
+                        const target = targetNotes[currentTargetIndex];
+                        if (target.isRest) {
+                            currentTargetIndex++; renderTarget(); updateScroll();
+                        } else if (midi === target.midi && hasSilencedSinceLastMatch) {
+                            target.matched = true;
+                            
+                            // CALCULATE INTERVAL
+                            if (currentTargetIndex > 0) {
+                                const prevNote = targetNotes[currentTargetIndex - 1];
+                                if (!prevNote.isRest && !target.isRest && !prevNote.isTie && !target.isTie) {
+                                    const interval = Math.abs(target.midi - prevNote.midi);
+                                    const map = ["P1", "m2", "M2", "m3", "M3", "P4", "TT", "P5", "m6", "M6", "m7", "M7", "P8"];
+                                    target.intervalLabel = map[interval] || (interval > 12 ? ">P8" : "?");
+                                }
+                            }
+
+                            let lookahead = currentTargetIndex + 1;
+                            while(lookahead < targetNotes.length && targetNotes[lookahead].isTie) {
+                                targetNotes[lookahead].matched = true; lookahead++;
+                            }
+                            currentTargetIndex = lookahead;
+                            hasSilencedSinceLastMatch = false; renderTarget(); updateScroll();
+                        } else if (midi !== target.midi) {
+                            hasSilencedSinceLastMatch = true;
+                        }
+                    }
+                }
+            } else {
+                pitchBuffer = []; hasSilencedSinceLastMatch = true;
+                document.getElementById('floating-note-display').style.display = 'none';
+                document.getElementById('live-note-overlay').innerHTML = '';
+                if (currentTargetIndex < targetNotes.length && targetNotes[currentTargetIndex].isRest) {
+                    currentTargetIndex++; renderTarget(); updateScroll();
+                }
+            }
+            requestAnimationFrame(updatePitch);
+        }
+
+        function autoCorrelate(buf, sr) {
+            let rms = 0; for(let i=0; i<buf.length; i++) rms += buf[i]*buf[i];
+            if (Math.sqrt(rms/buf.length) < 0.01) return -1;
+            let c = new Float32Array(buf.length);
+            for(let i=0; i<buf.length; i++) for(let j=0; j<buf.length-i; j++) c[i] += buf[j]*buf[j+i];
+            let d=0; while(c[d]>c[d+1]) d++;
+            let maxval = -1, maxpos = -1;
+            for(let i=d; i<buf.length; i++) if(c[i]>maxval){ maxval=c[i]; maxpos=i; }
+            return sr/maxpos;
+        }
+
+        function getNoteFromMidi(midi) {
+            const name = noteStrings[midi % 12];
+            const octave = Math.floor(midi / 12) - 1;
+            return { name, octave, key: `${name.toLowerCase()}/${octave}`, midi, accidental: name.includes('#') ? '#' : null };
+        }
+
+        function noteToMidi(s) {
+            const m = s.match(/([A-G][#b]?)([0-9])/i);
+            if (!m) return 60;
+            let note = m[1].toUpperCase();
+            if (note.length > 1 && note[1] === 'B') {
+                let idx = noteStrings.indexOf(note[0]) - 1;
+                if (idx < 0) idx = 11;
+                note = noteStrings[idx];
+            }
+            return noteStrings.indexOf(note) + (parseInt(m[2])+1)*12;
+        }
+
+        function updateScroll() {
+            const vw = document.getElementById('stave-viewport').offsetWidth;
+            const x = 50 + (currentTargetIndex * NOTE_WIDTH);
+            document.getElementById('stave-scroller').style.transform = `translateX(${(vw * 0.3) - x}px)`;
+        }
+
+        function initPiano() {
+            const v = document.getElementById('piano-viewport');
+            const container = document.getElementById('piano-container'); 
+            v.innerHTML = '';
+            let middleCX = 0;
+            const whiteKeyWidth = 35;
+            let whiteKeyCount = 0;
+
+            for (let i = 21; i <= 108; i++) {
+                const n = noteStrings[i % 12];
+                const k = document.createElement('div');
+                const isMiddleC = i === 60;
+                k.className = `key ${n.includes('#') ? 'black-key' : 'white-key'} ${isMiddleC ? 'middle-c' : ''}`;
+                
+                k.onmousedown = (e) => {
+                    e.stopPropagation();
+                    if (isSettingRange > 0) {
+                        const noteName = getNoteFromMidi(i);
+                        if (isSettingRange === 1) {
+                            document.getElementById('range-start').value = noteName.name + noteName.octave;
+                            document.getElementById('set-range-btn').innerText = "Tap Highest Key";
+                            isSettingRange = 2;
+                        } else {
+                            document.getElementById('range-end').value = noteName.name + noteName.octave;
+                            document.getElementById('set-range-btn').innerText = "Set Range";
+                            document.getElementById('set-range-btn').classList.replace('bg-red-500', 'bg-amber-500');
+                            document.body.classList.remove('range-setting-mode');
+                            isSettingRange = 0;
+                            generateSequence();
+                        }
+                    } else {
+                        playPianoNote(i, k);
+                    }
+                };
+                v.appendChild(k);
+                if(i===60) middleCX = whiteKeyCount * whiteKeyWidth;
+                if(!n.includes('#')) whiteKeyCount++;
+            }
+            
+            const pianoPanel = document.getElementById('piano-panel');
+            let isDragging = false, startX;
+            pianoScrollX = middleCX - (pianoPanel.offsetWidth / 2) + (whiteKeyWidth / 2);
+            const updateP = () => v.style.transform = `translateX(${-pianoScrollX}px)`;
+            updateP();
+
+            pianoPanel.onmousedown = (e) => { isDragging = true; startX = e.pageX + pianoScrollX; };
+            window.onmousemove = (e) => { if(!isDragging) return; pianoScrollX = startX - e.pageX; updateP(); };
+            window.onmouseup = () => isDragging = false;
+        }
+
+        function playPianoNote(midi, el) {
+            el.classList.add('active');
+            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioContext.createOscillator();
+            const g = audioContext.createGain();
+            osc.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
+            g.gain.setValueAtTime(0.1, audioContext.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 1);
+            osc.connect(g); g.connect(audioContext.destination);
+            osc.start(); osc.stop(audioContext.currentTime + 1);
+            setTimeout(() => el.classList.remove('active'), 200);
+        }
+
+        window.onload = () => { initUI(); generateSequence(); };
+    </script>
+</body>
+</html>
