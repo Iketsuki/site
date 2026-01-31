@@ -48,6 +48,7 @@
             position: relative;
             overflow: hidden;
             cursor: grab;
+            touch-action: none;
         }
         .piano-container:active { cursor: grabbing; }
         .piano-viewport { 
@@ -63,6 +64,9 @@
         .black-key { width: 22px; height: 85px; background: #000; margin-left: -11px; margin-right: -11px; z-index: 2; border-radius: 0 0 2px 2px; }
         .key.active { background: #93c5fd !important; }
         .key.middle-c { border-bottom: 6px solid #3b82f6; }
+        .key.c4-key { color: #3b82f6 !important; border-bottom: 6px solid #3b82f6; }
+        .key.c4-key::after { content: 'C4'; position: absolute; bottom: 8px; color: #3b82f6; font-weight: 900; }
+        .key.c-key:not(.c4-key)::after { content: 'C'; }
         
         .metronome-light { width: 12px; height: 12px; border-radius: 50%; background: #e2e8f0; transition: background 0.1s; }
         .metronome-light.active { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
@@ -201,10 +205,18 @@
                             <div class="customize-btn" data-type="leap-option" data-value="syncopation">Syncopation</div>
                             
                             <div class="flex items-center gap-1 ml-auto border border-slate-200 rounded p-1">
-                                <input type="text" id="range-start" value="G2" class="w-8 border-none bg-transparent text-center font-bold text-[10px]">
+                                <input type="text" id="range-start" value="C3" class="w-8 border-none bg-transparent text-center font-bold text-[10px]">
                                 <span class="text-slate-300 text-[9px]">-</span>
-                                <input type="text" id="range-end" value="G5" class="w-8 border-none bg-transparent text-center font-bold text-[10px]">
+                                <input type="text" id="range-end" value="C5" class="w-8 border-none bg-transparent text-center font-bold text-[10px]">
                             </div>
+                        </div>
+                        <!-- Acceptable Deviation Slider -->
+                        <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+                             <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Acceptable Deviation (+/- %)</label>
+                             <div class="flex items-center gap-2">
+                                <input type="range" id="deviation-threshold" min="0" max="50" value="35" class="w-24 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                                <span id="deviation-val" class="text-[10px] font-bold text-slate-600 w-8 text-right">35%</span>
+                             </div>
                         </div>
                     </div>
                 </div>
@@ -248,7 +260,7 @@
         <!-- Global Performance Controls -->
         <div class="bg-slate-800 text-white p-4 rounded-xl shadow-lg mb-4 grid grid-cols-2 md:grid-cols-12 gap-4 items-center">
             
-            <!-- 1. Tempo (Col 1-4) -->
+            <!-- 1. Tempo -->
             <div class="col-span-2 md:col-span-3 flex flex-col gap-2">
                 <div class="flex justify-between items-center">
                     <label class="text-slate-400 font-bold text-[9px] uppercase">Tempo</label>
@@ -262,7 +274,7 @@
                 </div>
             </div>
 
-            <!-- 2. Config (Col 5-8) -->
+            <!-- 2. Config -->
             <div class="col-span-2 md:col-span-4 flex flex-col gap-2 md:border-l md:border-slate-700 md:pl-4">
                 <div class="flex gap-4">
                     <div class="flex-1">
@@ -274,12 +286,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="hidden">
-                    <!-- Range values stored in inputs above -->
-                </div>
+                <div class="hidden"></div>
             </div>
 
-            <!-- 3. Stability & Actions (Col 9-12) -->
+            <!-- 3. Stability & Actions -->
             <div class="col-span-2 md:col-span-5 flex flex-col gap-2 md:border-l md:border-slate-700 md:pl-4">
                 <div class="flex gap-2 items-center">
                     <label class="text-slate-400 font-bold text-[9px] uppercase whitespace-nowrap">Stability</label>
@@ -325,18 +335,18 @@
     </div>
 
     <script>
+        // GLOBAL CONSTANTS
         const VF = Vex.Flow;
-        let audioContext, analyser, microphone, isRunning = false;
-        let currentKey = "C";
-        let targetNotes = [], currentTargetIndex = 0;
-        let pitchBuffer = [];
-        let hasSilencedSinceLastMatch = true; 
-        const NOTE_WIDTH = 130;
-        let pianoScrollX = 0;
-
         const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-        const keySignatures = { "C":[], "G":["F#"], "D":["F#","C#"], "A":["F#","C#","G#"], "E":["F#","C#","G#","D#"], "B":["F#","C#","G#","D#","A#"], "F#":["F#","C#","G#","D#","A#","E#"], "F":["Bb"], "Bb":["Bb","Eb"], "Eb":["Bb","Eb","Ab"], "Ab":["Bb","Eb","Ab","Db"], "Db":["Bb","Eb","Ab","Db","Gb"], "Gb":["Bb","Eb","Ab","Db","Gb","Cb"] };
+        const sharpNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+        const flatNotes =  ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+        const flatKeys = ["F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb"];
         
+        const keySignatures = { "C":[], "G":["F#"], "D":["F#","C#"], "A":["F#","C#","G#"], "E":["F#","C#","G#","D#"], "B":["F#","C#","G#","D#","A#"], "F#":["F#","C#","G#","D#","A#","E#"], "F":["Bb"], "Bb":["Bb","Eb"], "Eb":["Bb","Eb","Ab"], "Ab":["Bb","Eb","Ab","Db"], "Db":["Bb","Eb","Ab","Db","Gb"], "Gb":["Bb","Eb","Ab","Db","Gb","Cb"] };
+        const keyRootMap = { "C": 0, "G": 7, "D": 2, "A": 9, "E": 4, "B": 11, "F#": 6, "F": 5, "Bb": 10, "Eb": 3, "Ab": 8, "Db": 1, "Gb": 6, "Cb": 11 };
+        const solfegeMap = { 0: "Do", 1: "Di", 2: "Re", 3: "Me", 4: "Mi", 5: "Fa", 6: "Fi", 7: "Sol", 8: "Le", 9: "La", 10: "Te", 11: "Ti" };
+        const intervalMap = ["P1", "m2", "M2", "m3", "M3", "P4", "TT", "P5", "m6", "M6", "m7", "M7", "P8"];
+
         const scalesDef = {
             major: { name: "Major", intervals: [0, 2, 4, 5, 7, 9, 11], group: "primary" },
             minor: { name: "Natural Minor", intervals: [0, 2, 3, 5, 7, 8, 10], group: "primary" },
@@ -356,7 +366,6 @@
             minor_bebop: { name: "Minor Bebop", intervals: [0, 2, 3, 4, 5, 7, 9, 10], group: "secondary" },
             dominant_bebop: { name: "Bebop Dominant", intervals: [0, 2, 4, 5, 7, 9, 10, 11], group: "secondary" }
         };
-
         const baseDurations = [
             { id: 'w', label: '1', beats: 4 },
             { id: 'h', label: '1/2', beats: 2 },
@@ -365,14 +374,21 @@
             { id: '16', label: '1/16', beats: 0.25 },
             { id: '32', label: '1/32', beats: 0.125 }
         ];
+        const NOTE_WIDTH = 130;
 
-        const intervalMap = ["P1", "m2", "M2", "m3", "M3", "P4", "TT", "P5", "m6", "M6", "m7", "M7", "P8"];
-
+        let audioContext, analyser, microphone, isRunning = false;
+        let currentKey = "C";
+        let targetNotes = [], currentTargetIndex = 0;
+        let pitchBuffer = [];
+        let hasSilencedSinceLastMatch = true; 
         let metroInterval = null;
         let lastTap = 0;
         let isMetroActive = false;
         let isMetroMuted = false;
         let isSettingRange = 0;
+        let isDraggingPiano = false;
+        let startX, scrollLeftVal = 1200;
+        let pianoScrollX = 0;
 
         function selectAll(id) {
             const btns = document.querySelectorAll(`#${id} .customize-btn`);
@@ -396,7 +412,6 @@
             saveState();
         }
 
-        // --- LOCAL STORAGE LOGIC ---
         function saveState() {
             const state = {
                 keys: Array.from(document.querySelectorAll('#key-pool .active')).map(b => b.innerText),
@@ -408,9 +423,9 @@
                 barCount: document.getElementById('bar-count').value,
                 tempo: document.getElementById('metronome-bpm').value,
                 delay: document.getElementById('detection-delay').value,
+                devThreshold: document.getElementById('deviation-threshold').value,
                 asc: document.querySelector('[data-value="asc"]').classList.contains('active'),
                 desc: document.querySelector('[data-value="desc"]').classList.contains('active'),
-                
                 notes: Array.from(document.querySelectorAll('#rhythm-pool .duration-group')).map(g => ({
                     id: g.querySelector('.base-dur').dataset.id,
                     active: g.querySelector('.base-dur').classList.contains('active'),
@@ -433,13 +448,16 @@
             if (!saved) return;
             try {
                 const state = JSON.parse(saved);
-                
                 document.getElementById('range-start').value = state.rangeStart || "C3";
                 document.getElementById('range-end').value = state.rangeEnd || "C5";
                 document.getElementById('time-sig').value = state.timeSig || "4/4";
                 document.getElementById('bar-count').value = state.barCount || 4;
                 document.getElementById('metronome-bpm').value = state.tempo || 100;
                 document.getElementById('detection-delay').value = state.delay || 15;
+                if(state.devThreshold) {
+                    document.getElementById('deviation-threshold').value = state.devThreshold;
+                    document.getElementById('deviation-val').innerText = state.devThreshold + "%";
+                }
 
                 document.querySelectorAll('#key-pool .customize-btn').forEach(b => {
                     b.classList.toggle('active', state.keys.includes(b.innerText));
@@ -477,10 +495,7 @@
         }
 
         function initUI() {
-            document.getElementById('toggle-complexity').onclick = () => {
-                const panel = document.getElementById('complexity-panel');
-                panel.classList.toggle('hidden');
-            };
+            document.getElementById('toggle-complexity').onclick = () => document.getElementById('complexity-panel').classList.toggle('hidden');
 
             const keyPool = document.getElementById('key-pool');
             Object.keys(keySignatures).forEach(k => {
@@ -488,7 +503,7 @@
                 b.className = `customize-btn ${k === 'C' ? 'active' : ''}`;
                 b.innerText = k;
                 b.onclick = () => {
-                    b.classList.toggle('active');
+                    b.classList.toggle('active'); // Multi-select behavior
                     saveState();
                 };
                 keyPool.appendChild(b);
@@ -500,10 +515,7 @@
                 b.className = `customize-btn ${s === 'major' ? 'active' : ''}`;
                 b.innerText = scalesDef[s].name;
                 b.dataset.val = s;
-                b.onclick = () => {
-                    b.classList.toggle('active');
-                    saveState();
-                };
+                b.onclick = () => { b.classList.toggle('active'); saveState(); };
                 scalePool.appendChild(b);
             });
 
@@ -543,12 +555,16 @@
                 }
             });
             
-            // Inputs change listeners
             ['range-start', 'range-end', 'time-sig', 'bar-count', 'metronome-bpm', 'detection-delay'].forEach(id => {
                 document.getElementById(id).addEventListener('change', saveState);
             });
 
-            // Metronome
+            // Deviation Threshold Listener
+            document.getElementById('deviation-threshold').oninput = (e) => {
+                document.getElementById('deviation-val').innerText = e.target.value + '%';
+                saveState();
+            };
+
             document.getElementById('toggle-metro-btn').onclick = () => {
                 isMetroActive = !isMetroActive;
                 const btn = document.getElementById('toggle-metro-btn');
@@ -598,7 +614,7 @@
                 }
             };
 
-            loadState(); // Restore settings
+            loadState();
             initPiano();
         }
 
@@ -636,19 +652,13 @@
             const [sigX, sigY] = document.getElementById('time-sig').value.split('/').map(Number);
             const beatsPerBar = sigX * (4 / sigY);
 
-            // Get selected keys
             const activeKeysElements = document.querySelectorAll('#key-pool .customize-btn.active');
             let activeKeys = Array.from(activeKeysElements).map(el => el.innerText);
-            
-            // Fallback
             if (activeKeys.length === 0) {
                 activeKeys = ['C'];
-                // Visually re-select C if nothing is selected
                 const cBtn = Array.from(document.querySelectorAll('#key-pool .customize-btn')).find(b => b.innerText === 'C');
                 if(cBtn) cBtn.classList.add('active');
             }
-
-            // Pick one random key from selected
             currentKey = activeKeys[Math.floor(Math.random() * activeKeys.length)];
 
             const activeScales = Array.from(document.querySelectorAll('#scale-pool .active')).map(b => b.dataset.val);
@@ -658,12 +668,12 @@
             const isAsc = document.querySelector('[data-value="asc"]')?.classList.contains('active');
             const isDesc = document.querySelector('[data-value="desc"]')?.classList.contains('active');
             
-            const rootMidi = noteStrings.indexOf(currentKey);
+            const rootMidiBase = keyRootMap[currentKey]; // Use new map for correct root
             let pool = [];
             
             activeScales.forEach(s => {
                 scalesDef[s].intervals.forEach(i => {
-                    for(let m=rangeStart; m<=rangeEnd; m++) if((m-rootMidi+1200)%12 === i) pool.push(m);
+                    for(let m=rangeStart; m<=rangeEnd; m++) if((m-rootMidiBase+1200)%12 === i) pool.push(m);
                 });
             });
             if (pool.length === 0) for(let m=rangeStart; m<=rangeEnd; m++) pool.push(m);
@@ -685,10 +695,10 @@
             
             let currentSequenceMidi;
             if (isAsc) {
-                const roots = pool.filter(m => m % 12 === rootMidi);
+                const roots = pool.filter(m => m % 12 === rootMidiBase);
                 currentSequenceMidi = roots.length > 0 ? roots[0] : pool[0];
             } else if (isDesc) {
-                const roots = pool.filter(m => m % 12 === rootMidi);
+                const roots = pool.filter(m => m % 12 === rootMidiBase);
                 currentSequenceMidi = roots.length > 0 ? roots[roots.length-1] : pool[pool.length-1];
             } else {
                 currentSequenceMidi = pool[Math.floor(Math.random() * pool.length)];
@@ -757,6 +767,7 @@
                 while (beatsLeftToGenerate > 0.001) {
                     let partBeats = Math.min(beatsLeftToGenerate, barRemaining);
                     let partDur = 'q';
+                    
                     if (Math.abs(partBeats - 4) < 0.01) partDur = 'w';
                     else if (Math.abs(partBeats - 2) < 0.01) partDur = 'h';
                     else if (Math.abs(partBeats - 1) < 0.01) partDur = 'q';
@@ -834,17 +845,53 @@
                 const trebleNotes = [];
                 const bassNotes = [];
 
+                const measureAccidentals = {}; 
+
                 barNotesData.forEach((tn, idx) => {
                     const clef = tn.midi >= 60 ? "treble" : "bass";
                     const sn = new VF.StaveNote({ keys: [tn.key], duration: tn.duration, clef: clef });
                     const col = tn.matched ? (tn.isRest ? "#94a3b8" : "#10b981") : (noteCursor + idx === currentTargetIndex ? "#3b82f6" : "#cbd5e1");
                     sn.setStyle({ fillStyle: col, strokeStyle: col });
-                    if (tn.accidental && !tn.isRest) sn.addModifier(new VF.Accidental(tn.accidental), 0);
-                    if (tn.dots > 0) sn.addModifier(new VF.Dot(), 0); 
+                    
+                    if (!tn.isRest) {
+                        const noteLetter = tn.name.charAt(0).toUpperCase();
+                        const noteOctave = tn.octave;
+                        const noteId = noteLetter + noteOctave;
+                        let actualAcc = 'n';
+                        if (tn.accidental === '#') actualAcc = '#';
+                        else if (tn.accidental === 'b') actualAcc = 'b';
 
-                    // Check for interval display
+                        let contextAcc = measureAccidentals[noteId];
+                        if (contextAcc === undefined) {
+                            const sig = keySignatures[currentKey]; 
+                            const inSig = sig.find(s => s.startsWith(noteLetter));
+                            if (inSig) {
+                                if (inSig.includes('#')) contextAcc = '#';
+                                else if (inSig.includes('b')) contextAcc = 'b';
+                            } else {
+                                contextAcc = 'n';
+                            }
+                        }
+
+                        if (actualAcc !== contextAcc) {
+                            sn.addModifier(new VF.Accidental(actualAcc), 0);
+                            measureAccidentals[noteId] = actualAcc; 
+                        }
+                    }
+                    
+                    if (tn.dots > 0) sn.addModifier(new VF.Dot(), 0); 
+                    
+                    // Stack Interval and Solfege annotations vertically
+                    // Add Interval first (closest to note)
                     if (tn.intervalLabel) {
                         sn.addModifier(new VF.Annotation(tn.intervalLabel).setFont("Arial", 10, "bold").setVerticalJustification(VF.Annotation.VerticalJustify.TOP), 0);
+                    }
+                    
+                    // Add Solfege second (further above)
+                    if (tn.solfegeLabel) {
+                         // Note: VexFlow might overlay them if not careful. Adding blank space or using different modifier index?
+                         // Actually, multiple annotations stack automatically.
+                         sn.addModifier(new VF.Annotation(tn.solfegeLabel).setFont("Arial", 10, "italic").setVerticalJustification(VF.Annotation.VerticalJustify.TOP), 0);
                     }
 
                     tn.vfNote = sn;
@@ -890,11 +937,13 @@
             const voice = new VF.Voice({ num_beats: 1, beat_value: 4 }).setStrict(false).addTickables([liveNote]);
             new VF.Formatter().format([voice], 80);
             voice.draw(context, clef === "treble" ? tS : bS);
+            
             const devPct = Math.round(dev * 100);
             const devLabel = document.createElement('div');
-            devLabel.className = 'absolute text-[10px] font-black';
+            devLabel.className = 'absolute font-black';
             devLabel.style.left = '45px';
-            devLabel.style.top = (clef === "treble" ? 85 : 205) + 'px';
+            devLabel.style.top = (clef === "treble" ? 10 : 130) + 'px';
+            devLabel.style.fontSize = '20px';
             devLabel.style.color = Math.abs(devPct) < 10 ? '#10b981' : '#3b82f6';
             devLabel.innerText = (devPct > 0 ? '+' : '') + devPct + '%';
             overlay.appendChild(devLabel);
@@ -924,6 +973,8 @@
             analyser.getFloatTimeDomainData(buf);
             const freq = autoCorrelate(buf, audioContext.sampleRate);
             const stabilityThreshold = parseInt(document.getElementById('detection-delay').value);
+            const devThresholdPercent = parseInt(document.getElementById('deviation-threshold').value);
+            const devThreshold = devThresholdPercent / 100;
 
             if (freq !== -1) {
                 const val = 12 * (Math.log(freq / 440) / Math.log(2)) + 69;
@@ -943,20 +994,32 @@
                     document.getElementById('deviation-display').innerText = Math.round(dev * 100) + "%";
                     document.getElementById('tuner-bar').style.left = (50 + dev * 50) + "%";
 
-                    if (currentTargetIndex < targetNotes.length && Math.abs(dev) < 0.35) {
+                    if (currentTargetIndex < targetNotes.length && Math.abs(dev) < devThreshold) {
                         const target = targetNotes[currentTargetIndex];
                         if (target.isRest) {
                             currentTargetIndex++; renderTarget(); updateScroll();
                         } else if (midi === target.midi && hasSilencedSinceLastMatch) {
                             target.matched = true;
                             
-                            // CALCULATE INTERVAL
-                            if (currentTargetIndex > 0) {
-                                const prevNote = targetNotes[currentTargetIndex - 1];
+                            // CALCULATE INTERVAL & SOLFEGE
+                            const rootChroma = keyRootMap[currentKey];
+                            const noteChroma = target.midi % 12;
+                            const intervalFromRoot = (noteChroma - rootChroma + 12) % 12;
+                            target.solfegeLabel = solfegeMap[intervalFromRoot];
+                            
+                            // Find previous non-rest/non-tie note for interval
+                            let prevIndex = currentTargetIndex - 1;
+                            while (prevIndex >= 0) {
+                                const p = targetNotes[prevIndex];
+                                if (!p.isRest && !p.isTie) break; 
+                                prevIndex--;
+                            }
+
+                            if (prevIndex >= 0) {
+                                const prevNote = targetNotes[prevIndex];
                                 if (!prevNote.isRest && !target.isRest && !prevNote.isTie && !target.isTie) {
                                     const interval = Math.abs(target.midi - prevNote.midi);
-                                    const map = ["P1", "m2", "M2", "m3", "M3", "P4", "TT", "P5", "m6", "M6", "m7", "M7", "P8"];
-                                    target.intervalLabel = map[interval] || (interval > 12 ? ">P8" : "?");
+                                    target.intervalLabel = intervalMap[interval] || (interval > 12 ? ">P8" : "?");
                                 }
                             }
 
@@ -993,10 +1056,15 @@
             return sr/maxpos;
         }
 
-        function getNoteFromMidi(midi) {
-            const name = noteStrings[midi % 12];
+        function getNoteFromMidi(midi, deviation = 0) {
+            const isFlatKey = flatKeys.includes(currentKey);
+            const names = isFlatKey ? flatNotes : sharpNotes;
+            const name = names[midi % 12];
             const octave = Math.floor(midi / 12) - 1;
-            return { name, octave, key: `${name.toLowerCase()}/${octave}`, midi, accidental: name.includes('#') ? '#' : null };
+            let acc = null;
+            if (name.includes('#')) acc = '#';
+            if (name.includes('b')) acc = 'b';
+            return { name, octave, key: `${name.toLowerCase()}/${octave}`, midi, deviation, accidental: acc };
         }
 
         function noteToMidi(s) {
@@ -1029,9 +1097,8 @@
                 const n = noteStrings[i % 12];
                 const k = document.createElement('div');
                 const isMiddleC = i === 60;
-                k.className = `key ${n.includes('#') ? 'black-key' : 'white-key'} ${isMiddleC ? 'middle-c' : ''}`;
+                k.className = `key ${n.includes('#') ? 'black-key' : 'white-key'} ${isMiddleC ? 'middle-c' : ''} ${i === 60 ? 'c4-key' : ''} ${n==='C' ? 'c-key' : ''}`;
                 
-                // Add click handler for Range Setting
                 k.onmousedown = (e) => {
                     e.stopPropagation();
                     if (isSettingRange > 0) {
@@ -1054,7 +1121,6 @@
                     }
                 };
                 
-                // Touch events for piano
                 k.addEventListener('touchstart', (e) => {
                     if (isSettingRange > 0) {
                         e.stopPropagation(); e.preventDefault();
@@ -1086,16 +1152,14 @@
             const updateP = () => v.style.transform = `translateX(${-pianoScrollX}px)`;
             updateP();
 
-            // Mouse Drag
             pianoPanel.onmousedown = (e) => { isDragging = true; startX = e.pageX + pianoScrollX; };
             window.onmousemove = (e) => { if(!isDragging) return; pianoScrollX = startX - e.pageX; updateP(); };
             window.onmouseup = () => isDragging = false;
 
-            // Touch Drag (Mobile)
             pianoPanel.addEventListener('touchstart', (e) => {
                 isDragging = true;
                 startX = e.touches[0].pageX + pianoScrollX;
-                e.preventDefault(); // Stop page scroll
+                e.preventDefault(); 
             }, {passive: false});
             
             window.addEventListener('touchmove', (e) => {
