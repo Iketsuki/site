@@ -199,6 +199,12 @@
                             <div class="customize-btn" data-type="leap-option" data-value="v7v">V7-V</div>
                             <div class="customize-btn" data-type="leap-option" data-value="chromatic">Chromatic</div>
                             <div class="customize-btn" data-type="leap-option" data-value="syncopation">Syncopation</div>
+                            
+                            <div class="flex items-center gap-1 ml-auto border border-slate-200 rounded p-1">
+                                <input type="text" id="range-start" value="G2" class="w-8 border-none bg-transparent text-center font-bold text-[10px]">
+                                <span class="text-slate-300 text-[9px]">-</span>
+                                <input type="text" id="range-end" value="G5" class="w-8 border-none bg-transparent text-center font-bold text-[10px]">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -240,7 +246,6 @@
         </div>
 
         <!-- Global Performance Controls -->
-        <!-- Redesigned Grid Layout for Mobile -->
         <div class="bg-slate-800 text-white p-4 rounded-xl shadow-lg mb-4 grid grid-cols-2 md:grid-cols-12 gap-4 items-center">
             
             <!-- 1. Tempo (Col 1-4) -->
@@ -269,10 +274,8 @@
                         </div>
                     </div>
                 </div>
-                <!-- Range Inputs (Hidden logic uses these) -->
                 <div class="hidden">
-                    <input type="text" id="range-start" value="G2">
-                    <input type="text" id="range-end" value="G5">
+                    <!-- Range values stored in inputs above -->
                 </div>
             </div>
 
@@ -375,10 +378,12 @@
             const btns = document.querySelectorAll(`#${id} .customize-btn`);
             const anyOff = Array.from(btns).some(b => !b.classList.contains('active'));
             btns.forEach(b => anyOff ? b.classList.add('active') : b.classList.remove('active'));
+            saveState();
         }
 
         function selectNone(id) {
             document.querySelectorAll(`#${id} .customize-btn`).forEach(b => b.classList.remove('active'));
+            saveState();
         }
 
         function selectScaleGroup(group) {
@@ -388,6 +393,87 @@
                 if (scale.group === group) b.classList.add('active');
                 else b.classList.remove('active');
             });
+            saveState();
+        }
+
+        // --- LOCAL STORAGE LOGIC ---
+        function saveState() {
+            const state = {
+                keys: Array.from(document.querySelectorAll('#key-pool .active')).map(b => b.innerText),
+                scales: Array.from(document.querySelectorAll('#scale-pool .active')).map(b => b.dataset.val),
+                leaps: Array.from(document.querySelectorAll('#leap-pool .active[data-type="leap-option"]')).map(b => b.dataset.value),
+                rangeStart: document.getElementById('range-start').value,
+                rangeEnd: document.getElementById('range-end').value,
+                timeSig: document.getElementById('time-sig').value,
+                barCount: document.getElementById('bar-count').value,
+                tempo: document.getElementById('metronome-bpm').value,
+                delay: document.getElementById('detection-delay').value,
+                asc: document.querySelector('[data-value="asc"]').classList.contains('active'),
+                desc: document.querySelector('[data-value="desc"]').classList.contains('active'),
+                
+                notes: Array.from(document.querySelectorAll('#rhythm-pool .duration-group')).map(g => ({
+                    id: g.querySelector('.base-dur').dataset.id,
+                    active: g.querySelector('.base-dur').classList.contains('active'),
+                    dot: g.querySelector('[data-mod="dot"]').classList.contains('active'),
+                    dbl: g.querySelector('[data-mod="double-dot"]').classList.contains('active')
+                })),
+                rests: Array.from(document.querySelectorAll('#rest-pool .duration-group')).map(g => ({
+                    id: g.querySelector('.base-rest').dataset.id,
+                    active: g.querySelector('.base-rest').classList.contains('active'),
+                    dot: g.querySelector('[data-mod="dot"]').classList.contains('active'),
+                    dbl: g.querySelector('[data-mod="double-dot"]').classList.contains('active')
+                })),
+                mods: Array.from(document.querySelectorAll('#rhythm-mods .active')).map(b => b.dataset.value)
+            };
+            localStorage.setItem('pitchTrainerState', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('pitchTrainerState');
+            if (!saved) return;
+            try {
+                const state = JSON.parse(saved);
+                
+                document.getElementById('range-start').value = state.rangeStart || "C3";
+                document.getElementById('range-end').value = state.rangeEnd || "C5";
+                document.getElementById('time-sig').value = state.timeSig || "4/4";
+                document.getElementById('bar-count').value = state.barCount || 4;
+                document.getElementById('metronome-bpm').value = state.tempo || 100;
+                document.getElementById('detection-delay').value = state.delay || 15;
+
+                document.querySelectorAll('#key-pool .customize-btn').forEach(b => {
+                    b.classList.toggle('active', state.keys.includes(b.innerText));
+                });
+                
+                document.querySelectorAll('#scale-pool .customize-btn').forEach(b => {
+                    b.classList.toggle('active', state.scales.includes(b.dataset.val));
+                });
+                
+                document.querySelector('[data-value="asc"]').classList.toggle('active', !!state.asc);
+                document.querySelector('[data-value="desc"]').classList.toggle('active', !!state.desc);
+
+                document.querySelectorAll('#leap-pool .customize-btn').forEach(b => {
+                    b.classList.toggle('active', state.leaps.includes(b.dataset.value));
+                });
+
+                state.notes.forEach(n => {
+                    const g = document.querySelector(`#rhythm-pool .base-dur[data-id="${n.id}"]`).closest('.duration-group');
+                    g.querySelector('.base-dur').classList.toggle('active', n.active);
+                    g.querySelector('[data-mod="dot"]').classList.toggle('active', n.dot);
+                    g.querySelector('[data-mod="double-dot"]').classList.toggle('active', n.dbl);
+                });
+                state.rests.forEach(r => {
+                    const g = document.querySelector(`#rest-pool .base-rest[data-id="${r.id}"]`).closest('.duration-group');
+                    g.querySelector('.base-rest').classList.toggle('active', r.active);
+                    g.querySelector('[data-mod="dot"]').classList.toggle('active', r.dot);
+                    g.querySelector('[data-mod="double-dot"]').classList.toggle('active', r.dbl);
+                });
+
+                document.querySelectorAll('#rhythm-mods .customize-btn').forEach(b => {
+                    b.classList.toggle('active', state.mods.includes(b.dataset.value));
+                });
+
+            } catch (e) { console.error("Load state failed", e); }
         }
 
         function initUI() {
@@ -402,8 +488,8 @@
                 b.className = `customize-btn ${k === 'C' ? 'active' : ''}`;
                 b.innerText = k;
                 b.onclick = () => {
-                    document.querySelectorAll('#key-pool .customize-btn').forEach(x => x.classList.remove('active'));
-                    b.classList.add('active'); currentKey = k;
+                    b.classList.toggle('active');
+                    saveState();
                 };
                 keyPool.appendChild(b);
             });
@@ -414,7 +500,10 @@
                 b.className = `customize-btn ${s === 'major' ? 'active' : ''}`;
                 b.innerText = scalesDef[s].name;
                 b.dataset.val = s;
-                b.onclick = () => b.classList.toggle('active');
+                b.onclick = () => {
+                    b.classList.toggle('active');
+                    saveState();
+                };
                 scalePool.appendChild(b);
             });
 
@@ -430,8 +519,8 @@
                         <div class="dot-toggle mod-dbl" data-mod="double-dot"></div>
                     </div>
                 `;
-                g.querySelector(`.base-${type}`).onclick = (e) => e.target.classList.toggle('active');
-                g.querySelectorAll('.dot-toggle').forEach(btn => btn.onclick = () => btn.classList.toggle('active'));
+                g.querySelector(`.base-${type}`).onclick = (e) => { e.target.classList.toggle('active'); saveState(); };
+                g.querySelectorAll('.dot-toggle').forEach(btn => btn.onclick = () => { btn.classList.toggle('active'); saveState(); });
                 return g;
             };
             baseDurations.forEach(d => {
@@ -447,12 +536,18 @@
                             if(x !== b) x.classList.remove('active');
                         });
                         b.classList.toggle('active');
+                        saveState();
                     };
                 } else {
-                    b.onclick = () => b.classList.toggle('active');
+                    b.onclick = () => { b.classList.toggle('active'); saveState(); };
                 }
             });
             
+            // Inputs change listeners
+            ['range-start', 'range-end', 'time-sig', 'bar-count', 'metronome-bpm', 'detection-delay'].forEach(id => {
+                document.getElementById(id).addEventListener('change', saveState);
+            });
+
             // Metronome
             document.getElementById('toggle-metro-btn').onclick = () => {
                 isMetroActive = !isMetroActive;
@@ -474,6 +569,7 @@
                     const bpm = Math.round(60000 / (now - lastTap));
                     if (bpm > 30 && bpm < 300) {
                         document.getElementById('metronome-bpm').value = bpm;
+                        saveState();
                         if (isMetroActive) toggleMetro();
                     }
                 }
@@ -502,6 +598,7 @@
                 }
             };
 
+            loadState(); // Restore settings
             initPiano();
         }
 
@@ -538,6 +635,21 @@
             const numBars = parseInt(document.getElementById('bar-count').value) || 4;
             const [sigX, sigY] = document.getElementById('time-sig').value.split('/').map(Number);
             const beatsPerBar = sigX * (4 / sigY);
+
+            // Get selected keys
+            const activeKeysElements = document.querySelectorAll('#key-pool .customize-btn.active');
+            let activeKeys = Array.from(activeKeysElements).map(el => el.innerText);
+            
+            // Fallback
+            if (activeKeys.length === 0) {
+                activeKeys = ['C'];
+                // Visually re-select C if nothing is selected
+                const cBtn = Array.from(document.querySelectorAll('#key-pool .customize-btn')).find(b => b.innerText === 'C');
+                if(cBtn) cBtn.classList.add('active');
+            }
+
+            // Pick one random key from selected
+            currentKey = activeKeys[Math.floor(Math.random() * activeKeys.length)];
 
             const activeScales = Array.from(document.querySelectorAll('#scale-pool .active')).map(b => b.dataset.val);
             const activeLeaps = Array.from(document.querySelectorAll('#leap-pool .active[data-type="leap-option"]')).map(b => b.dataset.value);
@@ -919,6 +1031,7 @@
                 const isMiddleC = i === 60;
                 k.className = `key ${n.includes('#') ? 'black-key' : 'white-key'} ${isMiddleC ? 'middle-c' : ''}`;
                 
+                // Add click handler for Range Setting
                 k.onmousedown = (e) => {
                     e.stopPropagation();
                     if (isSettingRange > 0) {
@@ -933,12 +1046,35 @@
                             document.getElementById('set-range-btn').classList.replace('bg-red-500', 'bg-amber-500');
                             document.body.classList.remove('range-setting-mode');
                             isSettingRange = 0;
+                            saveState();
                             generateSequence();
                         }
                     } else {
                         playPianoNote(i, k);
                     }
                 };
+                
+                // Touch events for piano
+                k.addEventListener('touchstart', (e) => {
+                    if (isSettingRange > 0) {
+                        e.stopPropagation(); e.preventDefault();
+                        const noteName = getNoteFromMidi(i);
+                        if (isSettingRange === 1) {
+                            document.getElementById('range-start').value = noteName.name + noteName.octave;
+                            document.getElementById('set-range-btn').innerText = "Tap Highest Key";
+                            isSettingRange = 2;
+                        } else {
+                            document.getElementById('range-end').value = noteName.name + noteName.octave;
+                            document.getElementById('set-range-btn').innerText = "Set Range";
+                            document.getElementById('set-range-btn').classList.replace('bg-red-500', 'bg-amber-500');
+                            document.body.classList.remove('range-setting-mode');
+                            isSettingRange = 0;
+                            saveState();
+                            generateSequence();
+                        }
+                    }
+                }, {passive: false});
+
                 v.appendChild(k);
                 if(i===60) middleCX = whiteKeyCount * whiteKeyWidth;
                 if(!n.includes('#')) whiteKeyCount++;
@@ -950,9 +1086,26 @@
             const updateP = () => v.style.transform = `translateX(${-pianoScrollX}px)`;
             updateP();
 
+            // Mouse Drag
             pianoPanel.onmousedown = (e) => { isDragging = true; startX = e.pageX + pianoScrollX; };
             window.onmousemove = (e) => { if(!isDragging) return; pianoScrollX = startX - e.pageX; updateP(); };
             window.onmouseup = () => isDragging = false;
+
+            // Touch Drag (Mobile)
+            pianoPanel.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                startX = e.touches[0].pageX + pianoScrollX;
+                e.preventDefault(); // Stop page scroll
+            }, {passive: false});
+            
+            window.addEventListener('touchmove', (e) => {
+                if(!isDragging) return;
+                pianoScrollX = startX - e.touches[0].pageX;
+                updateP();
+                e.preventDefault();
+            }, {passive: false});
+            
+            window.addEventListener('touchend', () => isDragging = false);
         }
 
         function playPianoNote(midi, el) {
