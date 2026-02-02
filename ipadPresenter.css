@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code:wght@500;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0fdf4; /* Emerald-50 */
+    color: #064e3b;
+    font-size: 1.1rem; /* Slightly smaller base for iPad */
+    line-height: 1.5;
+    margin: 0;
+    padding: 20px;
+}
+
+/* Inputs & Interactive Elements */
+.slot-input {
+    width: 140px; /* Scaled down */
+    border: 2px solid #059669;
+    border-radius: 6px;
+    padding: 6px;
+    text-align: center;
+    font-family: 'Fira Code', monospace;
+    font-weight: 700;
+    color: #065f46;
+    background: white;
+    font-size: 1.2rem;
+    -webkit-appearance: none; /* Removes iOS default styling */
+}
+
+.slot-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+    border-color: #047857;
+}
+
+/* Layout Containers */
+.step-container {
+    background: white;
+    border-left: 6px solid #059669; /* Thinner accent line */
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    border-radius: 0 12px 12px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    animation: slideIn 0.4s ease-out;
+}
+
+.challenge-card {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+    color: white;
+    padding: 2.5rem 1.5rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+    margin-bottom: 3rem;
+}
+
+/* Code Block Styling */
+.code-block {
+    background-color: #064e3b;
+    color: #ecfdf5;
+    padding: 1.5rem;
+    border-radius: 10px;
+    font-family: 'Fira Code', monospace;
+    margin: 1.5rem 0;
+    line-height: 1.6;
+    font-size: 1.1rem; /* Clear but not overwhelming */
+    overflow-x: auto; /* Handle long lines on portrait mode */
+}
+
+.code-keyword { color: #6ee7b7; font-weight: 700; }
+.code-func { color: #93c5fd; }
+.code-var { color: #fbbf24; }
+.code-num { color: #c084fc; }
+.code-comment { color: #94a3b8; font-style: italic; }
+
+/* Feedback & Typography */
+.feedback {
+    font-weight: 700;
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    min-height: 1.5rem;
+}
+
+mark {
+    background-color: #fef08a;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+button {
+    font-size: 1.1rem !important;
+    padding: 0.75rem 2rem !important;
+    border-radius: 8px;
+    cursor: pointer;
+    touch-action: manipulation; /* Optimizes for taps */
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.hidden-step { display: none; }
