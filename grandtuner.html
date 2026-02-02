@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Grand Staff Tuner Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --staff-line-color: #333;
+            --note-piano: #3b82f6;
+            --note-mic: #ef4444;
+            --staff-scale: 1;
+            --ui-scale: 1;
+            --label-scale: 1;
+        }
+
+        body {
+            touch-action: pan-y;
+            overflow: hidden;
+            background-color: #f1f5f9;
+            user-select: none;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .staff-area {
+            background: white;
+            border-bottom: 2px solid #e2e8f0;
+            overflow: hidden;
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s ease;
+        }
+
+        .staff-area.staff-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .staff-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center center;
+        }
+
+        #staff-scaler {
+            transform: scale(var(--staff-scale));
+            transition: transform 0.2s ease;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .view-grand .staff-container { transform: translateY(0); }
+        .view-treble .staff-container { transform: translateY(80px); }
+        .view-bass .staff-container { transform: translateY(-80px); }
+
+        .view-treble #bass-group, .view-treble .bass-line { opacity: 0.3; transition: opacity 0.4s; }
+        .view-bass #treble-group, .view-bass .treble-line { opacity: 0.3; transition: opacity 0.4s; }
+
+        .staff-line {
+            position: absolute;
+            width: 100%;
+            height: 1.5px;
+            background-color: var(--staff-line-color);
+            z-index: 2;
+        }
+
+        .clef-symbol {
+            position: absolute;
+            left: 20px;
+            font-family: serif;
+            line-height: 1;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .treble-clef { top: 45px; font-size: 100px; }
+        .bass-clef { top: 222px; font-size: 70px; }
+
+        .note-head {
+            position: absolute;
+            width: 24px;
+            height: 18px;
+            border-radius: 50%;
+            transform: rotate(-15deg);
+            left: 50%;
+            margin-left: -12px;
+            z-index: 20;
+        }
+
+        #accidental {
+            position: absolute;
+            left: -24px;
+            top: -14px;
+            font-size: 32px;
+            font-weight: bold;
+            font-family: serif;
+            pointer-events: none;
+        }
+
+        .note-float-info {
+            position: absolute;
+            left: 35px;
+            top: -20px;
+            white-space: nowrap;
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+            background: rgba(255,255,255,0.9);
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            transform: scale(var(--label-scale));
+            transform-origin: left center;
+        }
+
+        .ledger-line {
+            position: absolute;
+            width: 38px;
+            height: 1.5px;
+            background-color: var(--staff-line-color);
+            left: 50%;
+            margin-left: -19px;
+            z-index: 10;
+        }
+
+        .tuner-ui-container {
+            background: white;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: calc(140px * var(--ui-scale));
+            min-height: 80px;
+            transition: height 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+            position: relative;
+        }
+
+        .tuner-ui-container.hidden-ui {
+            height: 0px !important;
+            min-height: 0px;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(100%);
+        }
+
+        .tuner-ui-box {
+            transform: scale(var(--ui-scale));
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .piano-container {
+            height: 140px;
+            overflow-x: auto;
+            white-space: nowrap;
+            background: #0f172a;
+            padding: 10px 0;
+            cursor: grab;
+            scrollbar-width: none;
+            transition: height 0.2s ease, opacity 0.2s ease;
+        }
+        
+        .piano-container.piano-hidden {
+            height: 0px;
+            padding: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .piano-container::-webkit-scrollbar { display: none; }
+
+        .key {
+            display: inline-block;
+            width: 42px;
+            height: 120px;
+            background: white;
+            border: 1px solid #94a3b8;
+            border-radius: 0 0 4px 4px;
+            position: relative;
+            vertical-align: top;
+        }
+        .key.black {
+            width: 28px; height: 75px; background: #000;
+            margin-left: -14px; margin-right: -14px; z-index: 30; border: none;
+        }
+        .key.active { background-color: var(--note-piano) !important; }
+
+        .settings-panel {
+            position: fixed; top: 0; right: 0; bottom: 0; width: 300px;
+            background: white; z-index: 100; box-shadow: -4px 0 15px rgba(0,0,0,0.1);
+            transform: translateX(100%); transition: transform 0.3s ease; padding: 24px;
+            overflow-y: auto;
+        }
+        .settings-panel.open { transform: translateX(0); }
+
+        .btn-pill { @apply px-4 py-2 text-xs font-bold rounded-full border transition-all active:scale-95; }
+        .btn-pill.active { @apply bg-slate-800 text-white border-slate-800 shadow-md; }
+        
+        .nav-toggle-btn { @apply p-2.5 rounded-xl hover:bg-slate-100 transition-all grayscale opacity-40 active:scale-90 text-xl; }
+        .nav-toggle-btn.active { @apply grayscale-0 opacity-100 bg-white shadow-sm; }
+        
+        input[type="checkbox"] {
+            @apply w-5 h-5 accent-slate-800 rounded;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden view-treble">
+
+    <div class="p-3 bg-white flex justify-between items-center shadow-sm z-50">
+        <h1 class="text-sm font-black text-slate-800 uppercase tracking-widest pl-2">Grand Tuner</h1>
+        
+        <div class="flex items-center gap-3 bg-slate-100 p-1.5 rounded-2xl">
+            <button id="quick-toggle-labels" onclick="toggleFeature('labels')" class="nav-toggle-btn active" title="Toggle Labels">🏷️</button>
+            <button id="quick-toggle-piano" onclick="toggleFeature('piano')" class="nav-toggle-btn active" title="Toggle Piano">🎹</button>
+            <button id="quick-toggle-pitch" onclick="toggleFeature('pitch')" class="nav-toggle-btn active" title="Toggle Pitch UI">🎶</button>
+            <button id="quick-toggle-staff" onclick="toggleFeature('staff')" class="nav-toggle-btn active" title="Toggle Staff">🎼</button>
+        </div>
+
+        <div class="flex gap-2">
+            <button id="pause-btn" onclick="togglePause()" class="p-2.5 rounded-full hover:bg-slate-100 transition text-slate-600">
+                <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                <svg id="play-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button onclick="toggleSettings()" class="p-2.5 rounded-full hover:bg-slate-100 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="settings-panel" class="settings-panel shadow-2xl">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-xl font-bold">Display Settings</h2>
+            <button onclick="toggleSettings()" class="p-2 text-slate-400">✕</button>
+        </div>
+        <div class="space-y-6">
+            <div class="space-y-4 bg-slate-50 p-4 rounded-xl">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Staff Size</label>
+                    <input type="range" id="staff-size-slider" min="0.5" max="2.0" step="0.1" value="1.0" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-800">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Tuner UI Size</label>
+                    <input type="range" id="ui-size-slider" min="0.5" max="1.5" step="0.1" value="1.0" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-800">
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-700">Show Tuner UI</span>
+                    <input type="checkbox" id="toggle-tuner-ui" checked onchange="updateUIState('pitch', this.checked)">
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-700">Show Piano</span>
+                    <input type="checkbox" id="toggle-piano" checked onchange="updateUIState('piano', this.checked)">
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-700">Show Staff</span>
+                    <input type="checkbox" id="toggle-staff" checked onchange="updateUIState('staff', this.checked)">
+                </div>
+            </div>
+
+            <div class="space-y-4 bg-slate-50 p-4 rounded-xl">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-700">Note Labels (Staff)</span>
+                    <input type="checkbox" id="toggle-note-labels" checked onchange="updateUIState('labels', this.checked)">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Label Size</label>
+                    <input type="range" id="label-size-slider" min="0.5" max="2.5" step="0.1" value="1.0" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-800">
+                </div>
+            </div>
+
+            <hr>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Staff View</label>
+                <div class="grid grid-cols-3 gap-2" id="view-mode-btns">
+                    <button id="btn-treble" class="btn-pill" onclick="setView('treble')">Treble</button>
+                    <button id="btn-grand" class="btn-pill" onclick="setView('grand')">Grand</button>
+                    <button id="btn-bass" class="btn-pill" onclick="setView('bass')">Bass</button>
+                </div>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Responsiveness</label>
+                <input type="range" id="smoothing-slider" min="1" max="25" value="5" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-800">
+            </div>
+        </div>
+    </div>
+
+    <div id="main-staff-area" class="staff-area">
+        <div id="staff-scaler">
+            <div class="staff-container" id="staff-wrapper">
+                <div id="treble-group">
+                    <div class="clef-symbol treble-clef">∮</div>
+                </div>
+                <div id="bass-group">
+                    <div class="clef-symbol bass-clef">𝄢</div>
+                </div>
+                <div id="note-display" class="note-head bg-red-500 opacity-0">
+                    <div id="accidental"></div>
+                    <div id="note-float-container" class="note-float-info shadow-lg">
+                        <span id="float-note" class="font-black text-lg text-slate-900 leading-tight">--</span>
+                        <span id="float-dev" class="font-bold text-sm text-red-500 mt-0.5">±0%</span>
+                    </div>
+                </div>
+                <div id="ledger-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bottom-tuner-container" class="tuner-ui-container">
+        <div id="start-screen" class="absolute inset-0 z-[60] bg-white flex flex-col items-center justify-center">
+            <button id="start-btn" class="bg-slate-900 text-white px-10 py-4 rounded-full font-bold shadow-xl active:scale-95 transition">
+                Enable Microphone
+            </button>
+        </div>
+        
+        <div class="tuner-ui-box">
+            <div class="text-8xl font-black text-slate-900 tracking-tighter" id="note-name">--</div>
+            <div class="flex items-center gap-6">
+                <div id="deviation-arrow" class="text-8xl font-black leading-none"></div>
+                <div class="text-left flex flex-col justify-center">
+                    <div id="deviation-percent" class="text-6xl font-black text-slate-900 uppercase tracking-tight">Waiting...</div>
+                    <div id="freq-display" class="text-4xl font-bold font-mono text-slate-400 mt-2">0.0 Hz</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="piano-container" id="keyboard"></div>
+
+    <script>
+        const staffWrapper = document.getElementById('staff-wrapper');
+        const noteDisplay = document.getElementById('note-display');
+        const accidentalEl = document.getElementById('accidental');
+        const ledgerContainer = document.getElementById('ledger-container');
+        const noteNameEl = document.getElementById('note-name');
+        const devArrowEl = document.getElementById('deviation-arrow');
+        const devPercentEl = document.getElementById('deviation-percent');
+        const freqEl = document.getElementById('freq-display');
+        const keyboard = document.getElementById('keyboard');
+        const tunerContainer = document.getElementById('bottom-tuner-container');
+        const floatContainer = document.getElementById('note-float-container');
+        const staffArea = document.getElementById('main-staff-area');
+        const floatNote = document.getElementById('float-note');
+        const floatDev = document.getElementById('float-dev');
+
+        const LINE_SPACING = 12; 
+        const TREBLE_TOP = 60;
+        const BASS_TOP = 216; 
+        const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        let audioCtx, analyser, isRecording = false, isPaused = false;
+        let pitchBuffer = [];
+        let smoothingFactor = 5;
+
+        // UI Feature State Management
+        const uiState = {
+            labels: true,
+            piano: true,
+            pitch: true,
+            staff: true,
+            viewMode: 'treble',
+            staffScale: 1.0,
+            uiScale: 1.0,
+            labelScale: 1.0,
+            smoothing: 5
+        };
+
+        // Cache Functions
+        function saveSettings() {
+            localStorage.setItem('tuner_pro_settings', JSON.stringify(uiState));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('tuner_pro_settings');
+            if (saved) {
+                const data = JSON.parse(saved);
+                
+                // Restore Feature Toggles
+                ['labels', 'piano', 'pitch', 'staff'].forEach(key => {
+                    if (data.hasOwnProperty(key)) updateUIState(key, data[key], false);
+                });
+
+                // Restore Scales
+                if (data.staffScale) {
+                    uiState.staffScale = data.staffScale;
+                    document.getElementById('staff-size-slider').value = data.staffScale;
+                    document.documentElement.style.setProperty('--staff-scale', data.staffScale);
+                }
+                if (data.uiScale) {
+                    uiState.uiScale = data.uiScale;
+                    document.getElementById('ui-size-slider').value = data.uiScale;
+                    document.documentElement.style.setProperty('--ui-scale', data.uiScale);
+                }
+                if (data.labelScale) {
+                    uiState.labelScale = data.labelScale;
+                    document.getElementById('label-size-slider').value = data.labelScale;
+                    document.documentElement.style.setProperty('--label-scale', data.labelScale);
+                }
+                if (data.smoothing) {
+                    uiState.smoothing = data.smoothing;
+                    smoothingFactor = data.smoothing;
+                    document.getElementById('smoothing-slider').value = data.smoothing;
+                }
+                if (data.viewMode) {
+                    setView(data.viewMode, false);
+                }
+            }
+        }
+
+        function toggleFeature(feature) {
+            uiState[feature] = !uiState[feature];
+            updateUIState(feature, uiState[feature]);
+        }
+
+        function updateUIState(feature, isVisible, shouldSave = true) {
+            uiState[feature] = isVisible;
+            
+            // Update Quick Toggle Buttons
+            const btn = document.getElementById(`quick-toggle-${feature}`);
+            if (btn) btn.classList.toggle('active', isVisible);
+            
+            // Update Settings Checkboxes
+            const checkboxMap = {
+                'labels': 'toggle-note-labels',
+                'piano': 'toggle-piano',
+                'pitch': 'toggle-tuner-ui',
+                'staff': 'toggle-staff'
+            };
+            const checkbox = document.getElementById(checkboxMap[feature]);
+            if (checkbox) checkbox.checked = isVisible;
+
+            // Apply Visual Changes
+            switch(feature) {
+                case 'labels':
+                    floatContainer.classList.toggle('hidden', !isVisible);
+                    break;
+                case 'piano':
+                    keyboard.classList.toggle('piano-hidden', !isVisible);
+                    break;
+                case 'pitch':
+                    tunerContainer.classList.toggle('hidden-ui', !isVisible);
+                    break;
+                case 'staff':
+                    staffArea.classList.toggle('staff-hidden', !isVisible);
+                    break;
+            }
+
+            if (shouldSave) saveSettings();
+        }
+
+        function toggleSettings() { document.getElementById('settings-panel').classList.toggle('open'); }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            document.getElementById('pause-icon').classList.toggle('hidden', isPaused);
+            document.getElementById('play-icon').classList.toggle('hidden', !isPaused);
+        }
+
+        function setView(mode, shouldSave = true) {
+            uiState.viewMode = mode;
+            document.body.className = `flex flex-col h-screen overflow-hidden view-${mode}`;
+            document.querySelectorAll('#view-mode-btns button').forEach(b => b.classList.remove('active'));
+            const btn = document.getElementById('btn-' + mode);
+            if(btn) btn.classList.add('active');
+            if (shouldSave) saveSettings();
+        }
+
+        function getNotePosition(midiIndex) {
+            const midiToWhiteStep = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6];
+            const octave = Math.floor(midiIndex / 12) - 1;
+            const stepIndex = midiToWhiteStep[midiIndex % 12];
+            const currentStep = (octave * 7) + stepIndex;
+            const b4Step = (4 * 7) + 6; 
+            const b4Y = TREBLE_TOP + (4 * LINE_SPACING);
+            return b4Y - ((currentStep - b4Step) * LINE_SPACING);
+        }
+
+        function updateStaff(midiIndex, isPiano = false) {
+            const top = getNotePosition(midiIndex);
+            const noteName = NOTES[midiIndex % 12];
+            
+            noteDisplay.style.opacity = '1';
+            noteDisplay.style.top = (top - 9) + 'px';
+            noteDisplay.style.backgroundColor = isPiano ? 'var(--note-piano)' : 'var(--note-mic)';
+            
+            accidentalEl.textContent = noteName.includes('#') ? '#' : '';
+            ledgerContainer.innerHTML = '';
+            
+            if (midiIndex >= 79) {
+                for (let y = TREBLE_TOP - 24; y >= top - 2; y -= 24) addLedger(y);
+            } else if (midiIndex === 60 || midiIndex === 61) {
+                addLedger(TREBLE_TOP + 120);
+            } else if (midiIndex >= 57 && midiIndex <= 59) {
+                addLedger(BASS_TOP - 24);
+            } else if (midiIndex <= 43) {
+                for (let y = BASS_TOP + 120; y <= top + 2; y += 24) addLedger(y);
+            }
+        }
+
+        function addLedger(y) {
+            const l = document.createElement('div');
+            l.className = 'ledger-line';
+            l.style.top = y + 'px';
+            ledgerContainer.appendChild(l);
+        }
+
+        function buildKeyboard() {
+            for (let i = 21; i <= 108; i++) {
+                const noteName = NOTES[i % 12], octave = Math.floor(i / 12) - 1, isBlack = noteName.includes('#');
+                const key = document.createElement('div');
+                key.className = `key ${isBlack ? 'black' : 'white'}`;
+                if (noteName === 'C') {
+                    const label = document.createElement('div');
+                    label.className = 'label'; label.textContent = `C${octave}`;
+                    key.appendChild(label);
+                }
+                key.addEventListener('mousedown', () => playNote(i, key));
+                keyboard.appendChild(key);
+            }
+            keyboard.scrollLeft = 850;
+        }
+
+        function playNote(midi, el) {
+            if(!audioCtx) initAudio();
+            const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440 * Math.pow(2, (midi-69)/12), audioCtx.currentTime);
+            g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+            osc.connect(g).connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.8);
+            el.classList.add('active');
+            setTimeout(() => el.classList.remove('active'), 200);
+            
+            const nameStr = NOTES[midi % 12] + (Math.floor(midi/12)-1);
+            noteNameEl.textContent = nameStr;
+            floatNote.textContent = nameStr;
+            devArrowEl.textContent = "🎹";
+            devPercentEl.textContent = "Piano";
+            floatDev.textContent = "";
+            updateStaff(midi, true);
+        }
+
+        async function initAudio() {
+            if(audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 2048;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioCtx.createMediaStreamSource(stream).connect(analyser);
+                isRecording = true;
+                document.getElementById('start-screen').classList.add('hidden');
+                requestAnimationFrame(updateLoop);
+            } catch (e) { console.error(e); }
+        }
+
+        function autoCorrelate(buf, sr) {
+            let rms = 0;
+            for (let i=0; i<buf.length; i++) rms += buf[i]*buf[i];
+            if (Math.sqrt(rms/buf.length) < 0.01) return -1;
+            let c = new Float32Array(buf.length).fill(0);
+            for (let i=0; i<buf.length; i++) for (let j=0; j<buf.length-i; j++) c[i] += buf[j]*buf[j+i];
+            let d=0; while (c[d] > c[d+1]) d++;
+            let maxval=-1, maxpos=-1;
+            for (let i=d; i<buf.length; i++) if (c[i] > maxval) { maxval=c[i]; maxpos=i; }
+            return sr/maxpos;
+        }
+
+        function updateLoop() {
+            if(isRecording && !isPaused) {
+                const buf = new Float32Array(analyser.fftSize);
+                analyser.getFloatTimeDomainData(buf);
+                const freq = autoCorrelate(buf, audioCtx.sampleRate);
+
+                if (freq > 30 && freq < 4000) {
+                    pitchBuffer.push(freq);
+                    if (pitchBuffer.length > smoothingFactor) pitchBuffer.shift();
+                    const avgFreq = pitchBuffer.reduce((a,b) => a+b, 0) / pitchBuffer.length;
+                    freqEl.textContent = avgFreq.toFixed(1) + " Hz";
+                    const n = 12 * (Math.log2(avgFreq / 440)) + 69;
+                    const midi = Math.round(n);
+                    const dev = Math.round((n - midi) * 100);
+                    const nameStr = NOTES[midi % 12] + (Math.floor(midi / 12) - 1);
+                    
+                    noteNameEl.textContent = nameStr;
+                    floatNote.textContent = nameStr;
+                    
+                    if (Math.abs(dev) < 10) {
+                        devArrowEl.textContent = "•"; 
+                        devArrowEl.style.color = "#10b981";
+                        devPercentEl.textContent = "In Tune";
+                        floatDev.textContent = "In Tune";
+                        floatDev.style.color = "#10b981";
+                    } else {
+                        const arrow = dev > 0 ? "↑" : "↓";
+                        const sign = dev > 0 ? "+" : "";
+                        devArrowEl.textContent = arrow;
+                        devArrowEl.style.color = dev > 0 ? "#ef4444" : "#3b82f6";
+                        const devStr = sign + dev + "%";
+                        devPercentEl.textContent = devStr;
+                        floatDev.textContent = devStr;
+                        floatDev.style.color = dev > 0 ? "#ef4444" : "#3b82f6";
+                    }
+                    updateStaff(midi);
+                }
+            }
+            requestAnimationFrame(updateLoop);
+        }
+
+        // Scaling Listeners with Auto-Save
+        document.getElementById('staff-size-slider').addEventListener('input', (e) => {
+            const val = e.target.value;
+            uiState.staffScale = val;
+            document.documentElement.style.setProperty('--staff-scale', val);
+            saveSettings();
+        });
+        document.getElementById('ui-size-slider').addEventListener('input', (e) => {
+            const val = e.target.value;
+            uiState.uiScale = val;
+            document.documentElement.style.setProperty('--ui-scale', val);
+            saveSettings();
+        });
+        document.getElementById('label-size-slider').addEventListener('input', (e) => {
+            const val = e.target.value;
+            uiState.labelScale = val;
+            document.documentElement.style.setProperty('--label-scale', val);
+            saveSettings();
+        });
+        document.getElementById('smoothing-slider').addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            uiState.smoothing = val;
+            smoothingFactor = val;
+            saveSettings();
+        });
+
+        function init() {
+            for(let i=0; i<5; i++) {
+                const tl = document.createElement('div');
+                tl.className = 'staff-line treble-line';
+                tl.style.top = (TREBLE_TOP + i * 24) + 'px';
+                staffWrapper.appendChild(tl);
+                const bl = document.createElement('div');
+                bl.className = 'staff-line bass-line';
+                bl.style.top = (BASS_TOP + i * 24) + 'px';
+                staffWrapper.appendChild(bl);
+            }
+            buildKeyboard();
+            
+            // Load and apply cached settings
+            loadSettings();
+
+            document.getElementById('start-btn').addEventListener('click', initAudio);
+        }
+        init();
+    </script>
+</body>
+</html>
