@@ -63,6 +63,19 @@ select.slot-input {
     /* display: inline-block; */
     /* line-height: 1; */
     font-variant-ligatures: none !important; /* Forces != to stay != */
+    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s !important;
+}
+
+/* Shake animation for the feedback text */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Red feedback class */
+.text-red-600 {
+    color: #dc2626 !important;
 }
 
 /* 5. TEXT HIGHLIGHTS & ANSWERS */

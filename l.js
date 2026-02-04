@@ -149,14 +149,26 @@ window.checkStep = async function(idx) {
     const inputs = step.querySelectorAll('.slot-input');
     const feedback = document.getElementById(`feedback-${idx}`);
     
-    let correct = true;
+    let allInStepCorrect = true;
+
     inputs.forEach(input => {
+        // Standardize comparison: remove spaces and normalize quotes
         const val = input.value.trim().replace(/\s/g, '');
         const ans = input.getAttribute('data-answer').replace(/\s/g, '');
-        if (val !== ans) correct = false;
+        
+        if (val !== ans) {
+            allInStepCorrect = false;
+            // Force red border using !important logic
+            input.style.setProperty('border-color', '#dc2626', 'important');
+            input.style.backgroundColor = "#fef2f2"; // Light red background
+        } else {
+            // Success styling
+            input.style.setProperty('border-color', '#059669', 'important');
+            input.style.backgroundColor = "white";
+        }
     });
 
-    if (correct) {
+    if (allInStepCorrect) {
         feedback.textContent = "✔️ Nice!";
         feedback.className = "feedback text-emerald-600";
         
@@ -177,8 +189,13 @@ window.checkStep = async function(idx) {
     } else {
         feedback.textContent = "❌ Try again";
         feedback.className = "feedback text-red-600";
+        // Optional: shake the feedback text
+        feedback.style.animation = 'none';
+        feedback.offsetHeight; // trigger reflow
+        feedback.style.animation = 'shake 0.4s';
     }
 };
+
 
 async function handleFinalSubmission(idx, feedbackElement) {
     if (hasUsedDebug) {
