@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基督徒小組活動：殘酷二選一</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        .option-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-btn:active {
+            transform: scale(0.95);
+        }
+        .vs-circle {
+            background: #ef4444;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <div id="app" class="max-w-2xl w-full">
+        <!-- 主卡片 -->
+        <div class="bg-white rounded-3xl overflow-hidden card-shadow">
+            <!-- 標題欄 -->
+            <div class="bg-indigo-600 p-6 text-white text-center">
+                <h1 class="text-2xl font-bold">🙏 基督徒殘酷二選一</h1>
+                <p class="text-indigo-100 text-sm mt-1">小組破冰與深度分享工具</p>
+            </div>
+
+            <!-- 進度條 -->
+            <div class="w-full bg-gray-200 h-2">
+                <div id="progress-bar" class="bg-indigo-400 h-2 transition-all duration-500" style="width: 0%"></div>
+            </div>
+
+            <div class="p-8">
+                <!-- 題目顯示區 -->
+                <div id="game-ui">
+                    <div class="text-center mb-8">
+                        <span id="question-count" class="px-3 py-1 bg-indigo-100 text-indigo-600 rounded-full text-xs font-bold uppercase tracking-wider">第 1 題</span>
+                    </div>
+
+                    <div class="flex flex-col gap-4 relative">
+                        <!-- 選項 A -->
+                        <button onclick="handleSelect('A')" id="option-a" class="option-btn w-full p-6 bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 rounded-2xl text-lg md:text-xl font-bold text-blue-800 text-center min-h-[120px] flex items-center justify-center">
+                            選項 A
+                        </button>
+
+                        <!-- VS 圓圈 -->
+                        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                            <div class="vs-circle w-12 h-12 rounded-full flex items-center justify-center text-white font-black italic border-4 border-white">VS</div>
+                        </div>
+
+                        <!-- 選項 B -->
+                        <button onclick="handleSelect('B')" id="option-b" class="option-btn w-full p-6 bg-rose-50 hover:bg-rose-100 border-2 border-rose-200 rounded-2xl text-lg md:text-xl font-bold text-rose-800 text-center min-h-[120px] flex items-center justify-center">
+                            選項 B
+                        </button>
+                    </div>
+
+                    <!-- 按鈕區 -->
+                    <div class="mt-10 flex justify-center gap-4">
+                        <button onclick="nextQuestion()" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2">
+                            下一題 ➔
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 結束畫面 -->
+                <div id="finish-ui" class="hidden text-center py-10">
+                    <div class="text-6xl mb-4">🙌</div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">挑戰完成！</h2>
+                    <p class="text-gray-600 mb-8">願這些分享讓我們更了解彼此，更愛神。</p>
+                    <button onclick="restartGame()" class="px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl">重新開始</button>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 p-4 text-center text-gray-400 text-xs">
+                點擊選項即代表你的選擇，僅供小組交流參考
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { a: "早起靈修", b: "睡前靈修（遲到與斷片的對決）" },
+            { a: "讀一章《利未記》", b: "讀一章《家譜》" },
+            { a: "一整年不能聽世俗流行歌", b: "一整年不能看Netflix/YouTube" },
+            { a: "禱告時大聲喊出來", b: "禱告時完全安靜不能出聲" },
+            { a: "忘記帶聖經去教會", b: "忘記帶錢包去教會" },
+            { a: "聚會時想睡覺", b: "聚會時肚子一直大聲叫" },
+            { a: "跟話很多的人一對一靈修", b: "跟完全不說話的人一對一靈修" },
+            { a: "一輩子只能唱古典聖詩", b: "一輩子只能唱現代敬拜讚美" },
+            { a: "主日崇拜遲到 30 分鐘", b: "崇拜結束後留下來打掃 2 小時" },
+            { a: "回到過去看摩西開紅海", b: "看耶穌餵飽五千人" },
+            { a: "當馬利亞坐著聽道", b: "當馬大忙著下廚" },
+            { a: "永遠不知道啟示錄的奧秘", b: "永遠記不住舊約先知書的名字" },
+            { a: "你的另一半不信主", b: "你的最好的朋友不信主" },
+            { a: "禱告立刻被拒絕", b: "禱告等 20 年才成就" },
+            { a: "獲得醫治恩賜（醫好別人）", b: "獲得先知講道恩賜（罵醒別人）" },
+            { a: "聖經只有實體版（很重）", b: "聖經只有APP版（容易分心）" },
+            { a: "講道無聊但內容正確", b: "講道精彩但內容有點偏" },
+            { a: "一輩子只能做幕後服事", b: "一輩子在台上領會" },
+            { a: "小組聚會只有你一個人準時", b: "你遲到 1 小時但大家都在等你" },
+            { a: "負責教會大掃除", b: "負責照顧 20 個尖叫的小孩" },
+            { a: "向不認識的陌生人傳福音", b: "向最討厭你的親戚傳福音" },
+            { a: "一輩子當收奉獻的人", b: "一輩子當在門口握手的人" },
+            { a: "大家都太愛講話", b: "大家都不說話" },
+            { a: "上台作見證 10 分鐘", b: "表演福音話劇 1 分鐘" },
+            { a: "親眼見證耶穌變像", b: "親眼見證耶穌行走水面" },
+            { a: "當被耶穌找回來的迷羊", b: "當在家等弟弟回家的長子" },
+            { a: "耶穌幫你洗腳", b: "你幫耶穌洗腳" },
+            { a: "教會沒有冷氣", b: "教會沒有音樂（清唱）" },
+            { a: "被派往極寒的西伯利亞宣教", b: "被派往極熱的撒哈拉宣教" },
+            { a: "你的所有禱告都被公開", b: "你的所有瀏覽紀錄被公開" },
+            { a: "獲得過目不忘的背經能力", b: "獲得隨時感受神的同在感" },
+            { a: "教會只有你一個年輕人", b: "教會除了你全是 10 歲小孩" },
+            { a: "被人誤會是法利賽人", b: "被人誤會是不信主的人" },
+            { a: "一輩子只能讀舊約", b: "一輩子只能讀新約" },
+            { a: "聚會時音響突然爆音", b: "聚會時全教會突然停電" },
+            { a: "能看穿別人靈性的眼睛", b: "能聽見天使說話的耳朵" },
+            { a: "一輩子不能說「阿門」", b: "一輩子不能說「哈利路亞」" },
+            { a: "你的小組長是你的老闆", b: "你的小組員是你的前任" },
+            { a: "每天早起 4 點晨禱", b: "每天熬夜 12 點通宵禱告" },
+            { a: "親眼看到天開了", b: "親眼看到天使摔跤" },
+            { a: "住在聖殿門口當乞丐", b: "住在王宮裡當大臣（沒聽過福音）" },
+            { a: "夢中被神叫醒（撒母耳）", b: "路上被大光照瞎（保羅）" },
+            { a: "孩子非常虔誠但很窮", b: "孩子非常有錢但離開神" },
+            { a: "墓碑寫「忠心的僕人」", b: "墓碑寫「神所愛的孩子」" },
+            { a: "只有你信主的大家庭", b: "全家信主但常吵架" },
+            { a: "為了福音變得很醜", b: "為了福音變得很窮" },
+            { a: "教會崇拜只有 5 分鐘", b: "教會崇拜長達 5 小時" },
+            { a: "清理教會廁所 10 年", b: "帶領教會預算 10 年" },
+            { a: "知道自己哪一天會死", b: "知道耶穌哪一天回來" },
+            { a: "信仰生活被拍成喜劇片", b: "信仰生活被拍成紀錄片" },
+            { a: "耶穌現在顯現，跟你自拍", b: "耶穌現在顯現，抱你一下" }
+        ];
+
+        let currentIndices = [];
+        let currentIndex = -1;
+        let totalAnswered = 0;
+
+        function shuffle(array) {
+            return array.map((value, index) => ({ value, index }))
+                        .sort(() => Math.random() - 0.5)
+                        .map(({ index }) => index);
+        }
+
+        function restartGame() {
+            currentIndices = shuffle(questions);
+            currentIndex = -1;
+            totalAnswered = 0;
+            document.getElementById('game-ui').classList.remove('hidden');
+            document.getElementById('finish-ui').classList.add('hidden');
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex >= currentIndices.length) {
+                document.getElementById('game-ui').classList.add('hidden');
+                document.getElementById('finish-ui').classList.remove('hidden');
+                return;
+            }
+
+            const q = questions[currentIndices[currentIndex]];
+            
+            // 更新 UI
+            const btnA = document.getElementById('option-a');
+            const btnB = document.getElementById('option-b');
+            
+            btnA.innerText = q.a;
+            btnB.innerText = q.b;
+            
+            // 重置樣式
+            btnA.classList.remove('ring-4', 'ring-blue-400', 'bg-blue-200');
+            btnB.classList.remove('ring-4', 'ring-rose-400', 'bg-rose-200');
+            
+            document.getElementById('question-count').innerText = `第 ${currentIndex + 1} 題`;
+            
+            const progress = ((currentIndex) / currentIndices.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+        }
+
+        function handleSelect(choice) {
+            const btnA = document.getElementById('option-a');
+            const btnB = document.getElementById('option-b');
+            
+            if (choice === 'A') {
+                btnA.classList.add('ring-4', 'ring-blue-400', 'bg-blue-200');
+                btnB.classList.remove('ring-4', 'ring-rose-400', 'bg-rose-200');
+            } else {
+                btnB.classList.add('ring-4', 'ring-rose-400', 'bg-rose-200');
+                btnA.classList.remove('ring-4', 'ring-blue-400', 'bg-blue-200');
+            }
+        }
+
+        // 初始化
+        restartGame();
+    </script>
+</body>
+</html>
