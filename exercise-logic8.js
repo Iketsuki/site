@@ -151,8 +151,8 @@ window.checkStep = async function(idx) {
     
     let correct = true;
     inputs.forEach(input => {
-        const val = input.value.trim().toLowerCase().replace(/\s/g, '');
-        const ans = input.getAttribute('data-answer').toLowerCase().replace(/\s/g, '');
+        const val = input.value.trim().replace(/\s/g, '');
+        const ans = input.getAttribute('data-answer').replace(/\s/g, '');
         if (val !== ans) correct = false;
     });
 
