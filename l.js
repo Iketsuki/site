@@ -228,27 +228,47 @@ window.unlockNext = function(current) {
  * Calculates width based on: ((chars * 5) + 10) * 4px
  * This version forces the style to overwrite inline HTML styles.
  */
+// --- Update in l.js ---
+
+/**
+ * Calculates width based on the longest possible content.
+ * For <input>: Uses data-answer.
+ * For <select>: Finds the longest <option> text.
+ */
 function applyDynamicWidths() {
     const inputs = document.querySelectorAll('.slot-input');
-    
-    inputs.forEach(input => {
-        const answer = input.getAttribute('data-answer') || "";
-        // Clean the answer in case of HTML entities like &quot;
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = answer;
-        const cleanAnswer = tempDiv.textContent; 
 
-        const charCount = cleanAnswer.length;
+    inputs.forEach(input => {
+        let textToMeasure = "";
+
+        if (input.tagName === 'SELECT') {
+            // Logic for dropdowns: Find the longest option text
+            let longestOption = "";
+            Array.from(input.options).forEach(opt => {
+                if (opt.text.length > longestOption.length) {
+                    longestOption = opt.text;
+                }
+            });
+            textToMeasure = longestOption;
+        } else {
+            // Logic for standard inputs: Use the data-answer attribute
+            const rawAnswer = input.getAttribute('data-answer') || "";
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = rawAnswer;
+            textToMeasure = tempDiv.textContent;
+        }
+
+        const charCount = textToMeasure.length;
+
+        // Apply the Rule: ((chars * 5) + 10) * 4px
+        // For selects, we add a small buffer (e.g., +2 chars) for the dropdown arrow
+        const buffer = (input.tagName === 'SELECT') ? 12 : 8;
+        const widthInPixels = (charCount * 5 + buffer) * 4;
         
-        // Your Rule: 5 units per char, +5 front, +5 back (total 10 units)
-        // 1 unit = 4px (Tailwind scale)
-        const widthInPixels = (charCount * 5 + 6) * 4;
-        
-        // Overwrite the inline style attribute directly
         input.style.setProperty('width', `${widthInPixels}px`, 'important');
     });
 }
 
-// Run immediately and on DOMContentLoaded to catch all states
+// Run immediately and on DOMContentLoaded
 applyDynamicWidths();
 document.addEventListener('DOMContentLoaded', applyDynamicWidths);

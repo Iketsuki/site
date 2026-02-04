@@ -6,8 +6,34 @@ body {
     color: #064e3b; /* Emerald-950 */
     font-size: 1.25rem; /* Base font for presenters */
     line-height: 1.6;
+    font-variant-ligatures: none !important;
 }
 
+/* --- Updates for p.css --- */
+
+
+.slot-input, .code-block, .static-answer {
+    font-family: 'Fira Code', monospace;
+    font-variant-ligatures: none !important; /* Standard for Python */
+}
+/* Add this to your p.css for the math dropdowns */
+select.slot-input {
+    appearance: none;
+    padding-right: 2.5rem; /* Space for the arrow */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23059669'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); /* Emerald arrow icon */
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1rem;
+    cursor: pointer;
+}
+
+/* SPECIAL CASE: Add this class to the <body> or <main> for Math lessons */
+.math-mode, 
+.math-mode .slot-input, 
+.math-mode .code-block, 
+.math-mode .static-answer {
+    font-variant-ligatures: common-ligatures discretionary-ligatures !important;
+}
 /* 1. INPUT SLOTS - Optimized for alignment */
 /* 1. INPUT SLOTS - Updated for larger height and dynamic sizing */
 /* --- Add/Update these sections in p.css --- */
