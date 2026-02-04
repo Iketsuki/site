@@ -66,8 +66,8 @@ function showQRCode() {
     function generateQR() {
         new QRCode(document.getElementById("qr-target"), {
             text: window.location.href,
-            width: 256,
-            height: 256,
+            width: 500,
+            height: 500,
             colorDark: "#000000",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.H
