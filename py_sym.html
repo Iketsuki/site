@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Logic: Symmetrical Strings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="p.css">
+</head>
+<body class="p-4 md:p-12 max-w-6xl mx-auto">
+
+    <header class="challenge-card text-center">
+        <h2 class="text-emerald-300 font-bold uppercase tracking-widest text-lg mb-4">Coding Challenge</h2>
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-10">Symmetrical Strings</h1>
+        
+        <div class="flex flex-col lg:flex-row justify-center items-center gap-10">
+            <div class="text-center">
+                <p class="text-emerald-200 text-lg mb-2 uppercase font-bold tracking-tight">Input Word</p>
+                <code class="text-3xl md:text-4xl bg-emerald-950/60 px-6 py-4 rounded-xl border-2 border-emerald-700/50 block md:inline-block">"level"</code>
+            </div>
+            <div class="hidden lg:block text-5xl text-emerald-400 font-black">→</div>
+            <div class="text-center">
+                <p class="text-emerald-200 text-lg mb-2 uppercase font-bold tracking-tight">Logic Result</p>
+                <code class="text-3xl md:text-4xl bg-emerald-950/60 px-6 py-4 rounded-xl border-2 border-emerald-400/80 font-bold text-white block md:inline-block">Symmetrical: <span class="text-emerald-400">True</span></code>
+            </div>
+        </div>
+        <p class="mt-12 text-emerald-100 italic text-lg max-w-3xl mx-auto">
+            A string is symmetrical if it reads the same forward and backward. We use a loop to compare characters from both ends.
+        </p>
+    </header>
+
+    <main id="scaffold-content">
+        <section id="step-0" class="step-container">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 1: Setup & Length</h2>
+            <p class="mb-6 text-emerald-700 text-xl">First, we get the word from the user and determine how many letters it has.</p>
+            <div class="code-block">
+                <div><span class="code-var">word</span> = <span class="code-func">input</span>(<span class="code-num">"Enter word: "</span>)</div>
+                <div><span class="code-var">is_sym</span> = <span class="code-keyword">True</span></div>
+                <div class="mt-6"><span class="code-comment"># Determine the total number of characters</span></div>
+                <div><span class="code-var">length</span> = <span class="code-func">len</span>(<input type="text" class="slot-input" data-answer="word">)</div>
+            </div>
+            <button onclick="checkStep(0)" class="mt-6 bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 transition-all shadow-xl">Next: Comparison Logic</button>
+            <div class="feedback" id="feedback-0"></div>
+        </section>
+
+        <section id="step-1" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 2: Checking Mirrored Positions</h2>
+            <p class="mb-6 text-emerald-700 text-xl">We loop through the word. For each index <code>i</code>, we compare it to the character at the opposite end.</p>
+            <div class="code-block">
+                <div class="opacity-40">
+                    <div>word = "level"</div>
+                    <div>length = len(word)</div>
+                </div>
+                <div class="mt-6"><span class="code-keyword">for</span> <span class="code-var">i</span> <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-num">0</span>, <span class="code-var">length</span>):</div>
+                <div class="ml-12 mt-2"><span class="code-comment"># Compare index i with the 'mirror' index</span></div>
+                <div class="ml-12"><span class="code-keyword">if</span> <span class="code-var">word</span>[<span class="code-var">i</span>] != <span class="code-var">word</span>[<input type="text" class="slot-input" data-answer="length-1-i">]:</div>
+                <div class="ml-24 mt-2"><span class="code-var">is_sym</span> = <input type="text" class="slot-input" data-answer="False"></div>
+            </div>
+            <p class="text-lg text-emerald-600 italic font-semibold">Note: If any pair doesn't match, the word is not symmetrical.</p>
+            <button onclick="checkStep(1)" class="mt-6 bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Verify Logic</button>
+            <div class="feedback" id="feedback-1"></div>
+        </section>
+
+        <section id="step-2" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 3: Result Summary</h2>
+            <p class="mb-6 text-emerald-700 text-xl">Finally, we display whether the word was found to be symmetrical.</p>
+            <div class="code-block">
+                <div class="opacity-40">
+                    <div>for i in range(0, length):</div>
+                    <div class="ml-12">if word[i] != word[length-1-i]: is_sym = False</div>
+                </div>
+                <div class="mt-6"><span class="code-keyword">if</span> <span class="code-var">is_sym</span> == <span class="code-keyword">True</span>:</div>
+                <div class="ml-12"><span class="code-func">print</span>(<span class="code-num">"The word is symmetrical"</span>)</div>
+                <div><span class="code-keyword">else</span>:</div>
+                <div class="ml-12"><span class="code-func">print</span>(<span class="code-num">"The word is not symmetrical"</span>)</div>
+            </div>
+            <div class="mt-8 p-6 bg-emerald-50 rounded-xl border-2 border-emerald-200 text-2xl">
+                <p class="text-emerald-900 font-semibold">If word is "eye", <code>is_sym</code> will be: <input type="text" class="slot-input" data-answer="True"></p>
+            </div>
+            <button onclick="checkStep(2)" class="mt-8 bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Finish Lesson</button>
+            <div class="feedback" id="feedback-2"></div>
+        </section>
+
+        <section id="success-screen" class="hidden-step text-center py-20">
+            <div class="inline-block p-16 bg-white rounded-[40px] shadow-2xl border-8 border-emerald-600">
+                <div class="text-8xl mb-8">✨</div>
+                <h2 class="text-6xl font-black text-emerald-700 mb-6">Logic Complete</h2>
+                <p class="text-2xl text-emerald-900 mb-12 max-w-xl mx-auto">You've mastered the algorithm for checking symmetry using string indexing!</p>
+                <button onclick="location.reload()" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 transition-transform hover:scale-105 shadow-2xl">Restart Practice</button>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="l.js"></script>
+</body>
+</html>
