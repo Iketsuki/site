@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Practice: Change of Subject & Graphs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="p.css">
+    <script type="module" src="l.js"></script>
+</head>
+<body class="p-4 md:p-12 max-w-6xl mx-auto math-mode">
+
+    <header class="challenge-card text-center">
+        <h2 class="text-emerald-300 font-bold uppercase tracking-widest text-lg mb-4">Practice 2</h2>
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-8">Subject Change & Graphing</h1>
+        <p class="text-2xl text-emerald-100 max-w-3xl mx-auto leading-relaxed">
+            Given the equation: <mark>2x - y = 4</mark>
+        </p>
+    </header>
+
+    <main id="scaffold-content">
+        <section id="step-0" class="step-container">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 1: Express y in terms of x</h2>
+            <div class="code-block">
+                <div><span class="code-num">2</span><span class="code-var">x</span> - <span class="code-var">y</span> = <span class="code-num">4</span></div>
+                <div class="mt-2">- <span class="code-var">y</span> = <span class="code-num">4</span> - <input type="text" class="slot-input" data-answer="2x"></div>
+                <div class="mt-2"><span class="code-var">y</span> = <input type="text" class="slot-input" data-answer="2x"> - <input type="text" class="slot-input" data-answer="4"></div>
+            </div>
+            <button onclick="checkStep(0)" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Verify Subject</button>
+            <div class="feedback" id="feedback-0"></div>
+        </section>
+
+        <section id="step-1" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 2: Find y when x = 0</h2>
+            <div class="code-block">
+                <div>Substitute <span class="code-var">x</span> = <span class="code-num">0</span> into <span class="code-var">y</span> = <span class="code-num">2</span><span class="code-var">x</span> - <span class="code-num">4</span></div>
+                <div class="mt-4"><span class="code-var">y</span> = <span class="code-num">2</span>(<input type="text" class="slot-input" data-answer="0">) - <span class="code-num">4</span></div>
+                <div class="mt-2"><span class="code-var">y</span> = <input type="text" class="slot-input" data-answer="-4"></div>
+            </div>
+            <button onclick="checkStep(1)" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Check Value</button>
+            <div class="feedback" id="feedback-1"></div>
+        </section>
+
+        <section id="step-2" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 3: Complete the Table</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-center border-collapse bg-white rounded-xl overflow-hidden shadow-sm">
+                    <thead>
+                        <tr class="bg-emerald-700 text-white">
+                            <th class="p-4 border border-emerald-600">x</th>
+                            <th class="p-4 border border-emerald-600">0</th>
+                            <th class="p-4 border border-emerald-600"><input type="text" class="slot-input !w-16" data-answer="3.5"></th>
+                            <th class="p-4 border border-emerald-600">2</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="text-emerald-900">
+                            <td class="p-4 border border-emerald-200 font-bold bg-emerald-50">y</td>
+                            <td class="p-4 border border-emerald-200"><input type="text" class="slot-input !w-16" data-answer="-4"></td>
+                            <td class="p-4 border border-emerald-200">3</td>
+                            <td class="p-4 border border-emerald-200"><input type="text" class="slot-input !w-16" data-answer="0"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mt-4 text-sm text-emerald-600 italic">* Hint: For the middle column, solve 3 = 2x - 4</p>
+            <button onclick="checkStep(2)" class="mt-6 bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Validate Table</button>
+            <div class="feedback" id="feedback-2"></div>
+        </section>
+
+        <section id="step-3" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 4: Finding 'a' from the Graph</h2>
+            <p class="mb-6 text-xl text-emerald-700">
+                Point <mark>A(a, 6)</mark> is plotted on the line. Look at the <span style="color:#fbbf24; font-weight: bold;">orange guide lines</span>. When <span class="code-var">y</span> = <span class="code-num">6</span>, trace to the line and down to the x-axis.
+            </p>
+
+            <div class="flex justify-center mb-10">
+                <div class="bg-white p-4 rounded-2xl shadow-inner border-2 border-emerald-100" style="width: 500px; height: 500px;">
+                    <canvas id="mathGraph" width="468" height="468"></canvas>
+                </div>
+            </div>
+
+            <div class="code-block text-center py-8">
+                <div class="text-3xl">
+                    From the graph, when <span class="code-var">y</span> = <span class="code-num">6</span>, <br>
+                    the value of <span class="code-var">a</span> is 
+                    <input type="number" class="slot-input !w-24" data-answer="5">
+                </div>
+            </div>
+            
+            <button onclick="checkStep(3)" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Confirm Observation</button>
+            <div class="feedback" id="feedback-3"></div>
+        </section>
+
+        <section id="step-4" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 5: Is B(-3, -1) on the Graph?</h2>
+            <p class="mb-6 text-xl text-emerald-700">
+                Locate the red point <mark>B(-3, -1)</mark> on the square grid above. 
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="p-6 bg-emerald-50 rounded-xl border-2 border-emerald-200">
+                    <p class="font-bold mb-2 text-emerald-800">Visual Check:</p>
+                    <p>Does the green line touch point B?</p>
+                    <select class="slot-input mt-4" data-answer="No">
+                        <option value="">choose...</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+                <div class="p-6 bg-emerald-50 rounded-xl border-2 border-emerald-200">
+                    <p class="font-bold mb-2 text-emerald-800">Conclusion:</p>
+                    <p>Is B a solution to the formula?</p>
+                    <select class="slot-input mt-4" data-answer="is not">
+                        <option value="">choose...</option>
+                        <option value="is">is</option>
+                        <option value="is not">is not</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="checkStep(4)" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Finalize Practice</button>
+            <div class="feedback" id="feedback-4"></div>
+        </section>
+
+        <section id="success-screen" class="hidden-step text-center py-20">
+            <div class="inline-block p-16 bg-white rounded-[40px] shadow-2xl border-8 border-emerald-600">
+                <div class="text-8xl mb-8">🎯</div>
+                <h2 class="text-6xl font-black text-emerald-700 mb-6">Great Job!</h2>
+                <p class="text-2xl text-emerald-900 mb-12">You've mastered subject change and coordinate verification.</p>
+                <button onclick="location.reload()" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-2xl transition-transform hover:scale-105">Restart</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const ctx = document.getElementById('mathGraph').getContext('2d');
+        const mathChart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'y = 2x - 4',
+                        // Points clipped to stay within visible -10 to 10 bounds
+                        data: [{x: -3, y: -10}, {x: 7, y: 10}], 
+                        showLine: true,
+                        borderColor: '#059669',
+                        borderWidth: 4,
+                        pointRadius: 0,
+                        order: 2
+                    },
+                    {
+                        label: 'Point A',
+                        data: [{x: 5, y: 6}],
+                        backgroundColor: '#fbbf24',
+                        pointRadius: 10,
+                        order: 1
+                    },
+                    {
+                        label: 'Point B',
+                        data: [{x: -3, y: -1}],
+                        backgroundColor: '#dc2626',
+                        pointRadius: 10,
+                        order: 1
+                    },
+                    {
+                        label: 'Y-Guide',
+                        data: [{x: 0, y: 6}, {x: 5, y: 6}],
+                        showLine: true,
+                        borderColor: '#fbbf24',
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        pointRadius: 0
+                    },
+                    {
+                        label: 'X-Guide',
+                        data: [{x: 5, y: 0}, {x: 5, y: 6}],
+                        showLine: true,
+                        borderColor: '#fbbf24',
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: true,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'center',
+                        min: -10,
+                        max: 10,
+                        ticks: { stepSize: 1, color: '#064e3b', font: { weight: 'bold' } },
+                        grid: { color: '#e2e8f0' }
+                    },
+                    y: {
+                        type: 'linear',
+                        position: 'center',
+                        min: -10,
+                        max: 10,
+                        ticks: { stepSize: 1, color: '#064e3b', font: { weight: 'bold' } },
+                        grid: { color: '#e2e8f0' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
