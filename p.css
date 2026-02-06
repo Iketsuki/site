@@ -194,3 +194,147 @@ button:hover {
     background-color: #10b981;
     color: white;
 }
+
+/* Container for the code and its output */
+.code-block[data-expected] {
+    position: relative;
+    margin-bottom: 4rem; /* Space for the floating output */
+}
+
+/* The "Expected Output" Label and Box */
+.code-block[data-expected]::after {
+    content: "Expected Output: \a" attr(data-expected);
+    display: block;
+    white-space: pre-wrap; /* Allows \a to create new lines */
+    background: rgba(0, 0, 0, 0.2);
+    color: #6ee7b7; /* Emerald-300 */
+    font-family: 'Fira Code', monospace;
+    font-size: 1rem;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    border-radius: 0.75rem;
+    border-left: 4px solid #059669;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+/* Hover effect to make it pop */
+.code-block[data-expected]:hover::after {
+    opacity: 1;
+}
+
+/* Container for Expected Output */
+.output-wrapper {
+    margin-top: 1.5rem;
+}
+
+/* The actual output box - Hidden by default */
+.output-content {
+    display: none; 
+    background: rgba(0, 0, 0, 0.2);
+    border-left: 4px solid #10b981;
+    padding: 1rem;
+    color: #6ee7b7;
+    font-family: 'Fira Code', monospace;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    white-space: pre-wrap;
+}
+
+/* Label for the toggle */
+.output-toggle {
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #34d399;
+    background: none;
+    border: 1px solid #34d399;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.output-toggle:hover {
+    background: #34d399;
+    color: #064e3b;
+}
+
+/* Logic to show when parent is active (controlled by JS or details) */
+details[open] .output-content {
+    display: block;
+}
+
+/* --- Summary Table Styling --- */
+
+/* Container to allow horizontal scrolling on small screens */
+.overflow-x-auto {
+    margin: 2rem 0;
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: separate; /* Allows for rounded corners on the container */
+    border-spacing: 0;
+    background-color: white;
+    font-size: 1.1rem;
+}
+
+/* Header Styling */
+thead th {
+    background-color: #047857; /* emerald-700 */
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1.25rem 1rem;
+    border-bottom: 2px solid #064e3b;
+}
+
+/* Cell Spacing and Borders */
+td, th {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #ecfdf5; /* emerald-50 */
+    text-align: left;
+}
+
+/* Zebra Striping for Readability */
+tbody tr:nth-child(even) {
+    background-color: #f0fdf4; /* emerald-50 */
+}
+
+/* Hover effect for interactive feel */
+tbody tr:hover {
+    background-color: #d1fae5; /* emerald-100 */
+    transition: background-color 0.2s ease;
+}
+
+/* Highlighting Code inside Table */
+table mark {
+    background-color: #fef3c7; /* amber-100 */
+    color: #92400e;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    font-weight: 600;
+}
+
+/* Case Column (Bold and Centered) */
+tbody td:first-child {
+    font-weight: 800;
+    color: #065f46;
+    text-align: center;
+    width: 60px;
+}
+
+/* Special styling for the 'While' row to make it stand out as a different logic */
+tr.bg-emerald-800 {
+    background-color: #064e3b !important;
+    color: #ecfdf5;
+}
+
+tr.bg-emerald-800 td {
+    border-bottom: none;
+}

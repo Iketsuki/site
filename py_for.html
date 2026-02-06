@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Sliding Windows</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="p.css">
+</head>
+<body class="p-4 md:p-12 max-w-6xl mx-auto">
+
+    <header class="challenge-card text-center">
+        <h2 class="text-emerald-300 font-bold uppercase tracking-widest text-lg mb-4">Python Pro Lesson</h2>
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-10">Sliding Window Patterns</h1>
+    </header>
+
+    
+
+    <main id="scaffold-content">
+        <section id="step-0" class="step-container">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 0: Variables</h2>
+            <div class="code-block">
+                <div><span class="code-var">items</span> = [<span class="code-num">10</span>, <span class="code-num">20</span>, <span class="code-num">30</span>, <span class="code-num">40</span>, <span class="code-num">50</span>]</div>
+                <div><span class="code-var">n</span> = <span class="code-func">len</span>(<input type="text" class="slot-input" data-answer="items">)</div>
+            </div>
+            <button onclick="checkStep(0)" class="mt-6 bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Start Loops</button>
+            <div class="feedback" id="feedback-0"></div>
+        </section>
+
+        <section id="step-1" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 1: Simple Iteration</h2>
+            <div class="code-block">
+                <div class="code-comment"># a) First to last</div>
+                <div><span class="code-keyword">for</span> <span class="code-var">i</span> <span class="code-keyword">in</span> <span class="code-func">range</span>(<input type="text" class="slot-input" data-answer="n">):</div>
+                <div class="ml-12"><span class="code-func">print</span>(<span class="code-var">items</span>[<span class="code-var">i</span>])</div>
+                <details class="output-wrapper"><summary class="output-toggle">Expected Output</summary><div class="output-content">10, 20, 30, 40, 50</div></details>
+                
+                <div class="mt-8 code-comment"># b) Last to first</div>
+                <div><span class="code-keyword">for</span> <span class="code-var">i</span> <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-var">n</span> - <span class="code-num">1</span>, <input type="text" class="slot-input" data-answer="-1">, <input type="text" class="slot-input" data-answer="-1">):</div>
+                <div class="ml-12"><span class="code-func">print</span>(<span class="code-var">items</span>[<span class="code-var">i</span>])</div>
+                <details class="output-wrapper"><summary class="output-toggle">Expected Output</summary><div class="output-content">50, 40, 30, 20, 10</div></details>
+            </div>
+            <button onclick="checkStep(1)" class="bg-emerald-700 text-white rounded-full font-bold shadow-xl">Check Steps</button>
+            <div class="feedback" id="feedback-1"></div>
+        </section>
+
+        <section id="step-2" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 2: Consecutive Pairs</h2>
+            <div class="code-block">
+                <div class="code-comment"># c) Forward Pairs</div>
+                <div><span class="code-keyword">for</span> <span class="code-var">i</span> <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-var">n</span> - <input type="text" class="slot-input" data-answer="1">):</div>
+                <div class="ml-12"><span class="code-func">print</span>(<span class="code-var">items</span>[<span class="code-var">i</span>], <span class="code-var">items</span>[<span class="code-var">i</span>+<span class="code-num">1</span>])</div>
+                <details class="output-wrapper"><summary class="output-toggle">Expected Output</summary><div class="output-content">10 20, 20 30, 30 40, 40 50</div></details>
+
+                <div class="mt-8 code-comment"># d) Backward Pairs (Descending Order)</div>
+                <div><span class="code-keyword">for</span> <span class="code-var">i</span> <span class="code-keyword">in</span> <span class="code-func">range</span>(<input type="text" class="slot-input" data-answer="n-2">, <input type="text" class="slot-input" data-answer="-1">, <input type="text" class="slot-input" data-answer="-1">):</div>
+                <div class="ml-12"><span class="code-func">print</span>(<span class="code-var">items</span>[<span class="code-var">i</span>+<span class="code-num">1</span>], <span class="code-var">items</span>[<span class="code-var">i</span>])</div>
+                <details class="output-wrapper"><summary class="output-toggle">Expected Output</summary><div class="output-content">50 40, 40 30, 30 20, 20 10</div></details>
+            </div>
+            <button onclick="checkStep(2)" class="bg-emerald-700 text-white rounded-full font-bold shadow-xl">Check Pairs</button>
+            <div class="feedback" id="feedback-2"></div>
+        </section>
+
+        <section id="step-3" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 3: Triplets</h2>
+            <div class="code-block">
+                <div class="code-comment"># e) Forward Triplets</div>
+                <div><span class="code-keyword">for</span> <span class="code-var">i</span> <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-var">n</span> - <input type="text" class="slot-input" data-answer="2">):</div>
+                <div class="ml-12"><span class="code-func">print</span>(<span class="code-var">items</span>[<span class="code-var">i</span>], <span class="code-var">items</span>[<span class="code-var">i</span>+<span class="code-num">1</span>], <span class="code-var">items</span>[<span class="code-var">i</span>+<span class="code-num">2</span>])</div>
+                <details class="output-wrapper"><summary class="output-toggle">Expected Output</summary><div class="output-content">10 20 30, 20 30 40, 30 40 50</div></details>
+
+                <div class="mt-8 code-comment"># f) Backward Triplets (Descending Order)</div>
+                <div><span class="code-keyword">for</span> <span class="code-var">i</span> <span class="code-keyword">in</span> <span class="code-func">range</span>(<input type="text" class="slot-input" data-answer="n-3">, <input type="text" class="slot-input" data-answer="-1">, <input type="text" class="slot-input" data-answer="-1">):</div>
+                <div class="ml-12"><span class="code-func">print</span>(<span class="code-var">items</span>[<span class="code-var">i</span>+<span class="code-num">2</span>], <span class="code-var">items</span>[<span class="code-var">i</span>+<span class="code-num">1</span>], <span class="code-var">items</span>[<span class="code-var">i</span>])</div>
+                <details class="output-wrapper"><summary class="output-toggle">Expected Output</summary><div class="output-content">50 40 30, 40 30 20, 30 20 10</div></details>
+            </div>
+            <button onclick="checkStep(3)" class="bg-emerald-700 text-white rounded-full font-bold shadow-xl">Check Triplets</button>
+            <div class="feedback" id="feedback-3"></div>
+        </section>
+
+        <section id="step-4" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 4: While Loop (Case G)</h2>
+            <div class="code-block">
+                <div class="code-comment"># g) Forward Triplets (While Loop)</div>
+                <div><span class="code-var">i</span> = <span class="code-num">0</span></div>
+                <div><span class="code-keyword">while</span> <span class="code-var">i</span> &lt; <input type="text" class="slot-input" data-answer="n-2">:</div>
+                <div class="ml-12"><span class="code-func">print</span>(<span class="code-var">items</span>[<span class="code-var">i</span>], <span class="code-var">items</span>[<span class="code-var">i</span>+<span class="code-num">1</span>], <span class="code-var">items</span>[<span class="code-var">i</span>+<span class="code-num">2</span>])</div>
+                <div class="ml-12"><span class="code-var">i</span> += <input type="text" class="slot-input" data-answer="1"></div>
+            </div>
+            <button onclick="checkStep(4)" class="mt-6 bg-emerald-700 text-white rounded-full font-bold shadow-xl">Complete & View Summary</button>
+            <div class="feedback" id="feedback-4"></div>
+        </section>
+
+        <section id="step-5" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-6">Master Summary Table</h2>
+            <div class="overflow-x-auto bg-white rounded-2xl shadow-lg border border-emerald-100">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-emerald-700 text-white text-sm">
+                        <tr>
+                            <th class="p-4 border-b">Case</th>
+                            <th class="p-4 border-b">Goal</th>
+                            <th class="p-4 border-b">Range Start</th>
+                            <th class="p-4 border-b">Range Stop</th>
+                            <th class="p-4 border-b">Step</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-emerald-900 text-base">
+                        <tr class="bg-emerald-50/50"><td>a</td><td>Forward 1x1</td><td>0</td><td>n</td><td>1 (default)</td></tr>
+                        <tr><td>b</td><td>Backward 1x1</td><td>n - 1</td><td>-1</td><td>-1</td></tr>
+                        <tr class="bg-emerald-50/50"><td>c</td><td>Forward Pair</td><td>0</td><td>n - 1</td><td>1</td></tr>
+                        <tr><td>d</td><td>Backward Pair</td><td>n - 2</td><td>-1</td><td>-1</td></tr>
+                        <tr class="bg-emerald-50/50"><td>e</td><td>Forward Triplet</td><td>0</td><td>n - 2</td><td>1</td></tr>
+                        <tr><td>f</td><td>Backward Triplet</td><td>n - 3</td><td>-1</td><td>-1</td></tr>
+                        <tr class="bg-emerald-800 text-white font-bold"><td>g</td><td>While Triplet</td><td>i = 0</td><td>while i &lt; n-2</td><td>i += 1</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mt-8 text-2xl font-bold text-emerald-900">∴ Logic Fully Mastered</p>
+            <button onclick="checkStep(5)" class="mt-6 bg-emerald-700 text-white rounded-full font-bold shadow-xl">Complete Lesson</button>
+        </section>
+
+        <section id="success-screen" class="hidden-step text-center py-20">
+            <div class="inline-block p-16 bg-white rounded-[40px] shadow-2xl border-8 border-emerald-600">
+                <div class="text-8xl mb-8">🐍</div>
+                <h2 class="text-6xl font-black text-emerald-700 mb-6">Great Work!</h2>
+                <p class="text-2xl text-emerald-900 mb-12">You've mastered all 7 index patterns.</p>
+                <button onclick="location.reload()" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-2xl">Restart</button>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="l.js"></script>
+</body>
+</html>
