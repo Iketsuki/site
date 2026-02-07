@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Magic Task Breaker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -11,6 +11,7 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .task-card { transition: all 0.2s ease; }
@@ -76,41 +77,50 @@
             margin-top: -6px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
+
+        .chevron { transition: transform 0.3s ease; }
+        .chevron.expanded { transform: rotate(180deg); }
+
+        /* Mobile specific tweaks */
+        @media (max-width: 640px) {
+            .btn-text { display: none; }
+            .header-btn { padding: 0.75rem; }
+        }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-3 md:p-8">
     <div class="max-w-3xl mx-auto">
-        <header class="mb-8 text-center">
-            <h1 class="text-4xl font-bold text-slate-800 mb-2">✨ Magic Task Breaker</h1>
-            <p class="text-slate-500">Break overwhelming tasks into manageable steps.</p>
+        <header class="mb-6 md:mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-800 mb-2">✨ Magic Task Breaker</h1>
+            <p class="text-sm md:text-base text-slate-500">Break overwhelming tasks into manageable steps.</p>
             
             <div class="mt-4 flex justify-center flex-wrap gap-2">
-                <button onclick="toggleSettings(true)" class="text-xs font-semibold text-slate-500 hover:text-blue-600 flex items-center gap-1 border border-slate-200 px-3 py-1.5 rounded-lg bg-white shadow-sm transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-                    Settings & Backend
+                <button onclick="toggleSettings(true)" class="header-btn text-xs font-semibold text-slate-600 hover:text-blue-600 flex items-center gap-2 border border-slate-200 px-3 py-2 rounded-xl bg-white shadow-sm transition-all active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span class="btn-text">Settings</span>
                 </button>
-                <button onclick="downloadSelf()" class="text-xs font-semibold text-slate-500 hover:text-green-600 flex items-center gap-1 border border-slate-200 px-3 py-1.5 rounded-lg bg-white shadow-sm transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Save App
+                <button onclick="downloadSelf()" class="header-btn text-xs font-semibold text-slate-600 hover:text-green-600 flex items-center gap-2 border border-slate-200 px-3 py-2 rounded-xl bg-white shadow-sm transition-all active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span class="btn-text">Save App</span>
                 </button>
-                <button onclick="exportToMarkdown()" class="text-xs font-semibold text-slate-500 hover:text-purple-600 flex items-center gap-1 border border-slate-200 px-3 py-1.5 rounded-lg bg-white shadow-sm transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    Export .md
+                <button onclick="exportToMarkdown()" class="header-btn text-xs font-semibold text-slate-600 hover:text-purple-600 flex items-center gap-2 border border-slate-200 px-3 py-2 rounded-xl bg-white shadow-sm transition-all active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span class="btn-text">Export</span>
                 </button>
-                <label class="text-xs font-semibold text-slate-500 hover:text-orange-600 flex items-center gap-1 border border-slate-200 px-3 py-1.5 rounded-lg bg-white shadow-sm transition-all cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Import .md
+                <label class="header-btn text-xs font-semibold text-slate-600 hover:text-orange-600 flex items-center gap-2 border border-slate-200 px-3 py-2 rounded-xl bg-white shadow-sm transition-all cursor-pointer active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span class="btn-text">Import</span>
                     <input type="file" id="importInput" class="hidden" accept=".md,.txt" onchange="importFromMarkdown(event)">
                 </label>
             </div>
         </header>
 
         <!-- Task Entry -->
-        <div class="bg-white rounded-2xl shadow-sm p-4 mb-8 border border-slate-100">
-            <div class="flex gap-2">
+        <div class="bg-white rounded-2xl shadow-sm p-3 md:p-4 mb-6 md:mb-8 border border-slate-100">
+            <div class="flex flex-col sm:flex-row gap-2">
                 <input type="text" id="taskInput" placeholder="What needs to be done?" 
-                    class="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                <button onclick="addTask()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+                    class="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-base">
+                <button onclick="addTask()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors active:scale-95">
                     Add Task
                 </button>
             </div>
@@ -127,13 +137,12 @@
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-slate-200">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold text-slate-800">Configuration</h2>
-                <button onclick="toggleSettings(false)" class="text-slate-400 hover:text-slate-600">
+                <button onclick="toggleSettings(false)" class="text-slate-400 hover:text-slate-600 p-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
             
             <div class="space-y-6">
-                <!-- Breakdown Detail Slider -->
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-sm font-bold text-slate-700 uppercase tracking-tight">Breakdown Detail</label>
@@ -173,7 +182,7 @@
                     </div>
                 </div>
 
-                <button onclick="saveSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl mt-2 transition-colors shadow-sm">
+                <button onclick="saveSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl mt-2 transition-colors shadow-sm active:scale-95">
                     Apply & Save
                 </button>
             </div>
@@ -181,8 +190,7 @@
     </div>
 
     <script>
-        const isHttps = window.location.protocol === 'https:';
-        const apiKey = ""; // Provided by environment
+        const apiKey = ""; 
 
         let config = JSON.parse(localStorage.getItem('lm_config_v4')) || {
             useLMStudio: true,
@@ -229,20 +237,15 @@
             localStorage.setItem('magic_tasks_v2', JSON.stringify(tasks));
         }
 
-        // --- Utility to fix malformed JSON ---
         function robustJSONParse(str) {
             let cleaned = str.trim();
-            
-            // Try to find the first '{' and last '}'
             const firstBrace = cleaned.indexOf('{');
             const lastBrace = cleaned.lastIndexOf('}');
             
             if (firstBrace !== -1 && lastBrace !== -1) {
                 cleaned = cleaned.substring(firstBrace, lastBrace + 1);
             } else if (firstBrace !== -1) {
-                // If it's missing the closing brace (truncation), try to fix it
                 cleaned = cleaned.substring(firstBrace);
-                // Simple fix for missing closing array/object
                 if (cleaned.includes('[') && !cleaned.includes(']')) cleaned += ']}';
                 else if (!cleaned.endsWith('}')) cleaned += '}';
             }
@@ -250,8 +253,6 @@
             try {
                 return JSON.parse(cleaned);
             } catch (e) {
-                // Last ditch effort: regex for content
-                console.warn("JSON.parse failed, trying regex fallback", e);
                 const items = [];
                 const regex = /"text":\s*"([^"]+)"/g;
                 let match;
@@ -263,7 +264,6 @@
             }
         }
 
-        // --- Task Operations ---
         async function breakDownTask(taskId) {
             const task = tasks.find(t => t.id === taskId);
             if (!task || task.isLoading) return;
@@ -312,9 +312,8 @@
 
                 if (data && data.subtasks) {
                     task.subtasks = data.subtasks.map(s => {
-                        // Fix for nested arrays like [["step content"]] or just "step content" strings
                         let val = s;
-                        if (Array.isArray(s)) val = s[0];
+                        if (Array.isArray(s)) val = { text: s[0] };
                         if (typeof val === 'string') val = { text: val };
                         
                         return {
@@ -325,10 +324,10 @@
                             completed: false
                         };
                     });
+                    task.isExpanded = true; // Auto-expand after generation
                 }
             } catch (err) { 
                 console.error("AI breakdown failed", err);
-                // Show a user-friendly box instead of alert if possible
             } finally {
                 task.isLoading = false;
                 saveTasks();
@@ -336,11 +335,10 @@
             }
         }
 
-        // --- Core Functions ---
         function addTask() {
             const el = document.getElementById('taskInput');
             if (!el.value.trim()) return;
-            tasks.unshift({ id: Date.now(), text: el.value.trim(), completed: false, subtasks: [], isLoading: false });
+            tasks.unshift({ id: Date.now(), text: el.value.trim(), completed: false, subtasks: [], isLoading: false, isExpanded: false });
             el.value = '';
             saveTasks();
             render();
@@ -348,6 +346,12 @@
 
         function toggleTask(id) {
             tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            saveTasks();
+            render();
+        }
+
+        function toggleExpand(id) {
+            tasks = tasks.map(t => t.id === id ? { ...t, isExpanded: !t.isExpanded } : t);
             saveTasks();
             render();
         }
@@ -371,12 +375,17 @@
         }
 
         function updateTask(id, text) {
-            tasks = tasks.map(t => t.id === id ? { ...t, text } : t);
+            tasks = tasks.map(t => t.id === id ? { ...t, text: text.trim() } : t);
             saveTasks();
         }
 
         function updateSubtask(taskId, subId, text) {
-            tasks = tasks.map(t => t.id === taskId ? { ...t, subtasks: t.subtasks.map(s => s.id === subId ? { ...s, text } : s) } : t);
+            tasks = tasks.map(t => t.id === taskId ? { ...t, subtasks: t.subtasks.map(s => s.id === subId ? { ...s, text: text.trim() } : s) } : t);
+            saveTasks();
+        }
+
+        function updateSubtaskCategory(taskId, subId, category) {
+            tasks = tasks.map(t => t.id === taskId ? { ...t, subtasks: t.subtasks.map(s => s.id === subId ? { ...s, category: category.trim().toLowerCase() } : s) } : t);
             saveTasks();
         }
 
@@ -427,7 +436,7 @@
                             completed: sMatch[1] === 'x'
                         });
                     } else if (mMatch) {
-                        currentTask = { id: Date.now() + Math.random(), text: mMatch[2].trim(), completed: mMatch[1] === 'x', subtasks: [], isLoading: false };
+                        currentTask = { id: Date.now() + Math.random(), text: mMatch[2].trim(), completed: mMatch[1] === 'x', subtasks: [], isLoading: false, isExpanded: false };
                         newTasks.push(currentTask);
                     }
                 });
@@ -442,35 +451,56 @@
             
             container.innerHTML = tasks.map(task => `
                 <div class="task-card bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="p-4 flex items-center gap-3">
-                        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})" class="w-5 h-5 rounded-full border-slate-300 shrink-0">
-                        <div class="flex-1">
-                            <span contenteditable="true" onblur="updateTask(${task.id}, this.innerText)" 
-                                  class="editable block py-1 ${task.completed ? 'line-through text-slate-400' : 'text-slate-800 font-medium'}">
-                                ${task.text}
-                            </span>
+                    <div class="p-4 flex items-start gap-3">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})" 
+                               class="w-6 h-6 rounded-full border-slate-300 shrink-0 mt-0.5 cursor-pointer">
+                        <div class="flex-1 min-w-0" onclick="${task.subtasks.length ? `toggleExpand(${task.id})` : ''}">
+                            <div class="flex items-center gap-2">
+                                <span contenteditable="true" 
+                                      onclick="event.stopPropagation()"
+                                      onblur="updateTask(${task.id}, this.innerText)" 
+                                      class="editable block py-1 text-base md:text-lg break-words flex-1 ${task.completed ? 'line-through text-slate-400' : 'text-slate-800 font-medium'}">
+                                    ${task.text}
+                                </span>
+                                ${task.subtasks.length && !task.isExpanded ? `<span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-md font-bold shrink-0">${task.subtasks.length}</span>` : ''}
+                            </div>
                         </div>
-                        <div class="flex gap-1 shrink-0">
-                            <button onclick="breakDownTask(${task.id})" class="text-blue-600 p-2 hover:bg-blue-50 rounded-lg">
+                        <div class="flex gap-1 shrink-0 items-center">
+                            ${task.subtasks.length ? `
+                                <button onclick="toggleExpand(${task.id})" class="text-slate-400 p-2 hover:bg-slate-50 rounded-lg active:scale-90 touch-manipulation">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chevron ${task.isExpanded ? 'expanded' : ''}"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                </button>
+                            ` : ''}
+                            <button onclick="breakDownTask(${task.id})" class="text-blue-600 p-2 hover:bg-blue-50 rounded-lg active:scale-90 touch-manipulation">
                                 ${task.isLoading ? '<span class="loader"></span>' : '✨'}
                             </button>
-                            <button onclick="deleteTask(${task.id})" class="text-slate-300 hover:text-red-500 p-2 hover:bg-red-50 rounded-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18m-2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                            <button onclick="deleteTask(${task.id})" class="text-slate-300 hover:text-red-500 p-2 hover:bg-red-50 rounded-lg active:scale-90 touch-manipulation">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18m-2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                             </button>
                         </div>
                     </div>
-                    ${task.subtasks.length ? `
-                        <div class="bg-slate-50 border-t border-slate-100 p-4 space-y-2">
+                    ${task.subtasks.length && task.isExpanded ? `
+                        <div class="bg-slate-50 border-t border-slate-100 p-3 md:p-4 space-y-3">
                             ${task.subtasks.map(st => `
-                                <div class="flex items-center gap-3 text-sm group">
-                                    <input type="checkbox" ${st.completed ? 'checked' : ''} onchange="toggleSubtask(${task.id}, '${st.id}')" class="w-4 h-4 shrink-0">
-                                    <span contenteditable="true" onblur="updateSubtask(${task.id}, '${st.id}', this.innerText)"
-                                          class="editable flex-1 ${st.completed ? 'line-through text-slate-400' : 'text-slate-600'}">
-                                        ${st.text}
-                                    </span>
-                                    <span class="text-[9px] bg-white border border-slate-200 px-1.5 py-0.5 rounded text-slate-400 uppercase font-bold shrink-0">${st.category}</span>
-                                    <button onclick="deleteSubtask(${task.id}, '${st.id}')" class="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 p-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                <div class="flex items-start gap-3 text-sm group">
+                                    <input type="checkbox" ${st.completed ? 'checked' : ''} onchange="toggleSubtask(${task.id}, '${st.id}')" 
+                                           class="w-5 h-5 shrink-0 mt-0.5 cursor-pointer">
+                                    <div class="flex-1 min-w-0">
+                                        <span contenteditable="true" onblur="updateSubtask(${task.id}, '${st.id}', this.innerText)"
+                                              class="editable block break-words ${st.completed ? 'line-through text-slate-400' : 'text-slate-600'}">
+                                            ${st.text}
+                                        </span>
+                                        <div class="mt-1 flex flex-wrap items-center gap-2">
+                                            <span contenteditable="true" 
+                                                  onblur="updateSubtaskCategory(${task.id}, '${st.id}', this.innerText)"
+                                                  class="editable text-[10px] bg-white border border-slate-200 px-2 py-0.5 rounded text-blue-500 uppercase font-bold tracking-wider inline-block">
+                                                ${st.category}
+                                            </span>
+                                            <span class="text-[10px] text-slate-300 font-medium">${st.estimate}m</span>
+                                        </div>
+                                    </div>
+                                    <button onclick="deleteSubtask(${task.id}, '${st.id}')" class="md:opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 p-1 active:scale-90 touch-manipulation">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                     </button>
                                 </div>
                             `).join('')}
