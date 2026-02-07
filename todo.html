@@ -53,6 +53,33 @@
             border-radius: 4px;
             cursor: text;
         }
+
+        /* Modal specific styles */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Toggle switch styles */
+        .toggle-bg:after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 9999px;
+            height: 1.25rem;
+            width: 1.25rem;
+            transition: all 0.3s;
+        }
+        input:checked + .toggle-bg:after {
+            transform: translateX(100%);
+            border-color: #3b82f6;
+        }
+        input:checked + .toggle-bg {
+            background-color: #3b82f6;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -62,6 +89,10 @@
             <p class="text-slate-500">Break overwhelming tasks into manageable steps.</p>
             
             <div class="mt-4 flex justify-center gap-3">
+                <button onclick="toggleSettings(true)" id="settingsBtn" class="text-xs font-semibold text-slate-500 hover:text-blue-600 flex items-center gap-1 border border-slate-200 px-3 py-1.5 rounded-lg bg-white shadow-sm transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Backend: <span id="currentModeLabel">Gemini</span>
+                </button>
                 <button onclick="exportToMarkdown()" class="text-xs font-semibold text-slate-500 hover:text-blue-600 flex items-center gap-1 border border-slate-200 px-3 py-1.5 rounded-lg bg-white shadow-sm transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     Export MD
@@ -96,10 +127,102 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-slate-200">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-slate-800">API Configuration</h2>
+                <button onclick="toggleSettings(false)" class="text-slate-400 hover:text-slate-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <div>
+                        <span class="block text-sm font-bold text-slate-700">LM Studio Mode</span>
+                        <span class="text-[10px] text-slate-500 uppercase tracking-wide">Toggle off for Gemini Cloud</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="useLMStudio" class="sr-only" onchange="toggleLMInputVisibility(this.checked)">
+                        <div class="toggle-bg w-11 h-6 bg-slate-200 rounded-full transition-colors"></div>
+                    </label>
+                </div>
+
+                <div id="lmSettingsFields" class="space-y-4 pt-2 border-t border-slate-100 hidden">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1">Local Server Address</label>
+                        <input type="text" id="lmServer" placeholder="http://192.168.x.x:1234" 
+                            class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1">Model API Identifier</label>
+                        <input type="text" id="lmModel" placeholder="qwen/qwen3-4b-thinking-2507" 
+                            class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-lg text-xs text-blue-700 leading-relaxed">
+                        <strong>LM Studio Tip:</strong> Enable CORS in LM Studio settings. If using HTTPS preview, download and run this file locally.
+                    </div>
+                </div>
+
+                <div id="geminiNote" class="text-xs text-slate-500 italic p-2">
+                    Gemini mode uses the cloud-based Flash-2.5 model. No extra setup required.
+                </div>
+
+                <button onclick="saveSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-colors mt-2">
+                    Save Configuration
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const apiKey = ""; // API key provided by environment
         let tasks = JSON.parse(localStorage.getItem('magic_tasks')) || [];
+        let config = JSON.parse(localStorage.getItem('lm_config')) || {
+            useLMStudio: false,
+            server: "http://localhost:1234",
+            model: "qwen/qwen3-4b-thinking-2507"
+        };
         let editingId = null;
+
+        function toggleLMInputVisibility(show) {
+            const fields = document.getElementById('lmSettingsFields');
+            const note = document.getElementById('geminiNote');
+            if (show) {
+                fields.classList.remove('hidden');
+                note.classList.add('hidden');
+            } else {
+                fields.classList.add('hidden');
+                note.classList.remove('hidden');
+            }
+        }
+
+        function toggleSettings(show) {
+            const modal = document.getElementById('settingsModal');
+            if (show) {
+                document.getElementById('lmServer').value = config.server;
+                document.getElementById('lmModel').value = config.model;
+                document.getElementById('useLMStudio').checked = config.useLMStudio;
+                toggleLMInputVisibility(config.useLMStudio);
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function saveSettings() {
+            config.useLMStudio = document.getElementById('useLMStudio').checked;
+            config.server = document.getElementById('lmServer').value.trim();
+            config.model = document.getElementById('lmModel').value.trim();
+            localStorage.setItem('lm_config', JSON.stringify(config));
+            updateModeLabel();
+            toggleSettings(false);
+        }
+
+        function updateModeLabel() {
+            document.getElementById('currentModeLabel').innerText = config.useLMStudio ? "LM Studio" : "Gemini";
+        }
 
         function saveTasks() {
             localStorage.setItem('magic_tasks', JSON.stringify(tasks));
@@ -210,49 +333,70 @@
             const maxRetries = 5;
             
             const fetchSubtasks = async () => {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: userQuery }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] },
-                        generationConfig: { 
-                            responseMimeType: "application/json",
-                            responseSchema: {
-                                type: "OBJECT",
-                                properties: {
-                                    subtasks: {
-                                        type: "ARRAY",
-                                        items: {
-                                            type: "OBJECT",
-                                            properties: {
-                                                text: { type: "STRING" },
-                                                category: { type: "STRING" },
-                                                estimate: { type: "NUMBER" }
-                                            },
-                                            required: ["text", "category", "estimate"]
+                if (config.useLMStudio) {
+                    // LM Studio Mode
+                    const endpoint = `${config.server.replace(/\/$/, '')}/v1/chat/completions`;
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            model: config.model,
+                            messages: [
+                                { role: "system", content: systemPrompt },
+                                { role: "user", content: userQuery }
+                            ],
+                            response_format: { type: "json_object" },
+                            temperature: 0.7
+                        })
+                    });
+                    if (!response.ok) throw new Error('LM Studio API Error');
+                    const result = await response.json();
+                    return JSON.parse(result.choices[0].message.content);
+                } else {
+                    // Gemini Mode
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: userQuery }] }],
+                            systemInstruction: { parts: [{ text: systemPrompt }] },
+                            generationConfig: { 
+                                responseMimeType: "application/json",
+                                responseSchema: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        subtasks: {
+                                            type: "ARRAY",
+                                            items: {
+                                                type: "OBJECT",
+                                                properties: {
+                                                    text: { type: "STRING" },
+                                                    category: { type: "STRING" },
+                                                    estimate: { type: "NUMBER" }
+                                                },
+                                                required: ["text", "category", "estimate"]
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                    })
-                });
-
-                if (!response.ok) throw new Error('API Error');
-                return await response.json();
+                        })
+                    });
+                    if (!response.ok) throw new Error('Gemini API Error');
+                    const result = await response.json();
+                    return JSON.parse(result.candidates[0].content.parts[0].text);
+                }
             };
 
             const attemptFetch = async (retryCount) => {
                 try {
-                    const result = await fetchSubtasks();
-                    const data = JSON.parse(result.candidates[0].content.parts[0].text);
+                    const data = await fetchSubtasks();
                     
                     task.subtasks = data.subtasks.map(s => ({
                         id: Math.random().toString(36).substr(2, 9),
                         text: s.text,
-                        category: s.category,
-                        estimate: s.estimate,
+                        category: s.category || "misc",
+                        estimate: s.estimate || 5,
                         completed: false
                     }));
                     task.isLoading = false;
@@ -265,7 +409,7 @@
                         setTimeout(() => attemptFetch(retryCount + 1), delay);
                     } else {
                         task.isLoading = false;
-                        alert("Magic failed. Please check your connection and try again.");
+                        alert(`Backend Error (${config.useLMStudio ? 'LM Studio' : 'Gemini'}): ` + error.message);
                         render();
                     }
                 }
@@ -445,6 +589,7 @@
             if (e.key === 'Enter') addTask();
         });
 
+        updateModeLabel();
         render();
     </script>
 </body>
