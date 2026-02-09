@@ -11,6 +11,33 @@ let isSubmitted = false;
 let hasUsedDebug = false; 
 let debugBuffer = "";
 
+// --- UTILITY: GET PROCESSED TEXT WITH INDENTATION ---
+function getLineText(line) {
+    let indentation = "";
+    if (line.classList.contains('ml-12')) indentation = "    ";
+    if (line.classList.contains('ml-24')) indentation = "        ";
+    if (line.classList.contains('ml-36')) indentation = "            ";
+
+    const tempLine = line.cloneNode(true);
+    const inputs = tempLine.querySelectorAll('.slot-input');
+    
+    inputs.forEach(input => {
+        // Retrieve the current live value from the actual DOM element
+        const realInput = document.querySelector(`[data-answer="${input.getAttribute('data-answer')}"]`);
+        const val = realInput.value.trim();
+        // Fill empty slots with #TODO as requested
+        const replacement = (val === "") ? "#TODO" : val;
+        input.replaceWith(replacement);
+    });
+
+    let content = tempLine.textContent.trim();
+    
+    // Prefix output content with # to maintain valid Python syntax
+    if (line.classList.contains('output-content')) {
+        return "# " + content;
+    }
+    return indentation + content;
+}
 // --- UPDATED UTILITY: COPY CODE WITH MATH-MODE CHECK ---
 window.copyCurrentCode = function() {
     // 1. EXIT if math-mode is active
@@ -268,7 +295,7 @@ window.checkStep = async function(idx) {
 };
 
 
-// --- UPDATED FINAL CODE BLOCK ---
+// --- FINAL SUMMARY RENDERING ---
 function renderFullCodeBlock() {
     // 2. Double check math-mode before rendering
     if (document.body.classList.contains('math-mode')) return;
@@ -282,33 +309,17 @@ function renderFullCodeBlock() {
     
     const summary = document.createElement('summary');
     summary.textContent = "📂 View Full Completed Code";
-    summary.style = "cursor:pointer; font-weight:bold; color:#059669; font-size:1.4rem; padding: 1rem; background: #ecfdf5; border-radius: 8px;";
+    summary.style = "cursor:pointer; font-weight:bold; color:#059669; font-size:1.2rem; padding: 1rem; background: #ecfdf5; border-radius: 12px; border: 1px solid #059669;";
     
     const codeContainer = document.createElement('pre');
-    codeContainer.id = "full-code-display";
+    codeContainer.id = "full-code-display"; // Uses your p.css styling
 
     let finalCode = "";
     document.querySelectorAll('.code-block').forEach(block => {
-        const lines = block.querySelectorAll('div');
-        lines.forEach(line => {
-            let indentation = "";
-            if (line.classList.contains('ml-12')) indentation = "    ";
-            if (line.classList.contains('ml-24')) indentation = "        ";
-
-            const tempLine = line.cloneNode(true);
-            tempLine.querySelectorAll('.slot-input').forEach(input => {
-                const realInput = document.querySelector(`[data-answer="${input.getAttribute('data-answer')}"]`);
-                input.replaceWith(realInput.value);
-            });
-
-            // Handle output content specifically as comments
-            if (line.classList.contains('output-content')) {
-                finalCode += "# " + tempLine.textContent.trim() + "\n";
-            } else {
-                finalCode += indentation + tempLine.textContent.trim() + "\n";
-            }
+        block.querySelectorAll('div').forEach(line => {
+            finalCode += getLineText(line) + "\n";
         });
-        finalCode += "\n";
+        finalCode += "\n"; 
     });
 
     codeContainer.textContent = finalCode.trim();
@@ -316,7 +327,6 @@ function renderFullCodeBlock() {
     details.appendChild(codeContainer);
     successScreen.appendChild(details);
 }
-
 // Ensure checkStep calls renderFullCodeBlock on completion
 
 async function handleFinalSubmission(idx, feedbackElement) {
@@ -410,27 +420,28 @@ function applyDynamicWidths() {
 
 // Run immediately and on DOMContentLoaded
 applyDynamicWidths();
-document.addEventListener('DOMContentLoaded', applyDynamicWidths);
-// --- UPDATED LISTENERS & INITIALIZATION ---
-// document.addEventListener('DOMContentLoaded', () => {
-//     const header = document.querySelector('header') || document.querySelector('h1');
-//     if (header) {
-//         header.style.cursor = "pointer";
-//         header.title = "Click to show QR Code";
-//         header.addEventListener('click', showQRCode);
-//     }
+// --- UPDATED INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    const header = document.querySelector('header') || document.querySelector('h1');
+    if (header) {
+        header.style.cursor = "pointer";
+        header.addEventListener('click', showQRCode);
+    }
     
-//     // Only add Copy Buttons if NOT in math-mode
-//     if (!document.body.classList.contains('math-mode')) {
-//         document.querySelectorAll('.step-container').forEach(step => {
-//             const btn = document.createElement('button');
-//             btn.textContent = "📋 Copy Code to Test";
-//             btn.className = "copy-btn";
-//             btn.style = "margin-top: 10px; font-size: 0.9rem !important; padding: 0.5rem 1rem !important; background: #334155; color: white;";
-//             btn.onclick = (e) => { e.preventDefault(); copyCurrentCode(); };
-//             step.appendChild(btn);
-//         });
-//     }
+    // Only add Copy Buttons if NOT in math-mode and prevent duplicates
+    if (!document.body.classList.contains('math-mode')) {
+        document.querySelectorAll('.step-container').forEach(step => {
+            if (!step.querySelector('.copy-btn')) { 
+                const btn = document.createElement('button');
+                btn.textContent = "📋 Copy Code to Test";
+                btn.className = "copy-btn";
+                // Standardize button style
+                btn.style = "margin-top: 1rem; font-size: 0.9rem; padding: 0.5rem 1rem; background: #334155; color: white; border-radius: 99px;";
+                btn.onclick = (e) => { e.preventDefault(); window.copyCurrentCode(); };
+                step.appendChild(btn);
+            }
+        });
+    }
     
-//     applyDynamicWidths();
-// });
+    applyDynamicWidths();
+});

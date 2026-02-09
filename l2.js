@@ -268,7 +268,7 @@ window.checkStep = async function(idx) {
 };
 
 
-// --- UPDATED FINAL CODE BLOCK ---
+// --- FINAL SUMMARY RENDERING ---
 function renderFullCodeBlock() {
     // 2. Double check math-mode before rendering
     if (document.body.classList.contains('math-mode')) return;
