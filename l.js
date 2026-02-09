@@ -11,20 +11,20 @@ let isSubmitted = false;
 let hasUsedDebug = false; 
 let debugBuffer = "";
 
-// --- UTILITY: GET PROCESSED TEXT WITH INDENTATION ---
 function getLineText(line) {
+    // Skip details/summary/output-toggle rows so they aren't copied as code
+    if (line.tagName === 'DETAILS' || line.classList.contains('output-wrapper')) return "";
+
     let indentation = "";
-    
-    // 1. DYNAMIC INDENTATION: Find any class starting with 'ml-'
+    // Dynamic Indentation Level (ml-12 = 4 spaces, ml-24 = 8, etc.)
     const marginClass = Array.from(line.classList).find(cls => cls.startsWith('ml-'));
-    
     if (marginClass) {
         // Extract the number (e.g., "12" from "ml-12")
         const marginValue = parseInt(marginClass.split('-')[1]);
         
         // Calculate levels (12 margin units = 1 level = 4 spaces)
         const levels = Math.floor(marginValue / 12);
-        indentation = "    ".repeat(levels); 
+        indentation = " ".repeat(levels * 4); 
     }
 
     const tempLine = line.cloneNode(true);
@@ -33,14 +33,13 @@ function getLineText(line) {
     inputs.forEach(input => {
         // Retrieve the current live value from the actual DOM element
         const realInput = document.querySelector(`[data-answer="${input.getAttribute('data-answer')}"]`);
-        const val = realInput.value.trim();
-        // Fill empty slots with #TODO as requested
-        const replacement = (val === "") ? "#TODO" : val;
-        input.replaceWith(replacement);
+        const val = realInput ? realInput.value.trim() : "";
+        input.replaceWith(val === "" ? "#TODO" : val);
     });
 
     let content = tempLine.textContent.trim();
-    
+    if (!content) return ""; // Skip empty lines
+
     // Prefix output content with # to maintain valid Python syntax
     if (line.classList.contains('output-content')) {
         return "# " + content;
@@ -59,43 +58,22 @@ window.copyCurrentCode = function() {
         const codeBlock = step.querySelector('.code-block');
         if (!codeBlock) return;
 
-        const lines = codeBlock.querySelectorAll('div');
-        let blockText = "";
-
+        // Get only direct child divs or spans that represent code lines
+        const lines = codeBlock.querySelectorAll(':scope > div, :scope > span');
         lines.forEach(line => {
-            // 1. Handle Indentation by checking margin classes
-            let indentation = "";
-            if (line.classList.contains('ml-12')) indentation = "    ";
-            if (line.classList.contains('ml-24')) indentation = "        ";
-            if (line.classList.contains('ml-36')) indentation = "            ";
-
-            // 2. Clone line to replace inputs without breaking UI
-            const tempLine = line.cloneNode(true);
-            const inputs = tempLine.querySelectorAll('.slot-input');
-            
-            inputs.forEach(input => {
-                const realInput = document.querySelector(`[data-answer="${input.getAttribute('data-answer')}"]`);
-                const val = realInput.value.trim();
-                const replacement = (val === "") ? "#TODO" : val;
-                input.replaceWith(replacement);
-            });
-
-            // 3. Prevent output-content from being copied as code 
-            // OR format it as a comment if desired
-            if (line.classList.contains('output-content')) {
-                blockText += "# " + tempLine.textContent.trim() + "\n";
-            } else {
-                blockText += indentation + tempLine.textContent.trim() + "\n";
-            }
+            const processed = getLineText(line);
+            if (processed) fullScript += processed + "\n";
         });
-
-        fullScript += blockText + "\n";
+        fullScript += "\n"; 
     });
 
     navigator.clipboard.writeText(fullScript.trim()).then(() => {
-        showToast("📋 Code copied!");
+        showToast("📋 Code copied with indentation!");
+    }).catch(err => {
+        console.error('Copy failed', err);
     });
 };
+
 // Helper to show visual Toast messages
 function showToast(message, isError = false) {
     const existing = document.getElementById('debug-toast');
@@ -186,25 +164,7 @@ window.addEventListener('keydown', (e) => {
     if (debugBuffer.length > 10) debugBuffer = debugBuffer.slice(-7);
 });
 
-// Title Click Trigger
-document.addEventListener('DOMContentLoaded', () => {
-    const header = document.querySelector('header') || document.querySelector('h1');
-    if (header) {
-        header.style.cursor = "pointer";
-        header.title = "Click to show QR Code";
-        header.addEventListener('click', showQRCode);
-    }
-    
-    // Add Copy Buttons to all step containers
-    document.querySelectorAll('.step-container').forEach(step => {
-        const btn = document.createElement('button');
-        btn.textContent = "📋 Copy Code to Test";
-        btn.className = "copy-btn";
-        btn.style = "margin-top: 10px; font-size: 0.9rem !important; padding: 0.5rem 1rem !important; background: #334155; color: white;";
-        btn.onclick = (e) => { e.preventDefault(); copyCurrentCode(); };
-        step.appendChild(btn);
-    });
-});
+
 
 // 3. VALIDATION & PROGRESS
 function getRemainingCount() {
@@ -234,7 +194,7 @@ function validateAllAnswers() {
     return allValid;
 }
 
-// --- UPDATED VALIDATION (With Locking and Math Check) ---
+// --- VALIDATION LOGIC ---
 window.checkStep = async function(idx) {
     const allSteps = document.querySelectorAll('section.step-container');
     const lastStepIdx = allSteps.length - 1;
@@ -250,28 +210,26 @@ window.checkStep = async function(idx) {
     
     let allInStepCorrect = true;
 
-    inputs.forEach(input => {
-        // Standardize comparison: remove spaces and normalize quotes
-        const val = input.value.trim().replace(/\s/g, '');
-        const ans = input.getAttribute('data-answer').replace(/\s/g, '');
-        
-        if (val !== ans) {
-            allInStepCorrect = false;
-            // Force red border using !important logic
-            input.style.setProperty('border-color', '#dc2626', 'important');
-            input.style.backgroundColor = "#fef2f2"; // Light red background
-        } else {
-            // Success styling
-            input.style.setProperty('border-color', '#059669', 'important');
-            input.style.backgroundColor = "white";
-            // LOCK THE INPUT so it cannot be modified again
-            input.disabled = true; 
-            input.style.cursor = "not-allowed";
-        }
-    });
+    if (inputs.length > 0) {
+        inputs.forEach(input => {
+            const val = input.value.trim().replace(/\s/g, '');
+            const ans = input.getAttribute('data-answer').replace(/\s/g, '');
+            
+            if (val === ans) {
+                input.style.setProperty('border-color', '#059669', 'important');
+                input.style.backgroundColor = "white";
+                input.disabled = true; // LOCK INPUT
+                input.style.cursor = "not-allowed";
+            } else {
+                allInStepCorrect = false;
+                input.style.setProperty('border-color', '#dc2626', 'important');
+                input.style.backgroundColor = "#fef2f2"; 
+            }
+        });
+    }
 
     if (allInStepCorrect) {
-        if (feedback) { 
+        if (feedback) {
             feedback.textContent = "✔️ Nice!";
             feedback.className = "feedback text-emerald-600";
             
@@ -280,14 +238,13 @@ window.checkStep = async function(idx) {
                 showToast(`📝 ${remaining} boxes left to complete!`);
             }
         }
-        
 
         if (idx === lastStepIdx) {
             if (validateAllAnswers()) {
-                await handleFinalSubmission(idx, feedback);
+            await handleFinalSubmission(idx, feedback);
                 // Only render the summary code block if NOT in math-mode
-                if (!document.body.classList.contains('math-mode')) {
-                    renderFullCodeBlock();
+            if (!document.body.classList.contains('math-mode')) {
+                renderFullCodeBlock();
                 }
             } else {
                 alert("⚠️ Earlier steps are incomplete or wrong!");
@@ -321,17 +278,19 @@ function renderFullCodeBlock() {
     
     const summary = document.createElement('summary');
     summary.textContent = "📂 View Full Completed Code";
-    summary.style = "cursor:pointer; font-weight:bold; color:#059669; font-size:1.2rem; padding: 1rem; background: #ecfdf5; border-radius: 12px; border: 1px solid #059669;";
+    summary.style = "cursor:pointer; font-weight:bold; color:#059669; font-size:1.2rem; padding: 1rem; background: #ecfdf5; border-radius: 12px; border: 1px solid #059669; list-style:none;";
     
     const codeContainer = document.createElement('pre');
-    codeContainer.id = "full-code-display"; // Uses your p.css styling
+    codeContainer.style = "background: #1e293b; color: #f8fafc; padding: 1.5rem; border-radius: 12px; margin-top: 1rem; overflow-x: auto; font-family: 'Fira Code', monospace; font-size: 0.9rem; line-height: 1.5;";
 
     let finalCode = "";
     document.querySelectorAll('.code-block').forEach(block => {
-        block.querySelectorAll('div').forEach(line => {
-            finalCode += getLineText(line) + "\n";
+        const lines = block.querySelectorAll(':scope > div, :scope > span');
+        lines.forEach(line => {
+            const text = getLineText(line);
+            if (text) finalCode += text + "\n";
         });
-        finalCode += "\n"; 
+        finalCode += "\n";
     });
 
     codeContainer.textContent = finalCode.trim();
@@ -432,23 +391,24 @@ function applyDynamicWidths() {
 
 // Run immediately and on DOMContentLoaded
 applyDynamicWidths();
-// --- UPDATED INITIALIZATION ---
+
+
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Header QR Trigger
     const header = document.querySelector('header') || document.querySelector('h1');
     if (header) {
         header.style.cursor = "pointer";
-        header.addEventListener('click', showQRCode);
+        header.addEventListener('click', window.showQRCode);
     }
     
-    // Only add Copy Buttons if NOT in math-mode and prevent duplicates
+    // 2. Add Copy Buttons to steps with code blocks (Avoid duplicates)
     if (!document.body.classList.contains('math-mode')) {
         document.querySelectorAll('.step-container').forEach(step => {
-            if (!step.querySelector('.copy-btn')) { 
+            if (!step.querySelector('.copy-btn') && step.querySelector('.code-block')) { 
                 const btn = document.createElement('button');
                 btn.textContent = "📋 Copy Code to Test";
                 btn.className = "copy-btn";
-                // Standardize button style
-                btn.style = "margin-top: 1rem; font-size: 0.9rem; padding: 0.5rem 1rem; background: #334155; color: white; border-radius: 99px;";
+                btn.style = "margin-top: 1rem; font-size: 0.9rem !important; padding: 0.5rem 1rem !important; background: #334155; color: white; border-radius: 99px; cursor: pointer;";
                 btn.onclick = (e) => { e.preventDefault(); window.copyCurrentCode(); };
                 step.appendChild(btn);
             }
