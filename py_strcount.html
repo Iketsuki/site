@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Logic: Counting in Strings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="p.css">
+</head>
+<body class="p-4 md:p-12 max-w-6xl mx-auto">
+
+    <header class="challenge-card text-center">
+        <h2 class="text-emerald-300 font-bold uppercase tracking-widest text-lg mb-4">String Algorithms</h2>
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-10">Manual String Counting</h1>
+        <p class="text-xl text-emerald-100 max-w-2xl mx-auto">
+            Treating a string as a <mark>list of characters</mark> to perform manual counts.
+        </p>
+    </header>
+
+    
+
+    <main id="scaffold-content">
+        <section id="step-0" class="step-container">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 0: The String</h2>
+            <div class="code-block">
+                <div><span class="code-var">word</span> = <span class="code-num">"mississippi"</span></div>
+                <div><span class="code-var">n</span> = <span class="code-func">len</span>(<input type="text" class="slot-input" data-answer="word">)</div>
+                <div><span class="code-var">target</span> = <span class="code-num">"s"</span></div>
+            </div>
+            <button onclick="checkStep(0)" class="mt-6 bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Start Counting</button>
+            <div class="feedback" id="feedback-0"></div>
+        </section>
+
+        <section id="step-1" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 1: Counting Characters</h2>
+            <p class="mb-4 text-emerald-700">Iterate through the string using index <mark>i</mark> to count the letter 's'.</p>
+            <div class="code-block">
+                <div><span class="code-var">s_count</span> = <span class="code-num">0</span></div>
+                <div><span class="code-keyword">for</span> <span class="code-var">i</span> <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-var">n</span>):</div>
+                <div class="ml-12"><span class="code-keyword">if</span> <span class="code-var">word</span>[<input type="text" class="slot-input" data-answer="i">] == <span class="code-var">target</span>:</div>
+                <div class="ml-24"><span class="code-var">s_count</span> += <input type="text" class="slot-input" data-answer="1"></div>
+                
+                <details class="output-wrapper">
+                    <summary class="output-toggle">Expected Output</summary>
+                    <div class="output-content">4</div>
+                </details>
+            </div>
+            <button onclick="checkStep(1)" class="bg-emerald-700 text-white rounded-full font-bold shadow-xl">Verify Count</button>
+            <div class="feedback" id="feedback-1"></div>
+        </section>
+
+        <section id="step-2" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Step 2: Manual "Count If"</h2>
+            <p class="mb-4 text-emerald-700">Count how many characters are <b>not</b> the letter 'i'.</p>
+            <div class="code-block">
+                <div><span class="code-var">others</span> = <span class="code-num">0</span></div>
+                <div><span class="code-keyword">for</span> <span class="code-var">i</span> <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-var">n</span>):</div>
+                <div class="ml-12"><span class="code-keyword">if</span> <span class="code-var">word</span>[<span class="code-var">i</span>] <input type="text" class="slot-input" data-answer="!="> <span class="code-num">"i"</span>:</div>
+                <div class="ml-24"><span class="code-var">others</span> += <span class="code-num">1</span></div>
+                
+                <details class="output-wrapper">
+                    <summary class="output-toggle">Expected Output</summary>
+                    <div class="output-content">7</div>
+                </details>
+            </div>
+            <button onclick="checkStep(2)" class="bg-emerald-700 text-white rounded-full font-bold shadow-xl">Verify Logic</button>
+            <div class="feedback" id="feedback-2"></div>
+        </section>
+
+        <section id="step-3" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-6">String Indexing Summary</h2>
+            <div class="overflow-x-auto">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Operation</th>
+                            <th>Access Method</th>
+                            <th>Loop Boundary</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="font-bold">Full String Scan</td>
+                            <td><mark>word[i]</mark></td>
+                            <td><mark>range(len(word))</mark></td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold">First Character</td>
+                            <td><mark>word[0]</mark></td>
+                            <td>N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold">Last Character</td>
+                            <td><mark>word[n-1]</mark></td>
+                            <td>N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold">Count If Match</td>
+                            <td><mark>if word[i] == "x"</mark></td>
+                            <td>Standard Loop</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold">Count If Different</td>
+                            <td><mark>if word[i] != "x"</mark></td>
+                            <td>Standard Loop</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mt-8 text-2xl font-bold text-emerald-900">∴ String Algorithms Mastered</p>
+            <button onclick="checkStep(3)" class="mt-6 bg-emerald-700 text-white rounded-full font-bold shadow-xl">Complete Lesson</button>
+        </section>
+
+        <section id="success-screen" class="hidden-step text-center py-20">
+            <div class="inline-block p-16 bg-white rounded-[40px] shadow-2xl border-8 border-emerald-600">
+                <div class="text-8xl mb-8">🔡</div>
+                <h2 class="text-6xl font-black text-emerald-700 mb-6">Logic Complete!</h2>
+                <p class="text-2xl text-emerald-900 mb-12">You've treated strings as character lists for custom counts.</p>
+                <button onclick="location.reload()" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-2xl">Restart</button>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="l.js"></script>
+</body>
+</html>

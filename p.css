@@ -338,3 +338,29 @@ tr.bg-emerald-800 {
 tr.bg-emerald-800 td {
     border-bottom: none;
 }
+
+/* --- Summary Table --- */
+.overflow-x-auto { margin: 2rem 0; border-radius: 1rem; overflow: hidden; border: 1px solid #059669; }
+table { width: 100%; border-collapse: collapse; background: white; }
+thead th { background: #047857; color: white; padding: 1rem; text-align: left; text-transform: uppercase; font-size: 0.9rem; }
+td { padding: 1rem; border-bottom: 1px solid #ecfdf5; color: #064e3b; }
+tbody tr:nth-child(even) { background: #f0fdf4; }
+
+/* --- Foldable Output --- */
+/* .output-wrapper { margin-top: 1rem; } */
+/* .output-toggle { cursor: pointer; color: #059669; font-weight: bold; font-size: 0.9rem; text-decoration: underline; list-style: none; } */
+.output-content { display: none; background: #111; color: #6ee7b7; padding: 1rem; border-radius: 0.5rem; margin-top: 0.5rem; font-family: 'Fira Code', monospace; }
+/* details[open] .output-content { display: block; } */
+
+#full-code-display {
+    background: #0f172a; /* Deep Slate */
+    color: #10b981; /* Emerald Text */
+    padding: 2rem;
+    border-radius: 1rem;
+    font-family: 'Fira Code', monospace;
+    white-space: pre-wrap;
+    text-align: left;
+    border: 2px solid #059669;
+    margin-top: 2rem;
+    font-size: 1.1rem;
+}

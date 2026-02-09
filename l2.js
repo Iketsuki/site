@@ -411,26 +411,3 @@ function applyDynamicWidths() {
 // Run immediately and on DOMContentLoaded
 applyDynamicWidths();
 document.addEventListener('DOMContentLoaded', applyDynamicWidths);
-// --- UPDATED LISTENERS & INITIALIZATION ---
-// document.addEventListener('DOMContentLoaded', () => {
-//     const header = document.querySelector('header') || document.querySelector('h1');
-//     if (header) {
-//         header.style.cursor = "pointer";
-//         header.title = "Click to show QR Code";
-//         header.addEventListener('click', showQRCode);
-//     }
-    
-//     // Only add Copy Buttons if NOT in math-mode
-//     if (!document.body.classList.contains('math-mode')) {
-//         document.querySelectorAll('.step-container').forEach(step => {
-//             const btn = document.createElement('button');
-//             btn.textContent = "📋 Copy Code to Test";
-//             btn.className = "copy-btn";
-//             btn.style = "margin-top: 10px; font-size: 0.9rem !important; padding: 0.5rem 1rem !important; background: #334155; color: white;";
-//             btn.onclick = (e) => { e.preventDefault(); copyCurrentCode(); };
-//             step.appendChild(btn);
-//         });
-//     }
-    
-//     applyDynamicWidths();
-// });
