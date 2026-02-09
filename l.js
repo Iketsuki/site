@@ -12,17 +12,12 @@ let hasUsedDebug = false;
 let debugBuffer = "";
 
 function getLineText(line) {
-    // Skip details/summary/output-toggle rows so they aren't copied as code
     if (line.tagName === 'DETAILS' || line.classList.contains('output-wrapper')) return "";
 
     let indentation = "";
-    // Dynamic Indentation Level (ml-12 = 4 spaces, ml-24 = 8, etc.)
     const marginClass = Array.from(line.classList).find(cls => cls.startsWith('ml-'));
     if (marginClass) {
-        // Extract the number (e.g., "12" from "ml-12")
         const marginValue = parseInt(marginClass.split('-')[1]);
-        
-        // Calculate levels (12 margin units = 1 level = 4 spaces)
         const levels = Math.floor(marginValue / 12);
         indentation = " ".repeat(levels * 4); 
     }
@@ -31,26 +26,25 @@ function getLineText(line) {
     const inputs = tempLine.querySelectorAll('.slot-input');
     
     inputs.forEach(input => {
-        // Retrieve the current live value from the actual DOM element
+        // Look up the live value from the actual document
         const realInput = document.querySelector(`[data-answer="${input.getAttribute('data-answer')}"]`);
         const val = realInput ? realInput.value.trim() : "";
         input.replaceWith(val === "" ? "#TODO" : val);
     });
 
     let content = tempLine.textContent.trim();
-    if (!content) return ""; // Skip empty lines
+    if (!content) return "";
 
-    // Prefix output content with # to maintain valid Python syntax
     if (line.classList.contains('output-content')) {
-        return "# " + content;
+        return "# " + content; // Prefix comments for Python
     }
     return indentation + content;
 }
-// --- UPDATED UTILITY: COPY CODE WITH MATH-MODE CHECK ---
+// --- UTILITY: COPY CODE ---
 window.copyCurrentCode = function() {
-    // 1. EXIT if math-mode is active
     if (document.body.classList.contains('math-mode')) return;
 
+    // Find all visible step containers
     const visibleSteps = Array.from(document.querySelectorAll('.step-container:not(.hidden-step)'));
     let fullScript = "";
 
@@ -58,7 +52,7 @@ window.copyCurrentCode = function() {
         const codeBlock = step.querySelector('.code-block');
         if (!codeBlock) return;
 
-        // Get only direct child divs or spans that represent code lines
+        // Select only lines of code, ignoring UI elements like <details>
         const lines = codeBlock.querySelectorAll(':scope > div, :scope > span');
         lines.forEach(line => {
             const processed = getLineText(line);
@@ -67,6 +61,11 @@ window.copyCurrentCode = function() {
         fullScript += "\n"; 
     });
 
+    if (fullScript.trim() === "") {
+        showToast("❌ No code found to copy!", true);
+        return;
+    }
+
     navigator.clipboard.writeText(fullScript.trim()).then(() => {
         showToast("📋 Code copied with indentation!");
     }).catch(err => {
@@ -74,7 +73,7 @@ window.copyCurrentCode = function() {
     });
 };
 
-// Helper to show visual Toast messages
+// --- UI HELPERS ---
 function showToast(message, isError = false) {
     const existing = document.getElementById('debug-toast');
     if (existing) existing.remove();
@@ -83,15 +82,15 @@ function showToast(message, isError = false) {
     toast.id = 'debug-toast';
     toast.textContent = message;
     const bg = isError ? "#b91c1c" : "#064e3b"; 
-    toast.style = `position:fixed; bottom:20px; right:20px; background:${bg}; color:white; padding:12px 24px; border-radius:12px; z-index:9999; font-family:sans-serif; font-weight:bold; box-shadow:0 10px 15px -3px rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.2); animation: slideUp 0.3s ease-out;`;
-    
+    toast.style = `position:fixed; bottom:20px; right:20px; background:${bg}; color:white; padding:12px 24px; border-radius:12px; z-index:9999; font-family:sans-serif; font-weight:bold; box-shadow:0 10px 15px -3px rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.2);`;
+
     if (!document.getElementById('toast-style')) {
         const style = document.createElement('style');
         style.id = 'toast-style';
         style.innerHTML = "@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }";
         document.head.appendChild(style);
     }
-
+    
     document.body.appendChild(toast);
     setTimeout(() => {
         toast.style.opacity = "0";
@@ -101,7 +100,7 @@ function showToast(message, isError = false) {
 }
 
 // QR Code Logic
-function showQRCode() {
+window.showQRCode = function() {
     const existing = document.getElementById('qr-overlay');
     if (existing) { existing.remove(); return; }
 
@@ -111,8 +110,8 @@ function showQRCode() {
     overlay.onclick = () => overlay.remove();
 
     const container = document.createElement('div');
-    container.style = "background:white; padding:25px; border-radius:20px; text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);";
-    container.innerHTML = `<p style="margin-bottom:15px; color:#1a1a1a; font-size:1.2rem; font-weight:bold; font-family:sans-serif;">Scan to Open Lesson</p><div id="qr-target" style="display:flex; justify-content:center;"></div><p style="margin-top:15px; color:#666; font-size:0.8rem;">Click anywhere to close</p>`;
+    container.style = "background:white; padding:25px; border-radius:20px; text-align:center;";
+    container.innerHTML = `<p style="margin-bottom:15px; color:#000; font-weight:bold;">Scan to Open Lesson</p><div id="qr-target"></div>`;
     
     overlay.appendChild(container);
     document.body.appendChild(overlay);
@@ -136,7 +135,7 @@ function showQRCode() {
             correctLevel: QRCode.CorrectLevel.H
         });
     }
-}
+};
 
 // 2. LISTENERS (Keys & Title Click)
 window.addEventListener('keydown', (e) => {
@@ -238,14 +237,14 @@ window.checkStep = async function(idx) {
                 showToast(`📝 ${remaining} boxes left to complete!`);
             }
         }
-
+        
+        const lastStepIdx = document.querySelectorAll('section.step-container').length - 1;
         if (idx === lastStepIdx) {
-            if (validateAllAnswers()) {
-            await handleFinalSubmission(idx, feedback);
-                // Only render the summary code block if NOT in math-mode
-            if (!document.body.classList.contains('math-mode')) {
-                renderFullCodeBlock();
-                }
+            // Check if all previous steps are actually finished
+            const incomplete = Array.from(document.querySelectorAll('.slot-input')).some(i => !i.disabled);
+            if (!incomplete) {
+                await handleFinalSubmission(idx, feedback);
+                if (!document.body.classList.contains('math-mode')) renderFullCodeBlock();
             } else {
                 alert("⚠️ Earlier steps are incomplete or wrong!");
                 feedback.textContent = "❌ Check previous steps.";
@@ -274,28 +273,22 @@ function renderFullCodeBlock() {
 
     const details = document.createElement('details');
     details.id = "full-code-details";
-    details.style = "margin-top: 2rem; width: 100%; text-align: left;";
+    details.innerHTML = `<summary style="cursor:pointer; font-weight:bold; color:#059669; padding:1rem; background:#ecfdf5; border-radius:12px; border:1px solid #059669; list-style:none; text-align:left;">📂 View Full Completed Code</summary>`;
     
-    const summary = document.createElement('summary');
-    summary.textContent = "📂 View Full Completed Code";
-    summary.style = "cursor:pointer; font-weight:bold; color:#059669; font-size:1.2rem; padding: 1rem; background: #ecfdf5; border-radius: 12px; border: 1px solid #059669; list-style:none;";
-    
-    const codeContainer = document.createElement('pre');
-    codeContainer.style = "background: #1e293b; color: #f8fafc; padding: 1.5rem; border-radius: 12px; margin-top: 1rem; overflow-x: auto; font-family: 'Fira Code', monospace; font-size: 0.9rem; line-height: 1.5;";
+    const pre = document.createElement('pre');
+    pre.id = "full-code-display"; 
 
     let finalCode = "";
     document.querySelectorAll('.code-block').forEach(block => {
-        const lines = block.querySelectorAll(':scope > div, :scope > span');
-        lines.forEach(line => {
+        block.querySelectorAll(':scope > div, :scope > span').forEach(line => {
             const text = getLineText(line);
             if (text) finalCode += text + "\n";
         });
         finalCode += "\n";
     });
 
-    codeContainer.textContent = finalCode.trim();
-    details.appendChild(summary);
-    details.appendChild(codeContainer);
+    pre.textContent = finalCode.trim();
+    details.appendChild(pre);
     successScreen.appendChild(details);
 }
 // Ensure checkStep calls renderFullCodeBlock on completion
@@ -313,24 +306,13 @@ async function handleFinalSubmission(idx, feedbackElement) {
     }
 
     const finishBtn = document.querySelector(`#step-${idx} button`);
-    finishBtn.disabled = true;
-    finishBtn.textContent = "Saving...";
+    const { error } = await supabase.from('anscol').insert([{ mail: userEmail.toLowerCase().trim(), hw: document.title }]);
 
-    const { error } = await supabase
-        .from('anscol')
-        .insert([{ mail: userEmail.toLowerCase().trim(), hw: document.title }]);
-
-    if (error) {
-        alert("Error: " + error.message);
-        finishBtn.disabled = false;
-        finishBtn.textContent = "Finish Lesson";
-    } else {
+    if (!error) {
         isSubmitted = true;
         finishBtn.textContent = "Reset Lesson";
-        finishBtn.classList.replace('bg-emerald-800', 'bg-gray-600'); 
-        finishBtn.disabled = false;
+        showToast("✅ Work Submitted");
         unlockNext(idx);
-        showToast("✅ Work Submitted Successfully");
     }
 }
 
@@ -338,7 +320,7 @@ window.unlockNext = function(current) {
     const next = document.getElementById(`step-${current + 1}`) || document.getElementById('success-screen');
     if (next) {
         next.classList.remove('hidden-step');
-        setTimeout(() => next.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+        next.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 };
 
@@ -350,45 +332,19 @@ window.unlockNext = function(current) {
  */
 // --- Update in l.js ---
 
-/**
- * Calculates width based on the longest possible content.
- * For <input>: Uses data-answer.
- * For <select>: Finds the longest <option> text.
- */
+// --- INITIALIZATION ---
 function applyDynamicWidths() {
     const inputs = document.querySelectorAll('.slot-input');
-
     inputs.forEach(input => {
-        let textToMeasure = "";
-
-        if (input.tagName === 'SELECT') {
-            // Logic for dropdowns: Find the longest option text
-            let longestOption = "";
-            Array.from(input.options).forEach(opt => {
-                if (opt.text.length > longestOption.length) {
-                    longestOption = opt.text;
-                }
-            });
-            textToMeasure = longestOption;
-        } else {
-            // Logic for standard inputs: Use the data-answer attribute
-            const rawAnswer = input.getAttribute('data-answer') || "";
-            const tempDiv = document.createElement("div");
-            tempDiv.innerHTML = rawAnswer;
-            textToMeasure = tempDiv.textContent;
-        }
-
-        const charCount = textToMeasure.length;
-
-        // Apply the Rule: ((chars * 5) + 10) * 4px
-        // For selects, we add a small buffer (e.g., +2 chars) for the dropdown arrow
-        const buffer = (input.tagName === 'SELECT') ? 12 : 8;
-        const widthInPixels = (charCount * 5 + buffer) * 4;
+        const textToMeasure = input.tagName === 'SELECT' ? 
+            Array.from(input.options).reduce((a, b) => a.length > b.text.length ? a : b.text, "") : 
+            (input.getAttribute('data-answer') || "");
         
+        const buffer = (input.tagName === 'SELECT') ? 12 : 8;
+        const widthInPixels = (textToMeasure.length * 5 + buffer) * 4;
         input.style.setProperty('width', `${widthInPixels}px`, 'important');
     });
 }
-
 // Run immediately and on DOMContentLoaded
 applyDynamicWidths();
 
