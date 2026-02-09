@@ -13,14 +13,11 @@ let debugBuffer = "";
 
 // --- UPDATED UTILITY: GET PROCESSED LINE ---
 
-function getLineText(line) {
-    // 1. EXIT if this is part of the UI (Expected Output blocks)
-    if (line.tagName === 'DETAILS' || line.classList.contains('output-wrapper') || line.tagName === 'SUMMARY') {
-        return "";
-    }
+// --- FIXED GET LINE TEXT ---
+function getLineText(line, currentStepElement) {
+    if (line.tagName === 'DETAILS' || line.classList.contains('output-wrapper')) return "";
 
     let indentation = "";
-    // 2. Dynamic Indentation based on Tailwind ml- classes
     const marginClass = Array.from(line.classList).find(cls => cls.startsWith('ml-'));
     if (marginClass) {
         const marginValue = parseInt(marginClass.split('-')[1]);
@@ -28,31 +25,32 @@ function getLineText(line) {
         indentation = " ".repeat(levels * 4); 
     }
 
-    // 3. Clone line to replace inputs with their current values
     const tempLine = line.cloneNode(true);
     const inputs = tempLine.querySelectorAll('.slot-input');
     
     inputs.forEach(input => {
-        // Find the actual live input in the real DOM using its data-answer
-        const realInput = document.querySelector(`section:not(.hidden-step) [data-answer="${input.getAttribute('data-answer')}"]`);
+        const dataAns = input.getAttribute('data-answer');
+        // FIX: Search for the input value specifically within the current step container
+        const realInput = currentStepElement.querySelector(`[data-answer='${dataAns}']`) || 
+                          document.querySelector(`[data-answer='${dataAns}']`);
+        
         const val = realInput ? realInput.value.trim() : "";
         input.replaceWith(val === "" ? "#TODO" : val);
     });
 
     let content = tempLine.textContent.trim();
-    if (!content) return ""; 
+    if (!content) return "";
 
-    // 4. Handle output content as Python comments
     if (line.classList.contains('output-content')) {
         return "# " + content;
     }
     return indentation + content;
 }
-// --- UPDATED UTILITY: COPY CODE ---
+
+// --- FIXED COPY CODE ---
 window.copyCurrentCode = function() {
     if (document.body.classList.contains('math-mode')) return;
 
-    // Only copy from steps the user can currently see
     const visibleSteps = Array.from(document.querySelectorAll('.step-container:not(.hidden-step)'));
     let fullScript = "";
 
@@ -60,10 +58,11 @@ window.copyCurrentCode = function() {
         const codeBlock = step.querySelector('.code-block');
         if (!codeBlock) return;
 
-        // TARGET: Only divs that are not the details/output wrappers
+        // Only get direct child divs
         const lines = codeBlock.querySelectorAll(':scope > div');
         lines.forEach(line => {
-            const processed = getLineText(line);
+            // Pass the current 'step' element so getLineText knows where to look for inputs
+            const processed = getLineText(line, step);
             if (processed) fullScript += processed + "\n";
         });
         fullScript += "\n"; 
@@ -77,7 +76,6 @@ window.copyCurrentCode = function() {
         showToast("❌ No code found to copy", true);
     }
 };
-
 // --- UI HELPERS ---
 function showToast(message, isError = false) {
     const existing = document.getElementById('debug-toast');
