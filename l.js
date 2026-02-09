@@ -11,10 +11,16 @@ let isSubmitted = false;
 let hasUsedDebug = false; 
 let debugBuffer = "";
 
+// --- UPDATED UTILITY: GET PROCESSED LINE ---
+
 function getLineText(line) {
-    if (line.tagName === 'DETAILS' || line.classList.contains('output-wrapper')) return "";
+    // 1. EXIT if this is part of the UI (Expected Output blocks)
+    if (line.tagName === 'DETAILS' || line.classList.contains('output-wrapper') || line.tagName === 'SUMMARY') {
+        return "";
+    }
 
     let indentation = "";
+    // 2. Dynamic Indentation based on Tailwind ml- classes
     const marginClass = Array.from(line.classList).find(cls => cls.startsWith('ml-'));
     if (marginClass) {
         const marginValue = parseInt(marginClass.split('-')[1]);
@@ -22,29 +28,31 @@ function getLineText(line) {
         indentation = " ".repeat(levels * 4); 
     }
 
+    // 3. Clone line to replace inputs with their current values
     const tempLine = line.cloneNode(true);
     const inputs = tempLine.querySelectorAll('.slot-input');
     
     inputs.forEach(input => {
-        // Look up the live value from the actual document
-        const realInput = document.querySelector(`[data-answer="${input.getAttribute('data-answer')}"]`);
+        // Find the actual live input in the real DOM using its data-answer
+        const realInput = document.querySelector(`section:not(.hidden-step) [data-answer="${input.getAttribute('data-answer')}"]`);
         const val = realInput ? realInput.value.trim() : "";
         input.replaceWith(val === "" ? "#TODO" : val);
     });
 
     let content = tempLine.textContent.trim();
-    if (!content) return "";
+    if (!content) return ""; 
 
+    // 4. Handle output content as Python comments
     if (line.classList.contains('output-content')) {
-        return "# " + content; // Prefix comments for Python
+        return "# " + content;
     }
     return indentation + content;
 }
-// --- UTILITY: COPY CODE ---
+// --- UPDATED UTILITY: COPY CODE ---
 window.copyCurrentCode = function() {
     if (document.body.classList.contains('math-mode')) return;
 
-    // Find all visible step containers
+    // Only copy from steps the user can currently see
     const visibleSteps = Array.from(document.querySelectorAll('.step-container:not(.hidden-step)'));
     let fullScript = "";
 
@@ -52,8 +60,8 @@ window.copyCurrentCode = function() {
         const codeBlock = step.querySelector('.code-block');
         if (!codeBlock) return;
 
-        // Select only lines of code, ignoring UI elements like <details>
-        const lines = codeBlock.querySelectorAll(':scope > div, :scope > span');
+        // TARGET: Only divs that are not the details/output wrappers
+        const lines = codeBlock.querySelectorAll(':scope > div');
         lines.forEach(line => {
             const processed = getLineText(line);
             if (processed) fullScript += processed + "\n";
@@ -61,16 +69,13 @@ window.copyCurrentCode = function() {
         fullScript += "\n"; 
     });
 
-    if (fullScript.trim() === "") {
-        showToast("❌ No code found to copy!", true);
-        return;
+    if (fullScript.trim().length > 0) {
+        navigator.clipboard.writeText(fullScript.trim()).then(() => {
+            showToast("📋 Code copied with indentation!");
+        });
+    } else {
+        showToast("❌ No code found to copy", true);
     }
-
-    navigator.clipboard.writeText(fullScript.trim()).then(() => {
-        showToast("📋 Code copied with indentation!");
-    }).catch(err => {
-        console.error('Copy failed', err);
-    });
 };
 
 // --- UI HELPERS ---
