@@ -14,9 +14,18 @@ let debugBuffer = "";
 // --- UTILITY: GET PROCESSED TEXT WITH INDENTATION ---
 function getLineText(line) {
     let indentation = "";
-    if (line.classList.contains('ml-12')) indentation = "    ";
-    if (line.classList.contains('ml-24')) indentation = "        ";
-    if (line.classList.contains('ml-36')) indentation = "            ";
+    
+    // 1. DYNAMIC INDENTATION: Find any class starting with 'ml-'
+    const marginClass = Array.from(line.classList).find(cls => cls.startsWith('ml-'));
+    
+    if (marginClass) {
+        // Extract the number (e.g., "12" from "ml-12")
+        const marginValue = parseInt(marginClass.split('-')[1]);
+        
+        // Calculate levels (12 margin units = 1 level = 4 spaces)
+        const levels = Math.floor(marginValue / 12);
+        indentation = "    ".repeat(levels); 
+    }
 
     const tempLine = line.cloneNode(true);
     const inputs = tempLine.querySelectorAll('.slot-input');
@@ -84,7 +93,7 @@ window.copyCurrentCode = function() {
     });
 
     navigator.clipboard.writeText(fullScript.trim()).then(() => {
-        showToast("📋 Code copied with correct indentation!");
+        showToast("📋 Code copied!");
     });
 };
 // Helper to show visual Toast messages
@@ -262,13 +271,16 @@ window.checkStep = async function(idx) {
     });
 
     if (allInStepCorrect) {
-        feedback.textContent = "✔️ Nice!";
-        feedback.className = "feedback text-emerald-600";
-        
-        const remaining = getRemainingCount();
-        if (remaining > 0) {
-            showToast(`📝 ${remaining} boxes left to complete!`);
+        if (feedback) { 
+            feedback.textContent = "✔️ Nice!";
+            feedback.className = "feedback text-emerald-600";
+            
+            const remaining = getRemainingCount();
+            if (remaining > 0) {
+                showToast(`📝 ${remaining} boxes left to complete!`);
+            }
         }
+        
 
         if (idx === lastStepIdx) {
             if (validateAllAnswers()) {
@@ -284,7 +296,7 @@ window.checkStep = async function(idx) {
         } else {
             unlockNext(idx);
         }
-    } else {
+    } else if (feedback) {
         feedback.textContent = "❌ Try again";
         feedback.className = "feedback text-red-600";
         // Optional: shake the feedback text
