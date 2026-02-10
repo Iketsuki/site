@@ -186,6 +186,13 @@ button {
     border: none;
     transition: transform 0.1s;
 }
+/* Ensure buttons inside modals don't inherit the massive 'presenter' sizing */
+#qr-overlay button, 
+div[style*="z-index:20000"] button {
+    font-size: 1rem !important;
+    padding: 0.6rem 1.2rem !important;
+    margin: 0;
+}
 
 button:active {
     transform: scale(0.98);

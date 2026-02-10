@@ -183,16 +183,24 @@ function getRemainingCount() {
 function validateAllAnswers() {
     const allInputs = document.querySelectorAll('.slot-input');
     let allValid = true;
+    let firstError = null;
     allInputs.forEach(input => {
         const val = input.value.trim().toLowerCase().replace(/\s/g, '');
         const ans = input.getAttribute('data-answer').toLowerCase().replace(/\s/g, '');
         if (val === "" || val !== ans) {
             allValid = false;
-            input.style.borderColor = "#dc2626"; 
+            input.style.borderColor = "#dc2626"; // Red error border
+            if (!firstError) firstError = input;
         } else {
             input.style.borderColor = "#059669"; 
         }
     });
+
+    if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstError.focus();
+    }
+
     return allValid;
 }
 
@@ -296,27 +304,86 @@ function renderFullCodeBlock() {
 }
 // Ensure checkStep calls renderFullCodeBlock on completion
 
+// --- Update this function in l.js ---
 async function handleFinalSubmission(idx, feedbackElement) {
     if (hasUsedDebug) {
         alert("Submission Disabled: Auto-fill was used.");
         return;
     }
 
-    const userEmail = prompt("Please enter your email (@...edu.hk) to submit:");
-    if (!userEmail || !userEmail.includes('@') || !userEmail.toLowerCase().endsWith('edu.hk')) {
-        alert("Use a valid school email (@ and edu.hk).");
-        return;
+    // 1. Validate the entire page before showing the popup
+    if (!validateAllAnswers()) {
+        alert("⚠️ Some answers in previous steps are missing or incorrect. Please fix them before submitting!");
+        feedbackElement.textContent = "❌ Check previous steps.";
+        feedbackElement.className = "feedback text-red-600";
+        return; 
     }
 
-    const finishBtn = document.querySelector(`#step-${idx} button`);
-    const { error } = await supabase.from('anscol').insert([{ mail: userEmail.toLowerCase().trim(), hw: document.title }]);
+    // 2. Only show the modal if the whole page is valid
+    createSubmissionModal(async (userEmail) => {
+        const finishBtn = document.querySelector(`#step-${idx} button`);
+        finishBtn.disabled = true;
+        finishBtn.textContent = "Saving...";
 
-    if (!error) {
-        isSubmitted = true;
-        finishBtn.textContent = "Reset Lesson";
-        showToast("✅ Work Submitted");
-        unlockNext(idx);
-    }
+        const { error } = await supabase
+            .from('anscol')
+            .insert([{ mail: userEmail.toLowerCase().trim(), hw: document.title }]);
+
+        if (error) {
+            alert("Error: " + error.message);
+            finishBtn.disabled = false;
+            finishBtn.textContent = "Finish Lesson";
+        } else {
+            isSubmitted = true;
+            finishBtn.textContent = "Reset Lesson";
+            finishBtn.classList.replace('bg-emerald-700', 'bg-gray-600'); 
+            finishBtn.disabled = false;
+            unlockNext(idx);
+            showToast("✅ Work Submitted Successfully");
+        }
+    });
+}
+
+// --- Add this helper function to l.js ---
+function createSubmissionModal(onConfirm) {
+    const overlay = document.createElement('div');
+    overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(6, 78, 59, 0.9); z-index:20000; display:flex; justify-content:center; align-items:center; backdrop-filter: blur(4px);";
+    
+    const modal = document.createElement('div');
+    modal.style = "background:white; padding:2rem; border-radius:20px; width:90%; max-width:450px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); text-align:center; font-family: 'Inter', sans-serif;";
+    
+    modal.innerHTML = `
+        <h3 style="color:#064e3b; font-size:1.5rem; font-weight:bold; margin-bottom:1rem;">Submit Your Work</h3>
+        <p style="color:#065f46; margin-bottom:1.5rem;">Enter your school email to save progress:</p>
+        <input type="email" id="modal-email" placeholder="student@...edu.hk" 
+            style="width:100%; padding:12px; border:2px solid #059669; border-radius:8px; margin-bottom:1.5rem; font-size:1rem; text-align:center;">
+        <div style="display:flex; gap:10px; justify-content:center;">
+            <button id="modal-cancel" style="background:#f1f5f9; color:#475569; padding:10px 20px; border-radius:8px; font-weight:600; font-size:1rem !important;">Cancel</button>
+            <button id="modal-submit" style="background:#059669; color:white; padding:10px 20px; border-radius:8px; font-weight:600; font-size:1rem !important;">Submit</button>
+        </div>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Modal Logic
+    const emailInput = modal.querySelector('#modal-email');
+    emailInput.focus();
+
+    const closeModal = () => overlay.remove();
+
+    modal.querySelector('#modal-cancel').onclick = closeModal;
+
+    modal.querySelector('#modal-submit').onclick = () => {
+        const email = emailInput.value.trim().toLowerCase();
+        if (!email || !email.includes('@') || !email.endsWith('edu.hk')) {
+            emailInput.style.borderColor = "#dc2626";
+            alert("Please use a valid @...edu.hk email.");
+            return;
+        }
+        closeModal();
+        onConfirm(email);
+    };
 }
 
 window.unlockNext = function(current) {
@@ -348,8 +415,8 @@ function applyDynamicWidths() {
         input.style.setProperty('width', `${widthInPixels}px`, 'important');
     });
 }
-// Run immediately and on DOMContentLoaded
-applyDynamicWidths();
+// // Run immediately and on DOMContentLoaded
+// applyDynamicWidths();
 
 
 document.addEventListener('DOMContentLoaded', () => {
