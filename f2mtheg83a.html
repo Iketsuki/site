@@ -23,7 +23,7 @@
 
     <main id="scaffold-content">
         <section id="step-0" class="step-container">
-            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Part A: Substitute and Solve for y</h2>
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Q1: Solve for y</h2>
             <p class="text-emerald-700 mb-4">Given: (1) <span class="code-var">x</span> - <span class="code-num">3</span><span class="code-var">y</span> = <span class="code-num">3</span> and (2) <span class="code-var">x</span> = <span class="code-var">y</span> + <span class="code-num">1</span></p>
             <div class="code-block">
                 <div>(<input type="text" class="slot-input" data-answer="y+1">) - <span class="code-num">3</span><span class="code-var">y</span> = <span class="code-num">3</span></div>
@@ -36,19 +36,18 @@
         </section>
 
         <section id="step-1" class="step-container hidden-step">
-            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Part A: Final Solution</h2>
-            <p class="text-emerald-700 mb-4">Substitute <span class="code-var">y</span> = <span class="code-num">-1</span> back into equation (2): <span class="code-var">x</span> = <span class="code-var">y</span> + <span class="code-num">1</span></p>
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Q1: Solve for x</h2>
             <div class="code-block">
                 <div><span class="code-var">x</span> = (<input type="text" class="slot-input" data-answer="-1">) + <span class="code-num">1</span></div>
                 <div class="mt-2"><span class="code-var">x</span> = <input type="text" class="slot-input" data-answer="0"></div>
                 <div class="mt-4 text-emerald-300 font-bold">∴ Solution: x = 0, y = -1</div>
             </div>
-            <button onclick="checkStep(1)" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Verify Part A</button>
+            <button onclick="checkStep(1)" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Next Problem</button>
             <div class="feedback" id="feedback-1"></div>
         </section>
 
         <section id="step-2" class="step-container hidden-step">
-            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Part B: Substitute and Solve for x</h2>
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Q2: Solve for x</h2>
             <p class="text-emerald-700 mb-4">Given: (1) <span class="code-var">x</span> + <span class="code-num">2</span><span class="code-var">y</span> = <span class="code-num">5</span> and (2) <span class="code-var">y</span> = <span class="code-num">4</span> - <span class="code-var">x</span></p>
             <div class="code-block">
                 <div><span class="code-var">x</span> + <span class="code-num">2</span>(<input type="text" class="slot-input" data-answer="4-x">) = <span class="code-num">5</span></div>
@@ -61,23 +60,48 @@
         </section>
 
         <section id="step-3" class="step-container hidden-step">
-            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Part B: Final Solution</h2>
-            <p class="text-emerald-700 mb-4">Substitute <span class="code-var">x</span> = <span class="code-num">3</span> back into equation (2): <span class="code-var">y</span> = <span class="code-num">4</span> - <span class="code-var">x</span></p>
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Q2: Final Solution</h2>
             <div class="code-block">
                 <div><span class="code-var">y</span> = <span class="code-num">4</span> - (<input type="text" class="slot-input" data-answer="3">)</div>
                 <div class="mt-2"><span class="code-var">y</span> = <input type="text" class="slot-input" data-answer="1"></div>
                 <div class="mt-4 text-emerald-300 font-bold">∴ Solution: x = 3, y = 1</div>
             </div>
-            <button onclick="checkStep(3)" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Complete Practice</button>
+            <button onclick="checkStep(3)" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Next Problem</button>
             <div class="feedback" id="feedback-3"></div>
+        </section>
+
+        <section id="step-4" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Q3: Rearrange and Substitute</h2>
+            <p class="text-emerald-700 mb-4">Given: (1) <span class="code-var">x</span> + <span class="code-var">y</span> = <span class="code-num">5</span> and (2) <span class="code-num">4</span><span class="code-var">x</span> - <span class="code-num">3</span><span class="code-var">y</span> = <span class="code-num">6</span></p>
+            <div class="code-block">
+                <div>From (1): <span class="code-var">x</span> = <span class="code-num">5</span> - <input type="text" class="slot-input" data-answer="y"> ... (3)</div>
+                <div class="mt-4 text-emerald-600 italic">// Substitute (3) into (2)</div>
+                <div class="mt-2"><span class="code-num">4</span>(<input type="text" class="slot-input" data-answer="5-y">) - <span class="code-num">3</span><span class="code-var">y</span> = <span class="code-num">6</span></div>
+                <div class="mt-2"><span class="code-num">20</span> - <span class="code-num">4</span><span class="code-var">y</span> - <span class="code-num">3</span><span class="code-var">y</span> = <span class="code-num">6</span></div>
+                <div class="mt-2">-<span class="code-num">7</span><span class="code-var">y</span> = <input type="text" class="slot-input" data-answer="-14"></div>
+                <div class="mt-2"><span class="code-var">y</span> = <input type="text" class="slot-input" data-answer="2"></div>
+            </div>
+            <button onclick="checkStep(4)" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Check y-value</button>
+            <div class="feedback" id="feedback-4"></div>
+        </section>
+
+        <section id="step-5" class="step-container hidden-step">
+            <h2 class="text-3xl font-bold text-emerald-800 mb-4">Q3: Final Solution</h2>
+            <div class="code-block">
+                <div><span class="code-var">x</span> = <span class="code-num">5</span> - (<input type="text" class="slot-input" data-answer="2">)</div>
+                <div class="mt-2"><span class="code-var">x</span> = <input type="text" class="slot-input" data-answer="3"></div>
+                <div class="mt-4 text-emerald-300 font-bold">∴ Solution: x = 3, y = 2</div>
+            </div>
+            <button onclick="checkStep(5)" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-xl">Finish Lesson</button>
+            <div class="feedback" id="feedback-5"></div>
         </section>
 
         <section id="success-screen" class="hidden-step text-center py-20">
             <div class="inline-block p-16 bg-white rounded-[40px] shadow-2xl border-8 border-emerald-600">
-                <div class="text-8xl mb-8">🧮</div>
-                <h2 class="text-6xl font-black text-emerald-700 mb-6">Equations Solved!</h2>
-                <p class="text-2xl text-emerald-900 mb-12">You've successfully used substitution to solve systems of linear equations.</p>
-                <button onclick="location.reload()" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-2xl transition-transform hover:scale-105">Restart Lesson</button>
+                <div class="text-8xl mb-8">💎</div>
+                <h2 class="text-6xl font-black text-emerald-700 mb-6">Substitution Master!</h2>
+                <p class="text-2xl text-emerald-900 mb-12">You have completed all three substitution challenges.</p>
+                <button onclick="location.reload()" class="bg-emerald-700 text-white rounded-full font-bold hover:bg-emerald-800 shadow-2xl transition-transform hover:scale-105">Start Over</button>
             </div>
         </section>
     </main>
