@@ -364,3 +364,29 @@ tbody tr:nth-child(even) { background: #f0fdf4; }
     margin-top: 2rem;
     font-size: 1.1rem;
 }
+
+/* --- Header & Story Styling --- */
+header {
+    text-align: center;
+    margin-bottom: 3rem;
+    cursor: pointer;
+}
+
+.story {
+    text-align: justify;
+    font-style: italic;
+    font-weight: 500;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+    /* opacity: 0.9; */
+    color: rgb(255, 255, 255);
+    /* Tailwind classes like text-emerald-100 will handle color if CDN is used */
+}
+
+header h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    /* color: #064e3b; */
+    letter-spacing: -0.025em;
+}
