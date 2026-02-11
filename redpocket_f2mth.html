@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>數學利是 - 🧧知識財富</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+HK:wght@700&display=swap');
+
+        body {
+            background-color: #fff5f5;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lucky-font { font-family: 'Noto Serif HK', serif; }
+
+        /* Envelope Styling */
+        .envelope-box {
+            position: relative;
+            width: 240px;
+            height: 340px;
+            background: linear-gradient(145deg, #e63946, #b91c1c);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        /* The Paper Slip */
+        .paper-slip {
+            position: absolute;
+            width: 210px;
+            height: 300px;
+            background: #fffdf5;
+            padding: 16px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 10;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            cursor: pointer;
+            overflow: hidden; /* Container itself shouldn't scroll */
+        }
+
+        /* State Transitions */
+        .is-open .paper-slip {
+            transform: translateY(-240px);
+        }
+
+        /* Fullscreen View Logic */
+        .is-zoomed .paper-slip {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            transform: none !important;
+            z-index: 100;
+            padding: 40px 20px;
+            border-radius: 0;
+            background: #fffdf5;
+        }
+
+        .close-zoom {
+            display: none;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #b91c1c;
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 110;
+        }
+
+        .is-zoomed .close-zoom { display: flex; }
+
+        /* Scrollable Content Area */
+        .content-scrollable {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 10px 0;
+            scrollbar-width: thin;
+            scrollbar-color: #fecaca transparent;
+        }
+
+        /* Typography Adjustments */
+        #math-text {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        #blessing-display {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        /* Responsive Scaling for Zoomed State */
+        .is-zoomed #math-text { font-size: 1.2rem; }
+        .is-zoomed #math-latex { font-size: 1.5rem; }
+        .is-zoomed #blessing-display { font-size: 1.1rem; }
+
+        /* Hide scrollbar for Chrome/Safari */
+        .content-scrollable::-webkit-scrollbar {
+            width: 4px;
+        }
+        .content-scrollable::-webkit-scrollbar-thumb {
+            background-color: #fecaca;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container" class="relative">
+        
+        <!-- The Paper (Random Content Container) -->
+        <div id="paper" class="paper-slip" onclick="zoomPaper(event)">
+            <div class="close-zoom" onclick="closeZoom(event)">✕</div>
+            
+            <div class="content-scrollable">
+                <div class="math-display">
+                    <p id="math-text" class="text-gray-600 mb-2"></p>
+                    <div id="math-latex" class="text-gray-900"></div>
+                </div>
+            </div>
+
+            <div class="mt-2 border-t border-red-100 pt-3 w-full shrink-0">
+                <p id="blessing-display" class="lucky-font text-red-700"></p>
+            </div>
+        </div>
+
+        <!-- The Envelope Body -->
+        <div id="envelope" class="envelope-box" onclick="openEnvelope()">
+            <div class="lucky-font text-yellow-400 text-6xl mb-4">福</div>
+            <div class="w-16 h-16 rounded-full bg-yellow-500 border-4 border-red-800 flex items-center justify-center text-red-800 font-bold shadow-inner text-2xl">
+                吉
+            </div>
+            <p class="absolute bottom-6 text-yellow-400/50 lucky-font text-xs tracking-widest">點擊拆利是</p>
+        </div>
+
+    </div>
+
+    <script>
+        const mathProblems = [
+            { text: "Let $a$, $b$ and $c$ be non-zero numbers such that $\\frac{a}{b} = \\frac{2}{3}$ and $5a = 2c$. Find", latex: "$$\\frac{a+3b}{b+6c}$$" },
+            { text: "A cyclist travels from town $A$ to town $B$ at an average speed of 20 km/h and then he travels from town $B$ to town $C$ at an average speed of 24 km/h. It is given that the cyclist travels 28 km in 75 minutes for the whole journey. How long does the cyclist take to travel from town $A$ to town $B$?" , latex: ""},
+            { text: "In a library, the ratio of the number of male readers to the number of female readers is $4 : 5$. If 14 male readers and 22 female readers enter the library, then the ratio of the number of male readers to the number of female readers is $3 : 4$. Find the original number of female readers in the library." , latex: ""},
+            { text: "Factorize:", latex: "(a) $p^2 - 9q^2$, (b) $p^2 - 9q^2 + 5p - 15q$" },
+            { text: "Factorize:", latex: "(a) $m^3 + m^2n + 4m^2$, (b) $m^3 + m^2n + 4m^2 - m - n - 4$" },
+            { text: "Factorize:", latex: "(a) $2a + 8b$, (b) $a^2 + ab - 12b^2$, (c) $2a + 8b + a^2 + ab - 12b^2$" },
+            { text: "Make $q$ the subject of the formula", latex: "$$\\frac{2q-3}{p} = 5$$" },
+            { text: "Make $p$ the subject of the formula", latex: "$$9(p + 8q) = 5p + 4$$" },
+            { text: "Make $y$ the subject of the formula", latex: "$$\\frac{x}{2} = \\frac{y+4}{3}$$" },
+            { text: "Make $b$ the subject of the formula", latex: "$$\\frac{4}{a} - \\frac{3}{b} = 1$$" },
+            { text: "Consider the formula $u + 12v = 3(8 - u)$. (a) Make $u$ the subject of the above formula. (b) If the value of $v$ is decreased by 3, write down the change in the value of $u$.", latex: "" },
+            { text: "Simplify", latex: "$$\\frac{1}{x+1} - \\frac{6}{6x-1}$$" }
+        ];
+
+        const blessingMessages = [
+            "博學審問，慎思明辨",
+            "青出於藍，而勝於藍",
+            "書山有路勤為徑",
+            "溫故而知新",
+            "百尺竿頭，更進一步",
+            "學而不厭，誨人不倦",
+            "大吉大利，學業進步",
+            "敬畏耶和華是智慧的開端；凡遵行他命令的是聰明人。(詩篇 111:10)",
+            "你要專心仰賴耶和華，不可倚靠自己的聰明。(箴言 3:5)",
+            "智慧必入你心；你的靈要以知識為美。(箴言 2:10)",
+            "患難生忍耐，忍耐生老練，老練生盼望。(羅馬書 5:3-4)",
+            "你們中間若有缺少智慧的，應當求那厚賜與眾人、也不斥責人的神，主就必賜給他。(雅各書 1:5)",
+            "教導智慧人，他就越發有智慧；指示義人，他就增長學問。(箴言 9:9)",
+            "但那等候耶和華的必從新得力。他們必如鷹展翅上騰；他們奔跑卻不困倦。(以賽亞書 40:31)",
+            "得智慧，得聰明的，這人便為有福。(箴言 3:13)",
+            "側耳聽智慧，專心求聰明。(箴言 2:2)",
+            "智慧人大大能力；有知識的人力上加力。(箴言 24:5)",
+            "你們要快快的聽，慢慢的說，慢慢的動怒。(雅各書 1:19)",
+            "聰明人的心得知識，智慧人的耳求知識。(箴言 18:15)"
+        ];
+
+        let state = 'closed';
+
+        function openEnvelope() {
+            if (state !== 'closed') return;
+            
+            const problem = mathProblems[Math.floor(Math.random() * mathProblems.length)];
+            document.getElementById('math-text').innerText = problem.text;
+            document.getElementById('math-latex').innerHTML = problem.latex;
+
+            const blessing = blessingMessages[Math.floor(Math.random() * blessingMessages.length)];
+            document.getElementById('blessing-display').innerText = blessing;
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+
+            document.getElementById('app-container').classList.add('is-open');
+            state = 'open';
+        }
+
+        function zoomPaper(event) {
+            if (state !== 'open') return;
+            event.stopPropagation();
+            document.getElementById('app-container').classList.add('is-zoomed');
+            state = 'zoomed';
+        }
+
+        function closeZoom(event) {
+            event.stopPropagation();
+            document.getElementById('app-container').classList.remove('is-zoomed');
+            document.getElementById('app-container').classList.remove('is-open');
+            state = 'closed';
+        }
+    </script>
+</body>
+</html>
