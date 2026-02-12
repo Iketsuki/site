@@ -1,3 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>利是 Anki - 🧧知識財富</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+HK:wght@700&display=swap');
+
+        body {
+            background-color: #fff5f5;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1200px;
+        }
+
+        .lucky-font { font-family: 'Noto Serif HK', serif; }
+
+        /* Modal / Overlay Styling */
+        #auth-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .envelope-box {
+            position: relative;
+            width: 240px;
+            height: 340px;
+            background: linear-gradient(145deg, #e63946, #b91c1c);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .paper-slip {
+            position: absolute;
+            width: 210px;
+            height: 300px;
+            z-index: 10;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .is-open .paper-slip { transform: translateY(-240px); }
+
+        .is-zoomed .paper-slip {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            transform: none !important;
+            z-index: 100;
+        }
+
+        .paper-slip.flipped { transform: translateY(-240px) rotateY(180deg); }
+        .is-zoomed .paper-slip.flipped { transform: rotateY(180deg) !important; }
+
+        .card-face {
+            position: absolute;
+            inset: 0;
+            background: #fffdf5;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            backface-visibility: hidden;
+            box-sizing: border-box;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Dynamic Font Sizing for Zoomed state */
+        .is-zoomed .card-face { 
+            padding: 5vh 10vw; 
+            box-shadow: none; 
+        }
+
+        .is-zoomed #math-text, 
+        .is-zoomed #answer-text {
+            font-size: clamp(1.1rem, 2.5vh, 2.8rem);
+            line-height: 1.6;
+        }
+
+        .is-zoomed #math-latex, 
+        .is-zoomed #answer-latex {
+            font-size: clamp(1.4rem, 4.5vh, 4.5rem);
+            margin: 3vh 0;
+        }
+
+        .is-zoomed #blessing-display,
+        .is-zoomed #blessing-display-back {
+            font-size: clamp(0.9rem, 2vh, 1.8rem);
+        }
+
+        .is-zoomed .flip-hint {
+            font-size: clamp(0.7rem, 1.5vh, 1.2rem);
+        }
+
+        .card-face.back { transform: rotateY(180deg); }
+
+        .close-zoom {
+            display: none;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #b91c1c;
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            z-index: 120;
+        }
+        .is-zoomed .close-zoom { display: flex; }
+
+        .content-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .timer-circle {
+            width: 24px;
+            height: 24px;
+            transform: rotate(-90deg);
+        }
+        
+        .is-zoomed .timer-circle {
+            width: 44px;
+            height: 44px;
+        }
+
+        .timer-circle circle {
+            fill: none;
+            stroke-width: 3;
+            stroke-linecap: round;
+        }
+
+        .timer-progress {
+            stroke: #b91c1c;
+            stroke-dasharray: 63;
+            stroke-dashoffset: 63;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .flip-hint {
+            font-size: 0.7rem;
+            color: #991b1b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.8;
+            font-weight: bold;
+        }
+
+        /* Progress Tracker */
+        #progress-count {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 10px;
+            color: #b91c1c;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Selection Modal -->
+    <div id="auth-modal">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4 text-center transform transition-all">
+            <div class="text-5xl mb-4">🧧</div>
+            <h2 class="lucky-font text-2xl text-red-700 mb-2">請輸入利是口令</h2>
+            <p class="text-gray-500 text-sm mb-6">Enter Secret Code to Unlock Card Set</p>
+            
+            <input type="text" id="secret-input" 
+                class="w-full px-4 py-3 border-2 border-red-100 rounded-xl mb-4 focus:border-red-500 outline-none text-center font-bold tracking-widest uppercase"
+                placeholder="SECRET CODE">
+            
+            <button onclick="validateCode()" 
+                class="w-full bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 transition-colors shadow-lg active:scale-95">
+                確定 (Confirm)
+            </button>
+            <p id="error-msg" class="text-red-500 text-xs mt-3 h-4 opacity-0">無效的口令 / Invalid Code</p>
+            
+            <div class="mt-6 pt-4 border-t border-gray-100 text-[10px] text-gray-400">
+                Codes: <span id="dynamic-codes-hint">loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content" class="hidden relative">
+        <div id="app-container" class="relative">
+            <div id="paper" class="paper-slip" onclick="handlePaperClick(event)">
+                <!-- Front Face -->
+                <div class="card-face front">
+                    <div class="close-zoom" onclick="closeZoom(event)">✕</div>
+                    <div class="flex items-center gap-3 mb-2 shrink-0">
+                        <svg class="timer-circle" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" stroke="#fee2e2" stroke-width="3" fill="none"></circle>
+                            <circle id="timer-bar" class="timer-progress" cx="12" cy="12" r="10" fill="none"></circle>
+                        </svg>
+                        <div id="hint-text" class="flip-hint">Open to Start</div>
+                    </div>
+                    <div class="content-area">
+                        <p id="math-text" class="text-gray-600 mb-2"></p>
+                        <div id="math-latex" class="text-gray-900"></div>
+                    </div>
+                    <div id="progress-count"></div>
+                    <div class="mt-2 border-t border-red-100 pt-3 shrink-0">
+                        <p id="blessing-display" class="lucky-font text-red-700 text-sm"></p>
+                    </div>
+                </div>
+
+                <!-- Back Face -->
+                <div class="card-face back">
+                    <div class="flip-hint mb-2">Answer / Solution</div>
+                    <div class="content-area">
+                        <p id="answer-text" class="text-gray-500 mb-2"></p>
+                        <div id="answer-latex" class="text-gray-900 font-bold text-red-800"></div>
+                    </div>
+                    <div class="mt-2 border-t border-red-100 pt-3 shrink-0">
+                        <p id="blessing-display-back" class="lucky-font text-red-700 text-sm"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="envelope" class="envelope-box" onclick="openEnvelope()">
+                <div class="lucky-font text-yellow-400 text-6xl mb-4">福</div>
+                <div class="w-16 h-16 rounded-full bg-yellow-500 border-4 border-red-800 flex items-center justify-center text-red-800 font-bold shadow-inner text-2xl">吉</div>
+                <p class="absolute bottom-6 text-yellow-400/50 lucky-font text-xs tracking-widest uppercase">點擊拆利是</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
         /** * Question Data Sets
          * To add a new set, simply create an object with a key and items array.
          * The key will be the secret code.
@@ -83,7 +349,67 @@
             sql: {
                 initialTime: 15,
                 items: [
-                                { 
+                        { 
+                            text: "DEBUG: This query is meant to show all unique job titles, but it returns an error: SELECT UNIQUE Job_Title FROM Employees;", 
+                            latex: "", 
+                            ansText: "Correct Keyword:", 
+                            ansLatex: "DISTINCT" 
+                        },
+                        { 
+                            text: "DEBUG: The following query has the clauses in the wrong order: SELECT Name WHERE Age > 20 FROM Students;", 
+                            latex: "", 
+                            ansText: "Correct Order:", 
+                            ansLatex: "SELECT \\to FROM \\to WHERE" 
+                        },
+                        { 
+                            text: "DEBUG: This query fails because the text value isn't handled correctly: SELECT * FROM Products WHERE Category = Electronics;", 
+                            latex: "", 
+                            ansText: "Correct Syntax:", 
+                            ansLatex: "Category = 'Electronics'" 
+                        },
+                        { 
+                            text: "DEBUG: Why does this query return an error? SELECT Department, AVG(Salary) FROM Staff WHERE AVG(Salary) > 50000;", 
+                            latex: "", 
+                            ansText: "Correction:", 
+                            ansLatex: "\\text{Use HAVING instead of WHERE for aggregates.}" 
+                        },
+                        { 
+                            text: "DEBUG: This query is intended to sort prices from most expensive to cheapest: SELECT * FROM Menu ORDER BY Price ASC;", 
+                            latex: "", 
+                            ansText: "Correct Keyword:", 
+                            ansLatex: "DESC" 
+                        },
+                        { 
+                            text: "DEBUG: A user wants to count items in each category but forgot a clause: SELECT Category, COUNT(*) FROM Inventory;", 
+                            latex: "", 
+                            ansText: "Missing Clause:", 
+                            ansLatex: "GROUP BY Category" 
+                        },
+                        { 
+                            text: "DEBUG: Find the syntax error: SELECT * FROM Orders WHERE OrderDate IS BETWEEN '2023-01-01' AND '2023-12-31';", 
+                            latex: "", 
+                            ansText: "Correction:", 
+                            ansLatex: "\\text{Remove 'IS' (should be: WHERE OrderDate BETWEEN...)}" 
+                        },
+                        { 
+                            text: "DEBUG: This query aims to find names starting with 'A': SELECT Name FROM Users WHERE Name = 'A%';", 
+                            latex: "", 
+                            ansText: "Correct Operator:", 
+                            ansLatex: "LIKE" 
+                        },
+                        { 
+                            text: "DEBUG: The user wants to group by 'City' and only show groups with more than 10 people: SELECT City FROM Users GROUP BY City WHERE COUNT(*) > 10;", 
+                            latex: "", 
+                            ansText: "Correct Syntax:", 
+                            ansLatex: "GROUP BY City HAVING COUNT(*) > 10" 
+                        },
+                        { 
+                            text: "DEBUG: What is wrong with this deletion query? DELETE Name FROM Students WHERE ID = 5;", 
+                            latex: "", 
+                            ansText: "Correction:", 
+                            ansLatex: "DELETE FROM Students WHERE ID = 5; \\text{ (Delete removes whole rows)}" 
+                        },
+                        { 
                             text: "Which SQL keyword is used to return only different values and eliminate duplicate rows from the result set?", 
                             latex: "", 
                             ansText: "Keyword:", 
@@ -354,4 +680,137 @@
             "聰明人的心得知識，智慧人的耳求知識。(箴言 18:15)"
         ];
 
-    
+        let activeSet = null;
+        let shuffledItems = [];
+        let state = 'closed';
+        let timeLeft = 0;
+        let timerId = null;
+        let canFlip = false;
+        let currentProblemIndex = 0;
+
+        window.onload = () => {
+            const codes = Object.keys(dataSets).join(', ');
+            document.getElementById('dynamic-codes-hint').innerText = codes;
+            
+            // Allow Enter key to submit code
+            document.getElementById('secret-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') validateCode();
+            });
+        };
+
+        function shuffleArray(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function validateCode() {
+            const input = document.getElementById('secret-input').value.toLowerCase().trim();
+            const error = document.getElementById('error-msg');
+            
+            if (dataSets[input]) {
+                activeSet = dataSets[input];
+                // Prepare the shuffled deck
+                shuffledItems = shuffleArray([...activeSet.items]);
+                currentProblemIndex = 0;
+
+                document.getElementById('auth-modal').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('auth-modal').style.display = 'none';
+                    document.getElementById('main-content').classList.remove('hidden');
+                    document.getElementById('main-content').classList.add('flex');
+                }, 500);
+            } else {
+                error.style.opacity = '1';
+                setTimeout(() => { error.style.opacity = '0'; }, 2000);
+            }
+        }
+
+        function openEnvelope() {
+            if (state !== 'closed' || !activeSet) return;
+            
+            // Check if we reached the end of the shuffled set
+            if (currentProblemIndex >= shuffledItems.length) {
+                shuffledItems = shuffleArray([...activeSet.items]);
+                currentProblemIndex = 0;
+            }
+
+            const problem = shuffledItems[currentProblemIndex];
+            document.getElementById('math-text').innerText = problem.text;
+            document.getElementById('math-latex').innerHTML = problem.latex;
+            document.getElementById('answer-text').innerText = problem.ansText;
+            document.getElementById('answer-latex').innerHTML = problem.ansLatex;
+            
+            // Show progress
+            document.getElementById('progress-count').innerText = `${currentProblemIndex + 1} / ${shuffledItems.length}`;
+
+            const blessing = blessingMessages[Math.floor(Math.random() * blessingMessages.length)];
+            document.getElementById('blessing-display').innerText = blessing;
+            document.getElementById('blessing-display-back').innerText = blessing;
+
+            if (window.MathJax) MathJax.typesetPromise();
+            document.getElementById('app-container').classList.add('is-open');
+            document.getElementById('hint-text').innerText = "Tap to Zoom & Solve";
+            state = 'open';
+            
+            currentProblemIndex++;
+        }
+
+        function startTimer() {
+            if (timerId) return;
+            const initial = activeSet.initialTime;
+            timeLeft = initial;
+            canFlip = false;
+            const bar = document.getElementById('timer-bar');
+            const hint = document.getElementById('hint-text');
+            
+            timerId = setInterval(() => {
+                timeLeft--;
+                bar.style.strokeDashoffset = 63 - (63 * (initial - timeLeft) / initial);
+                if (timeLeft > 0) {
+                    hint.innerText = `Calculating... ${timeLeft}s`;
+                } else {
+                    clearInterval(timerId);
+                    timerId = null;
+                    canFlip = true;
+                    hint.innerText = "READY! Tap to Reveal";
+                    hint.classList.add('animate-pulse');
+                    bar.style.stroke = "#10b981";
+                }
+            }, 1000);
+        }
+
+        function handlePaperClick(event) {
+            if (event.target.closest('.close-zoom')) return;
+            const paper = document.getElementById('paper');
+            const container = document.getElementById('app-container');
+
+            if (state === 'open') {
+                container.classList.add('is-zoomed');
+                state = 'zoomed';
+                startTimer();
+            } else if (state === 'zoomed' && canFlip) {
+                paper.classList.toggle('flipped');
+            }
+        }
+
+        function closeZoom(event) {
+            event.stopPropagation();
+            clearInterval(timerId);
+            timerId = null;
+            state = 'closed';
+            const paper = document.getElementById('paper');
+            const container = document.getElementById('app-container');
+            container.classList.remove('is-zoomed', 'is-open');
+            paper.classList.remove('flipped');
+            document.getElementById('hint-text').classList.remove('animate-pulse');
+            document.getElementById('timer-bar').style.strokeDashoffset = 63;
+            document.getElementById('timer-bar').style.stroke = "#b91c1c";
+        }
+    </script>
+</body>
+</html>
