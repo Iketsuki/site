@@ -51,13 +51,32 @@
         .block-control-btn {
             @apply w-6 h-6 flex items-center justify-center bg-white border border-slate-200 rounded shadow-sm text-[10px] hover:bg-slate-50 transition;
         }
+
+        /* Toggle Switch Styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background-color: #cbd5e1; transition: .4s; border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 14px; width: 14px;
+            left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body class="p-4 md:p-8">
     <div id="toast" class="copy-toast">Copied to clipboard!</div>
     
     <div class="max-w-5xl mx-auto">
-        <header class="mb-8 flex flex-col md:row justify-between items-start md:items-center gap-4">
+        <header class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-slate-800">MCQ Table Maker</h1>
                 <div class="flex items-center gap-4 mt-1">
@@ -94,10 +113,16 @@
 
         <div id="exportModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
-                <div class="flex justify-between items-center p-6 border-b">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-6 border-b gap-4">
                     <div>
                         <h2 class="text-xl font-bold">Word Export Preview</h2>
-                        <p class="text-xs text-slate-500">Column-based indentation. Zero paragraph spacing.</p>
+                        <div class="flex items-center gap-3 mt-1">
+                            <label class="switch">
+                                <input type="checkbox" id="mergeTablesToggle" onchange="refreshExportPreview()">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="text-xs font-semibold text-slate-600">One Big Table Mode</span>
+                        </div>
                     </div>
                     <div class="flex gap-2">
                         <button onclick="copyAllTables()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">Copy for Word</button>
@@ -342,7 +367,6 @@
         }
 
         function addBlock(qIdx, type) {
-            // Text defaults to 0 indent, others default to 1
             const defaultIndent = type === 'text' ? 0 : 1;
             const b = { type, indent: defaultIndent };
             if (type === 'list') b.items = [{ label: "(1)", text: "" }];
@@ -419,19 +443,18 @@
             } catch (e) {}
         }
 
-        function generateHTMLForQuestion(q, idx) {
-            const rowStyle = 'margin:0; padding:0; border:none; line-height:1.2;';
-            const cellStyle = 'vertical-align:top; border:none; padding: 0; margin: 0;';
+        const rowStyle = 'margin:0; padding:0; border:none; line-height:1.2;';
+        const cellStyle = 'vertical-align:top; border:none; padding: 0; margin: 0;';
+
+        function getQuestionRowsHTML(q, idx, isPartOfBigTable = false) {
+            let html = '';
             
-            let html = `<table class="tnr" style="border-collapse: collapse; width: 100%; font-size: 11pt; color: black; background: transparent; margin-bottom: 20pt; border:none; padding:0;">`;
-            
-            // Question Heading
+            // Question Heading Row
             html += `<tr style="${rowStyle}"><td style="width:30pt; ${cellStyle}">${idx + 1}.</td><td colspan="10" style="${cellStyle}">${q.text}</td></tr>`;
             
             // Blocks
             q.blocks.forEach(block => {
                 const indent = block.indent || 0;
-                // Column method: Every unit of indent is an empty 30pt column on the left
                 const spacerColumns = Array(indent).fill(`<td style="width:30pt; ${cellStyle}"></td>`).join('');
                 const remainingColspan = 10 - indent;
 
@@ -455,8 +478,35 @@
                 html += `<tr style="${rowStyle}"><td style="width:30pt; ${cellStyle}"></td><td style="width:30pt; ${cellStyle}">${opt.label}</td><td colspan="9" style="${decoration} ${font} ${cellStyle}">${opt.text}</td></tr>`;
             });
 
+            // Spacer row between questions if in one big table
+            if (isPartOfBigTable) {
+                html += `<tr style="${rowStyle}"><td colspan="11" style="${cellStyle} height: 20pt;"></td></tr>`;
+            }
+
+            return html;
+        }
+
+        function generateHTMLForQuestion(q, idx) {
+            let html = `<table class="tnr" style="border-collapse: collapse; width: 100%; font-size: 11pt; color: black; background: transparent; margin-bottom: 20pt; border:none; padding:0;">`;
+            html += getQuestionRowsHTML(q, idx);
             html += `</table>`;
             return html;
+        }
+
+        function refreshExportPreview() {
+            const isBigTable = document.getElementById('mergeTablesToggle').checked;
+            const container = document.getElementById('exportArea');
+            
+            if (isBigTable) {
+                let html = `<table class="tnr" style="border-collapse: collapse; width: 100%; font-size: 11pt; color: black; background: transparent; border:none; padding:0;">`;
+                questions.forEach((q, i) => {
+                    html += getQuestionRowsHTML(q, i, true);
+                });
+                html += `</table>`;
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = questions.map((q, i) => generateHTMLForQuestion(q, i)).join('');
+            }
         }
 
         function copyQuestionTable(qIdx) {
@@ -483,7 +533,7 @@
         function toggleExportMode() {
             const m = document.getElementById('exportModal');
             if (m.classList.contains('hidden')) {
-                document.getElementById('exportArea').innerHTML = questions.map((q, i) => generateHTMLForQuestion(q, i)).join('');
+                refreshExportPreview();
                 m.classList.remove('hidden');
             } else m.classList.add('hidden');
         }
