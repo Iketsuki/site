@@ -20,37 +20,42 @@
         .editable:focus {
             outline: 2px solid #3b82f6;
             background: white;
-            border-radius: 2px;
-        }
-
-        .waffle {
-            border-collapse: collapse;
-            width: 100%;
-            background: white;
-            font-family: "Times New Roman", Times, serif;
-        }
-
-        .waffle td {
-            border: 1px solid white; 
-            padding: 2px 8px;
-            vertical-align: top;
-            line-height: 1.2;
+            border-radius: 4px;
+            padding: 2px;
         }
 
         .preview-scroll {
-            max-height: 70vh;
+            max-height: 75vh;
             overflow-y: auto;
             border: 1px solid #e2e8f0;
             padding: 2rem;
             background: #f1f5f9;
         }
 
+        .copy-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 99px;
+            z-index: 100;
+            display: none;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp { from { bottom: 0; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+        
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
 <body class="p-4 md:p-8">
+    <div id="toast" class="copy-toast">Copied to clipboard!</div>
+    
     <div class="max-w-5xl mx-auto">
         <header class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
@@ -67,16 +72,16 @@
                 <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="importCSV(event)">
                 <button onclick="document.getElementById('csvFileInput').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition">Import CSV</button>
                 <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold transition">Export CSV</button>
-                <button onclick="smartPasteAll()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold transition">⚡ Smart Paste (Auto)</button>
+                <button onclick="smartPasteAll()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold transition">⚡ Smart Paste All</button>
                 <button onclick="addQuestion()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition">+ Add Question</button>
-                <button onclick="toggleExportMode()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg font-semibold transition">Word Preview</button>
+                <button onclick="toggleExportMode()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg font-semibold transition">Full Preview</button>
             </div>
         </header>
 
         <div id="questionsContainer" class="space-y-8 mb-12"></div>
 
         <!-- Bottom Actions -->
-        <div id="bottomActions" class="border-t pt-8 pb-16 flex flex-wrap justify-center gap-4">
+        <div class="border-t pt-8 pb-16 flex flex-wrap justify-center gap-4">
              <button onclick="addQuestion()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition transform hover:-translate-y-1">
                 + Add Another Question
              </button>
@@ -84,7 +89,7 @@
                 ⚡ Paste from Clipboard
              </button>
              <button onclick="toggleExportMode()" class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition transform hover:-translate-y-1">
-                Generate Word Export
+                Preview & Export All
              </button>
         </div>
 
@@ -93,11 +98,11 @@
             <div class="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
                 <div class="flex justify-between items-center p-6 border-b">
                     <div>
-                        <h2 class="text-xl font-bold">Word Preview</h2>
-                        <p class="text-xs text-slate-500">This layout mimics the final Word document structure.</p>
+                        <h2 class="text-xl font-bold">Word Export Preview</h2>
+                        <p class="text-xs text-slate-500">Scroll to review. Copy all tables to paste into Microsoft Word.</p>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="copyAllTables()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">Copy for Word</button>
+                        <button onclick="copyAllTables()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">Copy All for Word</button>
                         <button onclick="toggleExportMode()" class="bg-slate-100 px-4 py-2 rounded-lg hover:bg-slate-200">Close</button>
                     </div>
                 </div>
@@ -108,6 +113,9 @@
         </div>
     </div>
 
+    <!-- Hidden element for single question copying -->
+    <div id="singleCopyBuffer" style="position: absolute; left: -9999px;"></div>
+
     <script>
         let questions = [];
         let history = [];
@@ -115,8 +123,10 @@
 
         // --- History Management ---
         function saveState() {
+            const currentState = JSON.stringify(questions);
+            if (historyIndex >= 0 && currentState === history[historyIndex]) return;
             if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
-            history.push(JSON.stringify(questions));
+            history.push(currentState);
             if (history.length > 50) history.shift();
             historyIndex = history.length - 1;
             updateHistoryButtons();
@@ -156,7 +166,7 @@
             }
         });
 
-        // --- Rendering ---
+        // --- Core Rendering ---
         function renderQuestions(shouldSave = true) {
             if (shouldSave) saveState();
             const container = document.getElementById('questionsContainer');
@@ -167,7 +177,10 @@
                 card.className = 'bg-white border rounded-xl shadow-sm overflow-hidden transition-all hover:shadow-md';
                 card.innerHTML = `
                     <div class="bg-slate-50 px-4 py-2 border-b flex justify-between items-center">
-                        <span class="font-bold text-slate-600 uppercase text-[10px] tracking-widest">Question ${qIdx + 1}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-slate-600 uppercase text-[10px] tracking-widest">Question ${qIdx + 1}</span>
+                            <button onclick="copyQuestionTable(${qIdx})" class="text-[10px] bg-white border border-blue-200 text-blue-600 px-2 py-0.5 rounded-md hover:bg-blue-50 transition">Copy Word Table</button>
+                        </div>
                         <div class="flex gap-2">
                             <button onclick="moveUp(${qIdx})" class="text-slate-400 hover:text-slate-600">↑</button>
                             <button onclick="moveDown(${qIdx})" class="text-slate-400 hover:text-slate-600">↓</button>
@@ -191,6 +204,7 @@
                                 <div class="w-[1px] h-4 bg-slate-200 mx-2"></div>
                                 <button onclick="smartPasteList(${qIdx})" class="text-[10px] bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full hover:bg-indigo-100 transition">📋 Paste List</button>
                                 <button onclick="smartPasteCode(${qIdx})" class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full hover:bg-blue-100 transition">📋 Paste Code</button>
+                                <button onclick="smartPasteAnswer(${qIdx})" class="text-[10px] bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full hover:bg-emerald-100 transition">✅ Paste Answer</button>
                             </div>
                         </div>
 
@@ -206,7 +220,7 @@
                                             </div>
                                         </div>
                                         <div class="flex-1">
-                                            <div contenteditable="true" class="editable tnr outline-none min-h-[1.5rem] ${opt.isCode ? 'courier bg-slate-50 p-2 rounded' : ''} ${q.answer === oIdx ? 'underline decoration-blue-400 underline-offset-4' : ''}" onblur="updateOptionText(${qIdx}, ${oIdx}, this.innerText)">${opt.text}</div>
+                                            <div contenteditable="true" class="editable tnr outline-none min-h-[1.5rem] ${opt.isCode ? 'courier bg-slate-50 p-2 rounded' : ''} ${q.answer === oIdx ? 'underline decoration-blue-400 underline-offset-4 font-semibold' : ''}" onblur="updateOptionText(${qIdx}, ${oIdx}, this.innerText)">${opt.text}</div>
                                             <button onclick="toggleOptionStyle(${qIdx}, ${oIdx})" class="text-[8px] text-slate-300 uppercase font-bold hover:text-blue-500 mt-1 block tracking-tighter">Toggle Mono</button>
                                         </div>
                                     </div>
@@ -266,13 +280,19 @@
             `;
         }
 
-        // --- Core Functions ---
-        function updateQuestionText(qIdx, text) { if (questions[qIdx].text !== text) { questions[qIdx].text = text; renderQuestions(); } }
-        function updateOptionText(qIdx, oIdx, text) { if (questions[qIdx].options[oIdx].text !== text) { questions[qIdx].options[oIdx].text = text; renderQuestions(); } }
-        function updateBlockContent(qIdx, bIdx, text) { if (questions[qIdx].blocks[bIdx].content !== text) { questions[qIdx].blocks[bIdx].content = text; renderQuestions(); } }
-        function updateListItemLabel(qIdx, bIdx, iIdx, text) { questions[qIdx].blocks[bIdx].items[iIdx].label = text; renderQuestions(); }
-        function updateListItemText(qIdx, bIdx, iIdx, text) { questions[qIdx].blocks[bIdx].items[iIdx].text = text; renderQuestions(); }
+        // --- Data Handling ---
+        function updateQuestionText(qIdx, text) { if (questions[qIdx].text !== text) { questions[qIdx].text = text; saveState(); } }
+        function updateOptionText(qIdx, oIdx, text) { if (questions[qIdx].options[oIdx].text !== text) { questions[qIdx].options[oIdx].text = text; saveState(); } }
+        function updateBlockContent(qIdx, bIdx, text) { if (questions[qIdx].blocks[bIdx].content !== text) { questions[qIdx].blocks[bIdx].content = text; saveState(); } }
+        function updateListItemLabel(qIdx, bIdx, iIdx, text) { questions[qIdx].blocks[bIdx].items[iIdx].label = text; saveState(); }
+        function updateListItemText(qIdx, bIdx, iIdx, text) { questions[qIdx].blocks[bIdx].items[iIdx].text = text; saveState(); }
 
+        function moveUp(i) { if(i>0) { [questions[i], questions[i-1]] = [questions[i-1], questions[i]]; renderQuestions(); } }
+        function moveDown(i) { if(i<questions.length-1) { [questions[i], questions[i+1]] = [questions[i+1], questions[i]]; renderQuestions(); } }
+        function deleteQuestion(i) { questions.splice(i, 1); renderQuestions(); }
+        function setAnswer(qIdx, oIdx) { questions[qIdx].answer = questions[qIdx].answer === oIdx ? null : oIdx; renderQuestions(); }
+        function adjustIndent(qIdx, bIdx, dir) { questions[qIdx].blocks[bIdx].indent = Math.max(0, Math.min(6, (questions[qIdx].blocks[bIdx].indent || 0) + dir)); renderQuestions(); }
+        
         function moveBlock(qIdx, bIdx, dir) {
             const blocks = questions[qIdx].blocks;
             const target = bIdx + dir;
@@ -282,32 +302,14 @@
             }
         }
 
-        async function smartPasteList(qIdx) {
-            try {
-                const text = await navigator.clipboard.readText();
-                if (!text) return;
-                const lines = text.split(/\r?\n/).filter(l => l.trim());
-                const items = lines.map((line, idx) => {
-                    const match = line.match(/^[\(\[]?(\d+)[\)\]\.\s]+(.*)/);
-                    return { label: match ? `(${match[1]})` : `(${idx+1})`, text: match ? match[2] : line };
-                });
-                questions[qIdx].blocks.push({ type: 'list', items, indent: 1 });
-                renderQuestions();
-            } catch (e) { console.error(e); }
-        }
-
-        async function smartPasteCode(qIdx) {
-            try {
-                const text = await navigator.clipboard.readText();
-                if (!text) return;
-                questions[qIdx].blocks.push({ type: 'code', content: text, indent: 1 });
-                renderQuestions();
-            } catch (e) { console.error(e); }
+        function toggleOptionStyle(qIdx, oIdx) {
+            questions[qIdx].options[oIdx].isCode = !questions[qIdx].options[oIdx].isCode;
+            renderQuestions();
         }
 
         function addQuestion() {
             questions.push({
-                text: "Click to edit question title...",
+                text: "Question Title...",
                 blocks: [],
                 options: [{label:"A.",text:""},{label:"B.",text:""},{label:"C.",text:""},{label:"D.",text:""}],
                 answer: null
@@ -322,6 +324,226 @@
             else b.content = "";
             questions[qIdx].blocks.push(b);
             renderQuestions();
+        }
+
+        function addListItem(qIdx, bIdx) {
+            const items = questions[qIdx].blocks[bIdx].items;
+            const nextIdx = items.length + 1;
+            items.push({ label: `(${nextIdx})`, text: "" });
+            renderQuestions();
+        }
+
+        function removeListItem(qIdx, bIdx, iIdx) {
+            questions[qIdx].blocks[bIdx].items.splice(iIdx, 1);
+            renderQuestions();
+        }
+
+        // --- Export & Copy Logic ---
+        function generateHTMLForQuestion(q, idx) {
+            let html = `<table class="tnr" style="border-collapse: collapse; width: 100%; font-size: 11pt; color: black; background: white; margin-bottom: 20px;">`;
+            html += `<tr><td style="width:40pt; border: 1px solid white; font-weight: bold; vertical-align: top;">${idx + 1}.</td><td colspan="2" style="border: 1px solid white; vertical-align: top;">${q.text}</td></tr>`;
+            
+            q.blocks.forEach(block => {
+                const bIndent = (block.indent || 0) * 18;
+                if (block.type === 'list') {
+                    block.items.forEach(it => {
+                        html += `<tr><td style="border:1px solid white;"></td><td style="width:40pt; border:1px solid white; padding-left:${bIndent}pt; color: #444; vertical-align: top;">${it.label}</td><td style="border:1px solid white; vertical-align: top;">${it.text}</td></tr>`;
+                    });
+                } else {
+                    const font = block.type === 'code' ? "font-family: 'Courier New', Courier, monospace; font-size: 10pt; background-color: #f8f8f8;" : "";
+                    html += `<tr><td style="border:1px solid white;"></td><td colspan="2" style="border:1px solid white; padding-left:${bIndent}pt; ${font} vertical-align: top;">${block.content}</td></tr>`;
+                }
+            });
+
+            q.options.forEach((opt, oIdx) => {
+                const decoration = q.answer === oIdx ? "text-decoration: underline; font-weight: bold;" : "";
+                const font = opt.isCode ? "font-family: 'Courier New', Courier, monospace; font-size: 10pt;" : "";
+                html += `<tr><td style="border:1px solid white;"></td><td style="width:40pt; border:1px solid white; font-weight: bold; vertical-align: top;">${opt.label}</td><td style="border:1px solid white; ${decoration} ${font} vertical-align: top;">${opt.text}</td></tr>`;
+            });
+
+            html += `</table>`;
+            return html;
+        }
+
+        function copyQuestionTable(qIdx) {
+            const buffer = document.getElementById('singleCopyBuffer');
+            buffer.innerHTML = generateHTMLForQuestion(questions[qIdx], qIdx);
+            
+            const range = document.createRange();
+            range.selectNode(buffer);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            showToast();
+        }
+
+        function copyAllTables() {
+            const area = document.getElementById('exportArea');
+            const range = document.createRange();
+            range.selectNode(area);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            showToast("All formatting copied!");
+        }
+
+        function toggleExportMode() {
+            const m = document.getElementById('exportModal');
+            if (m.classList.contains('hidden')) {
+                document.getElementById('exportArea').innerHTML = questions.map((q, i) => generateHTMLForQuestion(q, i)).join('');
+                m.classList.remove('hidden');
+            } else m.classList.add('hidden');
+        }
+
+        function showToast(msg = "Question table copied!") {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 2000);
+        }
+
+        // --- CSV Import/Export ---
+        function exportCSV() {
+            let csv = "\uFEFF[#Index],Content,Label,Details\n";
+            questions.forEach((q, idx) => {
+                csv += `"${idx + 1}","${q.text.replace(/"/g, '""')}","",""\n`;
+                q.blocks.forEach(b => {
+                    if (b.type === 'list') b.items.forEach(it => csv += `,"List Item","${it.label}","${it.text.replace(/"/g, '""')}"\n`);
+                    else csv += `,"${b.type === 'code' ? 'Code' : 'Text'}","","${b.content.replace(/"/g, '""')}"\n`;
+                });
+                q.options.forEach(o => csv += `,"Option","${o.label}","${o.text.replace(/"/g, '""')}"\n`);
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `mcqs_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+        }
+
+        function parseCSVLines(text) {
+            const lines = [];
+            let currentLine = [];
+            let currentField = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const nextChar = text[i+1];
+                
+                if (char === '"' && inQuotes && nextChar === '"') {
+                    currentField += '"';
+                    i++;
+                } else if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    currentLine.push(currentField.trim());
+                    currentField = '';
+                } else if ((char === '\r' || char === '\n') && !inQuotes) {
+                    currentLine.push(currentField.trim());
+                    if (currentLine.some(f => f !== '')) lines.push(currentLine);
+                    currentLine = [];
+                    currentField = '';
+                    if (char === '\r' && nextChar === '\n') i++;
+                } else {
+                    currentField += char;
+                }
+            }
+            if (currentField || currentLine.length > 0) {
+                currentLine.push(currentField.trim());
+                lines.push(currentLine);
+            }
+            return lines;
+        }
+
+        function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const allLines = parseCSVLines(e.target.result);
+                const newQs = [];
+                let currentQ = null;
+
+                allLines.forEach((clean, i) => {
+                    if (i === 0) return; // Header
+                    
+                    const indexCol = clean[0];
+                    const contentCol = clean[1];
+                    const labelCol = clean[2];
+                    const detailsCol = clean[3];
+
+                    // New Question starts if index is a number
+                    if (indexCol && /^\d+/.test(indexCol)) {
+                        if (currentQ) newQs.push(currentQ);
+                        currentQ = { text: contentCol || "", blocks: [], options: [], answer: null };
+                    } 
+                    else if (currentQ) {
+                        if (contentCol === "Option") {
+                            currentQ.options.push({ label: labelCol, text: detailsCol, isCode: false });
+                        } else if (contentCol === "List Item") {
+                            let last = currentQ.blocks[currentQ.blocks.length - 1];
+                            if (!last || last.type !== 'list') currentQ.blocks.push(last = { type: 'list', items: [], indent: 1 });
+                            last.items.push({ label: labelCol, text: detailsCol });
+                        } else if (contentCol === "Code" || contentCol === "Text") {
+                            currentQ.blocks.push({ type: contentCol.toLowerCase(), content: detailsCol, indent: 1 });
+                        }
+                    }
+                });
+                if (currentQ) newQs.push(currentQ);
+                if (newQs.length) {
+                    questions = newQs;
+                    renderQuestions();
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Clipboard Import Logic ---
+
+        async function smartPasteAnswer(qIdx) {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (!text) return;
+                // Look for patterns like "Ans: A", "Answer: B", "A", "[A]"
+                const match = text.match(/(?:Ans|Answer|Key)?[:\s]*\[?([A-D])\]?/i);
+                if (match) {
+                    const ansLetter = match[1].toUpperCase();
+                    const index = ansLetter.charCodeAt(0) - 65;
+                    questions[qIdx].answer = index;
+                    renderQuestions();
+                    showToast(`Answer set to ${ansLetter}`);
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        async function smartPasteList(qIdx) {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (!text) return;
+                const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+                const listItems = [];
+                lines.forEach(line => {
+                    const match = line.match(/^[\(\[]?(\d+)[\)\]\.\s]+(.*)/);
+                    if (match) listItems.push({ label: `(${match[1]})`, text: match[2] });
+                    else if (listItems.length > 0) listItems[listItems.length-1].text += " " + line;
+                });
+                if (listItems.length) {
+                    questions[qIdx].blocks.push({ type: 'list', items: listItems, indent: 1 });
+                    renderQuestions();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function smartPasteCode(qIdx) {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    questions[qIdx].blocks.push({ type: 'code', content: text, indent: 1 });
+                    renderQuestions();
+                }
+            } catch (e) { console.error(e); }
         }
 
         async function smartPasteAll() {
@@ -357,134 +579,8 @@
             } catch (e) { console.error(e); }
         }
 
-        // --- Helpers ---
-        function moveUp(i) { if(i>0) [questions[i], questions[i-1]] = [questions[i-1], questions[i]]; renderQuestions(); }
-        function moveDown(i) { if(i<questions.length-1) [questions[i], questions[i+1]] = [questions[i+1], questions[i]]; renderQuestions(); }
-        function deleteQuestion(i) { questions.splice(i, 1); renderQuestions(); }
-        function setAnswer(qIdx, oIdx) { questions[qIdx].answer = questions[qIdx].answer === oIdx ? null : oIdx; renderQuestions(); }
-        function adjustIndent(qIdx, bIdx, dir) { questions[qIdx].blocks[bIdx].indent = Math.max(0, Math.min(6, (questions[qIdx].blocks[bIdx].indent || 0) + dir)); renderQuestions(); }
-        function moveOption(qIdx, oIdx, dir) { 
-            const target = oIdx + dir;
-            if (target >= 0 && target < 4) {
-                const optA = questions[qIdx].options[oIdx], optB = questions[qIdx].options[target];
-                [optA.text, optB.text] = [optB.text, optA.text];
-                [optA.isCode, optB.isCode] = [optB.isCode, optA.isCode];
-                if (questions[qIdx].answer === oIdx) questions[qIdx].answer = target;
-                else if (questions[qIdx].answer === target) questions[qIdx].answer = oIdx;
-                renderQuestions();
-            }
-        }
-        function moveListItem(qIdx, bIdx, iIdx, dir) {
-            const items = questions[qIdx].blocks[bIdx].items;
-            const target = iIdx + dir;
-            if (target >= 0 && target < items.length) {
-                [items[iIdx], items[target]] = [items[target], items[iIdx]];
-                items.forEach((it, idx) => { if(/^\(\d+\)$/.test(it.label)) it.label = `(${idx+1})`; });
-                renderQuestions();
-            }
-        }
-        function toggleOptionStyle(qIdx, oIdx) { questions[qIdx].options[oIdx].isCode = !questions[qIdx].options[oIdx].isCode; renderQuestions(); }
-        function addListItem(qIdx, bIdx) { questions[qIdx].blocks[bIdx].items.push({label:`(${questions[qIdx].blocks[bIdx].items.length+1})`, text:""}); renderQuestions(); }
-        function removeListItem(qIdx, bIdx, iIdx) { questions[qIdx].blocks[bIdx].items.splice(iIdx, 1); renderQuestions(); }
-        function deleteBlock(qIdx, bIdx) { questions[qIdx].blocks.splice(bIdx, 1); renderQuestions(); }
-
-        // --- File Export/Import ---
-        function exportCSV() {
-            let csv = "\uFEFF[#Index],Content,Label,Details\n";
-            questions.forEach((q, idx) => {
-                csv += `"${idx + 1}","${q.text.replace(/"/g, '""')}","",""\n`;
-                q.blocks.forEach(b => {
-                    if (b.type === 'list') b.items.forEach(it => csv += `,"List Item","${it.label}","${it.text.replace(/"/g, '""')}"\n`);
-                    else csv += `,"${b.type === 'code' ? 'Code' : 'Text'}","","${b.content.replace(/"/g, '""')}"\n`;
-                });
-                q.options.forEach(o => csv += `,"Option","${o.label}","${o.text.replace(/"/g, '""')}"\n`);
-            });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "mcqs_data.csv";
-            link.click();
-        }
-
-        function importCSV(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const lines = e.target.result.split(/\r?\n/).filter(l => l.trim());
-                const newQs = [];
-                let currentQ = null;
-                lines.forEach((line, i) => {
-                    if (i === 0) return;
-                    const parts = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',');
-                    const clean = parts.map(p => p.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
-                    if (clean[0] && /^\d+/.test(clean[0])) {
-                        if (currentQ) newQs.push(currentQ);
-                        currentQ = { text: clean[1], blocks: [], options: [], answer: null };
-                    } else if (currentQ) {
-                        if (clean[1] === "Option") currentQ.options.push({ label: clean[2], text: clean[3], isCode: false });
-                        else if (clean[1] === "List Item") {
-                            let last = currentQ.blocks[currentQ.blocks.length - 1];
-                            if (!last || last.type !== 'list') currentQ.blocks.push(last = { type: 'list', items: [], indent: 1 });
-                            last.items.push({ label: clean[2], text: clean[3] });
-                        } else if (clean[1] === "Code" || clean[1] === "Text") {
-                            currentQ.blocks.push({ type: clean[1].toLowerCase(), content: clean[3], indent: 1 });
-                        }
-                    }
-                });
-                if (currentQ) newQs.push(currentQ);
-                questions = newQs;
-                renderQuestions();
-            };
-            reader.readAsText(file);
-        }
-
-        function generateWordTable() {
-            let html = `<table class="waffle tnr" style="border-collapse: collapse; width: 100%; font-size: 11pt; color: black; background: white;">`;
-            questions.forEach((q, idx) => {
-                html += `<tr><td style="width:40pt; border: 1px solid white; font-weight: bold;">${idx + 1}.</td><td colspan="2" style="border: 1px solid white;">${q.text}</td></tr>`;
-                q.blocks.forEach(block => {
-                    const blockIndent = (block.indent || 0) * 18;
-                    if (block.type === 'list') {
-                        block.items.forEach(it => {
-                            html += `<tr><td style="border:1px solid white;"></td><td style="width:40pt; border:1px solid white; padding-left:${blockIndent}pt; color: #444;">${it.label}</td><td style="border:1px solid white;">${it.text}</td></tr>`;
-                        });
-                    } else {
-                        const style = block.type === 'code' ? "font-family: 'Courier New', Courier, monospace; white-space: pre-wrap; font-size: 10pt;" : "";
-                        html += `<tr><td style="border:1px solid white;"></td><td colspan="2" style="border:1px solid white; padding-left:${blockIndent}pt; ${style}">${block.content}</td></tr>`;
-                    }
-                });
-                q.options.forEach((opt, oIdx) => {
-                    const dec = q.answer === oIdx ? "text-decoration: underline;" : "";
-                    const f = opt.isCode ? "font-family: 'Courier New', Courier, monospace; font-size: 10pt;" : "";
-                    html += `<tr><td style="border:1px solid white;"></td><td style="width:40pt; border:1px solid white; font-weight: bold;">${opt.label}</td><td style="border:1px solid white; ${dec} ${f}">${opt.text}</td></tr>`;
-                });
-                html += `<tr><td colspan="3" style="height: 14pt; border: 1px solid white;"></td></tr>`;
-            });
-            html += `</table>`;
-            return html;
-        }
-
-        function toggleExportMode() {
-            const m = document.getElementById('exportModal');
-            if (m.classList.contains('hidden')) {
-                document.getElementById('exportArea').innerHTML = generateWordTable();
-                m.classList.remove('hidden');
-            } else m.classList.add('hidden');
-        }
-
-        function copyAllTables() {
-            const area = document.getElementById('exportArea');
-            const range = document.createRange();
-            range.selectNode(area);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            document.execCommand('copy');
-            alert("Table formatting copied! Open Microsoft Word and paste (Keep Source Formatting).");
-            window.getSelection().removeAllRanges();
-        }
-
-        renderQuestions();
+        // Initial render
+        addQuestion();
     </script>
 </body>
 </html>
