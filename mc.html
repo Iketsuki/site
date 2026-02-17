@@ -186,11 +186,17 @@ print(x)
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                                 ${q.options.map((opt, oIdx) => `
-                                    <div class="flex items-start gap-2 p-1 rounded ${q.answer === oIdx ? 'bg-blue-50' : ''}">
-                                        <button onclick="setAnswer(${qIdx}, ${oIdx})" 
-                                                class="tnr font-normal mt-1 w-6 h-6 flex items-center justify-center rounded hover:bg-blue-100 transition ${q.answer === oIdx ? 'bg-blue-600 text-white' : 'text-slate-600'}">
-                                            ${opt.label}
-                                        </button>
+                                    <div class="flex items-start gap-2 p-1 rounded hover:bg-slate-50 group ${q.answer === oIdx ? 'bg-blue-50' : ''}">
+                                        <div class="flex flex-col gap-1">
+                                            <button onclick="setAnswer(${qIdx}, ${oIdx})" 
+                                                    class="tnr font-normal w-6 h-6 flex items-center justify-center rounded hover:bg-blue-100 transition ${q.answer === oIdx ? 'bg-blue-600 text-white' : 'text-slate-600'}">
+                                                ${opt.label}
+                                            </button>
+                                            <div class="flex flex-col opacity-0 group-hover:opacity-100">
+                                                <button onclick="moveOption(${qIdx}, ${oIdx}, -1)" class="text-[10px] text-slate-400 hover:text-blue-500">↑</button>
+                                                <button onclick="moveOption(${qIdx}, ${oIdx}, 1)" class="text-[10px] text-slate-400 hover:text-blue-500">↓</button>
+                                            </div>
+                                        </div>
                                         <div class="flex-1">
                                             <div contenteditable="true" class="editable tnr outline-none ${opt.isCode ? 'courier' : ''} ${q.answer === oIdx ? 'underline decoration-blue-400 underline-offset-4' : ''}" onblur="questions[${qIdx}].options[${oIdx}].text=this.innerText">${opt.text}</div>
                                             <button onclick="toggleOptionStyle(${qIdx}, ${oIdx})" class="text-[9px] text-slate-300 uppercase hover:text-blue-500">Toggle Mono</button>
@@ -207,15 +213,22 @@ print(x)
 
         function renderBlock(qIdx, bIdx, block) {
             let content = '';
+            const indentLevel = block.indent || 0;
+            const indentClass = `ml-${indentLevel * 8}`;
+            
             if (block.type === 'text') {
                 content = `<div contenteditable="true" class="editable tnr text-md outline-none border-b border-slate-100 py-1" onblur="questions[${qIdx}].blocks[${bIdx}].content=this.innerText">${block.content}</div>`;
             } else if (block.type === 'code') {
-                content = `<div contenteditable="true" class="editable courier bg-slate-50 text-slate-800 p-3 rounded border border-slate-200 text-sm overflow-x-auto min-h-[1.5em]" onblur="questions[${qIdx}].blocks[${bIdx}].content=this.innerText" onpaste="handleCodePaste(event, ${qIdx}, ${bIdx})">${block.content}</div>`;
+                content = `<div contenteditable="true" class="editable courier bg-slate-50 text-slate-800 p-3 rounded border border-slate-200 text-sm overflow-x-auto min-h-[1.5em] ${indentClass}" onblur="questions[${qIdx}].blocks[${bIdx}].content=this.innerText" onpaste="handleCodePaste(event, ${qIdx}, ${bIdx})">${block.content}</div>`;
             } else if (block.type === 'list') {
                 content = `
-                    <div class="space-y-1 pl-4">
+                    <div class="space-y-1 ${indentClass}">
                         ${block.items.map((item, iIdx) => `
                             <div class="flex gap-2 items-center group">
+                                <div class="flex flex-col opacity-0 group-hover:opacity-100">
+                                    <button onclick="moveListItem(${qIdx}, ${bIdx}, ${iIdx}, -1)" class="text-[8px] leading-none text-slate-400">▲</button>
+                                    <button onclick="moveListItem(${qIdx}, ${bIdx}, ${iIdx}, 1)" class="text-[8px] leading-none text-slate-400">▼</button>
+                                </div>
                                 <div contenteditable="true" class="tnr w-10 text-slate-400 focus:text-blue-600 outline-none" onblur="questions[${qIdx}].blocks[${bIdx}].items[${iIdx}].label=this.innerText">${item.label}</div>
                                 <div contenteditable="true" class="tnr flex-1 outline-none" onblur="questions[${qIdx}].blocks[${bIdx}].items[${iIdx}].text=this.innerText">${item.text}</div>
                                 <button onclick="removeListItem(${qIdx}, ${bIdx}, ${iIdx})" class="opacity-0 group-hover:opacity-100 text-red-400">×</button>
@@ -228,12 +241,65 @@ print(x)
             return `
                 <div class="relative group border border-transparent hover:border-slate-200 p-2 rounded-lg transition">
                     <div class="flex justify-between items-center mb-1">
-                        <span class="text-[8px] font-bold text-slate-300 uppercase">${block.type}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[8px] font-bold text-slate-300 uppercase">${block.type}</span>
+                            <div class="flex gap-1 opacity-0 group-hover:opacity-100">
+                                <button onclick="adjustIndent(${qIdx}, ${bIdx}, -1)" class="text-[10px] bg-slate-100 px-1 rounded hover:bg-slate-200" title="Decrease Indent">←</button>
+                                <button onclick="adjustIndent(${qIdx}, ${bIdx}, 1)" class="text-[10px] bg-slate-100 px-1 rounded hover:bg-slate-200" title="Increase Indent">→</button>
+                            </div>
+                        </div>
                         <button onclick="deleteBlock(${qIdx}, ${bIdx})" class="opacity-0 group-hover:opacity-100 text-red-400 text-xs">✕</button>
                     </div>
                     ${content}
                 </div>
             `;
+        }
+
+        // Logic Functions
+        function adjustIndent(qIdx, bIdx, dir) {
+            let current = questions[qIdx].blocks[bIdx].indent || 0;
+            questions[qIdx].blocks[bIdx].indent = Math.max(0, Math.min(10, current + dir));
+            renderQuestions();
+        }
+
+        function moveListItem(qIdx, bIdx, iIdx, dir) {
+            const items = questions[qIdx].blocks[bIdx].items;
+            const newPos = iIdx + dir;
+            if (newPos >= 0 && newPos < items.length) {
+                [items[iIdx], items[newPos]] = [items[newPos], items[iIdx]];
+                // Auto re-number labels if they follow (1) pattern
+                items.forEach((item, idx) => {
+                    if (/^\(\d+\)$/.test(item.label)) {
+                        item.label = `(${idx + 1})`;
+                    }
+                });
+                renderQuestions();
+            }
+        }
+
+        function moveOption(qIdx, oIdx, dir) {
+            const opts = questions[qIdx].options;
+            const newPos = oIdx + dir;
+            if (newPos >= 0 && newPos < opts.length) {
+                // Keep the label (A, B, C, D) but swap the content and metadata
+                const tempText = opts[oIdx].text;
+                const tempIsCode = opts[oIdx].isCode;
+                
+                opts[oIdx].text = opts[newPos].text;
+                opts[oIdx].isCode = opts[newPos].isCode;
+                
+                opts[newPos].text = tempText;
+                opts[newPos].isCode = tempIsCode;
+
+                // Handle answer index swap
+                if (questions[qIdx].answer === oIdx) {
+                    questions[qIdx].answer = newPos;
+                } else if (questions[qIdx].answer === newPos) {
+                    questions[qIdx].answer = oIdx;
+                }
+
+                renderQuestions();
+            }
         }
 
         function handleCodePaste(e, qIdx, bIdx) {
@@ -268,16 +334,11 @@ print(x)
                 const text = await navigator.clipboard.readText();
                 if (!text) return;
                 const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
-                
                 const items = lines.map((line, idx) => {
                     let cleanText = line.trim().replace(/^(\d+[\.\)])\s*/, "");
-                    return { 
-                        label: `(${idx + 1})`, 
-                        text: cleanText 
-                    };
+                    return { label: `(${idx + 1})`, text: cleanText };
                 });
-                
-                questions[qIdx].blocks.push({ type: 'list', items });
+                questions[qIdx].blocks.push({ type: 'list', items, indent: 0 });
                 renderQuestions();
             } catch (err) { alert("Clipboard access denied."); }
         }
@@ -286,7 +347,7 @@ print(x)
             try {
                 const text = await navigator.clipboard.readText();
                 if (!text) return;
-                questions[qIdx].blocks.push({ type: 'code', content: text });
+                questions[qIdx].blocks.push({ type: 'code', content: text, indent: 0 });
                 renderQuestions();
             } catch (err) { alert("Clipboard access denied."); }
         }
@@ -295,27 +356,18 @@ print(x)
             try {
                 const text = await navigator.clipboard.readText();
                 if (!text) return;
-                
                 const questionChunks = text.split(/\[Q\]:/g).filter(chunk => chunk.trim() !== "");
                 const importedQuestions = [];
-
                 questionChunks.forEach(chunk => {
                     const lines = chunk.split(/\r?\n/);
                     let qText = "";
                     let remainingLines = [];
                     let foundFirstTag = false;
-
                     lines.forEach(line => {
-                        if (!foundFirstTag && /^\[[A-Z]\]:/.test(line.trim())) {
-                            foundFirstTag = true;
-                        }
-                        if (!foundFirstTag) {
-                            qText += (qText ? "\n" : "") + line.trim();
-                        } else {
-                            remainingLines.push(line);
-                        }
+                        if (!foundFirstTag && /^\[[A-Z]\]:/.test(line.trim())) foundFirstTag = true;
+                        if (!foundFirstTag) qText += (qText ? "\n" : "") + line.trim();
+                        else remainingLines.push(line);
                     });
-
                     const qObj = {
                         text: qText || "Imported Question",
                         blocks: [],
@@ -327,86 +379,56 @@ print(x)
                         ],
                         answer: null
                     };
-
                     let currentTag = null;
                     let currentContent = [];
-
                     const processTag = (tag, content) => {
                         const cleanContent = content.join("\n").trim();
                         if (!cleanContent) return;
-
-                        if (tag === 'A' || tag === 'B' || tag === 'C' || tag === 'D') {
+                        if (['A','B','C','D'].includes(tag)) {
                             const idx = tag.charCodeAt(0) - 65; 
                             qObj.options[idx].text = cleanContent;
                         } else if (tag === 'B') {
                             if (cleanContent.includes(" (1)") || cleanContent.match(/^\d+[\.\)]/m)) {
                                 const listItems = cleanContent.split("\n")
                                     .filter(l => l.trim() !== "")
-                                    .map((l, idx) => {
-                                        let ct = l.trim().replace(/^(\d+[\.\)]|\(\d+\))\s*/, "");
-                                        return { label: `(${idx + 1})`, text: ct };
-                                    });
-                                qObj.blocks.push({ type: 'list', items: listItems });
+                                    .map((l, idx) => ({ label: `(${idx + 1})`, text: l.trim().replace(/^(\d+[\.\)]|\(\d+\))\s*/, "") }));
+                                qObj.blocks.push({ type: 'list', items: listItems, indent: 0 });
                             } else {
-                                qObj.blocks.push({ type: 'code', content: cleanContent });
+                                qObj.blocks.push({ type: 'code', content: cleanContent, indent: 0 });
                             }
                         }
                     };
-
                     remainingLines.forEach(line => {
                         const match = line.match(/^\[([A-Z])\]:\s*(.*)/);
                         if (match) {
                             if (currentTag) processTag(currentTag, currentContent);
                             currentTag = match[1];
                             currentContent = [match[2]];
-                        } else if (currentTag) {
-                            currentContent.push(line);
-                        }
+                        } else if (currentTag) currentContent.push(line);
                     });
                     if (currentTag) processTag(currentTag, currentContent);
-
                     importedQuestions.push(qObj);
                 });
-
-                if (importedQuestions.length > 0) {
-                    questions = [...questions, ...importedQuestions];
-                    renderQuestions();
-                } else {
-                    alert("No valid [Q]: tags found in clipboard content.");
-                }
-            } catch (err) {
-                alert("Clipboard access denied or parsing error.");
-                console.error(err);
-            }
+                questions = [...questions, ...importedQuestions];
+                renderQuestions();
+            } catch (err) { alert("Error parsing clipboard."); }
         }
 
         function addBlock(qIdx, type) {
-            if (type === 'list') {
-                questions[qIdx].blocks.push({ type: 'list', items: [{ label: "(1)", text: "" }] });
-            } else if (type === 'code') {
-                questions[qIdx].blocks.push({ type: 'code', content: "" });
-            } else {
-                questions[qIdx].blocks.push({ type: 'text', content: "" });
-            }
+            if (type === 'list') questions[qIdx].blocks.push({ type: 'list', items: [{ label: "(1)", text: "" }], indent: 0 });
+            else if (type === 'code') questions[qIdx].blocks.push({ type: 'code', content: "", indent: 0 });
+            else questions[qIdx].blocks.push({ type: 'text', content: "", indent: 0 });
             renderQuestions();
         }
 
-        function deleteBlock(qIdx, bIdx) {
-            questions[qIdx].blocks.splice(bIdx, 1);
-            renderQuestions();
-        }
-
+        function deleteBlock(qIdx, bIdx) { questions[qIdx].blocks.splice(bIdx, 1); renderQuestions(); }
         function addListItem(qIdx, bIdx) {
             const next = questions[qIdx].blocks[bIdx].items.length + 1;
             questions[qIdx].blocks[bIdx].items.push({ label: `(${next})`, text: "" });
             renderQuestions();
         }
-
-        function removeListItem(qIdx, bIdx, iIdx) {
-            questions[qIdx].blocks[bIdx].items.splice(iIdx, 1);
-            renderQuestions();
-        }
-
+        function removeListItem(qIdx, bIdx, iIdx) { questions[qIdx].blocks[bIdx].items.splice(iIdx, 1); renderQuestions(); }
+        
         function addQuestion() {
             questions.push({
                 text: "New Question Text",
@@ -431,46 +453,27 @@ print(x)
 
         function generateWordTable() {
             let html = `<table class="waffle tnr" style="border-collapse: collapse; width: 100%; font-size: 11pt; color: black;">`;
-            
             questions.forEach((q, idx) => {
-                html += `<tr>
-                    <td style="width:40pt; border: 1px solid white;">${idx + 1}.</td>
-                    <td colspan="2" style="border: 1px solid white;">${q.text}</td>
-                </tr>`;
-
+                html += `<tr><td style="width:40pt; border: 1px solid white;">${idx + 1}.</td><td colspan="2" style="border: 1px solid white;">${q.text}</td></tr>`;
                 q.blocks.forEach(block => {
+                    const blockIndent = (block.indent || 0) * 20;
                     if (block.type === 'text') {
-                        html += `<tr><td style="border: 1px solid white;"></td><td colspan="2" style="border: 1px solid white;">${block.content}</td></tr>`;
+                        html += `<tr><td style="border: 1px solid white;"></td><td colspan="2" style="border: 1px solid white; padding-left:${blockIndent}pt;">${block.content}</td></tr>`;
                     } else if (block.type === 'code') {
-                        html += `<tr>
-                            <td style="border: 1px solid white;"></td>
-                            <td colspan="2" style="border: 1px solid white; font-family: 'Courier New', Courier, monospace; white-space: pre; line-height: 1.0;">${block.content}</td>
-                        </tr>`;
+                        html += `<tr><td style="border: 1px solid white;"></td><td colspan="2" style="border: 1px solid white; font-family: 'Courier New', Courier, monospace; white-space: pre; line-height: 1.0; padding-left:${blockIndent}pt;">${block.content}</td></tr>`;
                     } else if (block.type === 'list') {
                         block.items.forEach(item => {
-                            html += `<tr>
-                                <td style="border: 1px solid white;"></td>
-                                <td style="width:40pt; border: 1px solid white;">${item.label}</td>
-                                <td style="border: 1px solid white;">${item.text}</td>
-                            </tr>`;
+                            html += `<tr><td style="border: 1px solid white;"></td><td style="width:40pt; border: 1px solid white; padding-left:${blockIndent}pt;">${item.label}</td><td style="border: 1px solid white;">${item.text}</td></tr>`;
                         });
                     }
                 });
-
                 q.options.forEach((opt, oIdx) => {
-                    const isCorrect = q.answer === oIdx;
-                    const fontStyle = opt.isCode ? "font-family: 'Courier New', Courier, monospace;" : "";
-                    const textDecoration = isCorrect ? "text-decoration: underline;" : "";
-                    html += `<tr>
-                        <td style="border: 1px solid white;"></td>
-                        <td style="border: 1px solid white; width:40pt;">${opt.label}</td>
-                        <td style="border: 1px solid white; ${fontStyle} ${textDecoration}">${opt.text}</td>
-                    </tr>`;
+                    const decoration = q.answer === oIdx ? "text-decoration: underline;" : "";
+                    const courier = opt.isCode ? "font-family: 'Courier New', Courier, monospace;" : "";
+                    html += `<tr><td style="border: 1px solid white;"></td><td style="border: 1px solid white; width:40pt;">${opt.label}</td><td style="border: 1px solid white; ${decoration} ${courier}">${opt.text}</td></tr>`;
                 });
-
                 html += `<tr><td colspan="3" style="height: 15pt; border: 1px solid white;"></td></tr>`;
             });
-
             html += `</table>`;
             return html;
         }
@@ -480,9 +483,7 @@ print(x)
             if (modal.classList.contains('hidden')) {
                 document.getElementById('exportArea').innerHTML = generateWordTable();
                 modal.classList.remove('hidden');
-            } else {
-                modal.classList.add('hidden');
-            }
+            } else modal.classList.add('hidden');
         }
 
         function copyAllTables() {
@@ -497,26 +498,14 @@ print(x)
         }
 
         function exportCSV() {
-            if (questions.length === 0) {
-                alert("No questions to export.");
-                return;
-            }
-
-            let csvLines = [];
-            csvLines.push('"Index","Content Type","Label/Text","Main Content"');
-
+            if (questions.length === 0) { alert("No questions to export."); return; }
+            let csvLines = ['"Index","Content Type","Label/Text","Main Content"'];
             questions.forEach((q, idx) => {
                 csvLines.push(`"${idx + 1}.","Question","","${q.text.replace(/"/g, '""')}"`);
                 q.blocks.forEach(block => {
-                    if (block.type === 'text') {
-                        csvLines.push(`,"Text Block","","${block.content.replace(/"/g, '""')}"`);
-                    } else if (block.type === 'code') {
-                        csvLines.push(`,"Code Block","","${block.content.replace(/"/g, '""')}"`);
-                    } else if (block.type === 'list') {
-                        block.items.forEach(item => {
-                            csvLines.push(`,"List Item","${item.label.replace(/"/g, '""')}","${item.text.replace(/"/g, '""')}"`);
-                        });
-                    }
+                    if (block.type === 'text') csvLines.push(`,"Text Block","","${block.content.replace(/"/g, '""')}"`);
+                    else if (block.type === 'code') csvLines.push(`,"Code Block","","${block.content.replace(/"/g, '""')}"`);
+                    else if (block.type === 'list') block.items.forEach(item => csvLines.push(`,"List Item","${item.label.replace(/"/g, '""')}","${item.text.replace(/"/g, '""')}"`));
                 });
                 q.options.forEach((opt, oIdx) => {
                     const suffix = (q.answer === oIdx) ? " (Correct)" : "";
@@ -524,16 +513,11 @@ print(x)
                 });
                 csvLines.push(",,,");
             });
-
-            const csvContent = "\uFEFF" + csvLines.join("\n");
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
+            const blob = new Blob(["\uFEFF" + csvLines.join("\n")], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", "mcq_maker_export.csv");
-            document.body.appendChild(link);
+            link.href = URL.createObjectURL(blob);
+            link.download = "mcq_export.csv";
             link.click();
-            document.body.removeChild(link);
         }
 
         function importCSV(event) {
@@ -544,42 +528,29 @@ print(x)
                 const lines = e.target.result.split(/\r?\n/);
                 const newQs = [];
                 let currentQ = null;
-
                 lines.forEach((line, lineIdx) => {
                     if (lineIdx === 0) return; 
                     const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(p => p.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
-                    
                     if (parts[0] && parts[0].endsWith('.')) {
                         if (currentQ) newQs.push(currentQ);
                         currentQ = { text: parts[3] || "", blocks: [], options: [], answer: null };
                     } else if (currentQ) {
-                        const type = parts[1];
-                        if (type === "Text Block") {
-                            currentQ.blocks.push({ type: 'text', content: parts[3] || "" });
-                        } else if (type === "Code Block") {
-                            currentQ.blocks.push({ type: 'code', content: parts[3] || "" });
-                        } else if (type === "List Item") {
-                            let lastBlock = currentQ.blocks[currentQ.blocks.length - 1];
-                            if (!lastBlock || lastBlock.type !== 'list') {
-                                lastBlock = { type: 'list', items: [] };
-                                currentQ.blocks.push(lastBlock);
-                            }
-                            lastBlock.items.push({ label: parts[2], text: parts[3] });
-                        } else if (type === "Option") {
+                        if (parts[1] === "Text Block") currentQ.blocks.push({ type: 'text', content: parts[3] || "", indent: 0 });
+                        else if (parts[1] === "Code Block") currentQ.blocks.push({ type: 'code', content: parts[3] || "", indent: 0 });
+                        else if (parts[1] === "List Item") {
+                            let last = currentQ.blocks[currentQ.blocks.length - 1];
+                            if (!last || last.type !== 'list') { last = { type: 'list', items: [], indent: 0 }; currentQ.blocks.push(last); }
+                            last.items.push({ label: parts[2], text: parts[3] });
+                        } else if (parts[1] === "Option") {
                             let text = parts[3];
-                            if (text.endsWith(" (Correct)")) {
-                                text = text.replace(" (Correct)", "");
-                                currentQ.answer = currentQ.options.length;
-                            }
-                            currentQ.options.push({ label: parts[2], text: text, isCode: false });
+                            if (text.endsWith(" (Correct)")) { text = text.replace(" (Correct)", ""); currentQ.answer = currentQ.options.length; }
+                            currentQ.options.push({ label: parts[2], text, isCode: false });
                         }
                     }
                 });
                 if (currentQ) newQs.push(currentQ);
-                if (newQs.length > 0) {
-                    questions = newQs;
-                    renderQuestions();
-                }
+                questions = newQs;
+                renderQuestions();
             };
             reader.readAsText(file);
         }
