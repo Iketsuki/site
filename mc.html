@@ -173,7 +173,9 @@ print(x)
                                 <button onclick="addBlock(${qIdx}, 'text')" class="text-[10px] bg-slate-100 px-2 py-1 rounded hover:bg-slate-200">+ Add Text</button>
                                 <button onclick="addBlock(${qIdx}, 'list')" class="text-[10px] bg-slate-100 px-2 py-1 rounded hover:bg-slate-200">+ Add List</button>
                                 <button onclick="addBlock(${qIdx}, 'code')" class="text-[10px] bg-slate-100 px-2 py-1 rounded hover:bg-slate-200">+ Add Code</button>
-                                <button onclick="smartPasteBlocks(${qIdx})" class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100">Smart Paste Blocks</button>
+                                <div class="w-[1px] bg-slate-200 mx-1"></div>
+                                <button onclick="smartPasteList(${qIdx})" class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded hover:bg-indigo-100">Smart Paste List</button>
+                                <button onclick="smartPasteCode(${qIdx})" class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100">Smart Paste Code</button>
                             </div>
                         </div>
 
@@ -261,21 +263,30 @@ print(x)
             } catch (err) { alert("Clipboard access denied."); }
         }
 
-        async function smartPasteBlocks(qIdx) {
+        async function smartPasteList(qIdx) {
             try {
                 const text = await navigator.clipboard.readText();
                 if (!text) return;
                 const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
                 
-                if (lines.some(l => /^\(\d+\)/.test(l.trim()))) {
-                    const items = lines.map(line => {
-                        const match = line.trim().match(/^(\(\d+\))\s*(.*)/);
-                        return match ? { label: match[1], text: match[2] } : { label: "", text: line.trim() };
-                    });
-                    questions[qIdx].blocks.push({ type: 'list', items });
-                } else {
-                    questions[qIdx].blocks.push({ type: 'code', content: text });
-                }
+                const items = lines.map((line, idx) => {
+                    let cleanText = line.trim().replace(/^(\d+[\.\)])\s*/, "");
+                    return { 
+                        label: `(${idx + 1})`, 
+                        text: cleanText 
+                    };
+                });
+                
+                questions[qIdx].blocks.push({ type: 'list', items });
+                renderQuestions();
+            } catch (err) { alert("Clipboard access denied."); }
+        }
+
+        async function smartPasteCode(qIdx) {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (!text) return;
+                questions[qIdx].blocks.push({ type: 'code', content: text });
                 renderQuestions();
             } catch (err) { alert("Clipboard access denied."); }
         }
@@ -328,11 +339,13 @@ print(x)
                             const idx = tag.charCodeAt(0) - 65; 
                             qObj.options[idx].text = cleanContent;
                         } else if (tag === 'B') {
-                            if (cleanContent.includes(" (1)")) {
-                                const listItems = cleanContent.split("\n").map(l => {
-                                    const m = l.match(/^(\(\d+\))\s*(.*)/);
-                                    return m ? { label: m[1], text: m[2] } : { label: "", text: l };
-                                });
+                            if (cleanContent.includes(" (1)") || cleanContent.match(/^\d+[\.\)]/m)) {
+                                const listItems = cleanContent.split("\n")
+                                    .filter(l => l.trim() !== "")
+                                    .map((l, idx) => {
+                                        let ct = l.trim().replace(/^(\d+[\.\)]|\(\d+\))\s*/, "");
+                                        return { label: `(${idx + 1})`, text: ct };
+                                    });
                                 qObj.blocks.push({ type: 'list', items: listItems });
                             } else {
                                 qObj.blocks.push({ type: 'code', content: cleanContent });
