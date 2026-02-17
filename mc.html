@@ -43,14 +43,6 @@
             line-height: 1.1;
         }
 
-        .btn-action {
-            font-size: 0.65rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
@@ -75,6 +67,9 @@
                 </button>
                 <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold transition">
                     Export CSV
+                </button>
+                <button onclick="smartPasteAll()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold transition">
+                    Smart Paste (All)
                 </button>
                 <button onclick="addQuestion()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition">
                     <span>+ Add Question</span>
@@ -213,7 +208,7 @@ print(x)
             if (block.type === 'text') {
                 content = `<div contenteditable="true" class="editable tnr text-md outline-none border-b border-slate-100 py-1" onblur="questions[${qIdx}].blocks[${bIdx}].content=this.innerText">${block.content}</div>`;
             } else if (block.type === 'code') {
-                content = `<div contenteditable="true" class="editable courier bg-slate-800 text-slate-100 p-3 rounded text-sm overflow-x-auto min-h-[1.5em]" onblur="questions[${qIdx}].blocks[${bIdx}].content=this.innerText" onpaste="handleCodePaste(event, ${qIdx}, ${bIdx})">${block.content}</div>`;
+                content = `<div contenteditable="true" class="editable courier bg-slate-50 text-slate-800 p-3 rounded border border-slate-200 text-sm overflow-x-auto min-h-[1.5em]" onblur="questions[${qIdx}].blocks[${bIdx}].content=this.innerText" onpaste="handleCodePaste(event, ${qIdx}, ${bIdx})">${block.content}</div>`;
             } else if (block.type === 'list') {
                 content = `
                     <div class="space-y-1 pl-4">
@@ -283,6 +278,93 @@ print(x)
                 }
                 renderQuestions();
             } catch (err) { alert("Clipboard access denied."); }
+        }
+
+        async function smartPasteAll() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (!text) return;
+                
+                const questionChunks = text.split(/\[Q\]:/g).filter(chunk => chunk.trim() !== "");
+                const importedQuestions = [];
+
+                questionChunks.forEach(chunk => {
+                    const lines = chunk.split(/\r?\n/);
+                    let qText = "";
+                    let remainingLines = [];
+                    let foundFirstTag = false;
+
+                    lines.forEach(line => {
+                        if (!foundFirstTag && /^\[[A-Z]\]:/.test(line.trim())) {
+                            foundFirstTag = true;
+                        }
+                        if (!foundFirstTag) {
+                            qText += (qText ? "\n" : "") + line.trim();
+                        } else {
+                            remainingLines.push(line);
+                        }
+                    });
+
+                    const qObj = {
+                        text: qText || "Imported Question",
+                        blocks: [],
+                        options: [
+                            { label: "A.", text: "", isCode: false },
+                            { label: "B.", text: "", isCode: false },
+                            { label: "C.", text: "", isCode: false },
+                            { label: "D.", text: "", isCode: false }
+                        ],
+                        answer: null
+                    };
+
+                    let currentTag = null;
+                    let currentContent = [];
+
+                    const processTag = (tag, content) => {
+                        const cleanContent = content.join("\n").trim();
+                        if (!cleanContent) return;
+
+                        if (tag === 'A' || tag === 'B' || tag === 'C' || tag === 'D') {
+                            const idx = tag.charCodeAt(0) - 65; 
+                            qObj.options[idx].text = cleanContent;
+                        } else if (tag === 'B') {
+                            if (cleanContent.includes(" (1)")) {
+                                const listItems = cleanContent.split("\n").map(l => {
+                                    const m = l.match(/^(\(\d+\))\s*(.*)/);
+                                    return m ? { label: m[1], text: m[2] } : { label: "", text: l };
+                                });
+                                qObj.blocks.push({ type: 'list', items: listItems });
+                            } else {
+                                qObj.blocks.push({ type: 'code', content: cleanContent });
+                            }
+                        }
+                    };
+
+                    remainingLines.forEach(line => {
+                        const match = line.match(/^\[([A-Z])\]:\s*(.*)/);
+                        if (match) {
+                            if (currentTag) processTag(currentTag, currentContent);
+                            currentTag = match[1];
+                            currentContent = [match[2]];
+                        } else if (currentTag) {
+                            currentContent.push(line);
+                        }
+                    });
+                    if (currentTag) processTag(currentTag, currentContent);
+
+                    importedQuestions.push(qObj);
+                });
+
+                if (importedQuestions.length > 0) {
+                    questions = [...questions, ...importedQuestions];
+                    renderQuestions();
+                } else {
+                    alert("No valid [Q]: tags found in clipboard content.");
+                }
+            } catch (err) {
+                alert("Clipboard access denied or parsing error.");
+                console.error(err);
+            }
         }
 
         function addBlock(qIdx, type) {
@@ -408,14 +490,10 @@ print(x)
             }
 
             let csvLines = [];
-            // CSV Header
             csvLines.push('"Index","Content Type","Label/Text","Main Content"');
 
             questions.forEach((q, idx) => {
-                // Question Row
                 csvLines.push(`"${idx + 1}.","Question","","${q.text.replace(/"/g, '""')}"`);
-
-                // Blocks
                 q.blocks.forEach(block => {
                     if (block.type === 'text') {
                         csvLines.push(`,"Text Block","","${block.content.replace(/"/g, '""')}"`);
@@ -427,14 +505,10 @@ print(x)
                         });
                     }
                 });
-
-                // Options
                 q.options.forEach((opt, oIdx) => {
                     const suffix = (q.answer === oIdx) ? " (Correct)" : "";
                     csvLines.push(`,"Option","${opt.label.replace(/"/g, '""')}","${opt.text.replace(/"/g, '""')}${suffix}"`);
                 });
-
-                // Divider
                 csvLines.push(",,,");
             });
 
@@ -458,9 +532,8 @@ print(x)
                 const newQs = [];
                 let currentQ = null;
 
-                // Simple parser (assuming standard structure from export)
                 lines.forEach((line, lineIdx) => {
-                    if (lineIdx === 0) return; // skip header
+                    if (lineIdx === 0) return; 
                     const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(p => p.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
                     
                     if (parts[0] && parts[0].endsWith('.')) {
@@ -481,9 +554,7 @@ print(x)
                             lastBlock.items.push({ label: parts[2], text: parts[3] });
                         } else if (type === "Option") {
                             let text = parts[3];
-                            let isCorrect = false;
                             if (text.endsWith(" (Correct)")) {
-                                isCorrect = true;
                                 text = text.replace(" (Correct)", "");
                                 currentQ.answer = currentQ.options.length;
                             }
@@ -492,9 +563,6 @@ print(x)
                     }
                 });
                 if (currentQ) newQs.push(currentQ);
-                
-                // If the CSV was a simple legacy format, fallback logic may be needed, 
-                // but this covers the current structure.
                 if (newQs.length > 0) {
                     questions = newQs;
                     renderQuestions();
