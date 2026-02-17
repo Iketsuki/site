@@ -12,6 +12,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
             color: #1e293b;
+            scroll-behavior: smooth;
         }
 
         .tnr { font-family: "Times New Roman", Times, serif; }
@@ -52,7 +53,6 @@
             @apply w-6 h-6 flex items-center justify-center bg-white border border-slate-200 rounded shadow-sm text-[10px] hover:bg-slate-50 transition;
         }
 
-        /* Toggle Switch Styling */
         .switch {
             position: relative;
             display: inline-block;
@@ -70,6 +70,13 @@
         }
         input:checked + .slider { background-color: #3b82f6; }
         input:checked + .slider:before { transform: translateX(20px); }
+
+        .question-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .question-card.collapsed .question-content {
+            display: none;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -91,13 +98,15 @@
                 <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="importCSV(event)">
                 <button onclick="document.getElementById('csvFileInput').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm transition">Import CSV</button>
                 <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm transition">Export CSV</button>
+                <button onclick="toggleAllCollapse(true)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm transition">Collapse All</button>
+                <button onclick="toggleAllCollapse(false)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm transition">Unfold All</button>
                 <button onclick="smartPasteAll()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm transition">⚡ Smart Paste All</button>
                 <button onclick="addQuestion()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition">+ Add Question</button>
                 <button onclick="toggleExportMode()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm transition">Full Preview</button>
             </div>
         </header>
 
-        <div id="questionsContainer" class="space-y-8 mb-12"></div>
+        <div id="questionsContainer" class="space-y-4 mb-12"></div>
 
         <div class="border-t pt-8 pb-16 flex flex-wrap justify-center gap-4">
              <button onclick="smartPasteAll()" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition transform hover:-translate-y-1">
@@ -111,6 +120,7 @@
              </button>
         </div>
 
+        <!-- Export Modal -->
         <div id="exportModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-6 border-b gap-4">
@@ -194,22 +204,28 @@
 
             questions.forEach((q, qIdx) => {
                 const card = document.createElement('div');
-                card.className = 'bg-white border rounded-xl shadow-sm overflow-hidden transition-all';
+                card.id = `q-card-${qIdx}`;
+                card.className = `question-card bg-white border rounded-xl shadow-sm overflow-hidden ${q.collapsed ? 'collapsed border-slate-300' : 'border-slate-200'}`;
+                
+                const cardTitle = q.text.substring(0, 120) + (q.text.length > 120 ? '...' : '');
+
                 card.innerHTML = `
-                    <div class="bg-slate-50 px-4 py-2 border-b flex justify-between items-center">
-                        <div class="flex gap-3 items-center">
-                            <span class="text-[10px] font-bold text-slate-500 uppercase">Question ${qIdx + 1}</span>
-                            <div class="flex gap-1">
-                                <button onclick="moveQuestion(${qIdx}, -1)" class="text-[10px] text-slate-400 hover:text-blue-600 px-1">↑</button>
-                                <button onclick="moveQuestion(${qIdx}, 1)" class="text-[10px] text-slate-400 hover:text-blue-600 px-1">↓</button>
+                    <div class="bg-slate-50 px-4 py-2 border-b flex justify-between items-center cursor-pointer select-none" onclick="toggleCollapse(${qIdx}, event)">
+                        <div class="flex gap-3 items-center overflow-hidden">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase flex-shrink-0">Q${qIdx + 1}</span>
+                            <div class="flex gap-1 flex-shrink-0">
+                                <button onclick="moveQuestion(${qIdx}, -1, event)" class="text-[14px] text-slate-400 hover:text-blue-600 px-1">↑</button>
+                                <button onclick="moveQuestion(${qIdx}, 1, event)" class="text-[14px] text-slate-400 hover:text-blue-600 px-1">↓</button>
                             </div>
+                            ${q.collapsed ? `<span class="text-xs text-slate-600 tnr truncate">${cardTitle}</span>` : ''}
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="copyQuestionTable(${qIdx})" class="text-[10px] bg-white border border-blue-100 text-blue-600 px-2 py-0.5 rounded hover:bg-blue-50">Copy Table</button>
-                            <button onclick="deleteQuestion(${qIdx})" class="text-red-400 hover:text-red-600">✕</button>
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button onclick="copyQuestionTable(${qIdx}, event)" class="text-[10px] bg-white border border-blue-100 text-blue-600 px-2 py-0.5 rounded hover:bg-blue-50">Copy Table</button>
+                            <button onclick="deleteQuestion(${qIdx}, event)" class="text-red-400 hover:text-red-600 ml-2">✕</button>
+                            <span class="text-slate-400 text-xs ml-2">${q.collapsed ? '▼' : '▲'}</span>
                         </div>
                     </div>
-                    <div class="p-6 space-y-4">
+                    <div class="question-content p-6 space-y-4">
                         <div class="flex gap-4">
                             <div class="tnr text-lg text-slate-400">${qIdx + 1}.</div>
                             <div class="flex-1">
@@ -226,6 +242,7 @@
                             <div class="w-[1px] h-4 bg-slate-200 mx-1"></div>
                             <button onclick="smartPasteList(${qIdx})" class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded hover:bg-indigo-100">📋 List</button>
                             <button onclick="smartPasteCode(${qIdx})" class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100">📋 Code</button>
+                            <button onclick="smartPasteOptions(${qIdx})" class="text-[10px] bg-pink-50 text-pink-600 px-2 py-1 rounded hover:bg-pink-100">📋 ABCD Options</button>
                             <button onclick="smartPasteAnswer(${qIdx})" class="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-1 rounded hover:bg-emerald-100">✅ Ans</button>
                         </div>
 
@@ -307,11 +324,32 @@
         function setAnswer(qIdx, oIdx) { questions[qIdx].answer = questions[qIdx].answer === oIdx ? null : oIdx; renderQuestions(); }
         function toggleOptionStyle(qIdx, oIdx) { questions[qIdx].options[oIdx].isCode = !questions[qIdx].options[oIdx].isCode; renderQuestions(); }
         
-        function moveQuestion(idx, dir) {
+        function toggleCollapse(idx, e) {
+            questions[idx].collapsed = !questions[idx].collapsed;
+            renderQuestions(false);
+        }
+
+        function toggleAllCollapse(collapsed) {
+            questions.forEach(q => q.collapsed = collapsed);
+            renderQuestions(false);
+        }
+
+        function moveQuestion(idx, dir, e) {
+            if (e) e.stopPropagation();
             const target = idx + dir;
             if (target >= 0 && target < questions.length) {
                 [questions[idx], questions[target]] = [questions[target], questions[idx]];
                 renderQuestions();
+                
+                // Auto-follow moving item
+                setTimeout(() => {
+                    const el = document.getElementById(`q-card-${target}`);
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        el.classList.add('ring-2', 'ring-blue-400');
+                        setTimeout(() => el.classList.remove('ring-2', 'ring-blue-400'), 1000);
+                    }
+                }, 100);
             }
         }
 
@@ -352,7 +390,7 @@
             renderQuestions();
         }
 
-        function deleteQuestion(i) { questions.splice(i, 1); renderQuestions(); }
+        function deleteQuestion(i, e) { if (e) e.stopPropagation(); questions.splice(i, 1); renderQuestions(); }
         function deleteBlock(qIdx, bIdx) { questions[qIdx].blocks.splice(bIdx, 1); renderQuestions(); }
         function removeListItem(qIdx, bIdx, iIdx) { questions[qIdx].blocks[bIdx].items.splice(iIdx, 1); renderQuestions(); }
 
@@ -361,7 +399,8 @@
                 text: "Question Title...",
                 blocks: [],
                 options: [{label:"A.",text:""},{label:"B.",text:""},{label:"C.",text:""},{label:"D.",text:""}],
-                answer: null
+                answer: null,
+                collapsed: false
             });
             renderQuestions();
         }
@@ -390,6 +429,24 @@
                     renderQuestions();
                     showToast(`Answer set to ${match[1].toUpperCase()}`);
                 }
+            } catch (e) {}
+        }
+
+        async function smartPasteOptions(qIdx) {
+             try {
+                const text = await navigator.clipboard.readText();
+                const lines = text.split(/\n/).map(l => l.trim()).filter(l => l);
+                lines.forEach(line => {
+                    const match = line.match(/^([A-D])[\.\s:]+(.*)/i);
+                    if (match) {
+                        const idx = match[1].toUpperCase().charCodeAt(0) - 65;
+                        if (idx >= 0 && idx < 4) {
+                            questions[qIdx].options[idx].text = match[2];
+                        }
+                    }
+                });
+                renderQuestions();
+                showToast("Options updated");
             } catch (e) {}
         }
 
@@ -427,14 +484,26 @@
                 const chunks = text.split(/\[Q\]:/g).filter(c => c.trim());
                 const results = chunks.map(chunk => {
                     const lines = chunk.split(/\n/).map(l => l.trim()).filter(l => l);
-                    const q = { text: "", blocks: [], options: [{label:"A.",text:""},{label:"B.",text:""},{label:"C.",text:""},{label:"D.",text:""}], answer: null };
+                    const q = { text: "", blocks: [], options: [{label:"A.",text:""},{label:"B.",text:""},{label:"C.",text:""},{label:"D.",text:""}], answer: null, collapsed: false };
                     let parsingOpt = false;
+                    
                     lines.forEach(line => {
                         const optMatch = line.match(/^([A-D])[\.\s:]+(.*)/i);
+                        const listMatch = line.match(/^[\(\[]?(\d+)[\)\]\.\s]+(.*)/);
+
                         if (optMatch) {
                             q.options[optMatch[1].toUpperCase().charCodeAt(0)-65].text = optMatch[2];
                             parsingOpt = true;
-                        } else if (!parsingOpt) q.text += (q.text ? " " : "") + line;
+                        } else if (listMatch && !parsingOpt) {
+                            let lastBlock = q.blocks[q.blocks.length - 1];
+                            if (!lastBlock || lastBlock.type !== 'list') {
+                                lastBlock = { type: 'list', items: [], indent: 1 };
+                                q.blocks.push(lastBlock);
+                            }
+                            lastBlock.items.push({ label: `(${listMatch[1]})`, text: listMatch[2] });
+                        } else if (!parsingOpt) {
+                            q.text += (q.text ? " " : "") + line;
+                        }
                     });
                     return q;
                 });
@@ -448,11 +517,8 @@
 
         function getQuestionRowsHTML(q, idx, isPartOfBigTable = false) {
             let html = '';
-            
-            // Question Heading Row
             html += `<tr style="${rowStyle}"><td style="width:30pt; ${cellStyle}">${idx + 1}.</td><td colspan="10" style="${cellStyle}">${q.text}</td></tr>`;
             
-            // Blocks
             q.blocks.forEach(block => {
                 const indent = block.indent || 0;
                 const spacerColumns = Array(indent).fill(`<td style="width:30pt; ${cellStyle}"></td>`).join('');
@@ -470,7 +536,6 @@
                 }
             });
 
-            // Options
             q.options.forEach((opt, oIdx) => {
                 const isCorrect = q.answer === oIdx;
                 const decoration = isCorrect ? "text-decoration: underline;" : "";
@@ -478,11 +543,9 @@
                 html += `<tr style="${rowStyle}"><td style="width:30pt; ${cellStyle}"></td><td style="width:30pt; ${cellStyle}">${opt.label}</td><td colspan="9" style="${decoration} ${font} ${cellStyle}">${opt.text}</td></tr>`;
             });
 
-            // Spacer row between questions if in one big table
             if (isPartOfBigTable) {
                 html += `<tr style="${rowStyle}"><td colspan="11" style="${cellStyle} height: 20pt;"></td></tr>`;
             }
-
             return html;
         }
 
@@ -496,12 +559,9 @@
         function refreshExportPreview() {
             const isBigTable = document.getElementById('mergeTablesToggle').checked;
             const container = document.getElementById('exportArea');
-            
             if (isBigTable) {
                 let html = `<table class="tnr" style="border-collapse: collapse; width: 100%; font-size: 11pt; color: black; background: transparent; border:none; padding:0;">`;
-                questions.forEach((q, i) => {
-                    html += getQuestionRowsHTML(q, i, true);
-                });
+                questions.forEach((q, i) => html += getQuestionRowsHTML(q, i, true));
                 html += `</table>`;
                 container.innerHTML = html;
             } else {
@@ -509,7 +569,8 @@
             }
         }
 
-        function copyQuestionTable(qIdx) {
+        function copyQuestionTable(qIdx, e) {
+            if (e) e.stopPropagation();
             const buffer = document.getElementById('singleCopyBuffer');
             buffer.innerHTML = generateHTMLForQuestion(questions[qIdx], qIdx);
             selectAndCopy(buffer);
@@ -545,7 +606,7 @@
                 if (q.answer !== null) csv += `,"Answer","","${q.answer}"\n`; 
                 q.blocks.forEach(b => {
                     if (b.type === 'list') b.items.forEach(it => csv += `,"List Item","${it.label}","${it.text.replace(/"/g, '""')}"\n`);
-                    else csv += `,"${b.type === 'code' ? 'Code' : 'Text'}","${b.indent || 0}","${b.content.replace(/"/g, '""')}"\n`;
+                    else csv += `,"${b.type === 'code' || b.type === 'Code' ? 'Code' : 'Text'}","${b.indent || 0}","${b.content.replace(/"/g, '""')}"\n`;
                 });
                 q.options.forEach(o => csv += `,"Option","${o.label}","${o.text.replace(/"/g, '""')}"\n`);
             });
@@ -562,34 +623,54 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const raw = e.target.result;
-                const lines = raw.split(/\r?\n/).map(l => l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/));
+                const lines = raw.split(/\r?\n/);
                 const newQs = [];
                 let currentQ = null;
 
-                lines.forEach((clean, i) => {
-                    if (i === 0 || !clean[1]) return;
-                    const idx = clean[0]?.replace(/"/g, '').trim();
-                    const type = clean[1]?.replace(/"/g, '').trim();
-                    const label = clean[2]?.replace(/"/g, '').trim();
-                    const details = clean[3]?.replace(/"/g, '').trim();
-
+                lines.forEach((line, i) => {
+                    if (i === 0 || !line.trim()) return;
+                    const cells = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => {
+                        let val = c.trim();
+                        if (val.startsWith('"') && val.endsWith('"')) {
+                            val = val.substring(1, val.length - 1).replace(/""/g, '"');
+                        }
+                        return val;
+                    });
+                    const idx = cells[0];
+                    const type = cells[1];
+                    const label = cells[2];
+                    const details = cells[3];
                     if (idx && /^\d+/.test(idx)) {
                         if (currentQ) newQs.push(currentQ);
-                        currentQ = { text: type || "", blocks: [], options: [], answer: null };
+                        currentQ = { text: type || "", blocks: [], options: [], answer: null, collapsed: false };
                     } else if (currentQ) {
-                        if (type === "Option") currentQ.options.push({ label, text: details, isCode: false });
-                        else if (type === "Answer") currentQ.answer = parseInt(details);
-                        else if (type === "List Item") {
+                        const typeNormalized = type ? type.toLowerCase() : "";
+                        if (typeNormalized === "option") {
+                            currentQ.options.push({ label, text: details, isCode: false });
+                        } else if (typeNormalized === "answer") {
+                            currentQ.answer = parseInt(details);
+                        } else if (typeNormalized === "list item") {
                             let last = currentQ.blocks[currentQ.blocks.length - 1];
-                            if (!last || last.type !== 'list') currentQ.blocks.push(last = { type: 'list', items: [], indent: 1 });
+                            if (!last || last.type !== 'list') {
+                                last = { type: 'list', items: [], indent: 1 };
+                                currentQ.blocks.push(last);
+                            }
                             last.items.push({ label, text: details });
-                        } else if (type === "Code" || type === "Text") {
-                            currentQ.blocks.push({ type: type.toLowerCase(), content: details, indent: parseInt(label) || (type === "Text" ? 0 : 1) });
+                        } else if (typeNormalized === "code" || typeNormalized === "text") {
+                            currentQ.blocks.push({ 
+                                type: typeNormalized, 
+                                content: details, 
+                                indent: parseInt(label) || (typeNormalized === "text" ? 0 : 1) 
+                            });
                         }
                     }
                 });
                 if (currentQ) newQs.push(currentQ);
-                if (newQs.length) { questions = newQs; renderQuestions(); }
+                if (newQs.length) { 
+                    questions = newQs; 
+                    renderQuestions(); 
+                    showToast("Import successful");
+                }
             };
             reader.readAsText(file);
         }
