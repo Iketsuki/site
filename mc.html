@@ -85,7 +85,7 @@
     <div class="max-w-5xl mx-auto">
         <header class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-slate-800">MCQ Table Maker</h1>
+                <h1 class="text-3xl font-bold text-slate-800 tracking-tight">MCQ Table Maker</h1>
                 <div class="flex items-center gap-4 mt-1">
                     <p class="text-slate-500 text-sm">Undo: Ctrl+Z | Redo: Ctrl+Y</p>
                     <div class="flex gap-2">
@@ -95,16 +95,48 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-2">
+                <button onclick="toggleSettings()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm transition font-medium">⚙️ Settings</button>
                 <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="importCSV(event)">
                 <button onclick="document.getElementById('csvFileInput').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm transition">Import CSV</button>
                 <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm transition">Export CSV</button>
-                <button onclick="toggleAllCollapse(true)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm transition">Collapse All</button>
-                <button onclick="toggleAllCollapse(false)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm transition">Unfold All</button>
-                <button onclick="smartPasteAll()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm transition">⚡ Smart Paste All</button>
+                <div class="flex gap-1">
+                    <button onclick="toggleAllCollapse(false)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-l-lg text-sm transition border-r border-slate-300">Expand All</button>
+                    <button onclick="toggleAllCollapse(true)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-r-lg text-sm transition">Collapse All</button>
+                </div>
                 <button onclick="addQuestion()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition">+ Add Question</button>
                 <button onclick="toggleExportMode()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm transition">Full Preview</button>
             </div>
         </header>
+
+        <!-- Global Settings Panel -->
+        <div id="settingsPanel" class="hidden bg-white border border-slate-200 rounded-xl p-6 mb-8 shadow-sm">
+            <h3 class="text-lg font-bold mb-4">Default Numbering Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-2">List Item Label Template</label>
+                    <div class="flex gap-2 mb-2">
+                        <button onclick="setTemplate('(n)')" class="text-[10px] bg-slate-100 px-2 py-1 rounded hover:bg-slate-200 border border-slate-200">(n)</button>
+                        <button onclick="setTemplate('n.')" class="text-[10px] bg-slate-100 px-2 py-1 rounded hover:bg-slate-200 border border-slate-200">n.</button>
+                        <button onclick="setTemplate('(i)')" class="text-[10px] bg-slate-100 px-2 py-1 rounded hover:bg-slate-200 border border-slate-200">(i)</button>
+                        <button onclick="setTemplate('i.')" class="text-[10px] bg-slate-100 px-2 py-1 rounded hover:bg-slate-200 border border-slate-200">i.</button>
+                    </div>
+                    <input type="text" id="settingListTemplate" value="(n)" placeholder="(n)" class="w-full border rounded-lg px-3 py-2 text-sm">
+                    <p class="text-[10px] text-slate-400 mt-1">Use 'n' for numbers (1, 2) or 'i' for roman numerals (i, ii).</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-2">Option Labels (comma separated)</label>
+                    <div class="flex gap-2 mb-2">
+                        <button onclick="setOptionLabels('A.,B.,C.,D.')" class="text-[10px] bg-slate-100 px-2 py-1 rounded hover:bg-slate-200 border border-slate-200">A. B. C. D.</button>
+                        <button onclick="setOptionLabels('1.,2.,3.,4.')" class="text-[10px] bg-slate-100 px-2 py-1 rounded hover:bg-slate-200 border border-slate-200">1. 2. 3. 4.</button>
+                        <button onclick="setOptionLabels('(a),(b),(c),(d)')" class="text-[10px] bg-slate-100 px-2 py-1 rounded hover:bg-slate-200 border border-slate-200">(a) (b) (c) (d)</button>
+                    </div>
+                    <input type="text" id="settingOptionLabels" value="A.,B.,C.,D." placeholder="A.,B.,C.,D." class="w-full border rounded-lg px-3 py-2 text-sm">
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button onclick="toggleSettings()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm">Save & Close</button>
+            </div>
+        </div>
 
         <div id="questionsContainer" class="space-y-4 mb-12"></div>
 
@@ -152,6 +184,42 @@
         let questions = [];
         let history = [];
         let historyIndex = -1;
+
+        let config = {
+            listTemplate: "(n)",
+            optionLabels: ["A.", "B.", "C.", "D."]
+        };
+
+        function setTemplate(t) { document.getElementById('settingListTemplate').value = t; }
+        function setOptionLabels(l) { document.getElementById('settingOptionLabels').value = l; }
+
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            const isHidden = panel.classList.toggle('hidden');
+            if (isHidden) {
+                config.listTemplate = document.getElementById('settingListTemplate').value || "(n)";
+                config.optionLabels = document.getElementById('settingOptionLabels').value.split(',').map(s => s.trim());
+            }
+        }
+
+        function toRoman(num) {
+            const map = { m: 1000, cm: 900, d: 500, cd: 400, c: 100, xc: 90, l: 50, xl: 40, x: 10, ix: 9, v: 5, iv: 4, i: 1 };
+            let result = '';
+            for (let key in map) {
+                while (num >= map[key]) {
+                    result += key;
+                    num -= map[key];
+                }
+            }
+            return result;
+        }
+
+        function generateLabel(index, template) {
+            if (template.includes('i')) {
+                return template.replace('i', toRoman(index));
+            }
+            return template.replace('n', index);
+        }
 
         function saveState() {
             const currentState = JSON.stringify(questions);
@@ -221,6 +289,7 @@
                         </div>
                         <div class="flex gap-2 flex-shrink-0">
                             <button onclick="copyQuestionTable(${qIdx}, event)" class="text-[10px] bg-white border border-blue-100 text-blue-600 px-2 py-0.5 rounded hover:bg-blue-50">Copy Table</button>
+                            <button onclick="duplicateQuestion(${qIdx}, event)" class="text-[10px] bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded hover:bg-slate-50">Duplicate</button>
                             <button onclick="deleteQuestion(${qIdx}, event)" class="text-red-400 hover:text-red-600 ml-2">✕</button>
                             <span class="text-slate-400 text-xs ml-2">${q.collapsed ? '▼' : '▲'}</span>
                         </div>
@@ -240,12 +309,17 @@
                             <button onclick="addBlock(${qIdx}, 'list')" class="text-[10px] bg-slate-100 px-2 py-1 rounded hover:bg-slate-200">+ List</button>
                             <button onclick="addBlock(${qIdx}, 'code')" class="text-[10px] bg-slate-100 px-2 py-1 rounded hover:bg-slate-200">+ Code</button>
                             <div class="w-[1px] h-4 bg-slate-200 mx-1"></div>
+                            <button onclick="toggleOptionsBlock(${qIdx})" class="text-[10px] ${q.options ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'} px-2 py-1 rounded hover:opacity-80">
+                                ${q.options ? '- Remove Options' : '+ Add Options'}
+                            </button>
+                            <div class="w-[1px] h-4 bg-slate-200 mx-1"></div>
                             <button onclick="smartPasteList(${qIdx})" class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded hover:bg-indigo-100">📋 List</button>
                             <button onclick="smartPasteCode(${qIdx})" class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100">📋 Code</button>
-                            <button onclick="smartPasteOptions(${qIdx})" class="text-[10px] bg-pink-50 text-pink-600 px-2 py-1 rounded hover:bg-pink-100">📋 ABCD Options</button>
+                            <button onclick="smartPasteOptions(${qIdx})" class="text-[10px] bg-pink-50 text-pink-600 px-2 py-1 rounded hover:bg-pink-100">📋 Options</button>
                             <button onclick="smartPasteAnswer(${qIdx})" class="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-1 rounded hover:bg-emerald-100">✅ Ans</button>
                         </div>
 
+                        ${q.options ? `
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 pt-6 mt-4 border-t">
                             ${q.options.map((opt, oIdx) => `
                                 <div class="flex items-start gap-3 p-2 rounded group ${q.answer === oIdx ? 'bg-blue-50/50' : ''}">
@@ -258,11 +332,16 @@
                                     </div>
                                     <div class="flex-1">
                                         <div contenteditable="true" class="editable tnr outline-none min-h-[1.5rem] ${opt.isCode ? 'courier text-sm' : ''} ${q.answer === oIdx ? 'underline decoration-blue-200 underline-offset-4' : ''}" onblur="updateOptionText(${qIdx}, ${oIdx}, this.innerText)">${opt.text}</div>
-                                        <button onclick="toggleOptionStyle(${qIdx}, ${oIdx})" class="text-[8px] text-slate-300 uppercase hover:text-blue-500 mt-1 block">Toggle Mono</button>
+                                        <div class="flex gap-2 items-center mt-1">
+                                            <button onclick="toggleOptionStyle(${qIdx}, ${oIdx})" class="text-[8px] text-slate-300 uppercase hover:text-blue-500 block">Toggle Mono</button>
+                                            <button onclick="removeOption(${qIdx}, ${oIdx})" class="text-[8px] text-red-200 uppercase hover:text-red-500 block">Remove</button>
+                                        </div>
                                     </div>
                                 </div>
                             `).join('')}
+                            <button onclick="addSingleOption(${qIdx})" class="md:col-span-2 text-[10px] text-blue-500 hover:underline py-2 border border-dashed rounded">+ Add Option Row</button>
                         </div>
+                        ` : ''}
                     </div>
                 `;
                 container.appendChild(card);
@@ -292,7 +371,9 @@
                                 <button onclick="removeListItem(${qIdx}, ${bIdx}, ${iIdx})" class="opacity-0 group-hover/item:opacity-100 text-red-300 hover:text-red-500 px-1">✕</button>
                             </div>
                         `).join('')}
-                        <button onclick="addListItem(${qIdx}, ${bIdx})" class="text-[9px] text-blue-400 font-bold ml-12 uppercase tracking-tight hover:underline">+ New Item</button>
+                        <div class="flex gap-2">
+                             <button onclick="addListItem(${qIdx}, ${bIdx})" class="text-[9px] text-blue-400 font-bold ml-12 uppercase tracking-tight hover:underline">+ New Item</button>
+                        </div>
                     </div>`;
             }
 
@@ -325,6 +406,7 @@
         function toggleOptionStyle(qIdx, oIdx) { questions[qIdx].options[oIdx].isCode = !questions[qIdx].options[oIdx].isCode; renderQuestions(); }
         
         function toggleCollapse(idx, e) {
+            if (e.target.closest('button') || e.target.classList.contains('editable')) return;
             questions[idx].collapsed = !questions[idx].collapsed;
             renderQuestions(false);
         }
@@ -334,21 +416,49 @@
             renderQuestions(false);
         }
 
+        function toggleOptionsBlock(qIdx) {
+            if (questions[qIdx].options) {
+                questions[qIdx].options = null;
+                questions[qIdx].answer = null;
+            } else {
+                questions[qIdx].options = config.optionLabels.map(l => ({ label: l, text: "", isCode: false }));
+            }
+            renderQuestions();
+        }
+
+        function duplicateQuestion(idx, e) {
+            if (e) e.stopPropagation();
+            const clone = JSON.parse(JSON.stringify(questions[idx]));
+            clone.collapsed = false;
+            questions.splice(idx + 1, 0, clone);
+            renderQuestions();
+            showToast("Question duplicated");
+        }
+
+        function addSingleOption(qIdx) {
+            const currentLen = questions[qIdx].options.length;
+            const newLabel = config.optionLabels[currentLen] || String.fromCharCode(65 + currentLen) + ".";
+            questions[qIdx].options.push({ label: newLabel, text: "", isCode: false });
+            renderQuestions();
+        }
+
+        function removeOption(qIdx, oIdx) {
+            questions[qIdx].options.splice(oIdx, 1);
+            if (questions[qIdx].answer === oIdx) questions[qIdx].answer = null;
+            else if (questions[qIdx].answer > oIdx) questions[qIdx].answer--;
+            renderQuestions();
+        }
+
         function moveQuestion(idx, dir, e) {
             if (e) e.stopPropagation();
             const target = idx + dir;
             if (target >= 0 && target < questions.length) {
                 [questions[idx], questions[target]] = [questions[target], questions[idx]];
                 renderQuestions();
-                
                 setTimeout(() => {
                     const el = document.getElementById(`q-card-${target}`);
-                    if (el) {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        el.classList.add('ring-2', 'ring-blue-400');
-                        setTimeout(() => el.classList.remove('ring-2', 'ring-blue-400'), 1000);
-                    }
-                }, 100);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 50);
             }
         }
 
@@ -397,7 +507,7 @@
             questions.push({
                 text: "Question Title...",
                 blocks: [],
-                options: [{label:"A.",text:""},{label:"B.",text:""},{label:"C.",text:""},{label:"D.",text:""}],
+                options: config.optionLabels.map(l => ({ label: l, text: "" })),
                 answer: null,
                 collapsed: false
             });
@@ -407,7 +517,10 @@
         function addBlock(qIdx, type) {
             const defaultIndent = type === 'text' ? 0 : 1;
             const b = { type, indent: defaultIndent };
-            if (type === 'list') b.items = [{ label: "(1)", text: "" }];
+            if (type === 'list') {
+                const label = generateLabel(1, config.listTemplate);
+                b.items = [{ label: label, text: "" }];
+            }
             else b.content = "";
             questions[qIdx].blocks.push(b);
             renderQuestions();
@@ -415,7 +528,8 @@
 
         function addListItem(qIdx, bIdx) {
             const items = questions[qIdx].blocks[bIdx].items;
-            items.push({ label: `(${items.length + 1})`, text: "" });
+            const label = generateLabel(items.length + 1, config.listTemplate);
+            items.push({ label: label, text: "" });
             renderQuestions();
         }
 
@@ -435,11 +549,16 @@
              try {
                 const text = await navigator.clipboard.readText();
                 const lines = text.split(/\n/).map(l => l.trim()).filter(l => l);
+                if (!questions[qIdx].options) toggleOptionsBlock(qIdx);
                 lines.forEach(line => {
-                    const match = line.match(/^([A-D])[\.\s:]+(.*)/i);
+                    const match = line.match(/^([A-D0-9])[\.\s:]+(.*)/i);
                     if (match) {
-                        const idx = match[1].toUpperCase().charCodeAt(0) - 65;
-                        if (idx >= 0 && idx < 4) {
+                        const char = match[1].toUpperCase();
+                        let idx = -1;
+                        if (/[A-D]/.test(char)) idx = char.charCodeAt(0) - 65;
+                        else if (/\d/.test(char)) idx = parseInt(char) - 1;
+                        
+                        if (idx >= 0 && idx < questions[qIdx].options.length) {
                             questions[qIdx].options[idx].text = match[2];
                         }
                     }
@@ -455,8 +574,14 @@
                 const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
                 const listItems = [];
                 lines.forEach(line => {
-                    const match = line.match(/^[\(\[]?(\d+)[\)\]\.\s]+(.*)/);
-                    if (match) listItems.push({ label: `(${match[1]})`, text: match[2] });
+                    const match = line.match(/^[\(\[]?(\d+|[ivx]+)[\)\]\.\s]+(.*)/i);
+                    if (match) {
+                        const rawIndex = match[1];
+                        let label = "";
+                        if (/^\d+$/.test(rawIndex)) label = generateLabel(parseInt(rawIndex), config.listTemplate);
+                        else label = config.listTemplate.includes('i') ? config.listTemplate.replace('i', rawIndex.toLowerCase()) : `(${rawIndex.toLowerCase()})`;
+                        listItems.push({ label: label, text: match[2] });
+                    }
                     else if (listItems.length > 0) listItems[listItems.length-1].text += " " + line;
                 });
                 if (listItems.length) {
@@ -483,15 +608,16 @@
                 const chunks = text.split(/\[Q\]:/g).filter(c => c.trim());
                 const results = chunks.map(chunk => {
                     const lines = chunk.split(/\n/).map(l => l.trim()).filter(l => l);
-                    const q = { text: "", blocks: [], options: [{label:"A.",text:""},{label:"B.",text:""},{label:"C.",text:""},{label:"D.",text:""}], answer: null, collapsed: false };
+                    const q = { text: "", blocks: [], options: config.optionLabels.map(l => ({ label: l, text: "" })), answer: null, collapsed: false };
                     let parsingOpt = false;
                     
                     lines.forEach(line => {
                         const optMatch = line.match(/^([A-D])[\.\s:]+(.*)/i);
-                        const listMatch = line.match(/^[\(\[]?(\d+)[\)\]\.\s]+(.*)/);
+                        const listMatch = line.match(/^[\(\[]?(\d+|[ivx]+)[\)\]\.\s]+(.*)/i);
 
                         if (optMatch) {
-                            q.options[optMatch[1].toUpperCase().charCodeAt(0)-65].text = optMatch[2];
+                            const idx = optMatch[1].toUpperCase().charCodeAt(0)-65;
+                            if (q.options[idx]) q.options[idx].text = optMatch[2];
                             parsingOpt = true;
                         } else if (listMatch && !parsingOpt) {
                             let lastBlock = q.blocks[q.blocks.length - 1];
@@ -499,7 +625,9 @@
                                 lastBlock = { type: 'list', items: [], indent: 1 };
                                 q.blocks.push(lastBlock);
                             }
-                            lastBlock.items.push({ label: `(${listMatch[1]})`, text: listMatch[2] });
+                            const rawIndex = listMatch[1];
+                            let label = /^\d+$/.test(rawIndex) ? generateLabel(parseInt(rawIndex), config.listTemplate) : `(${rawIndex})`;
+                            lastBlock.items.push({ label: label, text: listMatch[2] });
                         } else if (!parsingOpt) {
                             q.text += (q.text ? " " : "") + line;
                         }
@@ -535,12 +663,14 @@
                 }
             });
 
-            q.options.forEach((opt, oIdx) => {
-                const isCorrect = q.answer === oIdx;
-                const decoration = isCorrect ? "text-decoration: underline;" : "";
-                const font = opt.isCode ? "font-family:'Courier New', monospace; font-size:10pt;" : "";
-                html += `<tr style="${rowStyle}"><td style="width:30pt; ${cellStyle}"></td><td style="width:30pt; ${cellStyle}">${opt.label}</td><td colspan="9" style="${decoration} ${font} ${cellStyle}">${opt.text}</td></tr>`;
-            });
+            if (q.options) {
+                q.options.forEach((opt, oIdx) => {
+                    const isCorrect = q.answer === oIdx;
+                    const decoration = isCorrect ? "text-decoration: underline;" : "";
+                    const font = opt.isCode ? "font-family:'Courier New', monospace; font-size:10pt;" : "";
+                    html += `<tr style="${rowStyle}"><td style="width:30pt; ${cellStyle}"></td><td style="width:30pt; ${cellStyle}">${opt.label}</td><td colspan="9" style="${decoration} ${font} ${cellStyle}">${opt.text}</td></tr>`;
+                });
+            }
 
             if (isPartOfBigTable) {
                 html += `<tr style="${rowStyle}"><td colspan="11" style="${cellStyle} height: 20pt;"></td></tr>`;
@@ -610,7 +740,9 @@
                         csv += `,"${b.type === 'code' ? 'Code' : 'Text'}","${b.indent || 0}","${b.content.replace(/"/g, '""')}"\n`;
                     }
                 });
-                q.options.forEach(o => csv += `,"Option","${o.label}","${o.text.replace(/"/g, '""')}"\n`);
+                if (q.options) {
+                    q.options.forEach(o => csv += `,"Option","${o.label}","${o.text.replace(/"/g, '""')}"\n`);
+                }
             });
             const blob = new Blob([csv], { type: 'text/csv' });
             const link = document.createElement("a");
@@ -619,47 +751,30 @@
             link.click();
         }
 
-        // --- ROBUST CSV PARSER ---
         function parseCSV(text) {
             const result = [];
             let row = [];
             let cell = '';
             let inQuotes = false;
-            
             for (let i = 0; i < text.length; i++) {
                 const char = text[i];
                 const next = text[i+1];
-                
                 if (inQuotes) {
-                    if (char === '"' && next === '"') {
-                        cell += '"';
-                        i++;
-                    } else if (char === '"') {
-                        inQuotes = false;
-                    } else {
-                        cell += char;
-                    }
+                    if (char === '"' && next === '"') { cell += '"'; i++; }
+                    else if (char === '"') inQuotes = false;
+                    else cell += char;
                 } else {
-                    if (char === '"') {
-                        inQuotes = true;
-                    } else if (char === ',') {
-                        row.push(cell);
-                        cell = '';
-                    } else if (char === '\n' || char === '\r') {
+                    if (char === '"') inQuotes = true;
+                    else if (char === ',') { row.push(cell); cell = ''; }
+                    else if (char === '\n' || char === '\r') {
                         row.push(cell);
                         if (row.length > 0) result.push(row);
-                        row = [];
-                        cell = '';
+                        row = []; cell = '';
                         if (char === '\r' && next === '\n') i++;
-                    } else {
-                        cell += char;
-                    }
+                    } else cell += char;
                 }
             }
-            if (cell || row.length > 0) {
-                row.push(cell);
-                result.push(row);
-            }
+            if (cell || row.length > 0) { row.push(cell); result.push(row); }
             return result;
         }
 
@@ -668,53 +783,37 @@
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                const raw = e.target.result;
-                const rows = parseCSV(raw);
+                const rows = parseCSV(e.target.result);
                 const newQs = [];
                 let currentQ = null;
-
                 rows.forEach((cells, i) => {
                     if (i === 0 || !cells.join('').trim()) return;
-                    
-                    const idx = cells[0];
-                    const type = cells[1];
-                    const label = cells[2];
-                    const details = cells[3];
-                    
-                    // Detect start of new question
+                    const idx = cells[0], type = cells[1], label = cells[2], details = cells[3];
                     if (idx && /^\d+/.test(idx)) {
                         if (currentQ) newQs.push(currentQ);
-                        currentQ = { text: type || "", blocks: [], options: [], answer: null, collapsed: false };
+                        currentQ = { text: type || "", blocks: [], options: null, answer: null, collapsed: false };
                     } else if (currentQ) {
-                        const typeNormalized = type ? type.toLowerCase() : "";
-                        if (typeNormalized === "option") {
+                        const typeNorm = type ? type.toLowerCase() : "";
+                        if (typeNorm === "option") {
+                            if (!currentQ.options) currentQ.options = [];
                             currentQ.options.push({ label, text: details || "", isCode: false });
-                        } else if (typeNormalized === "answer") {
+                        } else if (typeNorm === "answer") {
                             currentQ.answer = parseInt(details);
-                        } else if (typeNormalized === "list item") {
-                            // Only append to the last block if it's already a list, otherwise create new
+                        } else if (typeNorm === "list item") {
                             let last = currentQ.blocks[currentQ.blocks.length - 1];
                             if (!last || last.type !== 'list') {
                                 last = { type: 'list', items: [], indent: 1 };
                                 currentQ.blocks.push(last);
                             }
                             last.items.push({ label, text: details || "" });
-                        } else if (typeNormalized === "code" || typeNormalized === "text") {
-                            currentQ.blocks.push({ 
-                                type: typeNormalized, 
-                                content: details || "", 
-                                indent: parseInt(label) || (typeNormalized === "text" ? 0 : 1) 
-                            });
+                        } else if (typeNorm === "code" || typeNorm === "text") {
+                            currentQ.blocks.push({ type: typeNorm, content: details || "", indent: parseInt(label) || (typeNorm === "text" ? 0 : 1) });
                         }
                     }
                 });
                 if (currentQ) newQs.push(currentQ);
-                if (newQs.length) { 
-                    questions = newQs; 
-                    renderQuestions(); 
-                    showToast("Import successful");
-                }
-                event.target.value = ''; // Reset input
+                if (newQs.length) { questions = newQs; renderQuestions(); showToast("Import successful"); }
+                event.target.value = '';
             };
             reader.readAsText(file);
         }
