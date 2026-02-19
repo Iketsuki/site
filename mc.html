@@ -376,12 +376,12 @@
                 card.innerHTML = `
                     <div class="bg-slate-50/80 px-5 py-3 border-b flex justify-between items-center cursor-pointer select-none group" onclick="toggleCollapse(${qIdx}, event)">
                         <div class="flex gap-4 items-center overflow-hidden">
-                            <span class="text-xs font-black text-slate-400 w-6">${qIdx + 1}</span>
+                            <span class="text-xl font-black text-slate-400 w-6">${qIdx + 1}</span>
                             <div class="flex gap-0.5 opacity-0 group-hover:opacity-100 transition">
                                 <button onclick="moveQuestion(${qIdx}, -1, event)" class="p-1 hover:text-indigo-600">↑</button>
                                 <button onclick="moveQuestion(${qIdx}, 1, event)" class="p-1 hover:text-indigo-600">↓</button>
                             </div>
-                            ${q.collapsed ? `<span class="text-xs text-slate-500 font-medium tnr truncate italic">${cardTitle || 'Untitled Question'}</span>` : ''}
+                            ${q.collapsed ? `<span class="text-xl text-slate-1000 font-medium tnr truncate">${cardTitle || 'Untitled Question'}</span>` : ''}
                         </div>
                         <div class="flex gap-2 items-center">
                             <button onclick="copyQuestionTable(${qIdx}, event)" class="text-[10px] bg-white border border-slate-200 text-slate-600 px-3 py-1 rounded-lg hover:bg-white hover:border-indigo-300 hover:text-indigo-600 transition shadow-sm">Copy Table</button>
